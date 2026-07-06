@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { buildMetadata, siteConfig } from "@/lib/site";
 import { PageHero } from "@/components/sections/page-hero";
+import { SocialNetworksSection } from "@/components/phase3/social-networks-section";
 
 export const metadata = buildMetadata({
   title: "Contact",
@@ -50,6 +51,7 @@ export default function ContactPage() {
           </article>
         </div>
       </section>
+      <SocialNetworksSection />
     </>
   );
 }

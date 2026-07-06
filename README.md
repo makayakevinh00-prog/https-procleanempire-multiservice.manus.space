@@ -62,3 +62,27 @@ Composants:
 - `components/phase2/gallery-filter-grid.tsx`
 - `components/phase2/team-premium-section.tsx`
 - `components/phase2/interactive-process-timeline.tsx`
+
+## Contenu Phase 3 (acquisition long terme)
+
+Donnees centralisees:
+
+- `lib/content/phase3.ts`
+
+Pages:
+
+- `app/videos/page.tsx`
+- `app/blog/page.tsx`
+- `app/faq/page.tsx` (version recherche + filtres)
+- `app/devis/page.tsx` (wizard multi-etapes via composant)
+
+Composants:
+
+- `components/phase3/videos-grid.tsx`
+- `components/phase3/social-networks-section.tsx`
+- `components/phase3/faq-advanced.tsx`
+
+## Donnees legales (KBIS)
+
+- `lib/content/legal.ts`
+- Utilise dans `app/mentions-legales/page.tsx` et `components/layout/footer.tsx`

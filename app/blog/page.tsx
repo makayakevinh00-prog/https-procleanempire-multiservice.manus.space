@@ -1,38 +1,21 @@
 import Link from "next/link";
 import { buildMetadata } from "@/lib/site";
 import { PageHero } from "@/components/sections/page-hero";
+import { blogPageContent } from "@/lib/content/phase3";
 
 export const metadata = buildMetadata({
   title: "Blog",
   description:
-    "Conseils pratiques et retours terrain sur l'hygiène, l'entretien des locaux et la performance des espaces professionnels.",
+    "Structure blog ProClean Empire pour publier des contenus SEO local et expertise nettoyage professionnel.",
   path: "/blog"
 });
-
-const posts = [
-  {
-    title: "Comment réduire les incidents d'hygiène en environnement bureau",
-    excerpt:
-      "Les points de contrôle à mettre en place pour préserver des locaux sains sans alourdir votre organisation."
-  },
-  {
-    title: "Nettoyage multi-sites: quels indicateurs suivre pour garder la qualité",
-    excerpt:
-      "Un cadre simple pour piloter plusieurs adresses avec le même niveau d'exigence."
-  },
-  {
-    title: "Préparer une remise en état efficace après travaux",
-    excerpt:
-      "Checklist opérationnelle pour reprendre l'activité rapidement dans de bonnes conditions."
-  }
-];
 
 export default function BlogPage() {
   return (
     <>
       <PageHero
-        title="Blog"
-        description="Des contenus utiles pour mieux piloter la propreté de vos locaux professionnels."
+        title={blogPageContent.title}
+        description={blogPageContent.description}
         breadcrumbs={[
           { label: "Accueil", href: "/" },
           { label: "Blog" }
@@ -44,19 +27,34 @@ export default function BlogPage() {
         }
       />
       <section className="section pt-0">
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {posts.map((post) => (
-            <article key={post.title} className="card p-6">
-              <h2 className="text-xl font-semibold text-slate-900">{post.title}</h2>
-              <p className="mt-3 text-sm leading-relaxed text-slate-600">{post.excerpt}</p>
-              <Link
-                href="/contact"
-                className="mt-5 inline-flex text-sm font-semibold text-brand-700 hover:text-brand-900"
+        <div className="card p-6 md:p-8">
+          <h2 className="text-xl font-semibold text-[#14213d]">Catégories éditoriales prévues</h2>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {blogPageContent.categories.map((category) => (
+              <span
+                key={category}
+                className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700"
               >
-                Échanger avec un expert →
-              </Link>
-            </article>
-          ))}
+                {category}
+              </span>
+            ))}
+          </div>
+          <p className="mt-5 text-sm leading-relaxed text-slate-600">{blogPageContent.placeholder}</p>
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {blogPageContent.categories.slice(0, 6).map((category) => (
+              <article key={category} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#c9a227]">
+                  {category}
+                </p>
+                <h3 className="mt-2 text-base font-semibold text-[#14213d]">
+                  [A REMPLIR PAR VOUS] Titre d&apos;article
+                </h3>
+                <p className="mt-2 text-sm text-slate-600">
+                  [A REMPLIR PAR VOUS] Extrait d&apos;article optimisé SEO local.
+                </p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
     </>

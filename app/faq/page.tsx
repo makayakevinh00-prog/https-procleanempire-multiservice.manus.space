@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { buildMetadata } from "@/lib/site";
 import { PageHero } from "@/components/sections/page-hero";
-import { FaqList } from "@/components/sections/faq-list";
+import { FaqAdvanced } from "@/components/phase3/faq-advanced";
 
 export const metadata = buildMetadata({
   title: "FAQ",
@@ -32,7 +32,7 @@ export default function FaqPage() {
         }
       />
       <section className="section pt-0">
-        <FaqList />
+        <FaqAdvanced />
       </section>
     </>
   );

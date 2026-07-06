@@ -256,6 +256,7 @@ export const navLinks = [
   { label: "Realisations", href: "/realisations" },
   { label: "Galerie", href: "/galerie" },
   { label: "Equipe", href: "/equipe" },
+  { label: "Videos", href: "/videos" },
   { label: "À propos", href: "/a-propos" },
   { label: "Nos services", href: "/services" },
   { label: "FAQ", href: "/faq" },

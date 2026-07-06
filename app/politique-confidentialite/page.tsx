@@ -1,5 +1,6 @@
 import { buildMetadata } from "@/lib/site";
 import { PageHero } from "@/components/sections/page-hero";
+import { siteConfig } from "@/lib/site";
 
 export const metadata = buildMetadata({
   title: "Politique de confidentialité",
@@ -31,7 +32,7 @@ export default function PrivacyPage() {
           </p>
           <p>
             Conformément au RGPD, vous pouvez demander l&apos;accès, la correction ou la
-            suppression de vos données à l&apos;adresse: contact@proclean-empire.fr
+            suppression de vos données à l&apos;adresse: {siteConfig.email}
           </p>
         </article>
       </section>
