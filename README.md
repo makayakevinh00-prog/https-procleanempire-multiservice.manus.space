@@ -43,3 +43,22 @@ Composants de rendu Phase 1:
 - `components/phase1/reviews-premium-section.tsx`
 - `components/phase1/commitments-section.tsx`
 - `components/phase1/contact-phase1-section.tsx`
+
+## Contenu Phase 2 (preuves sociales avancees)
+
+Toutes les donnees des pages realisations / galerie / equipe sont centralisees dans:
+
+- `lib/content/phase2.ts`
+
+Pages:
+
+- `app/realisations/page.tsx`
+- `app/galerie/page.tsx`
+- `app/equipe/page.tsx`
+
+Composants:
+
+- `components/phase2/case-study-list.tsx`
+- `components/phase2/gallery-filter-grid.tsx`
+- `components/phase2/team-premium-section.tsx`
+- `components/phase2/interactive-process-timeline.tsx`
