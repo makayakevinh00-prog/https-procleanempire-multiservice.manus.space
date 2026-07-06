@@ -4,6 +4,8 @@ import { siteConfig } from "@/lib/site";
 import { legalInfo } from "@/lib/content/legal";
 import { socialLinks } from "@/lib/content/phase3";
 
+const realSocialLinks = socialLinks.filter((social) => !social.href.startsWith("["));
+
 export function Footer() {
   const services = [
     { label: "Nettoyage bureaux", href: "/nettoyage-bureaux" },
@@ -99,7 +101,7 @@ export function Footer() {
                 Videos
               </Link>
             </li>
-            {socialLinks.map((social) => (
+            {realSocialLinks.map((social) => (
               <li key={social.label}>
                 <a href={social.href} target="_blank" rel="noreferrer" className="transition hover:text-white">
                   {social.label}

@@ -1,38 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { presentationVideo } from "@/lib/content/phase1";
-
-function getYoutubeId(url: string) {
-  if (!url || url.startsWith("[")) {
-    return null;
-  }
-
-  try {
-    const parsed = new URL(url);
-    if (parsed.hostname.includes("youtu.be")) {
-      return parsed.pathname.replace("/", "");
-    }
-    if (parsed.hostname.includes("youtube.com")) {
-      if (parsed.pathname.startsWith("/shorts/") || parsed.pathname.startsWith("/embed/")) {
-        return parsed.pathname.split("/")[2] ?? null;
-      }
-      return parsed.searchParams.get("v");
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
 
 export function PresentationVideoSection({
   onOpenVideo
 }: {
   onOpenVideo: () => void;
 }) {
-  const youtubeId = useMemo(() => getYoutubeId(presentationVideo.youtubeUrl), []);
-
   return (
     <section className="section pt-0">
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft md:p-10">
@@ -54,14 +29,10 @@ export function PresentationVideoSection({
             className="group relative overflow-hidden rounded-2xl border border-[#14213d]/15 bg-slate-900 text-left"
             aria-label={presentationVideo.ctaLabel}
           >
-            {/* thumbnail facade only; iframe is loaded in modal on demand */}
+            {/* thumbnail facade only; video is loaded in modal on demand */}
             <div
               className="aspect-video bg-cover bg-center"
-              style={{
-                backgroundImage: youtubeId
-                  ? `url(https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg)`
-                  : `url(${presentationVideo.thumbnail})`
-              }}
+              style={{ backgroundImage: `url(${presentationVideo.thumbnail})` }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
             <span className="absolute left-4 top-4 rounded-full bg-[#c9a227] px-3 py-1 text-xs font-semibold text-[#14213d]">
@@ -84,8 +55,6 @@ export function PresentationVideoModal({
   open: boolean;
   onClose: () => void;
 }) {
-  const youtubeId = useMemo(() => getYoutubeId(presentationVideo.youtubeUrl), []);
-
   if (!open) {
     return null;
   }
@@ -104,24 +73,16 @@ export function PresentationVideoModal({
             Fermer
           </button>
         </div>
-        {youtubeId ? (
-          <div className="aspect-video overflow-hidden rounded-xl border border-slate-200">
-            <iframe
-              src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0`}
-              title="Presentation ProClean Empire"
-              className="h-full w-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              referrerPolicy="strict-origin-when-cross-origin"
-              allowFullScreen
-              loading="lazy"
-            />
-          </div>
-        ) : (
-          <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-sm text-slate-600">
-            [A REMPLIR PAR VOUS] Ajoutez le lien YouTube de presentation dans
-            <code className="ml-1 rounded bg-slate-200 px-1 py-0.5">lib/content/phase1.ts</code>.
-          </div>
-        )}
+        <div className="aspect-video overflow-hidden rounded-xl border border-slate-200 bg-black">
+          <video
+            src={presentationVideo.videoSrc}
+            poster={presentationVideo.thumbnail}
+            className="h-full w-full"
+            controls
+            autoPlay
+            playsInline
+          />
+        </div>
       </div>
     </div>
   );

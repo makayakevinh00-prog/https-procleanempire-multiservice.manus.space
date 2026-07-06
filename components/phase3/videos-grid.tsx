@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Image from "next/image";
 import { videosList, videosPageContent, type VideoEntry } from "@/lib/content/phase3";
 
 const categories: Array<VideoEntry["category"] | "Toutes"> = [
@@ -31,6 +30,8 @@ function getYoutubeId(url: string) {
     return null;
   }
 }
+
+const hasRealChannelUrl = !videosPageContent.youtubeChannelUrl.startsWith("[");
 
 export function VideosGrid() {
   const [activeCategory, setActiveCategory] = useState<(typeof categories)[number]>("Toutes");
@@ -77,34 +78,45 @@ export function VideosGrid() {
         ) : (
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredVideos.map((video) => {
-              const id = getYoutubeId(video.youtubeUrl);
-              const thumb = id
-                ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg`
-                : "/media/placeholders/video-thumbnail.jpg";
+              const id = video.youtubeUrl ? getYoutubeId(video.youtubeUrl) : null;
+              const thumb = id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : undefined;
+
               return (
                 <article key={video.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                  <Image
-                    src={thumb}
-                    alt={`Miniature video ${video.title}`}
-                    width={640}
-                    height={360}
-                    loading="lazy"
-                    className="aspect-video w-full object-cover"
-                  />
+                  {video.videoSrc ? (
+                    <video
+                      src={video.videoSrc}
+                      poster={video.poster}
+                      controls
+                      playsInline
+                      preload="metadata"
+                      className="aspect-video w-full bg-black object-cover"
+                    />
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={thumb ?? "/media/placeholders/video-thumbnail.jpg"}
+                      alt={`Miniature video ${video.title}`}
+                      loading="lazy"
+                      className="aspect-video w-full object-cover"
+                    />
+                  )}
                   <div className="p-4">
                     <p className="text-xs font-semibold uppercase tracking-wide text-[#c9a227]">
                       {video.category}
                     </p>
                     <h2 className="mt-2 text-lg font-semibold text-[#14213d]">{video.title}</h2>
                     <p className="mt-2 text-sm text-slate-600">{video.description}</p>
-                    <a
-                      href={video.youtubeUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-4 inline-flex text-sm font-semibold text-[#14213d] underline"
-                    >
-                      Regarder
-                    </a>
+                    {video.youtubeUrl && !video.videoSrc && (
+                      <a
+                        href={video.youtubeUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-4 inline-flex text-sm font-semibold text-[#14213d] underline"
+                      >
+                        Regarder
+                      </a>
+                    )}
                   </div>
                 </article>
               );
@@ -112,14 +124,16 @@ export function VideosGrid() {
           </div>
         )}
 
-        <a
-          href={videosPageContent.youtubeChannelUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="btn-primary mt-8"
-        >
-          Voir toute notre chaine YouTube
-        </a>
+        {hasRealChannelUrl && (
+          <a
+            href={videosPageContent.youtubeChannelUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="btn-primary mt-8"
+          >
+            Voir toute notre chaine YouTube
+          </a>
+        )}
       </div>
     </section>
   );
