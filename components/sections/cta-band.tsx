@@ -13,8 +13,8 @@ export function CtaBand() {
               Recevez un plan de nettoyage clair et chiffré
             </h2>
             <p className="mt-4 max-w-2xl text-slate-300">
-              Expliquez votre besoin en 2 minutes. Nous vous proposons une solution adaptée
-              à vos locaux, vos horaires et votre niveau d'exigence.
+              Expliquez votre besoin en 2 minutes. Nous vous proposons une solution adaptée à
+              vos locaux, vos horaires et votre niveau d&apos;exigence.
             </p>
           </div>
           <div className="flex flex-col gap-3">

@@ -30,8 +30,8 @@ export default function PrivacyPage() {
             suivi de la relation commerciale.
           </p>
           <p>
-            Conformément au RGPD, vous pouvez demander l'accès, la correction ou la suppression
-            de vos données à l'adresse: contact@proclean-empire.fr
+            Conformément au RGPD, vous pouvez demander l&apos;accès, la correction ou la
+            suppression de vos données à l&apos;adresse: contact@proclean-empire.fr
           </p>
         </article>
       </section>

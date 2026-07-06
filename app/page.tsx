@@ -28,7 +28,7 @@ export default function HomePage() {
             Le partenaire propreté des entreprises ambitieuses
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
-            Nous accompagnons les entreprises dans l'entretien quotidien de leurs
+            Nous accompagnons les entreprises dans l&apos;entretien quotidien de leurs
             bureaux, commerces et établissements professionnels.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
