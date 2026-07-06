@@ -1,0 +1,21 @@
+{
+  "name": "proclean-meta-ads",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Scripts de gestion des campagnes Meta Ads (Marketing API) pour ProClean Empire",
+  "scripts": {
+    "campaigns:list": "node src/cli.js campaigns:list",
+    "campaigns:create": "node src/cli.js campaigns:create",
+    "campaigns:status": "node src/cli.js campaigns:status",
+    "adsets:list": "node src/cli.js adsets:list",
+    "adsets:create": "node src/cli.js adsets:create",
+    "ads:list": "node src/cli.js ads:list",
+    "insights": "node src/cli.js insights"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "dotenv": "^16.4.5",
+    "facebook-nodejs-business-sdk": "^19.0.3"
+  }
+}
