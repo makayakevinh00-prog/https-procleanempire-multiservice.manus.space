@@ -112,10 +112,10 @@ export const phase1Contact = {
     "Prenez contact avec notre equipe pour organiser une visite de site ou obtenir un devis personnalise.",
   address: "3 rue Stephane Charbonnier, 95800 Pontoise",
   zone: "Pontoise et Île-de-France",
-  phone: "[A REMPLIR PAR VOUS]",
-  phoneHref: "tel:+33000000000",
-  email: "[A REMPLIR PAR VOUS]",
-  hours: "[A REMPLIR PAR VOUS]",
+  phone: "06 17 21 22 30",
+  phoneHref: "tel:+33617212230",
+  email: "contact@procleanempire.com",
+  hours: "7j/7 de 8h à 18h",
   mapsEmbedUrl:
     "https://www.google.com/maps?q=3+rue+Stephane+Charbonnier,+95800+Pontoise&output=embed",
   directContactCta: {

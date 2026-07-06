@@ -28,7 +28,7 @@ export const videosPageContent = {
   title: "Vidéos ProClean Empire",
   description:
     "Une bibliothèque vidéo structurée pour montrer nos méthodes, nos standards et nos interventions terrain.",
-  youtubeChannelUrl: "[A REMPLIR PAR VOUS - LIEN CHAINE YOUTUBE]",
+  youtubeChannelUrl: "https://www.youtube.com/@ProCleanEmpire",
   placeholder:
     "[A REMPLIR PAR VOUS] Ajoutez la liste des vidéos réelles (titre, lien YouTube, description, catégorie)."
 };
@@ -82,23 +82,28 @@ export const blogPageContent = {
 export const socialLinks = [
   {
     label: "YouTube",
-    href: "[A REMPLIR PAR VOUS - YOUTUBE]",
+    href: "https://www.youtube.com/@ProCleanEmpire",
     description: "Présentation, démonstrations et interventions en conditions réelles."
   },
   {
     label: "LinkedIn",
-    href: "[A REMPLIR PAR VOUS - LINKEDIN]",
+    href: "https://www.linkedin.com/company/procelan-empire",
     description: "Actualités entreprise, coulisses et preuve de sérieux B2B."
   },
   {
     label: "Instagram",
-    href: "[A REMPLIR PAR VOUS - INSTAGRAM]",
+    href: "https://www.instagram.com/proclean_empire/",
     description: "Avant/Après, quotidien des équipes et standards qualité."
   },
   {
     label: "Facebook",
-    href: "[A REMPLIR PAR VOUS - FACEBOOK]",
+    href: "https://www.facebook.com/people/Proclean-Empire/61575993812750/",
     description: "Vie de l'entreprise, avis clients et mises à jour locales."
+  },
+  {
+    label: "TikTok",
+    href: "https://www.tiktok.com/@procleanempire",
+    description: "Vidéos courtes d'interventions et coulisses des équipes terrain."
   }
 ];
 
