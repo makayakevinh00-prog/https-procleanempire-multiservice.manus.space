@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: #f8f9fb;
+  color: #0f172a;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.section {
+  @apply mx-auto max-w-content px-6 py-16 md:px-8 md:py-24;
+}
+
+.card {
+  @apply rounded-2xl border border-slate-200 bg-white shadow-soft;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-xl bg-[#14213d] px-5 py-3 font-semibold text-white transition hover:bg-[#0f1a32] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#14213d];
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center rounded-xl border border-[#14213d]/30 bg-white px-5 py-3 font-semibold text-[#14213d] transition hover:border-[#c9a227] hover:text-[#0f1a32] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#14213d];
+}

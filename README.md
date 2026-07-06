@@ -1,1 +1,88 @@
-# https-procleanempire-multiservice.manus.space
+# ProClean Empire - Site corporate conversion-first
+
+Site développé avec Next.js, TypeScript, Tailwind CSS et Framer Motion.
+
+## Lancer le projet
+
+```bash
+npm install
+npm run dev
+```
+
+## Objectifs du site
+
+- Positionnement B2B orienté dirigeants, office managers et services généraux.
+- Parcours de conversion clair vers la demande de devis.
+- SEO technique (metadata, Open Graph, schema.org, sitemap, robots).
+- Structure évolutive avec composants réutilisables.
+
+## Gestion des visuels
+
+Le dossier `public/media/placeholders` contient les emplacements à remplacer par vos photos réelles:
+
+- photo-client
+- photo-bureaux
+- photo-hotel
+- photo-restaurant
+- photo-vitrerie
+- photo-equipe
+- photo-avant-apres
+
+## Contenu Phase 1 (facilement modifiable)
+
+Toutes les donnees de la homepage conversion (hero, stats, video, avis, engagements, contact)
+se trouvent dans:
+
+- `lib/content/phase1.ts`
+
+Composants de rendu Phase 1:
+
+- `components/phase1/home-conversion-phase1.tsx`
+- `components/phase1/hero-conversion.tsx`
+- `components/phase1/presentation-video-section.tsx`
+- `components/phase1/reviews-premium-section.tsx`
+- `components/phase1/commitments-section.tsx`
+- `components/phase1/contact-phase1-section.tsx`
+
+## Contenu Phase 2 (preuves sociales avancees)
+
+Toutes les donnees des pages realisations / galerie / equipe sont centralisees dans:
+
+- `lib/content/phase2.ts`
+
+Pages:
+
+- `app/realisations/page.tsx`
+- `app/galerie/page.tsx`
+- `app/equipe/page.tsx`
+
+Composants:
+
+- `components/phase2/case-study-list.tsx`
+- `components/phase2/gallery-filter-grid.tsx`
+- `components/phase2/team-premium-section.tsx`
+- `components/phase2/interactive-process-timeline.tsx`
+
+## Contenu Phase 3 (acquisition long terme)
+
+Donnees centralisees:
+
+- `lib/content/phase3.ts`
+
+Pages:
+
+- `app/videos/page.tsx`
+- `app/blog/page.tsx`
+- `app/faq/page.tsx` (version recherche + filtres)
+- `app/devis/page.tsx` (wizard multi-etapes via composant)
+
+Composants:
+
+- `components/phase3/videos-grid.tsx`
+- `components/phase3/social-networks-section.tsx`
+- `components/phase3/faq-advanced.tsx`
+
+## Donnees legales (KBIS)
+
+- `lib/content/legal.ts`
+- Utilise dans `app/mentions-legales/page.tsx` et `components/layout/footer.tsx`
