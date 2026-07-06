@@ -5,9 +5,9 @@ import { Footer } from "@/components/layout/footer";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "ProClean Empire | Société de nettoyage professionnel en Île-de-France",
+  title: "ProClean Empire | Nettoyage professionnel premium a Pontoise",
   description:
-    "ProClean Empire accompagne les entreprises avec un service de nettoyage professionnel réactif, structuré et adapté aux exigences B2B.",
+    "ProClean Empire accompagne les entreprises avec un service de nettoyage professionnel premium a Pontoise et en Ile-de-France.",
   metadataBase: new URL(siteConfig.url)
 };
 
@@ -16,12 +16,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     "@context": "https://schema.org",
     "@type": "ProfessionalService",
     name: siteConfig.name,
-    areaServed: "Île-de-France",
+    areaServed: siteConfig.region,
     telephone: siteConfig.phone,
     email: siteConfig.email,
     address: {
       "@type": "PostalAddress",
-      addressRegion: "Île-de-France",
+      streetAddress: siteConfig.addressLine,
+      addressLocality: siteConfig.city,
+      postalCode: "95800",
+      addressRegion: siteConfig.region,
       addressCountry: "FR"
     }
   };

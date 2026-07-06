@@ -27,3 +27,19 @@ Le dossier `public/media/placeholders` contient les emplacements à remplacer pa
 - photo-vitrerie
 - photo-equipe
 - photo-avant-apres
+
+## Contenu Phase 1 (facilement modifiable)
+
+Toutes les donnees de la homepage conversion (hero, stats, video, avis, engagements, contact)
+se trouvent dans:
+
+- `lib/content/phase1.ts`
+
+Composants de rendu Phase 1:
+
+- `components/phase1/home-conversion-phase1.tsx`
+- `components/phase1/hero-conversion.tsx`
+- `components/phase1/presentation-video-section.tsx`
+- `components/phase1/reviews-premium-section.tsx`
+- `components/phase1/commitments-section.tsx`
+- `components/phase1/contact-phase1-section.tsx`

@@ -11,7 +11,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: #f8fafc;
+  background: #f8f9fb;
   color: #0f172a;
 }
 
@@ -29,9 +29,9 @@ a {
 }
 
 .btn-primary {
-  @apply inline-flex items-center justify-center rounded-xl bg-brand-500 px-5 py-3 font-semibold text-white transition hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500;
+  @apply inline-flex items-center justify-center rounded-xl bg-[#14213d] px-5 py-3 font-semibold text-white transition hover:bg-[#0f1a32] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#14213d];
 }
 
 .btn-secondary {
-  @apply inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-900 transition hover:border-brand-500 hover:text-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500;
+  @apply inline-flex items-center justify-center rounded-xl border border-[#14213d]/30 bg-white px-5 py-3 font-semibold text-[#14213d] transition hover:border-[#c9a227] hover:text-[#0f1a32] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#14213d];
 }
