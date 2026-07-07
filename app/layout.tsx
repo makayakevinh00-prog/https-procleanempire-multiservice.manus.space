@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       "@type": "PostalAddress",
       streetAddress: siteConfig.addressLine,
       addressLocality: siteConfig.city,
-      postalCode: "95800",
+      postalCode: "95300",
       addressRegion: siteConfig.region,
       addressCountry: "FR"
     }

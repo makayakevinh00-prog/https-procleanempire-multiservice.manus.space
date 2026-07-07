@@ -6,6 +6,7 @@ import { socialLinks } from "@/lib/content/phase3";
 
 export function Footer() {
   const services = [
+    { label: "Nettoyage automobile", href: "/nettoyage-automobile" },
     { label: "Nettoyage bureaux", href: "/nettoyage-bureaux" },
     { label: "Nettoyage restaurants", href: "/nettoyage-restaurants" },
     { label: "Nettoyage hotels", href: "/nettoyage-hotels" },

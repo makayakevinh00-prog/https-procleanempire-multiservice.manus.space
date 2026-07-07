@@ -17,6 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/contact",
     "/mentions-legales",
     "/politique-confidentialite",
+    "/nettoyage-automobile",
     "/nettoyage-bureaux",
     "/nettoyage-hotels",
     "/nettoyage-restaurants",

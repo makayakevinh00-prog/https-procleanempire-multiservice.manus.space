@@ -102,7 +102,7 @@ export const phase1Contact = {
   title: "Parlons de vos locaux",
   description:
     "Décrivez votre besoin ou appelez-nous directement : nous revenons vers vous rapidement avec une solution adaptée.",
-  address: "12 rue des Entreprises, 95000 Pontoise",
+  address: "3 rue Stéphane Charbonnier, 95300 Pontoise",
   phone: "06 17 21 22 30",
   phoneHref: "tel:+33617212230",
   email: "contact@procleanempire.com",

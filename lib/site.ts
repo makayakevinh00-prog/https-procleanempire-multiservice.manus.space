@@ -6,7 +6,7 @@ export const siteConfig = {
   email: "contact@procleanempire.com",
   city: "Pontoise",
   region: "Île-de-France",
-  addressLine: "12 rue des Entreprises",
+  addressLine: "3 rue Stéphane Charbonnier",
   responseDelay: "Ouvert 7j/7, 8h - 18h"
 };
 
