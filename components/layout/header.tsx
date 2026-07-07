@@ -11,12 +11,13 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-content items-center justify-between px-6 py-4 md:px-8">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-3">
           <img
-            src="/media/logo/proclean-empire-logo.svg"
+            src="/media/logo/proclean-empire-icon.png"
             alt="ProClean Empire"
             className="h-10 w-auto"
           />
+          <span className="text-lg font-bold text-slate-900">ProClean Empire</span>
         </Link>
         <nav className="hidden items-center gap-6 lg:flex">
           {navLinks.map((link) => {
