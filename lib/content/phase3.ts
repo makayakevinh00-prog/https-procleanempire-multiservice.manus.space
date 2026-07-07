@@ -35,6 +35,13 @@ export const videosPageContent = {
 
 export const videosList: VideoEntry[] = [
   {
+    id: "intervention-terrain-5",
+    title: "Intervention terrain - Extrait 5",
+    youtubeUrl: "https://youtube.com/shorts/KBKYsuuAkxo",
+    description: "Extrait d'une intervention ProClean Empire, filmée sur site.",
+    category: "Interventions"
+  },
+  {
     id: "intervention-terrain-1",
     title: "Intervention terrain - Extrait 1",
     youtubeUrl: "https://www.youtube.com/shorts/ek2_qMkBMYA",

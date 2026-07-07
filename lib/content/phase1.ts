@@ -56,8 +56,7 @@ export const presentationVideo = {
   title: "Découvrez ProClean Empire",
   description:
     "Présentation de notre approche, de nos standards qualité et de la manière dont nous accompagnons les entreprises au quotidien.",
-  videoSrc: "/media/videos/proclean-presentation.mp4",
-  thumbnail: "/media/photos/nettoyage-avion-cessna.jpeg",
+  youtubeUrl: "https://youtube.com/shorts/GZ7cPlNzFi8",
   ctaLabel: "Regarder la présentation complète"
 };
 

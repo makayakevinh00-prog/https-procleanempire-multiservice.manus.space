@@ -27,7 +27,8 @@ export type GalleryCategory =
   | "Avant/Après"
   | "Automobile"
   | "Aéronautique"
-  | "Équipe";
+  | "Équipe"
+  | "Airbnb";
 
 export type GalleryItem = {
   id: string;
@@ -61,6 +62,7 @@ export const galleryCategories: GalleryCategory[] = [
   "Automobile",
   "Aéronautique",
   "Avant/Après",
+  "Airbnb",
   "Bureaux",
   "Restaurants",
   "Hôtels",
@@ -127,6 +129,13 @@ export const galleryItems: GalleryItem[] = [
     alt: "Banquette de véhicule fortement encrassée avant intervention ProClean Empire"
   },
   {
+    id: "siege-apres-traitement",
+    category: "Avant/Après",
+    title: "Siège textile — après traitement",
+    image: "/media/photos/interieur-mercedes-apres.jpeg",
+    alt: "Habitacle Mercedes entretenu après intervention ProClean Empire, volant protégé"
+  },
+  {
     id: "cuir-rouge-avant",
     category: "Avant/Après",
     title: "Cuir rouge — pendant le traitement",
@@ -146,6 +155,27 @@ export const galleryItems: GalleryItem[] = [
     title: "Canapé velours ravivé",
     image: "/media/photos/canape-velours-apres.jpeg",
     alt: "Canapé en velours vert restauré en profondeur à domicile"
+  },
+  {
+    id: "airbnb-table-accueil",
+    category: "Airbnb",
+    title: "Préparation logement Airbnb — table d'accueil",
+    image: "/media/photos/airbnb-table-accueil.jpeg",
+    alt: "Table d'accueil préparée dans un logement Airbnb entretenu par ProClean Empire"
+  },
+  {
+    id: "airbnb-entree-logement",
+    category: "Airbnb",
+    title: "Préparation logement Airbnb — entrée",
+    image: "/media/photos/airbnb-entree-logement.jpeg",
+    alt: "Entrée et coin cuisine d'un logement Airbnb entretenu par ProClean Empire"
+  },
+  {
+    id: "airbnb-salon-table-basse",
+    category: "Airbnb",
+    title: "Préparation logement Airbnb — salon",
+    image: "/media/photos/airbnb-salon-table-basse.jpeg",
+    alt: "Salon et table basse d'un logement Airbnb entretenu par ProClean Empire"
   }
 ];
 
