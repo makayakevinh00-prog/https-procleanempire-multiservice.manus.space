@@ -162,7 +162,7 @@ export const teamPageContent = {
   teamsBlock: {
     title: "Les équipes terrain",
     text: "Des intervenants formés aux protocoles spécifiques de chaque environnement : surfaces sensibles, cuirs, textiles, vitrages, cockpits et équipements techniques. Chaque intervention suit une méthode précise, du diagnostic au contrôle final.",
-    photo: "/media/photos/nettoyage-avion-cessna.jpeg"
+    youtubeUrl: "https://youtube.com/shorts/a9sfrpw13cE"
   },
   valuesBlock: {
     title: "Valeurs et exigence de service",

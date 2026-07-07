@@ -19,13 +19,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/contact",
     "/mentions-legales",
     "/politique-confidentialite",
+    "/nettoyage-automobile",
     "/nettoyage-bureaux",
     "/nettoyage-hotels",
     "/nettoyage-restaurants",
     "/nettoyage-commerces",
     "/nettoyage-vitrerie",
     "/apres-chantier",
-    "/remise-en-etat"
+    "/remise-en-etat",
+    "/zones-intervention"
   ];
 
   const staticEntries = staticRoutes.map((path) => ({

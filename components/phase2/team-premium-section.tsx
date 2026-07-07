@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { teamPageContent } from "@/lib/content/phase2";
+import { YoutubeVideoCard } from "@/components/ui/youtube-video-card";
 
 export function TeamPremiumSection() {
   return (
@@ -33,12 +34,11 @@ export function TeamPremiumSection() {
             <p className="mt-3 text-sm leading-relaxed text-slate-700">
               {teamPageContent.teamsBlock.text}
             </p>
-            <div className="mt-4 overflow-hidden rounded-xl">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={teamPageContent.teamsBlock.photo}
-                alt="Equipe terrain ProClean Empire"
-                className="aspect-video w-full object-cover"
+            <div className="mt-4 mx-auto w-full max-w-[280px] overflow-hidden rounded-xl">
+              <YoutubeVideoCard
+                youtubeUrl={teamPageContent.teamsBlock.youtubeUrl}
+                title="Équipe terrain ProClean Empire"
+                aspect="aspect-[9/16]"
               />
             </div>
           </article>

@@ -72,6 +72,9 @@ export function Footer() {
             Zones
           </h3>
           <p className="text-sm text-slate-300">Pontoise · Val d&apos;Oise · Île-de-France</p>
+          <Link href="/zones-intervention" className="mt-1 inline-block text-sm text-slate-300 underline transition hover:text-white">
+            Voir toutes les zones
+          </Link>
         </div>
         <div>
           <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-300">
