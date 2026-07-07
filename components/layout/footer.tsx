@@ -12,7 +12,8 @@ export function Footer() {
     { label: "Nettoyage hotels", href: "/nettoyage-hotels" },
     { label: "Nettoyage commerces", href: "/nettoyage-commerces" },
     { label: "Nettoyage vitrerie", href: "/nettoyage-vitrerie" },
-    { label: "Apres chantier", href: "/apres-chantier" }
+    { label: "Apres chantier", href: "/apres-chantier" },
+    { label: "Remise en etat", href: "/remise-en-etat" }
   ];
 
   const sectors = [

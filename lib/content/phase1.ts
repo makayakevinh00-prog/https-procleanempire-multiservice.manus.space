@@ -113,5 +113,5 @@ export const phase1Contact = {
     href: "/contact"
   },
   mapsEmbedUrl:
-    "https://www.google.com/maps?q=Pontoise,France&output=embed"
+    "https://www.google.com/maps?q=3+rue+Stéphane+Charbonnier,+95300+Pontoise,+France&output=embed"
 };
