@@ -75,8 +75,8 @@ export function HeroConversion({ onOpenVideo }: { onOpenVideo: () => void }) {
         <div className="rounded-3xl border border-[#14213d]/15 bg-white p-6 shadow-soft">
           <div className="mb-5 overflow-hidden rounded-2xl">
             <img
-              src="/media/photos/nettoyage-avion-cessna.jpeg"
-              alt="Intervention ProClean Empire : nettoyage professionnel d'un avion Cessna en hangar"
+              src="/media/photos/hero-showcase.jpg"
+              alt="ProClean Empire : nettoyage premium bureaux, automobile et aeronautique"
               className="h-56 w-full object-cover md:h-64"
               loading="eager"
             />
