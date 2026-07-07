@@ -11,17 +11,17 @@ export function Footer() {
     { label: "Gestion de flottes automobiles", href: "/nettoyage-automobile" },
     { label: "Entretien bureaux", href: "/nettoyage-bureaux" },
     { label: "Entretien restaurants", href: "/nettoyage-restaurants" },
-    { label: "Entretien hotels", href: "/nettoyage-hotels" },
+    { label: "Entretien hôtelier", href: "/nettoyage-hotels" },
     { label: "Entretien commerces", href: "/nettoyage-commerces" },
     { label: "Entretien vitrerie", href: "/nettoyage-vitrerie" },
-    { label: "Apres chantier", href: "/apres-chantier" },
-    { label: "Remise en etat", href: "/remise-en-etat" }
+    { label: "Après chantier", href: "/apres-chantier" },
+    { label: "Remise en état", href: "/remise-en-etat" }
   ];
 
   const sectors = [
     "Bureaux",
     "Restaurants",
-    "Hotels",
+    "Hôtels",
     "Commerces",
     "Cabinets",
     "Coworking"
@@ -89,7 +89,7 @@ export function Footer() {
         </div>
         <div>
           <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-300">
-            Blog & reseaux
+            Blog & réseaux
           </h3>
           <ul className="space-y-2 text-sm">
             <li>
@@ -99,7 +99,7 @@ export function Footer() {
             </li>
             <li>
               <Link href="/videos" className="transition hover:text-white">
-                Videos
+                Vidéos
               </Link>
             </li>
             {realSocialLinks.map((social) => (

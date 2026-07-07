@@ -27,18 +27,18 @@ export const conversionHeroContent = {
   eyebrow: "Prestations de propreté et multiservices pour les entreprises exigeantes",
   title: "La propreté au service de la performance de vos espaces professionnels",
   subtitle:
-    "Nous accompagnons les entreprises, commerces, syndics et etablissements professionnels avec des prestations de proprete planifiees, un suivi qualite rigoureux et des interventions adaptees a vos contraintes d'exploitation.",
+    "Nous accompagnons les entreprises, commerces, syndics et établissements professionnels avec des prestations de propreté planifiées, un suivi qualité rigoureux et des interventions adaptées à vos contraintes d'exploitation.",
   ctaPrimary: {
     label: "Demander un devis",
     href: "/devis"
   },
   ctaSecondary: {
-    label: "Voir notre presentation",
+    label: "Voir notre présentation",
     action: "open-presentation-video"
   },
   stats: [
     {
-      label: "Reponse a toute demande de devis",
+      label: "Réponse à toute demande de devis",
       fallback: "Sous 24h"
     },
     {
@@ -47,74 +47,74 @@ export const conversionHeroContent = {
     },
     {
       label: "Secteurs couverts",
-      fallback: "Bureaux, commerces, auto, aeronautique"
+      fallback: "Bureaux, commerces, auto, aéronautique"
     }
   ] as AnimatedStat[]
 };
 
 export const presentationVideo = {
-  title: "Decouvrez ProClean Empire",
+  title: "Découvrez ProClean Empire",
   description:
-    "Presentation de notre approche, de nos standards qualite et de la maniere dont nous accompagnons les entreprises au quotidien.",
+    "Présentation de notre approche, de nos standards qualité et de la manière dont nous accompagnons les entreprises au quotidien.",
   videoSrc: "/media/videos/proclean-presentation.mp4",
   thumbnail: "/media/photos/nettoyage-avion-cessna.jpeg",
-  ctaLabel: "Regarder la presentation complete"
+  ctaLabel: "Regarder la présentation complète"
 };
 
 export const premiumReviewsData = {
   sectionTitle: "Avis clients",
   sectionDescription:
-    "Note de 5,0/5 sur Google (30 avis) - decouvrez les retours de nos clients.",
+    "Note de 5,0/5 sur Google (30 avis) - découvrez les retours de nos clients.",
   textReviews: [
     {
       id: "ilhame-kamil",
       name: "Ilhame Kamil",
       rating: 5,
-      text: "Tres satisfait du nettoyage de mes 2 voitures. Travail soigne, resultat impeccable et equipe professionnelle."
+      text: "Très satisfait du nettoyage de mes 2 voitures. Travail soigné, résultat impeccable et équipe professionnelle."
     },
     {
       id: "concierg-air",
       name: "Concierg'air",
       rating: 5,
-      text: "Tres satisfait de ProClean Empire. Service serieux, equipe professionnelle et resultat impeccable a chaque intervention. Je recommande sans hesitation."
+      text: "Très satisfait de ProClean Empire. Service sérieux, équipe professionnelle et résultat impeccable à chaque intervention. Je recommande sans hésitation."
     },
     {
       id: "jordan-germany",
       name: "Jordan Germany",
       rating: 5,
-      text: "Merci pour votre excellent travail. Tout etait impeccable. Le personnel est tres chaleureux, accueillant et professionnel. Je recommande vivement !"
+      text: "Merci pour votre excellent travail. Tout était impeccable. Le personnel est très chaleureux, accueillant et professionnel. Je recommande vivement !"
     },
     {
       id: "haris",
       name: "Haris",
       rating: 5,
-      text: "Franchement le resultat au top rapport qualite prix imbattable je recommande !!!!"
+      text: "Franchement le résultat au top, rapport qualité prix imbattable, je recommande !!!!"
     },
     {
       id: "sam-mel",
       name: "Sam Mel",
       rating: 5,
-      text: "Tres serieux et professionnelle ! Qualite de la prestation au top, merci d'avoir sauve ma voiture !"
+      text: "Très sérieux et professionnelle ! Qualité de la prestation au top, merci d'avoir sauvé ma voiture !"
     },
     {
       id: "victor-nicot",
       name: "Victor Nicot",
       rating: 5,
-      text: "Tres bon service, je recommande Kevin et son equipe."
+      text: "Très bon service, je recommande Kevin et son équipe."
     },
     {
       id: "livio-enzo-ornetti",
       name: "Livio Enzo Ornetti",
       rating: 5,
-      text: "Je recommande, c'etait nickel !"
+      text: "Je recommande, c'était nickel !"
     }
   ] as ReviewItem[],
   videoTestimonials: [] as VideoTestimonial[],
   googleReviewScreenshots: [] as string[],
   placeholders: {
-    textReviews: "[A REMPLIR PAR VOUS] Liste des avis clients verifies",
-    videoTestimonials: "[A REMPLIR PAR VOUS] Liens des temoignages video",
-    googleReviewScreenshots: "[A REMPLIR PAR VOUS] Captures d'ecran Google Reviews"
+    textReviews: "[A REMPLIR PAR VOUS] Liste des avis clients vérifiés",
+    videoTestimonials: "[A REMPLIR PAR VOUS] Liens des témoignages vidéo",
+    googleReviewScreenshots: "[A REMPLIR PAR VOUS] Captures d'écran Google Reviews"
   }
 };
 
@@ -127,31 +127,31 @@ export const partners: Partner[] = [];
 
 export const commitments = [
   {
-    title: "Engagement qualite",
-    description: "Protocoles clairs et controle des points sensibles."
+    title: "Engagement qualité",
+    description: "Protocoles clairs et contrôle des points sensibles."
   },
   {
     title: "Respect des horaires",
-    description: "Interventions calees sur vos contraintes d'exploitation."
+    description: "Interventions calées sur vos contraintes d'exploitation."
   },
   {
-    title: "Agents qualifies et formes",
-    description: "Equipes preparees aux exigences des environnements professionnels."
+    title: "Agents qualifiés et formés",
+    description: "Équipes préparées aux exigences des environnements professionnels."
   },
   {
     title: "Produits professionnels",
-    description: "Produits et protocoles adaptes aux surfaces et standards d'hygiene."
+    description: "Produits et protocoles adaptés aux surfaces et standards d'hygiène."
   },
   {
-    title: "Controle qualite",
-    description: "Suivi terrain regulier pour maintenir un niveau constant."
+    title: "Contrôle qualité",
+    description: "Suivi terrain régulier pour maintenir un niveau constant."
   },
   {
-    title: "Reactivite operationnelle",
-    description: "Ajustements organises en cas d'imprevu."
+    title: "Réactivité opérationnelle",
+    description: "Ajustements organisés en cas d'imprévu."
   },
   {
-    title: "Interlocuteur dedie",
+    title: "Interlocuteur dédié",
     description: "Un interlocuteur unique pour piloter sereinement."
   }
 ];
@@ -159,8 +159,8 @@ export const commitments = [
 export const phase1Contact = {
   title: "Contact ProClean Empire",
   description:
-    "Decrivez votre besoin afin que nous puissions vous proposer une solution adaptee a votre activite.",
-  address: "3 rue Stephane Charbonnier, 95800 Pontoise",
+    "Décrivez votre besoin afin que nous puissions vous proposer une solution adaptée à votre activité.",
+  address: "3 rue Stéphane Charbonnier, 95800 Pontoise",
   zone: "Pontoise et Île-de-France",
   phone: "06 17 21 22 30",
   phoneHref: "tel:+33617212230",

@@ -8,11 +8,11 @@ type Theme = (typeof faqThemes)[number] | "Tous";
 
 const themeKeywordMap: Record<(typeof faqThemes)[number], string[]> = {
   Tarifs: ["devis", "estimation", "prix", "tarif"],
-  Interventions: ["intervention", "demarrer", "horaires", "week-end"],
-  Qualite: ["qualite", "controle", "produits", "hygiene"],
+  Interventions: ["intervention", "démarrer", "horaires", "week-end"],
+  Qualité: ["qualité", "contrôle", "produits", "hygiène"],
   Contrat: ["contrat", "flexible", "ponctuelle"],
-  Zone: ["ile-de-france", "zone", "sites"],
-  Technique: ["vitrerie", "desinfection", "chantier"]
+  Zone: ["île-de-france", "zone", "sites"],
+  Technique: ["vitrerie", "désinfection", "chantier"]
 };
 
 function inferTheme(text: string): (typeof faqThemes)[number] {
@@ -58,7 +58,7 @@ export function FaqAdvanced() {
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Ex: delai d'intervention, contrat, prix..."
+              placeholder="Ex : délai d'intervention, contrat, prix..."
               className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 focus:border-[#14213d] focus:outline-none focus:ring-1 focus:ring-[#14213d]"
             />
           </label>
@@ -86,7 +86,7 @@ export function FaqAdvanced() {
         <div className="mt-6 space-y-3">
           {filteredFaq.length === 0 ? (
             <p className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">
-              Aucun resultat pour cette recherche.
+              Aucun résultat pour cette recherche.
             </p>
           ) : (
             filteredFaq.map((item, index) => {

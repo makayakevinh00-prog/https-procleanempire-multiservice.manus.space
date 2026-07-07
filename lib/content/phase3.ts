@@ -6,10 +6,10 @@ export type VideoEntry = {
   poster?: string;
   description: string;
   category:
-    | "Presentation"
+    | "Présentation"
     | "Demonstrations"
     | "Conseils"
-    | "Etudes de cas"
+    | "Études de cas"
     | "Coulisses"
     | "Interventions";
 };
@@ -17,9 +17,9 @@ export type VideoEntry = {
 export type BlogCategory =
   | "Entretien bureaux"
   | "Restaurants"
-  | "Hotels"
+  | "Hôtels"
   | "Conseils"
-  | "Hygiene"
+  | "Hygiène"
   | "Entreprise"
   | "Google Business"
   | "SEO local";
@@ -69,7 +69,7 @@ export const videosList: VideoEntry[] = [
     poster: "/media/photos/nettoyage-avion-cessna.jpeg",
     description:
       "Présentation de notre approche, de nos standards qualité et de nos interventions sur le terrain.",
-    category: "Presentation"
+    category: "Présentation"
   },
   {
     id: "demonstration-nettoyage-1",
@@ -91,10 +91,17 @@ export const videosList: VideoEntry[] = [
 
 export const realisationsVideos: VideoEntry[] = [
   {
-    id: "realisation-extrait-video",
-    title: "Extrait d'intervention filmée sur site",
+    id: "realisation-extrait-video-1",
+    title: "Entretien d'un logement Airbnb",
     youtubeUrl: "https://www.youtube.com/shorts/pNpWpXeaPZo",
-    description: "Extrait video d'une intervention ProClean Empire, en complement des etudes de cas.",
+    description: "Extrait vidéo d'une intervention ProClean Empire, en complément des études de cas.",
+    category: "Interventions"
+  },
+  {
+    id: "realisation-extrait-video-2",
+    title: "Extrait d'intervention filmée sur site",
+    youtubeUrl: "https://youtube.com/shorts/EK7Mhawwy_0",
+    description: "Extrait vidéo d'une intervention ProClean Empire, en complément des études de cas.",
     category: "Interventions"
   }
 ];
@@ -106,9 +113,9 @@ export const blogPageContent = {
   categories: [
     "Entretien bureaux",
     "Restaurants",
-    "Hotels",
+    "Hôtels",
     "Conseils",
-    "Hygiene",
+    "Hygiène",
     "Entreprise",
     "Google Business",
     "SEO local"
@@ -183,7 +190,7 @@ export const socialLinks = [
 export const faqThemes = [
   "Tarifs",
   "Interventions",
-  "Qualite",
+  "Qualité",
   "Contrat",
   "Zone",
   "Technique"

@@ -4,7 +4,7 @@ import { ServiceLanding } from "@/components/pages/service-landing";
 export const metadata = buildMetadata({
   title: "Remise en propreté après travaux",
   description:
-    "Intervention apres chantier pour remettre les locaux en etat avant reprise d'activite.",
+    "Intervention après chantier pour remettre les locaux en état avant reprise d'activité.",
   path: "/apres-chantier"
 });
 

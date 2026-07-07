@@ -62,7 +62,7 @@ export function TeamPremiumSection() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={teamPageContent.toolsBlock.photo}
-                alt="Materiel et protocoles qualite ProClean Empire"
+                alt="Matériel et protocoles qualité ProClean Empire"
                 className="aspect-video w-full object-cover"
               />
             </div>

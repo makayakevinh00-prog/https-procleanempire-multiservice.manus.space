@@ -9,7 +9,7 @@ import { CtaBand } from "@/components/sections/cta-band";
 export const metadata = buildMetadata({
   title: "Nos prestations de propreté pour entreprises",
   description:
-    "Decouvrez nos prestations de proprete pour bureaux, commerces, hotels, restaurants, vitrerie et interventions specialisees.",
+    "Découvrez nos prestations de propreté pour bureaux, commerces, hôtels, restaurants, vitrerie et interventions spécialisées.",
   path: "/services"
 });
 

@@ -139,7 +139,7 @@ export function ReviewsPremiumSection() {
                 <img
                   key={image}
                   src={image}
-                  alt="Capture d'ecran Google Reviews"
+                  alt="Capture d'écran Google Reviews"
                   loading="lazy"
                   className="aspect-[4/3] w-full rounded-lg object-cover"
                 />

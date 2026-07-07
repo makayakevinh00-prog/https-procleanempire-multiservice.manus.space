@@ -6,10 +6,10 @@ import { YoutubeVideoCard } from "@/components/ui/youtube-video-card";
 
 const categories: Array<VideoEntry["category"] | "Toutes"> = [
   "Toutes",
-  "Presentation",
+  "Présentation",
   "Demonstrations",
   "Conseils",
-  "Etudes de cas",
+  "Études de cas",
   "Coulisses",
   "Interventions"
 ];
@@ -78,7 +78,7 @@ export function VideosGrid() {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src="/media/placeholders/video-thumbnail.jpg"
-                      alt={`Miniature video ${video.title}`}
+                      alt={`Miniature vidéo ${video.title}`}
                       loading="lazy"
                       className="aspect-video w-full object-cover"
                     />
@@ -103,7 +103,7 @@ export function VideosGrid() {
             rel="noreferrer"
             className="btn-primary mt-8"
           >
-            Voir toute notre chaine YouTube
+            Voir toute notre chaîne YouTube
           </a>
         )}
       </div>

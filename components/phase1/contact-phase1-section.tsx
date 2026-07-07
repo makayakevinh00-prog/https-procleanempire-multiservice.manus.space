@@ -15,7 +15,7 @@ export function ContactPhase1Section() {
                 <dd>{phase1Contact.address}</dd>
               </div>
               <div>
-                <dt className="font-semibold text-[#14213d]">Telephone</dt>
+                <dt className="font-semibold text-[#14213d]">Téléphone</dt>
                 <dd>
                   <a href={phase1Contact.phoneHref} className="underline">
                     {phase1Contact.phone}

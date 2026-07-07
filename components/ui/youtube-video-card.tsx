@@ -41,7 +41,7 @@ export function YoutubeVideoCard({
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`}
-        alt={`Miniature video ${title}`}
+        alt={`Miniature vidéo ${title}`}
         loading="lazy"
         className="h-full w-full object-cover"
       />

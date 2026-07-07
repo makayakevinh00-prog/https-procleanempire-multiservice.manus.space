@@ -3,7 +3,7 @@ import { PageHero } from "@/components/sections/page-hero";
 import { legalInfo } from "@/lib/content/legal";
 
 export const metadata = buildMetadata({
-  title: "Mentions legales",
+  title: "Mentions légales",
   description: "Informations légales de ProClean Empire.",
   path: "/mentions-legales"
 });
@@ -12,11 +12,11 @@ export default function LegalPage() {
   return (
     <>
       <PageHero
-        title="Mentions legales"
-        description="Informations obligatoires relatives a l'editeur du site."
+        title="Mentions légales"
+        description="Informations obligatoires relatives à l'éditeur du site."
         breadcrumbs={[
           { label: "Accueil", href: "/" },
-          { label: "Mentions legales" }
+          { label: "Mentions légales" }
         ]}
       />
       <section className="section pt-0">
@@ -46,20 +46,20 @@ export default function LegalPage() {
             <strong>EUID:</strong> {legalInfo.euid}
           </p>
           <p>
-            <strong>Siege social:</strong> {legalInfo.headOffice}
+            <strong>Siège social:</strong> {legalInfo.headOffice}
           </p>
           <p>
-            <strong>Date de debut d&apos;activite:</strong> {legalInfo.activityStartDate}
+            <strong>Date de début d&apos;activité:</strong> {legalInfo.activityStartDate}
           </p>
           <p>
             <strong>Directeur de publication:</strong> {legalInfo.publicationDirector}
           </p>
           <p>
-            <strong>Hebergeur:</strong> {legalInfo.host}
+            <strong>Hébergeur:</strong> {legalInfo.host}
           </p>
           <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
-            Le numero SIRET complet doit etre confirme avec le NIC figurant sur l&apos;avis
-            INSEE ou l&apos;extrait RNE detaille.
+            Le numéro SIRET complet doit être confirmé avec le NIC figurant sur l&apos;avis
+            INSEE ou l&apos;extrait RNE détaillé.
           </p>
         </article>
       </section>

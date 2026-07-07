@@ -6,7 +6,7 @@ import { FaqAdvanced } from "@/components/phase3/faq-advanced";
 export const metadata = buildMetadata({
   title: "FAQ",
   description:
-    "Retrouvez les reponses aux questions frequentes sur nos prestations de proprete pour entreprises.",
+    "Retrouvez les réponses aux questions fréquentes sur nos prestations de propreté pour entreprises.",
   path: "/faq"
 });
 
@@ -15,7 +15,7 @@ export default function FaqPage() {
     <>
       <PageHero
         title="FAQ"
-        description="Toutes les informations utiles pour cadrer votre projet de prestations de proprete."
+        description="Toutes les informations utiles pour cadrer votre projet de prestations de propreté."
         breadcrumbs={[
           { label: "Accueil", href: "/" },
           { label: "FAQ" }

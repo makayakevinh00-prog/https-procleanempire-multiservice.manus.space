@@ -1,7 +1,7 @@
 export type CaseStudy = {
   id: string;
   title: string;
-  sector: "Bureaux" | "Restaurants" | "Hotels" | "Vitrerie" | "Apres chantier" | "Avant/Apres";
+  sector: "Bureaux" | "Restaurants" | "Hôtels" | "Vitrerie" | "Après chantier" | "Avant/Après";
   location: string;
   interventionTime: string;
   problem: string;
@@ -21,13 +21,13 @@ export type CaseStudy = {
 export type GalleryCategory =
   | "Bureaux"
   | "Restaurants"
-  | "Hotels"
+  | "Hôtels"
   | "Vitrerie"
-  | "Apres chantier"
-  | "Avant/Apres"
+  | "Après chantier"
+  | "Avant/Après"
   | "Automobile"
-  | "Aeronautique"
-  | "Equipe";
+  | "Aéronautique"
+  | "Équipe";
 
 export type GalleryItem = {
   id: string;
@@ -39,11 +39,11 @@ export type GalleryItem = {
 
 export const caseStudiesPageContent = {
   eyebrow: "Preuves terrain",
-  title: "Realisations ProClean Empire",
+  title: "Réalisations ProClean Empire",
   description:
-    "Des cas concrets qui montrent comment nous traitons une problematique, executons la solution et securisons un resultat durable.",
+    "Découvrez nos méthodes d'intervention et le niveau d'exigence que nous appliquons sur chacun de nos chantiers.",
   placeholder:
-    "[A REMPLIR PAR VOUS] Pour chaque etude de cas: avant/apres, problematique, solution, resultat, duree, photos, video et temoignage."
+    "[A REMPLIR PAR VOUS] Pour chaque étude de cas : avant/après, problématique, solution, résultat, durée, photos, vidéo et témoignage."
 };
 
 export const caseStudies: CaseStudy[] = [];
@@ -52,129 +52,129 @@ export const galleryPageContent = {
   eyebrow: "Preuves visuelles",
   title: "Galerie interventions",
   description:
-    "Filtrez les photos par categorie pour visualiser nos standards de qualite selon chaque type de site.",
+    "Filtrez les photos par catégorie pour visualiser nos standards de qualité selon chaque type de site.",
   placeholder:
-    "[A REMPLIR PAR VOUS] Ajoutez vos photos classees par categorie dans galleryItems."
+    "[A REMPLIR PAR VOUS] Ajoutez vos photos classées par catégorie dans galleryItems."
 };
 
 export const galleryCategories: GalleryCategory[] = [
   "Automobile",
-  "Aeronautique",
-  "Avant/Apres",
+  "Aéronautique",
+  "Avant/Après",
   "Bureaux",
   "Restaurants",
-  "Hotels",
+  "Hôtels",
   "Vitrerie",
-  "Apres chantier",
-  "Equipe"
+  "Après chantier",
+  "Équipe"
 ];
 
 export const galleryItems: GalleryItem[] = [
   {
     id: "avion-cessna",
-    category: "Aeronautique",
-    title: "Entretien exterieur d'un Cessna",
+    category: "Aéronautique",
+    title: "Entretien extérieur d'un Cessna",
     image: "/media/photos/nettoyage-avion-cessna.jpeg",
     alt: "Technicien ProClean Empire intervenant sur l'empennage d'un avion Cessna en hangar"
   },
   {
     id: "cockpit-avion",
-    category: "Aeronautique",
+    category: "Aéronautique",
     title: "Detailing cockpit avion",
     image: "/media/photos/cockpit-avion-detailing.jpeg",
-    alt: "Entretien minutieux du tableau de bord et des ecrans d'un cockpit d'avion"
+    alt: "Entretien minutieux du tableau de bord et des écrans d'un cockpit d'avion"
   },
   {
     id: "sieges-cuir-avion",
-    category: "Aeronautique",
-    title: "Renovation cuir cabine avion",
+    category: "Aéronautique",
+    title: "Rénovation cuir cabine avion",
     image: "/media/photos/sieges-cuir-avion.jpeg",
-    alt: "Sieges en cuir beige d'une cabine d'avion en cours de traitement"
+    alt: "Sièges en cuir beige d'une cabine d'avion en cours de traitement"
   },
   {
     id: "interieur-auto",
     category: "Automobile",
-    title: "Detailing interieur complet",
+    title: "Detailing intérieur complet",
     image: "/media/photos/interieur-auto-apres.jpeg",
-    alt: "Interieur de vehicule apres detailing complet par ProClean Empire"
+    alt: "Intérieur de véhicule après detailing complet par ProClean Empire"
   },
   {
     id: "interieur-mercedes",
     category: "Automobile",
-    title: "Entretien interieur Mercedes",
+    title: "Entretien intérieur Mercedes",
     image: "/media/photos/interieur-mercedes.jpeg",
     alt: "Habitacle Mercedes entretenu avec protection volant"
   },
   {
     id: "banquette-arriere",
     category: "Automobile",
-    title: "Banquette arriere remise a neuf",
+    title: "Banquette arrière remise à neuf",
     image: "/media/photos/banquette-arriere-apres.jpeg",
-    alt: "Banquette arriere de vehicule remise en etat apres intervention"
+    alt: "Banquette arrière de véhicule remise en état après intervention"
   },
   {
     id: "traitement-tapis",
     category: "Automobile",
     title: "Traitement des tapis en profondeur",
     image: "/media/photos/traitement-tapis.jpeg",
-    alt: "Application de produit professionnel sur tapis de vehicule avant brossage"
+    alt: "Application de produit professionnel sur tapis de véhicule avant brossage"
   },
   {
     id: "siege-avant-traitement",
-    category: "Avant/Apres",
-    title: "Siege textile — avant traitement",
+    category: "Avant/Après",
+    title: "Siège textile — avant traitement",
     image: "/media/photos/siege-auto-avant.jpeg",
-    alt: "Banquette de vehicule fortement encrassee avant intervention ProClean Empire"
+    alt: "Banquette de véhicule fortement encrassée avant intervention ProClean Empire"
   },
   {
     id: "cuir-rouge-avant",
-    category: "Avant/Apres",
+    category: "Avant/Après",
     title: "Cuir rouge — pendant le traitement",
     image: "/media/photos/cuir-rouge-avant.jpeg",
-    alt: "Siege en cuir rouge en cours de traitement et decontamination"
+    alt: "Siège en cuir rouge en cours de traitement et décontamination"
   },
   {
     id: "cuir-rouge-apres",
-    category: "Avant/Apres",
-    title: "Cuir rouge — resultat final",
+    category: "Avant/Après",
+    title: "Cuir rouge — résultat final",
     image: "/media/photos/cuir-rouge-apres.jpeg",
-    alt: "Siege en cuir rouge renove et brillant apres traitement ProClean Empire"
+    alt: "Siège en cuir rouge rénové et brillant après traitement ProClean Empire"
   },
   {
     id: "canape-velours",
-    category: "Avant/Apres",
-    title: "Canape velours ravive",
+    category: "Avant/Après",
+    title: "Canapé velours ravivé",
     image: "/media/photos/canape-velours-apres.jpeg",
-    alt: "Canape en velours vert restaure en profondeur a domicile"
+    alt: "Canapé en velours vert restauré en profondeur à domicile"
   }
 ];
 
 export const teamPageContent = {
   eyebrow: "Qui sommes-nous",
-  title: "Equipe ProClean Empire",
+  title: "Équipe ProClean Empire",
   description:
-    "Une organisation orientee qualite, avec des equipes formees, des methodes claires et un pilotage rigoureux.",
+    "Une organisation orientée qualité, avec des équipes formées, des méthodes claires et un pilotage rigoureux.",
   founderBlock: {
     title: "Le fondateur",
-    text: "Derriere ProClean Empire, il y a une ambition : offrir un service d'entretien professionnel ou la qualite, la rigueur et l'exigence de service sont une priorite. Fondee par Kevinh Makaya, ProClean Empire accompagne les professionnels et les particuliers avec des prestations d'entretien et de detailing automobile haut de gamme, adaptees a chaque besoin.",
+    text: "Derrière ProClean Empire, il y a une ambition : offrir un service d'entretien professionnel où la qualité, la rigueur et l'exigence de service sont une priorité. Fondée par Kevinh Makaya, ProClean Empire accompagne les professionnels et les particuliers avec des prestations d'entretien et de detailing automobile haut de gamme, adaptées à chaque besoin.",
     photo: "/media/photos/fondateur-proclean-empire.jpeg"
   },
   teamsBlock: {
-    title: "Les equipes terrain",
-    text: "Des intervenants formes aux protocoles specifiques de chaque environnement : surfaces sensibles, cuirs, textiles, vitrages, cockpits et equipements techniques. Chaque intervention suit une methode precise, du diagnostic au controle final.",
+    title: "Les équipes terrain",
+    text: "Des intervenants formés aux protocoles spécifiques de chaque environnement : surfaces sensibles, cuirs, textiles, vitrages, cockpits et équipements techniques. Chaque intervention suit une méthode précise, du diagnostic au contrôle final.",
     photo: "/media/photos/nettoyage-avion-cessna.jpeg"
   },
   valuesBlock: {
     title: "Valeurs et exigence de service",
     bullets: [
-      "Qualite, rigueur et exigence de service comme priorites",
-      "Travail soigne et prestations fiables",
-      "Reactivite operationnelle pour valoriser vos espaces et votre image"
+      "Qualité, rigueur et exigence de service comme priorités",
+      "Travail soigné et prestations fiables",
+      "Réactivité opérationnelle pour valoriser vos espaces et votre image"
     ]
   },
   toolsBlock: {
-    title: "Materiel et protocoles qualite",
-    text: "Materiel professionnel (injection-extraction, vapeur, brosses techniques) et produits adaptes a chaque surface : textiles, cuirs, plastiques, vitrages et equipements sensibles. Chaque intervention se termine par un controle qualite systematique.",
+    title: "Matériel et protocoles qualité",
+    text: "Matériel professionnel (injection-extraction, vapeur, brosses techniques) et produits adaptés à chaque surface : textiles, cuirs, plastiques, vitrages et équipements sensibles. Chaque intervention se termine par un contrôle qualité systématique.",
     photo: "/media/photos/traitement-tapis.jpeg"
   }
 };
@@ -188,22 +188,22 @@ export const interactiveProcessSteps = [
   {
     step: "02",
     title: "Visite",
-    description: "Analyse sur site des surfaces, flux, zones sensibles et priorites."
+    description: "Analyse sur site des surfaces, flux, zones sensibles et priorités."
   },
   {
     step: "03",
     title: "Devis",
-    description: "Proposition detaillee avec frequence, perimetre et plan d'execution."
+    description: "Proposition détaillée avec fréquence, périmètre et plan d'exécution."
   },
   {
     step: "04",
     title: "Intervention",
-    description: "Mise en place operationnelle avec procedures et equipe adaptees."
+    description: "Mise en place opérationnelle avec procédures et équipe adaptées."
   },
   {
     step: "05",
-    title: "Controle qualite",
-    description: "Verification reguliere de la conformite et ajustements immediats."
+    title: "Contrôle qualité",
+    description: "Vérification régulière de la conformité et ajustements immédiats."
   },
   {
     step: "06",

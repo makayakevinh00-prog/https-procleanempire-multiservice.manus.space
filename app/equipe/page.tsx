@@ -5,9 +5,9 @@ import { TeamPremiumSection } from "@/components/phase2/team-premium-section";
 import { InteractiveProcessTimeline } from "@/components/phase2/interactive-process-timeline";
 
 export const metadata = buildMetadata({
-  title: "Equipe",
+  title: "Équipe",
   description:
-    "Decouvrez le fondateur, les equipes terrain, les methodes et le processus qualite de ProClean Empire.",
+    "Découvrez le fondateur, les équipes terrain, les méthodes et le processus qualité de ProClean Empire.",
   path: "/equipe"
 });
 
@@ -15,16 +15,16 @@ export default function EquipePage() {
   return (
     <>
       <PageHero
-        title="Equipe ProClean Empire"
-        description="Presentez le visage humain de l&apos;entreprise: fondateur, equipes, valeurs et rigueur operationnelle."
+        title="Équipe ProClean Empire"
+        description="Présentez le visage humain de l&apos;entreprise : fondateur, équipes, valeurs et rigueur opérationnelle."
         breadcrumbs={[
           { label: "Accueil", href: "/" },
-          { label: "Equipe" }
+          { label: "Équipe" }
         ]}
         actions={
           <>
             <Link href="/contact" className="btn-secondary">
-              Echanger avec notre equipe
+              Échanger avec notre équipe
             </Link>
             <Link href="/devis" className="btn-primary">
               Demander un devis

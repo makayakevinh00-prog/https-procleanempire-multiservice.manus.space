@@ -249,7 +249,7 @@ export function QuoteForm() {
           <p className="mt-4 rounded-xl border border-[#14213d]/20 bg-white p-3 text-sm text-slate-700">
             Estimation indicative mensuelle:{" "}
             <span className="font-semibold text-[#14213d]">
-              {indicativeEstimate ? `~ ${indicativeEstimate} EUR` : "A définir après visite"}
+              {indicativeEstimate ? `~ ${indicativeEstimate} EUR` : "À définir après visite"}
             </span>
           </p>
           <p className="mt-2 text-xs text-slate-500">

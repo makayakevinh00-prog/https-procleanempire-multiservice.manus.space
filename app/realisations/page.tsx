@@ -6,9 +6,9 @@ import { RealisationsVideos } from "@/components/phase2/realisations-videos";
 import { InteractiveProcessTimeline } from "@/components/phase2/interactive-process-timeline";
 
 export const metadata = buildMetadata({
-  title: "Realisations",
+  title: "Réalisations",
   description:
-    "Etudes de cas ProClean Empire avec avant/apres, problematique, solution, resultat et temoignages clients.",
+    "Études de cas ProClean Empire avec avant/après, problématique, solution, résultat et témoignages clients.",
   path: "/realisations"
 });
 
@@ -16,11 +16,11 @@ export default function RealisationsPage() {
   return (
     <>
       <PageHero
-        title="Etudes de cas"
-        description="Visualisez des interventions structurees avec preuves avant/apres, contexte metier et resultats obtenus."
+        title="Études de cas"
+        description="Visualisez des interventions structurées avec preuves avant/après, contexte métier et résultats obtenus."
         breadcrumbs={[
           { label: "Accueil", href: "/" },
-          { label: "Realisations" }
+          { label: "Réalisations" }
         ]}
         actions={
           <>
@@ -33,8 +33,8 @@ export default function RealisationsPage() {
           </>
         }
       />
-      <RealisationsVideos />
       <CaseStudyList />
+      <RealisationsVideos />
       <InteractiveProcessTimeline />
     </>
   );

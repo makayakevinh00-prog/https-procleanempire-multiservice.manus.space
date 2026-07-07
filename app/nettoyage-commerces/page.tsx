@@ -4,7 +4,7 @@ import { ServiceLanding } from "@/components/pages/service-landing";
 export const metadata = buildMetadata({
   title: "Entretien des espaces commerciaux",
   description:
-    "Prestations d'entretien pour commerces et points de vente afin de renforcer l'experience client.",
+    "Prestations d'entretien pour commerces et points de vente afin de renforcer l'expérience client.",
   path: "/nettoyage-commerces"
 });
 

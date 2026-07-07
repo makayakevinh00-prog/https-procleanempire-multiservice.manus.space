@@ -5,9 +5,9 @@ import { Footer } from "@/components/layout/footer";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "ProClean Empire | Prestations de proprete et multiservices a Pontoise",
+  title: "ProClean Empire | Prestations de propreté et multiservices à Pontoise",
   description:
-    "ProClean Empire accompagne les entreprises avec des prestations de proprete et multiservices a Pontoise et en Ile-de-France.",
+    "ProClean Empire accompagne les entreprises avec des prestations de propreté et multiservices à Pontoise et en Île-de-France.",
   metadataBase: new URL(siteConfig.url)
 };
 

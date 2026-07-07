@@ -2,10 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { caseStudies, caseStudiesPageContent } from "@/lib/content/phase2";
 
-function CaseStudyVisual({ title, type }: { title: string; type: "Avant" | "Apres" }) {
+function CaseStudyVisual({ title, type }: { title: string; type: "Avant" | "Après" }) {
   return (
     <div className="flex aspect-[16/10] items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-100 p-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">
-      {type} - PHOTO A INSERER
+      {type} - PHOTO À INSÉRER
       <br />
       {title}
     </div>
@@ -71,12 +71,12 @@ export function CaseStudyList() {
                   {(item.afterImages.length > 0 ? item.afterImages : ["placeholder-after"]).map(
                     (image, index) =>
                       image === "placeholder-after" ? (
-                        <CaseStudyVisual key={index} type="Apres" title={item.title} />
+                        <CaseStudyVisual key={index} type="Après" title={item.title} />
                       ) : (
                         <Image
                           key={`${image}-${index}`}
                           src={image}
-                          alt={`Apres intervention - ${item.title}`}
+                          alt={`Après intervention - ${item.title}`}
                           width={960}
                           height={600}
                           loading="lazy"
@@ -89,7 +89,7 @@ export function CaseStudyList() {
                 <div className="mt-6 grid gap-4 md:grid-cols-3">
                   <article className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                      Problematique
+                      Problématique
                     </h3>
                     <p className="mt-2 text-sm leading-relaxed text-slate-700">{item.problem}</p>
                   </article>
@@ -101,7 +101,7 @@ export function CaseStudyList() {
                   </article>
                   <article className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                      Resultat
+                      Résultat
                     </h3>
                     <p className="mt-2 text-sm leading-relaxed text-slate-700">{item.result}</p>
                   </article>
@@ -123,7 +123,7 @@ export function CaseStudyList() {
                     rel="noreferrer"
                     className="mt-5 inline-flex text-sm font-semibold text-[#14213d] underline"
                   >
-                    Voir la video de cette realisation
+                    Voir la vidéo de cette réalisation
                   </a>
                 ) : null}
               </article>

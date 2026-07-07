@@ -2,9 +2,9 @@ import { HomeConversionPhase1 } from "@/components/phase1/home-conversion-phase1
 import { buildMetadata } from "@/lib/site";
 
 export const metadata = buildMetadata({
-  title: "Prestations de proprete pour entreprises exigeantes a Pontoise",
+  title: "Prestations de propreté pour entreprises exigeantes à Pontoise",
   description:
-    "ProClean Empire accompagne bureaux, restaurants, hotels et commerces avec des prestations de proprete planifiees et un suivi qualite rigoureux, basee a Pontoise.",
+    "ProClean Empire accompagne bureaux, restaurants, hôtels et commerces avec des prestations de propreté planifiées et un suivi qualité rigoureux, basée à Pontoise.",
   path: "/"
 });
 

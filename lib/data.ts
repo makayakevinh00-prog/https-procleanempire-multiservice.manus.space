@@ -115,7 +115,7 @@ export const services: Service[] = [
     shortDescription:
       "Une prise en charge organisée de vos véhicules afin de préserver leur valeur et l'image de votre flotte.",
     detailedDescription:
-      "Detailing interieur et exterieur pilote selon un protocole constant, pour les flottes d'entreprise comme pour les vehicules personnels de dirigeants et particuliers exigeants. Frequence et perimetre ajustes a votre parc.",
+      "Detailing intérieur et extérieur piloté selon un protocole constant, pour les flottes d'entreprise comme pour les véhicules personnels de dirigeants et particuliers exigeants. Fréquence et périmètre ajustés à votre parc.",
     sectors: ["Flottes d'entreprise", "Concessions", "Particuliers"],
     benefits: [
       "Protocole constant sur l'ensemble du parc",
@@ -129,7 +129,7 @@ export const services: Service[] = [
     shortDescription:
       "Des prestations planifiées permettant de garantir un environnement de travail conforme aux standards de votre entreprise.",
     detailedDescription:
-      "Nous assurons l'entretien de vos bureaux avec des protocoles adaptes a la frequentation, afin de limiter les perturbations et maintenir des espaces conformes au quotidien.",
+      "Nous assurons l'entretien de vos bureaux avec des protocoles adaptés à la fréquentation, afin de limiter les perturbations et maintenir des espaces conformes au quotidien.",
     sectors: ["PME", "Startups", "Cabinets", "Coworking"],
     benefits: [
       "Planification selon vos contraintes d'exploitation",
@@ -143,7 +143,7 @@ export const services: Service[] = [
     shortDescription:
       "Des interventions adaptées à votre activité afin de préserver l'image de votre enseigne et l'expérience de vos clients.",
     detailedDescription:
-      "Nous assurons l'entretien regulier de vos zones de vente, vitrines et espaces d'accueil afin de soutenir votre image commerciale.",
+      "Nous assurons l'entretien régulier de vos zones de vente, vitrines et espaces d'accueil afin de soutenir votre image commerciale.",
     sectors: ["Boutiques", "Agences", "Showrooms"],
     benefits: [
       "Planification selon vos contraintes d'exploitation",
@@ -157,7 +157,7 @@ export const services: Service[] = [
     shortDescription:
       "Un environnement conforme aux standards d'hygiène pour protéger votre réputation et votre conformité réglementaire.",
     detailedDescription:
-      "Nous intervenons sur les salles, sanitaires et zones techniques selon vos contraintes de service et vos obligations d'hygiene.",
+      "Nous intervenons sur les salles, sanitaires et zones techniques selon vos contraintes de service et vos obligations d'hygiène.",
     sectors: ["Restaurants", "Brasseries", "Traiteurs"],
     benefits: [
       "Conformité facilitée",
@@ -171,7 +171,7 @@ export const services: Service[] = [
     shortDescription:
       "Des espaces communs pilotés avec exigence pour une expérience client conforme à votre standing.",
     detailedDescription:
-      "Nous prenons en charge halls, circulations, zones de detente et espaces techniques avec un controle qualite renforce.",
+      "Nous prenons en charge halls, circulations, zones de détente et espaces techniques avec un contrôle qualité renforcé.",
     sectors: ["Hôtels", "Résidences", "Apparthôtels"],
     benefits: [
       "Image constante",
@@ -185,7 +185,7 @@ export const services: Service[] = [
     shortDescription:
       "Des vitrages entretenus pour valoriser votre façade et la luminosité intérieure.",
     detailedDescription:
-      "Entretien de vitres interieures et exterieures avec methodes securisees et frequence ajustee selon l'exposition.",
+      "Entretien de vitres intérieures et extérieures avec méthodes sécurisées et fréquence ajustée selon l'exposition.",
     sectors: ["Bureaux", "Commerces", "Hôtels"],
     benefits: [
       "Valorisation durable de votre patrimoine immobilier",
@@ -199,7 +199,7 @@ export const services: Service[] = [
     shortDescription:
       "Des protocoles ciblés pour limiter les risques sanitaires sur les points de contact et sécuriser votre conformité.",
     detailedDescription:
-      "Nous deployons des protocoles de desinfection adaptes aux environnements professionnels sensibles et aux zones de forte frequentation.",
+      "Nous déployons des protocoles de désinfection adaptés aux environnements professionnels sensibles et aux zones de forte fréquentation.",
     sectors: ["Cabinets médicaux", "Bureaux", "Commerces", "Espaces publics"],
     benefits: [
       "Réduction du risque de contamination",
@@ -213,7 +213,7 @@ export const services: Service[] = [
     shortDescription:
       "Une gestion des prestations régulière des halls, escaliers et zones de passage pour une image soignée.",
     detailedDescription:
-      "Nous prenons en charge les parties communes des immeubles et ensembles tertiaires avec une frequence ajustee a l'usage reel.",
+      "Nous prenons en charge les parties communes des immeubles et ensembles tertiaires avec une fréquence ajustée à l'usage réel.",
     sectors: ["Copropriétés", "Immeubles de bureaux", "Résidences gérées"],
     benefits: [
       "Première impression maîtrisée pour vos visiteurs",
@@ -227,7 +227,7 @@ export const services: Service[] = [
     shortDescription:
       "Un cahier des charges clair et une fréquence d'intervention stable, sans surcharge de pilotage interne.",
     detailedDescription:
-      "Nous structurons vos interventions selon un cahier des charges precis et une frequence d'intervention ajustee, avec reporting regulier et flexibilite en cas d'evolution de vos besoins.",
+      "Nous structurons vos interventions selon un cahier des charges précis et une fréquence d'intervention ajustée, avec reporting régulier et flexibilité en cas d'évolution de vos besoins.",
     sectors: ["PME", "Coworking", "Réseaux de commerces", "Cabinets"],
     benefits: [
       "Prévisibilité budgétaire et opérationnelle",
@@ -255,7 +255,7 @@ export const services: Service[] = [
     shortDescription:
       "Intervention approfondie pour reprendre un site et repartir sur des standards conformes.",
     detailedDescription:
-      "Nous traitons les zones degradees ou insuffisamment entretenues pour retrouver un niveau conforme a vos standards.",
+      "Nous traitons les zones dégradées ou insuffisamment entretenues pour retrouver un niveau conforme à vos standards.",
     sectors: ["Multi-secteurs"],
     benefits: [
       "Rattrapage accéléré de la qualité de service",
@@ -267,10 +267,10 @@ export const services: Service[] = [
 
 export const navLinks = [
   { label: "Accueil", href: "/" },
-  { label: "Realisations", href: "/realisations" },
+  { label: "Réalisations", href: "/realisations" },
   { label: "Galerie", href: "/galerie" },
-  { label: "Equipe", href: "/equipe" },
-  { label: "Videos", href: "/videos" },
+  { label: "Équipe", href: "/equipe" },
+  { label: "Vidéos", href: "/videos" },
   { label: "À propos", href: "/a-propos" },
   { label: "Nos services", href: "/services" },
   { label: "FAQ", href: "/faq" },
