@@ -1,119 +1,125 @@
-import { siteConfig } from "@/lib/site";
+export type AnimatedStat = {
+  label: string;
+  value?: number;
+  suffix?: string;
+  fallback: string;
+};
+
+export type ReviewItem = {
+  id: string;
+  name: string;
+  company: string;
+  role: string;
+  rating: number;
+  text: string;
+  photo?: string;
+};
+
+export type VideoTestimonial = {
+  id: string;
+  title: string;
+  youtubeUrl: string;
+  thumbnail?: string;
+  description: string;
+};
 
 export const conversionHeroContent = {
-  eyebrow: "Nettoyage professionnel premium",
-  title: "Des locaux impeccables, une équipe fiable, un interlocuteur unique",
+  eyebrow: "Proprete professionnelle premium a Pontoise",
+  title: "Des locaux impeccables qui valorisent votre entreprise",
   subtitle:
-    "ProClean Empire accompagne les entreprises de Pontoise et d'Île-de-France avec un service de propreté haut de gamme, pensé pour les dirigeants, office managers et services généraux.",
+    "ProClean Empire vous aide a proteger votre image, gagner du temps de pilotage et maintenir un niveau d'hygiene constant sur vos sites professionnels.",
   ctaPrimary: {
     label: "Demander un devis",
     href: "/devis"
   },
   ctaSecondary: {
-    label: "Voir la présentation"
+    label: "Voir notre presentation",
+    action: "open-presentation-video"
   },
   stats: [
     {
-      label: "Délai de réponse moyen",
-      value: undefined as number | undefined,
-      suffix: undefined as string | undefined,
+      label: "Reponse a toute demande de devis",
       fallback: "Sous 24h"
     },
     {
       label: "Zone d'intervention",
-      value: undefined as number | undefined,
-      suffix: undefined as string | undefined,
       fallback: "Pontoise & Île-de-France"
     },
     {
-      label: "Contrats",
-      value: undefined as number | undefined,
-      suffix: undefined as string | undefined,
-      fallback: "Ajustables, sans engagement long"
+      label: "Secteurs couverts",
+      fallback: "Bureaux, commerces, auto, aeronautique"
     }
-  ]
+  ] as AnimatedStat[]
 };
 
 export const presentationVideo = {
-  title: "Découvrez ProClean Empire en vidéo",
+  title: "Decouvrez ProClean Empire",
   description:
-    "Une courte présentation de notre méthode de travail, de nos équipes et de notre exigence qualité sur le terrain.",
-  ctaLabel: "Voir la vidéo de présentation",
-  youtubeUrl: "[A REMPLIR PAR VOUS] Lien YouTube de la vidéo de présentation",
-  thumbnail: "/media/placeholders/video-thumbnail.svg"
+    "Presentation de notre approche, de nos standards qualite et de la maniere dont nous accompagnons les entreprises au quotidien.",
+  videoSrc: "/media/videos/proclean-presentation.mp4",
+  thumbnail: "/media/photos/nettoyage-avion-cessna.jpeg",
+  ctaLabel: "Regarder la presentation complete"
 };
 
 export const premiumReviewsData = {
-  sectionTitle: "Ce qu'en pensent nos clients",
+  sectionTitle: "Avis clients",
   sectionDescription:
-    "Avis écrits, témoignages vidéo et retours clients seront publiés ici au fur et à mesure des interventions réalisées.",
-  textReviews: [] as Array<{
-    id: string;
-    rating: number;
-    text: string;
-    name: string;
-    role: string;
-    company: string;
-  }>,
-  videoTestimonials: [] as Array<{
-    id: string;
-    title: string;
-    description: string;
-    youtubeUrl: string;
-  }>,
+    "Chaque avis ci-dessous est prevu pour etre renseigne avec vos preuves sociales reelles (texte, video et captures Google Reviews).",
+  textReviews: [] as ReviewItem[],
+  videoTestimonials: [] as VideoTestimonial[],
   googleReviewScreenshots: [] as string[],
   placeholders: {
-    textReviews: "Les premiers avis clients seront publiés ici prochainement.",
-    videoTestimonials: "Les témoignages vidéo seront ajoutés après les premières interventions filmées.",
-    googleReviewScreenshots: "Les captures d'avis Google seront ajoutées ici."
+    textReviews: "[A REMPLIR PAR VOUS] Liste des avis clients verifies",
+    videoTestimonials: "[A REMPLIR PAR VOUS] Liens des temoignages video",
+    googleReviewScreenshots: "[A REMPLIR PAR VOUS] Captures d'ecran Google Reviews"
   }
 };
 
 export const commitments = [
   {
-    title: "Interlocuteur unique",
-    description: "Un référent dédié pour piloter votre contrat et répondre rapidement à vos demandes."
+    title: "Qualite",
+    description: "Protocoles clairs et controle des points sensibles."
   },
   {
-    title: "Réactivité",
-    description: "Une prise en charge rapide des demandes urgentes ou des ajustements de planning."
+    title: "Respect des horaires",
+    description: "Interventions calees sur vos contraintes d'exploitation."
   },
   {
-    title: "Équipes formées",
-    description: "Des agents formés aux protocoles adaptés à chaque type de local et de secteur d'activité."
+    title: "Personnel forme",
+    description: "Equipes preparees aux exigences des environnements pro."
   },
   {
-    title: "Produits adaptés",
-    description: "Des produits sélectionnés selon les surfaces, dans le respect des normes d'hygiène en vigueur."
+    title: "Produits professionnels",
+    description: "Produits adaptes aux surfaces et standards d'hygiene."
   },
   {
-    title: "Contrôle qualité",
-    description: "Un suivi régulier des prestations pour garantir un niveau de propreté constant dans le temps."
+    title: "Controle qualite",
+    description: "Suivi terrain regulier pour maintenir un niveau constant."
   },
   {
-    title: "Disponibilité",
-    description: "Des interventions organisées en dehors ou en marge de vos horaires d'activité."
+    title: "Reactivite",
+    description: "Ajustements rapides en cas d'imprevu."
   },
   {
-    title: "Engagement de confiance",
-    description: "Des contrats clairs, ajustables à votre activité réelle, sans mauvaise surprise."
+    title: "Suivi client",
+    description: "Un interlocuteur unique pour piloter sereinement."
   }
 ];
 
 export const phase1Contact = {
-  title: "Parlons de vos locaux",
+  title: "Contact ProClean Empire",
   description:
-    "Décrivez votre besoin ou appelez-nous directement : nous revenons vers vous rapidement avec une solution adaptée.",
-  address: `${siteConfig.addressLine}, ${siteConfig.postalCode} ${siteConfig.city}`,
-  phone: siteConfig.phone,
-  phoneHref: siteConfig.phoneHref,
-  email: siteConfig.email,
-  zone: "Pontoise, Val d'Oise et Île-de-France",
-  hours: siteConfig.openingHours,
-  directContactCta: {
-    label: "Nous contacter",
-    href: "/contact"
-  },
+    "Prenez contact avec notre equipe pour organiser une visite de site ou obtenir un devis personnalise.",
+  address: "3 rue Stephane Charbonnier, 95800 Pontoise",
+  zone: "Pontoise et Île-de-France",
+  phone: "06 17 21 22 30",
+  phoneHref: "tel:+33617212230",
+  email: "contact@procleanempire.com",
+  hours: "7j/7 de 8h à 18h",
   mapsEmbedUrl:
-    "https://www.google.com/maps?q=3+rue+Stéphane+Charbonnier,+95300+Pontoise,+France&output=embed"
+    "https://www.google.com/maps?q=3+rue+Stephane+Charbonnier,+95800+Pontoise&output=embed",
+  directContactCta: {
+    label: "Prendre rendez-vous",
+    href: "/contact"
+  }
 };

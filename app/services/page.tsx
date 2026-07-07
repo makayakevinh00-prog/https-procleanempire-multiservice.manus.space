@@ -4,13 +4,11 @@ import { services } from "@/lib/data";
 import { PageHero } from "@/components/sections/page-hero";
 import { ServiceCard } from "@/components/sections/service-card";
 import { CtaBand } from "@/components/sections/cta-band";
-import { MethodTimeline } from "@/components/sections/method-timeline";
-import { FaqList } from "@/components/sections/faq-list";
 
 export const metadata = buildMetadata({
   title: "Nos services de nettoyage professionnel",
   description:
-    "Découvrez nos prestations de nettoyage automobile, bureaux, commerces, hôtels, restaurants, vitrerie et interventions spécialisées.",
+    "Découvrez nos prestations de nettoyage pour bureaux, commerces, hôtels, restaurants, vitrerie et interventions spécialisées.",
   path: "/services"
 });
 
@@ -41,17 +39,6 @@ export default function ServicesPage() {
             <ServiceCard key={service.slug} service={service} />
           ))}
         </div>
-      </section>
-      <section className="section pt-0">
-        <h2 className="text-3xl font-bold text-slate-900 md:text-4xl">Notre méthode</h2>
-        <p className="mt-4 max-w-3xl text-lg leading-relaxed text-slate-600">
-          Une organisation claire, du premier échange au suivi qualité dans la durée.
-        </p>
-        <MethodTimeline />
-      </section>
-      <section className="section pt-0">
-        <h2 className="text-3xl font-bold text-slate-900 md:text-4xl">Questions fréquentes</h2>
-        <FaqList />
       </section>
       <CtaBand />
     </>

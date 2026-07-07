@@ -2,6 +2,8 @@ import { MetadataRoute } from "next";
 import { services } from "@/lib/data";
 import { siteConfig } from "@/lib/site";
 
+export const dynamic = "force-static";
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes = [
     "",
@@ -17,7 +19,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/contact",
     "/mentions-legales",
     "/politique-confidentialite",
-    "/nettoyage-automobile",
     "/nettoyage-bureaux",
     "/nettoyage-hotels",
     "/nettoyage-restaurants",
@@ -34,9 +35,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: path === "" ? 1 : 0.8
   }));
 
-  // /services/{slug} is a distinct "fiche détaillée" page (sectors block,
-  // CtaBand, different breadcrumbs), not a duplicate of the /{slug} landing,
-  // and is linked from both ServiceCard and ServiceLanding — keep it indexed.
   const serviceEntries = services.map((service) => ({
     url: `${siteConfig.url}/services/${service.slug}`,
     lastModified: new Date(),

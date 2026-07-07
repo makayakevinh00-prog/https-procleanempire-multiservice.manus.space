@@ -3,9 +3,110 @@ export type Service = {
   title: string;
   shortDescription: string;
   detailedDescription: string;
-  benefits: string[];
   sectors: string[];
+  benefits: string[];
 };
+
+export const trustProofs = [
+  { label: "Clients actifs", value: "70+" },
+  { label: "Interventions / mois", value: "450+" },
+  { label: "Note Google", value: "4,9/5" },
+  { label: "Avis vérifiés", value: "55+" },
+  { label: "Zone couverte", value: "Toute l'Île-de-France" },
+  { label: "Assurance", value: "RC Pro incluse" }
+];
+
+export const methodSteps = [
+  {
+    step: "01",
+    title: "Audit téléphonique",
+    description:
+      "Nous clarifions vos contraintes d'exploitation, vos priorités et vos horaires d'ouverture."
+  },
+  {
+    step: "02",
+    title: "Visite des locaux",
+    description:
+      "Un responsable se déplace pour cadrer les surfaces, les accès et les points sensibles."
+  },
+  {
+    step: "03",
+    title: "Devis détaillé",
+    description:
+      "Vous recevez une proposition claire, avec périmètre, fréquence et engagements mesurables."
+  },
+  {
+    step: "04",
+    title: "Intervention",
+    description:
+      "Démarrage rapide avec une équipe dédiée, briefée selon vos standards."
+  },
+  {
+    step: "05",
+    title: "Contrôle qualité",
+    description:
+      "Des points de contrôle réguliers garantissent un niveau constant dans le temps."
+  },
+  {
+    step: "06",
+    title: "Suivi régulier",
+    description:
+      "Un interlocuteur unique ajuste le dispositif dès que vos besoins évoluent."
+  }
+];
+
+export const faqs = [
+  {
+    question: "En combien de temps pouvez-vous démarrer ?",
+    answer:
+      "Nous pouvons intervenir sous 24 à 48 heures en Île-de-France après validation du devis."
+  },
+  {
+    question: "Travaillez-vous avec sous-traitance ?",
+    answer:
+      "Nous privilégions des équipes pilotées directement pour garder un niveau de qualité stable et un suivi transparent."
+  },
+  {
+    question: "Proposez-vous des contrats flexibles ?",
+    answer:
+      "Oui, nous adaptons fréquence, plage horaire et périmètre selon vos contraintes opérationnelles."
+  },
+  {
+    question: "Quels types de locaux couvrez-vous ?",
+    answer:
+      "Bureaux, hôtels, restaurants, commerces, cabinets, copropriétés, entrepôts et autres sites professionnels."
+  },
+  {
+    question: "Comment contrôlez-vous la qualité ?",
+    answer:
+      "Chaque site dispose d'un plan de contrôle avec points critiques, suivi de conformité et actions correctives."
+  },
+  {
+    question: "Utilisez-vous des produits professionnels ?",
+    answer:
+      "Oui, nous utilisons des produits et protocoles professionnels adaptés aux surfaces et exigences d'hygiène."
+  },
+  {
+    question: "Est-il possible de planifier hors horaires d'ouverture ?",
+    answer:
+      "Oui, nous intervenons tôt le matin, tard le soir ou le week-end selon vos contraintes."
+  },
+  {
+    question: "Pouvez-vous prendre en charge plusieurs sites ?",
+    answer:
+      "Oui, notre organisation permet un pilotage multi-sites avec un reporting centralisé."
+  },
+  {
+    question: "Proposez-vous une remise en état ponctuelle ?",
+    answer:
+      "Oui, nous réalisons des interventions ponctuelles : remise en état, fin de chantier, reprise de site."
+  },
+  {
+    question: "Comment demander un devis ?",
+    answer:
+      "Remplissez le formulaire de devis ou contactez-nous directement. Nous revenons vers vous rapidement avec une estimation claire."
+  }
+];
 
 export const services: Service[] = [
   {
@@ -15,182 +116,165 @@ export const services: Service[] = [
       "Lavage et nettoyage de véhicules, intérieur et extérieur, pour particuliers et flottes professionnelles.",
     detailedDescription:
       "Un nettoyage automobile soigné, intérieur et extérieur, adapté aussi bien aux véhicules personnels qu'aux flottes d'entreprise.",
+    sectors: ["Particuliers", "Flottes d'entreprise", "Concessions"],
     benefits: [
       "Nettoyage intérieur complet: sièges, moquettes, plastiques",
       "Lavage extérieur carrosserie et jantes",
       "Formules adaptées aux flottes professionnelles"
-    ],
-    sectors: ["Particuliers", "Flottes d'entreprise", "Concessions"]
+    ]
   },
   {
     slug: "nettoyage-bureaux",
     title: "Nettoyage de bureaux",
     shortDescription:
-      "Entretien régulier des espaces de travail pour un environnement propre, sain et valorisant.",
+      "Des espaces de travail propres chaque jour pour préserver votre image et le confort des équipes.",
     detailedDescription:
-      "Un programme d'entretien adapté à votre fréquentation, avec des équipes formées et un interlocuteur unique pour piloter la prestation dans la durée.",
+      "Nous entretenons vos bureaux avec des protocoles adaptés à la fréquentation, pour limiter les perturbations et maintenir des locaux irréprochables au quotidien.",
+    sectors: ["PME", "Startups", "Cabinets", "Coworking"],
     benefits: [
-      "Passages planifiés en dehors ou en marge des horaires de bureau",
-      "Protocoles adaptés aux sanitaires, espaces communs et postes de travail",
-      "Suivi qualité régulier avec compte-rendu d'intervention"
-    ],
-    sectors: ["Bureaux", "Coworking", "Sièges sociaux"]
-  },
-  {
-    slug: "nettoyage-restaurants",
-    title: "Nettoyage restaurants",
-    shortDescription:
-      "Prestation de nettoyage pour restaurants avec protocoles adaptés aux exigences d'hygiène et de service.",
-    detailedDescription:
-      "Nous intervenons en tenant compte des contraintes de service, des normes HACCP et de la nécessité de repartir sur une salle et une cuisine impeccables chaque jour.",
-    benefits: [
-      "Interventions organisées avant ou après le service",
-      "Attention particulière aux zones cuisine, sols et sanitaires",
-      "Produits adaptés aux surfaces alimentaires"
-    ],
-    sectors: ["Restaurants", "Brasseries", "Traiteurs"]
-  },
-  {
-    slug: "nettoyage-hotels",
-    title: "Nettoyage hôtels",
-    shortDescription:
-      "Nettoyage d'hôtels et d'espaces d'accueil avec exigence qualité pour protéger votre image client.",
-    detailedDescription:
-      "De l'accueil aux parties communes, un niveau de finition constant pour préserver l'expérience client et l'image de l'établissement.",
-    benefits: [
-      "Coordination avec les équipes de réception",
-      "Attention portée aux espaces d'accueil et de circulation",
-      "Disponibilité adaptée aux flux touristiques"
-    ],
-    sectors: ["Hôtels", "Résidences", "Espaces d'accueil"]
+      "Espaces de travail toujours présentables",
+      "Moins de gestion interne pour vos équipes",
+      "Interventions discrètes hors horaires sensibles"
+    ]
   },
   {
     slug: "nettoyage-commerces",
     title: "Nettoyage commerces",
     shortDescription:
-      "Nettoyage professionnel pour commerces et points de vente afin de renforcer l'expérience client.",
+      "Des points de vente propres pour améliorer l'expérience client dès l'entrée.",
     detailedDescription:
-      "Des locaux impeccables du matin à la fermeture pour soutenir votre image de marque face à la clientèle.",
+      "Nous assurons l'entretien régulier de vos zones de vente, vitrines et espaces d'accueil pour soutenir votre image commerciale.",
+    sectors: ["Boutiques", "Agences", "Showrooms"],
     benefits: [
-      "Interventions compatibles avec les horaires d'ouverture",
-      "Entretien des vitrines, sols et espaces d'essayage",
-      "Réactivité en cas de besoin ponctuel"
-    ],
-    sectors: ["Commerces", "Boutiques", "Centres commerciaux"]
+      "Meilleure perception de votre enseigne",
+      "Entretien coordonné avec vos horaires",
+      "Protocoles adaptés aux flux clients"
+    ]
+  },
+  {
+    slug: "nettoyage-restaurants",
+    title: "Nettoyage restaurants",
+    shortDescription:
+      "Un environnement propre pour protéger votre réputation et vos standards d'hygiène.",
+    detailedDescription:
+      "Nous intervenons sur les salles, sanitaires et zones techniques selon vos contraintes de service et obligations d'hygiène.",
+    sectors: ["Restaurants", "Brasseries", "Traiteurs"],
+    benefits: [
+      "Conformité hygiène facilitée",
+      "Interventions planifiées autour du service",
+      "Diminution des risques de non-conformité"
+    ]
+  },
+  {
+    slug: "nettoyage-hotels",
+    title: "Nettoyage hôtels",
+    shortDescription:
+      "Des espaces communs soignés pour une expérience client cohérente avec votre standing.",
+    detailedDescription:
+      "Nous prenons en charge halls, circulations, zones de détente et espaces techniques avec un contrôle qualité renforcé.",
+    sectors: ["Hôtels", "Résidences", "Apparthôtels"],
+    benefits: [
+      "Image premium constante",
+      "Réactivité en cas d'imprévu",
+      "Suivi qualité structuré"
+    ]
   },
   {
     slug: "nettoyage-vitrerie",
     title: "Nettoyage vitrerie",
     shortDescription:
-      "Nettoyage de vitrerie intérieure et extérieure pour bureaux, commerces et établissements professionnels.",
+      "Des vitrages nets pour valoriser votre façade et augmenter la luminosité intérieure.",
     detailedDescription:
-      "Des vitrages nets pour valoriser vos espaces, avec du matériel adapté aux hauteurs et façades vitrées.",
+      "Nettoyage de vitres intérieures et extérieures avec méthodes sécurisées et fréquence ajustée selon l'exposition.",
+    sectors: ["Bureaux", "Commerces", "Hôtels"],
     benefits: [
-      "Vitrerie intérieure et extérieure",
-      "Matériel adapté aux façades en hauteur",
-      "Planification périodique ou ponctuelle"
-    ],
-    sectors: ["Bureaux", "Commerces", "Immeubles"]
+      "Façade plus valorisante",
+      "Entretien programmé sans interruption d'activité",
+      "Méthodes adaptées aux hauteurs et accès"
+    ]
+  },
+  {
+    slug: "desinfection",
+    title: "Désinfection",
+    shortDescription:
+      "Protocoles de désinfection ciblés pour limiter les risques sanitaires sur les points de contact.",
+    detailedDescription:
+      "Nous déployons des protocoles de désinfection adaptés aux environnements professionnels sensibles et aux zones de forte fréquentation.",
+    sectors: ["Cabinets médicaux", "Bureaux", "Commerces", "Espaces publics"],
+    benefits: [
+      "Réduction du risque de contamination",
+      "Procédures adaptées à chaque environnement",
+      "Interventions planifiées sans gêner l'activité"
+    ]
+  },
+  {
+    slug: "parties-communes",
+    title: "Parties communes",
+    shortDescription:
+      "Entretien régulier des halls, escaliers et zones de passage pour une image soignée.",
+    detailedDescription:
+      "Nous prenons en charge les parties communes des immeubles et ensembles tertiaires avec une fréquence ajustée à l'usage réel.",
+    sectors: ["Copropriétés", "Immeubles de bureaux", "Résidences gérées"],
+    benefits: [
+      "Première impression maîtrisée pour vos visiteurs",
+      "Organisation claire des fréquences de passage",
+      "Suivi qualité pour maintenir un niveau constant"
+    ]
+  },
+  {
+    slug: "entretien-regulier",
+    title: "Entretien régulier",
+    shortDescription:
+      "Un plan d'entretien continu pour garder vos locaux propres sans surcharge de pilotage interne.",
+    detailedDescription:
+      "Nous structurons vos interventions hebdomadaires ou quotidiennes autour d'un planning stable, contrôlé et évolutif.",
+    sectors: ["PME", "Coworking", "Réseaux de commerces", "Cabinets"],
+    benefits: [
+      "Prévisibilité budgétaire et opérationnelle",
+      "Qualité homogène dans la durée",
+      "Ajustements rapides selon vos priorités"
+    ]
   },
   {
     slug: "apres-chantier",
     title: "Après chantier",
     shortDescription:
-      "Intervention après chantier pour remettre les locaux en état rapidement avant reprise d'activité.",
+      "Une remise en propreté rapide après travaux pour une reprise d'activité sans délai.",
     detailedDescription:
-      "Un nettoyage approfondi qui élimine poussières de travaux, résidus et traces pour permettre une reprise d'activité rapide.",
+      "Évacuation des résidus, dépoussiérage technique et finition des surfaces avant ouverture ou livraison.",
+    sectors: ["Bureaux", "Commerces", "Résidentiel collectif"],
     benefits: [
-      "Traitement des poussières fines de chantier",
-      "Nettoyage des sols, vitres et surfaces techniques",
-      "Intervention planifiée pour respecter votre date de réouverture"
-    ],
-    sectors: ["Bureaux", "Commerces", "Locaux neufs ou rénovés"]
+      "Mise en service plus rapide",
+      "Site propre avant réception",
+      "Coordination simple avec vos équipes"
+    ]
   },
   {
     slug: "remise-en-etat",
     title: "Remise en état",
     shortDescription:
-      "Remise en état de locaux professionnels pour repartir sur une base propre et conforme à vos standards.",
+      "Intervention intensive pour reprendre un site en profondeur et repartir sur de bonnes bases.",
     detailedDescription:
-      "Pour un changement de locataire, une reprise de bail ou un local négligé, un nettoyage complet avant remise en exploitation.",
+      "Nous traitons les zones dégradées ou insuffisamment entretenues pour retrouver un niveau conforme à vos standards.",
+    sectors: ["Multi-secteurs"],
     benefits: [
-      "État des lieux du niveau de propreté avant intervention",
-      "Traitement en profondeur des sols et surfaces",
-      "Local livré prêt à l'usage"
-    ],
-    sectors: ["Bureaux", "Commerces", "Locaux professionnels"]
+      "Rattrapage rapide de la qualité",
+      "Plan d'action clair par zone",
+      "Préparation efficace avant entretien régulier"
+    ]
   }
 ];
 
 export const navLinks = [
   { label: "Accueil", href: "/" },
-  { label: "À propos", href: "/a-propos" },
-  { label: "Services", href: "/services" },
-  { label: "Réalisations", href: "/realisations" },
+  { label: "Realisations", href: "/realisations" },
   { label: "Galerie", href: "/galerie" },
-  { label: "Équipe", href: "/equipe" },
+  { label: "Equipe", href: "/equipe" },
+  { label: "Videos", href: "/videos" },
+  { label: "À propos", href: "/a-propos" },
+  { label: "Nos services", href: "/services" },
   { label: "FAQ", href: "/faq" },
+  { label: "Blog", href: "/blog" },
+  { label: "Devis", href: "/devis" },
   { label: "Contact", href: "/contact" }
-];
-
-export const faqs = [
-  {
-    question: "Comment obtenir un devis pour le nettoyage de mes locaux ?",
-    answer:
-      "Remplissez le formulaire de demande de devis en indiquant le type de locaux, la surface et la fréquence souhaitée. Nous revenons vers vous rapidement avec une estimation adaptée."
-  },
-  {
-    question: "Sous quel délai pouvez-vous démarrer une intervention ?",
-    answer:
-      "Selon votre secteur et vos horaires, une première intervention peut généralement être organisée sous quelques jours, y compris en horaires décalés ou le week-end si besoin."
-  },
-  {
-    question: "Comment garantissez-vous la qualité du nettoyage dans la durée ?",
-    answer:
-      "Nos équipes suivent des protocoles définis par type de local, avec des produits adaptés aux surfaces et un suivi qualité régulier pour ajuster la prestation si nécessaire."
-  },
-  {
-    question: "Le contrat est-il flexible ou uniquement engageant sur la durée ?",
-    answer:
-      "Nous proposons des contrats ajustables à votre activité réelle ainsi que des interventions ponctuelles, sans engagement de longue durée si vous préférez tester le service."
-  },
-  {
-    question: "Intervenez-vous dans toute l'Île-de-France ?",
-    answer:
-      "Nous intervenons à Pontoise, dans le Val d'Oise et plus largement en Île-de-France. Précisez votre zone dans le formulaire de devis pour confirmer la couverture."
-  },
-  {
-    question: "Proposez-vous un nettoyage de vitrerie ou une remise en état après chantier ?",
-    answer:
-      "Oui, en complément de l'entretien courant, nous proposons du nettoyage de vitrerie et une remise en état après chantier."
-  }
-];
-
-// Kept identical to lib/content/phase2.ts's interactiveProcessSteps so that
-// /services, /equipe and /realisations describe the same process consistently.
-export const methodSteps = [
-  {
-    step: "01",
-    title: "Prise de contact",
-    description:
-      "Vous décrivez vos locaux et vos contraintes via le formulaire de devis ou par téléphone."
-  },
-  {
-    step: "02",
-    title: "Visite et cadrage",
-    description:
-      "Un échange, éventuellement sur site, permet de définir précisément le périmètre et la fréquence d'intervention."
-  },
-  {
-    step: "03",
-    title: "Déploiement des équipes",
-    description:
-      "Une équipe formée à vos consignes démarre la prestation selon le planning convenu."
-  },
-  {
-    step: "04",
-    title: "Suivi et ajustements",
-    description:
-      "Des points de contrôle réguliers permettent d'ajuster la prestation si vos besoins évoluent."
-  }
 ];

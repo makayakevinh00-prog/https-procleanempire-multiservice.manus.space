@@ -1,6 +1,9 @@
 export type VideoEntry = {
   id: string;
   title: string;
+  youtubeUrl?: string;
+  videoSrc?: string;
+  poster?: string;
   description: string;
   category:
     | "Presentation"
@@ -9,62 +12,106 @@ export type VideoEntry = {
     | "Etudes de cas"
     | "Coulisses"
     | "Interventions";
-  youtubeUrl: string;
 };
 
-export const videosList: VideoEntry[] = [];
+export type BlogCategory =
+  | "Nettoyage bureaux"
+  | "Restaurants"
+  | "Hotels"
+  | "Conseils"
+  | "Hygiene"
+  | "Entreprise"
+  | "Google Business"
+  | "SEO local";
 
 export const videosPageContent = {
-  title: "Vidéos",
+  title: "Vidéos ProClean Empire",
   description:
-    "Un espace dédié pour visionner nos contenus réels : présentation, démonstrations, études de cas et coulisses.",
+    "Une bibliothèque vidéo structurée pour montrer nos méthodes, nos standards et nos interventions terrain.",
+  youtubeChannelUrl: "https://www.youtube.com/@ProCleanEmpire",
   placeholder:
-    "Les vidéos de cette catégorie seront ajoutées prochainement sur notre chaîne YouTube.",
-  youtubeChannelUrl: "https://www.youtube.com/@ProCleanEmpire"
+    "[A REMPLIR PAR VOUS] Ajoutez la liste des vidéos réelles (titre, lien YouTube, description, catégorie)."
 };
 
-export const socialLinks = [
+export const videosList: VideoEntry[] = [
   {
-    label: "Instagram",
-    description: "Coulisses et interventions en images.",
-    href: "https://www.instagram.com/proclean_empire/"
+    id: "presentation-proclean-empire",
+    title: "Présentation ProClean Empire",
+    videoSrc: "/media/videos/proclean-presentation.mp4",
+    poster: "/media/photos/nettoyage-avion-cessna.jpeg",
+    description:
+      "Présentation de notre approche, de nos standards qualité et de nos interventions sur le terrain.",
+    category: "Presentation"
   },
   {
-    label: "Facebook",
-    description: "Actualités et avis clients.",
-    href: "https://www.facebook.com/people/Proclean-Empire/61575993812750/"
+    id: "demonstration-nettoyage-1",
+    title: "Démonstration de nettoyage - Intérieur automobile",
+    videoSrc: "/media/videos/proclean-demonstration-1.mp4",
+    poster: "/media/photos/interieur-auto-apres.jpeg",
+    description: "Intervention détaillage et remise en état d'un intérieur automobile.",
+    category: "Demonstrations"
   },
   {
-    label: "LinkedIn",
-    description: "Suivi professionnel et opportunités B2B.",
-    href: "https://www.linkedin.com/company/procelan-empire"
-  },
-  {
-    label: "TikTok",
-    description: "Interventions et astuces en vidéo courte.",
-    href: "https://www.tiktok.com/@procleanempire"
-  },
-  {
-    label: "YouTube",
-    description: "Présentations et démonstrations en vidéo.",
-    href: "https://www.youtube.com/@ProCleanEmpire"
+    id: "demonstration-nettoyage-2",
+    title: "Démonstration de nettoyage - Sièges et garnitures",
+    videoSrc: "/media/videos/proclean-demonstration-2.mp4",
+    poster: "/media/photos/banquette-arriere-apres.jpeg",
+    description: "Traitement et remise en état des sièges et garnitures textiles/cuir.",
+    category: "Demonstrations"
   }
 ];
 
 export const blogPageContent = {
-  title: "Blog",
+  title: "Blog ProClean Empire",
   description:
-    "Structure blog ProClean Empire pour publier des contenus SEO local et expertise nettoyage professionnel.",
+    "Structure éditoriale prête pour publier régulièrement des contenus utiles au SEO local et à la conversion B2B.",
   categories: [
-    "Nettoyage de bureaux",
-    "Hygiène en restauration",
-    "Entretien hôtelier",
-    "Conseils propreté",
-    "Réglementation et normes",
-    "Actualités ProClean Empire"
-  ],
+    "Nettoyage bureaux",
+    "Restaurants",
+    "Hotels",
+    "Conseils",
+    "Hygiene",
+    "Entreprise",
+    "Google Business",
+    "SEO local"
+  ] as BlogCategory[],
   placeholder:
-    "Les premiers articles seront publiés ici. Chaque catégorie ci-dessous accueillera des contenus SEO local dédiés."
+    "[A REMPLIR PAR VOUS] Ajoutez vos articles réels (titre, extrait, catégorie, slug) pour éviter toute page fine."
 };
 
-export const faqThemes = ["Tarifs", "Interventions", "Qualite", "Contrat", "Zone", "Technique"] as const;
+export const socialLinks = [
+  {
+    label: "YouTube",
+    href: "https://www.youtube.com/@ProCleanEmpire",
+    description: "Présentation, démonstrations et interventions en conditions réelles."
+  },
+  {
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/company/procelan-empire",
+    description: "Actualités entreprise, coulisses et preuve de sérieux B2B."
+  },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/proclean_empire/",
+    description: "Avant/Après, quotidien des équipes et standards qualité."
+  },
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/people/Proclean-Empire/61575993812750/",
+    description: "Vie de l'entreprise, avis clients et mises à jour locales."
+  },
+  {
+    label: "TikTok",
+    href: "https://www.tiktok.com/@procleanempire",
+    description: "Vidéos courtes d'interventions et coulisses des équipes terrain."
+  }
+];
+
+export const faqThemes = [
+  "Tarifs",
+  "Interventions",
+  "Qualite",
+  "Contrat",
+  "Zone",
+  "Technique"
+] as const;

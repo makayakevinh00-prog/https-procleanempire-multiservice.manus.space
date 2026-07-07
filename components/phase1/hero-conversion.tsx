@@ -4,7 +4,6 @@ import Link from "next/link";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { useMemo } from "react";
 import { conversionHeroContent } from "@/lib/content/phase1";
-import { VisualPlaceholder } from "@/components/ui/visual-placeholder";
 
 function AnimatedValue({ value, fallback, suffix }: { value?: number; fallback: string; suffix?: string }) {
   const displayValue = useMemo(() => value ?? null, [value]);
@@ -75,7 +74,12 @@ export function HeroConversion({ onOpenVideo }: { onOpenVideo: () => void }) {
         </div>
         <div className="rounded-3xl border border-[#14213d]/15 bg-white p-6 shadow-soft">
           <div className="mb-5 overflow-hidden rounded-2xl">
-            <VisualPlaceholder label="PHOTO INTERVENTION PROCLEAN EMPIRE" ratio="wide" />
+            <img
+              src="/media/photos/nettoyage-avion-cessna.jpeg"
+              alt="Intervention ProClean Empire : nettoyage professionnel d'un avion Cessna en hangar"
+              className="h-56 w-full object-cover md:h-64"
+              loading="eager"
+            />
           </div>
           <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
             Indicateurs de confiance

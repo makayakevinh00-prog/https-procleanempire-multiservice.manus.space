@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { services } from "@/lib/data";
-import { siteConfig } from "@/lib/site";
 import { PageHero } from "@/components/sections/page-hero";
 import { VisualPlaceholder } from "@/components/ui/visual-placeholder";
 
@@ -74,7 +73,7 @@ export function ServiceLanding({
             name: service.title,
             description: service.shortDescription,
             areaServed: "Île-de-France",
-            url: `${siteConfig.url}${path}`
+            url: `https://proclean-empire.fr${path}`
           })
         }}
       />

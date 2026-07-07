@@ -40,9 +40,9 @@ export default function ContactPage() {
             </div>
           </article>
           <article className="card p-6 md:p-8">
-            <h2 className="text-xl font-semibold text-slate-900">Horaires d'ouverture</h2>
+            <h2 className="text-xl font-semibold text-slate-900">Horaires de réponse</h2>
             <p className="mt-3 text-sm leading-relaxed text-slate-600">
-              {siteConfig.openingHours}.
+              Lundi à vendredi: 8h00 - 19h00.
             </p>
             <p className="mt-3 text-sm leading-relaxed text-slate-600">
               Demandes urgentes: intervention possible sous 24 à 48h en Île-de-France selon

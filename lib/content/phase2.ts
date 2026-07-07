@@ -1,16 +1,7 @@
-export const caseStudiesPageContent = {
-  eyebrow: "Preuves terrain",
-  title: "Études de cas",
-  description:
-    "Des interventions structurées avec problématique, solution et résultat, pour évaluer concrètement notre façon de travailler.",
-  placeholder:
-    "Les premières études de cas détaillées (avant/après, contexte, résultats) seront publiées ici après nos prochaines interventions."
-};
-
 export type CaseStudy = {
   id: string;
   title: string;
-  sector: string;
+  sector: "Bureaux" | "Restaurants" | "Hotels" | "Vitrerie" | "Apres chantier" | "Avant/Apres";
   location: string;
   interventionTime: string;
   problem: string;
@@ -18,101 +9,205 @@ export type CaseStudy = {
   result: string;
   beforeImages: string[];
   afterImages: string[];
+  videoUrl?: string;
   testimonial?: {
-    quote: string;
     name: string;
     role: string;
     company: string;
+    quote: string;
   };
-  videoUrl?: string;
 };
 
-export const caseStudies: CaseStudy[] = [];
-
-export const galleryCategories = [
-  "Bureaux",
-  "Restaurants",
-  "Hôtels",
-  "Commerces",
-  "Vitrerie",
-  "Avant / Après",
-  "Équipe"
-] as const;
-
-export type GalleryCategory = (typeof galleryCategories)[number];
+export type GalleryCategory =
+  | "Bureaux"
+  | "Restaurants"
+  | "Hotels"
+  | "Vitrerie"
+  | "Apres chantier"
+  | "Avant/Apres"
+  | "Automobile"
+  | "Aeronautique"
+  | "Equipe";
 
 export type GalleryItem = {
   id: string;
   category: GalleryCategory;
+  title: string;
   image: string;
   alt: string;
-  title: string;
 };
 
-export const galleryItems: GalleryItem[] = [];
+export const caseStudiesPageContent = {
+  eyebrow: "Preuves terrain",
+  title: "Realisations ProClean Empire",
+  description:
+    "Des cas concrets qui montrent comment nous traitons une problematique, executons la solution et securisons un resultat durable.",
+  placeholder:
+    "[A REMPLIR PAR VOUS] Pour chaque etude de cas: avant/apres, problematique, solution, resultat, duree, photos, video et temoignage."
+};
+
+export const caseStudies: CaseStudy[] = [];
 
 export const galleryPageContent = {
   eyebrow: "Preuves visuelles",
-  title: "Galerie",
+  title: "Galerie interventions",
   description:
-    "Parcourez nos photos par type d'intervention pour évaluer rapidement le niveau de finition attendu.",
+    "Filtrez les photos par categorie pour visualiser nos standards de qualite selon chaque type de site.",
   placeholder:
-    "Les photos de cette catégorie seront ajoutées prochainement. Contactez-nous pour des exemples récents."
+    "[A REMPLIR PAR VOUS] Ajoutez vos photos classees par categorie dans galleryItems."
+};
+
+export const galleryCategories: GalleryCategory[] = [
+  "Automobile",
+  "Aeronautique",
+  "Avant/Apres",
+  "Bureaux",
+  "Restaurants",
+  "Hotels",
+  "Vitrerie",
+  "Apres chantier",
+  "Equipe"
+];
+
+export const galleryItems: GalleryItem[] = [
+  {
+    id: "avion-cessna",
+    category: "Aeronautique",
+    title: "Nettoyage exterieur d'un Cessna",
+    image: "/media/photos/nettoyage-avion-cessna.jpeg",
+    alt: "Technicien ProClean Empire nettoyant l'empennage d'un avion Cessna en hangar"
+  },
+  {
+    id: "cockpit-avion",
+    category: "Aeronautique",
+    title: "Detailing cockpit avion",
+    image: "/media/photos/cockpit-avion-detailing.jpeg",
+    alt: "Nettoyage minutieux du tableau de bord et des ecrans d'un cockpit d'avion"
+  },
+  {
+    id: "sieges-cuir-avion",
+    category: "Aeronautique",
+    title: "Renovation cuir cabine avion",
+    image: "/media/photos/sieges-cuir-avion.jpeg",
+    alt: "Sieges en cuir beige d'une cabine d'avion en cours de traitement"
+  },
+  {
+    id: "interieur-auto",
+    category: "Automobile",
+    title: "Detailing interieur complet",
+    image: "/media/photos/interieur-auto-apres.jpeg",
+    alt: "Interieur de vehicule impeccable apres detailing complet par ProClean Empire"
+  },
+  {
+    id: "interieur-mercedes",
+    category: "Automobile",
+    title: "Nettoyage interieur Mercedes",
+    image: "/media/photos/interieur-mercedes.jpeg",
+    alt: "Habitacle Mercedes nettoye avec protection volant"
+  },
+  {
+    id: "banquette-arriere",
+    category: "Automobile",
+    title: "Banquette arriere remise a neuf",
+    image: "/media/photos/banquette-arriere-apres.jpeg",
+    alt: "Banquette arriere de vehicule parfaitement propre apres intervention"
+  },
+  {
+    id: "traitement-tapis",
+    category: "Automobile",
+    title: "Traitement des tapis en profondeur",
+    image: "/media/photos/traitement-tapis.jpeg",
+    alt: "Application de produit professionnel sur tapis de vehicule avant brossage"
+  },
+  {
+    id: "siege-avant-traitement",
+    category: "Avant/Apres",
+    title: "Siege textile — avant traitement",
+    image: "/media/photos/siege-auto-avant.jpeg",
+    alt: "Banquette de vehicule fortement encrassee avant intervention ProClean Empire"
+  },
+  {
+    id: "cuir-rouge-avant",
+    category: "Avant/Apres",
+    title: "Cuir rouge — pendant le traitement",
+    image: "/media/photos/cuir-rouge-avant.jpeg",
+    alt: "Siege en cuir rouge en cours de nettoyage et decontamination"
+  },
+  {
+    id: "cuir-rouge-apres",
+    category: "Avant/Apres",
+    title: "Cuir rouge — resultat final",
+    image: "/media/photos/cuir-rouge-apres.jpeg",
+    alt: "Siege en cuir rouge renove et brillant apres traitement ProClean Empire"
+  },
+  {
+    id: "canape-velours",
+    category: "Avant/Apres",
+    title: "Canape velours ravive",
+    image: "/media/photos/canape-velours-apres.jpeg",
+    alt: "Canape en velours vert nettoye en profondeur a domicile"
+  }
+];
+
+export const teamPageContent = {
+  eyebrow: "Qui sommes-nous",
+  title: "Equipe ProClean Empire",
+  description:
+    "Une organisation orientee qualite, avec des equipes formees, des methodes claires et un pilotage rigoureux.",
+  founderBlock: {
+    title: "Le fondateur",
+    text: "ProClean Empire est ne d'une conviction simple : la proprete d'un lieu raconte le serieux de ceux qui l'occupent. Fondee et dirigee a Pontoise, l'entreprise met un point d'honneur a traiter chaque site — bureau, commerce, vehicule ou aeronef — avec le meme niveau d'exigence, de rigueur et de respect du client.",
+    photo: "/media/photos/fondateur-proclean-empire.jpeg"
+  },
+  teamsBlock: {
+    title: "Les equipes terrain",
+    text: "Des intervenants formes aux protocoles specifiques de chaque environnement : surfaces sensibles, cuirs, textiles, vitrages, cockpits et equipements techniques. Chaque intervention suit une methode precise, du diagnostic au controle final.",
+    photo: "/media/photos/nettoyage-avion-cessna.jpeg"
+  },
+  valuesBlock: {
+    title: "Valeurs et exigence de service",
+    bullets: [
+      "[A REMPLIR PAR VOUS] Valeur 1",
+      "[A REMPLIR PAR VOUS] Valeur 2",
+      "[A REMPLIR PAR VOUS] Valeur 3"
+    ]
+  },
+  toolsBlock: {
+    title: "Materiel et protocoles qualite",
+    text: "Materiel professionnel (injection-extraction, vapeur, brosses techniques) et produits adaptes a chaque surface : textiles, cuirs, plastiques, vitrages et equipements sensibles. Chaque intervention se termine par un controle qualite systematique.",
+    photo: "/media/photos/traitement-tapis.jpeg"
+  }
 };
 
 export const interactiveProcessSteps = [
   {
     step: "01",
     title: "Prise de contact",
-    description:
-      "Vous décrivez vos locaux et vos contraintes via le formulaire de devis ou par téléphone."
+    description: "Recueil des besoins, contraintes horaires et niveau d'exigence attendu."
   },
   {
     step: "02",
-    title: "Visite et cadrage",
-    description:
-      "Un échange, éventuellement sur site, permet de définir précisément le périmètre et la fréquence d'intervention."
+    title: "Visite",
+    description: "Analyse sur site des surfaces, flux, zones sensibles et priorites."
   },
   {
     step: "03",
-    title: "Déploiement des équipes",
-    description:
-      "Une équipe formée à vos consignes démarre la prestation selon le planning convenu."
+    title: "Devis",
+    description: "Proposition detaillee avec frequence, perimetre et plan d'execution."
   },
   {
     step: "04",
-    title: "Suivi et ajustements",
-    description:
-      "Des points de contrôle réguliers permettent d'ajuster la prestation si vos besoins évoluent."
+    title: "Intervention",
+    description: "Mise en place operationnelle avec procedures et equipe adaptees."
+  },
+  {
+    step: "05",
+    title: "Controle qualite",
+    description: "Verification reguliere de la conformite et ajustements immediats."
+  },
+  {
+    step: "06",
+    title: "Suivi",
+    description: "Pilotage continu via un interlocuteur unique et des points de suivi."
   }
 ];
-
-export const teamPageContent = {
-  eyebrow: "Le visage humain de ProClean Empire",
-  title: "Notre équipe",
-  description:
-    "Un fondateur impliqué, des équipes terrain formées et une organisation pensée pour la fiabilité au quotidien.",
-  founderBlock: {
-    title: "Le fondateur",
-    text:
-      "ProClean Empire a été créé pour offrir aux entreprises un service de propreté plus simple à piloter : un interlocuteur unique, des décisions rapides et une qualité suivie dans la durée."
-  },
-  teamsBlock: {
-    title: "Les équipes terrain",
-    text:
-      "Des agents formés aux protocoles propres à chaque secteur (bureaux, restauration, hôtellerie, commerces) interviennent avec rigueur et discrétion."
-  },
-  valuesBlock: {
-    title: "Nos valeurs",
-    bullets: [
-      "Fiabilité et ponctualité sur chaque intervention",
-      "Transparence dans la relation contractuelle",
-      "Amélioration continue de la qualité de service"
-    ]
-  },
-  toolsBlock: {
-    title: "Matériel et process",
-    text:
-      "Des produits et équipements adaptés à chaque type de surface, sélectionnés dans le respect des normes d'hygiène en vigueur."
-  }
-};
