@@ -7,7 +7,8 @@ export const siteConfig = {
   city: "Pontoise",
   region: "Île-de-France",
   addressLine: "3 rue Stéphane Charbonnier",
-  responseDelay: "Ouvert 7j/7, 8h - 18h"
+  openingHours: "Ouvert 7j/7, de 8h à 18h",
+  responseDelay: "Réponse sous 24h"
 };
 
 type BuildMetadataInput = {

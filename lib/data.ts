@@ -162,33 +162,35 @@ export const faqs = [
   {
     question: "Proposez-vous un nettoyage de vitrerie ou une remise en état après chantier ?",
     answer:
-      "Oui, en complément de l'entretien courant, nous proposons du nettoyage de vitrerie, une remise en état après chantier et une désinfection ciblée sur demande."
+      "Oui, en complément de l'entretien courant, nous proposons du nettoyage de vitrerie et une remise en état après chantier."
   }
 ];
 
+// Kept identical to lib/content/phase2.ts's interactiveProcessSteps so that
+// /services, /equipe and /realisations describe the same process consistently.
 export const methodSteps = [
   {
     step: "01",
-    title: "Écoute et diagnostic",
+    title: "Prise de contact",
     description:
-      "Nous échangeons sur vos locaux, vos contraintes d'exploitation et vos attentes qualité pour cadrer précisément le besoin."
+      "Vous décrivez vos locaux et vos contraintes via le formulaire de devis ou par téléphone."
   },
   {
     step: "02",
-    title: "Proposition adaptée",
+    title: "Visite et cadrage",
     description:
-      "Vous recevez une proposition claire avec fréquence, périmètre et budget, ajustable selon votre activité réelle."
+      "Un échange, éventuellement sur site, permet de définir précisément le périmètre et la fréquence d'intervention."
   },
   {
     step: "03",
-    title: "Mise en place",
+    title: "Déploiement des équipes",
     description:
-      "Une équipe dédiée est formée à vos locaux et à vos consignes spécifiques avant le démarrage de la prestation."
+      "Une équipe formée à vos consignes démarre la prestation selon le planning convenu."
   },
   {
     step: "04",
-    title: "Suivi qualité continu",
+    title: "Suivi et ajustements",
     description:
-      "Des points de contrôle réguliers permettent d'ajuster la prestation et de garantir un niveau de propreté constant."
+      "Des points de contrôle réguliers permettent d'ajuster la prestation si vos besoins évoluent."
   }
 ];

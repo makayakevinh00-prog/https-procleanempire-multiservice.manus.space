@@ -35,7 +35,7 @@ export function Header() {
         </Link>
       </div>
       <div className="border-t border-slate-100 bg-slate-50 px-6 py-2 text-center text-xs text-slate-600 md:px-8">
-        {siteConfig.responseDelay} · Réponse rapide au {siteConfig.phone}
+        {siteConfig.openingHours} · Appelez-nous au {siteConfig.phone}
       </div>
     </header>
   );
