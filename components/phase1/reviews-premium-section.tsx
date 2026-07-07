@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { premiumReviewsData } from "@/lib/content/phase1";
 
 type CarouselSlide =
-  | { kind: "text"; id: string; name: string; company: string; role: string; rating: number; text: string }
+  | { kind: "text"; id: string; name: string; company?: string; role?: string; rating: number; text: string }
   | { kind: "video"; id: string; title: string; description: string; youtubeUrl: string };
 
 function Rating({ value }: { value: number }) {
@@ -83,7 +83,9 @@ export function ReviewsPremiumSection() {
                       {slides[activeIndex].name}
                     </p>
                     <p className="text-xs text-slate-500">
-                      {slides[activeIndex].role} · {slides[activeIndex].company}
+                      {slides[activeIndex].role && slides[activeIndex].company
+                        ? `${slides[activeIndex].role} · ${slides[activeIndex].company}`
+                        : "Avis Google vérifié"}
                     </p>
                   </>
                 ) : (

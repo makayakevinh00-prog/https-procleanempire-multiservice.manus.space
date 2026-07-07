@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { buildMetadata } from "@/lib/site";
 import { PageHero } from "@/components/sections/page-hero";
-import { blogPageContent } from "@/lib/content/phase3";
+import { blogPageContent, blogPosts } from "@/lib/content/phase3";
 
 export const metadata = buildMetadata({
   title: "Blog",
@@ -39,22 +39,22 @@ export default function BlogPage() {
               </span>
             ))}
           </div>
-          <p className="mt-5 text-sm leading-relaxed text-slate-600">{blogPageContent.placeholder}</p>
-          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {blogPageContent.categories.slice(0, 6).map((category) => (
-              <article key={category} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#c9a227]">
-                  {category}
-                </p>
-                <h3 className="mt-2 text-base font-semibold text-[#14213d]">
-                  [A REMPLIR PAR VOUS] Titre d&apos;article
-                </h3>
-                <p className="mt-2 text-sm text-slate-600">
-                  [A REMPLIR PAR VOUS] Extrait d&apos;article optimisé SEO local.
-                </p>
-              </article>
-            ))}
-          </div>
+          {blogPosts.length > 0 ? (
+            <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {blogPosts.map((post) => (
+                <article key={post.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[#c9a227]">
+                    {post.category}
+                  </p>
+                  <h3 className="mt-2 text-base font-semibold text-[#14213d]">{post.title}</h3>
+                  <p className="mt-2 text-sm text-slate-600">{post.excerpt}</p>
+                  <p className="mt-3 text-xs text-slate-500">{post.date}</p>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-5 text-sm leading-relaxed text-slate-600">{blogPageContent.placeholder}</p>
+          )}
         </div>
       </section>
     </>

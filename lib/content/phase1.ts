@@ -8,8 +8,8 @@ export type AnimatedStat = {
 export type ReviewItem = {
   id: string;
   name: string;
-  company: string;
-  role: string;
+  company?: string;
+  role?: string;
   rating: number;
   text: string;
   photo?: string;
@@ -64,8 +64,51 @@ export const presentationVideo = {
 export const premiumReviewsData = {
   sectionTitle: "Avis clients",
   sectionDescription:
-    "Chaque avis ci-dessous est prevu pour etre renseigne avec vos preuves sociales reelles (texte, video et captures Google Reviews).",
-  textReviews: [] as ReviewItem[],
+    "Note de 5,0/5 sur Google (30 avis) - decouvrez les retours de nos clients.",
+  textReviews: [
+    {
+      id: "ilhame-kamil",
+      name: "Ilhame Kamil",
+      rating: 5,
+      text: "Tres satisfait du nettoyage de mes 2 voitures. Travail soigne, resultat impeccable et equipe professionnelle."
+    },
+    {
+      id: "concierg-air",
+      name: "Concierg'air",
+      rating: 5,
+      text: "Tres satisfait de ProClean Empire. Service serieux, equipe professionnelle et resultat impeccable a chaque intervention. Je recommande sans hesitation."
+    },
+    {
+      id: "jordan-germany",
+      name: "Jordan Germany",
+      rating: 5,
+      text: "Merci pour votre excellent travail. Tout etait impeccable. Le personnel est tres chaleureux, accueillant et professionnel. Je recommande vivement !"
+    },
+    {
+      id: "haris",
+      name: "Haris",
+      rating: 5,
+      text: "Franchement le resultat au top rapport qualite prix imbattable je recommande !!!!"
+    },
+    {
+      id: "sam-mel",
+      name: "Sam Mel",
+      rating: 5,
+      text: "Tres serieux et professionnelle ! Qualite de la prestation au top, merci d'avoir sauve ma voiture !"
+    },
+    {
+      id: "victor-nicot",
+      name: "Victor Nicot",
+      rating: 5,
+      text: "Tres bon service, je recommande Kevin et son equipe."
+    },
+    {
+      id: "livio-enzo-ornetti",
+      name: "Livio Enzo Ornetti",
+      rating: 5,
+      text: "Je recommande, c'etait nickel !"
+    }
+  ] as ReviewItem[],
   videoTestimonials: [] as VideoTestimonial[],
   googleReviewScreenshots: [] as string[],
   placeholders: {

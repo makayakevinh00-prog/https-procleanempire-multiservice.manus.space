@@ -79,6 +79,25 @@ export const blogPageContent = {
     "[A REMPLIR PAR VOUS] Ajoutez vos articles réels (titre, extrait, catégorie, slug) pour éviter toute page fine."
 };
 
+export type BlogPost = {
+  id: string;
+  title: string;
+  excerpt: string;
+  category: BlogCategory;
+  date: string;
+};
+
+export const blogPosts: BlogPost[] = [
+  {
+    id: "offre-nouvelle-annee-2026",
+    title: "Offre exclusive 2026 : bien démarrer l'année avec des espaces impeccables",
+    category: "Entreprise",
+    excerpt:
+      "L'année 2026 pointe le bout de son nez et avec elle, l'envie de renouveau. Pour bien démarrer, ProClean Empire a préparé une offre exclusive dédiée aussi bien aux entreprises qu'aux particuliers.",
+    date: "28 décembre 2025"
+  }
+];
+
 export const socialLinks = [
   {
     label: "YouTube",

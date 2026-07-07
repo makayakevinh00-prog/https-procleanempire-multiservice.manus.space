@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { teamPageContent } from "@/lib/content/phase2";
-import { VisualPlaceholder } from "@/components/ui/visual-placeholder";
 
 export function TeamPremiumSection() {
   return (
@@ -20,8 +19,13 @@ export function TeamPremiumSection() {
             <p className="mt-3 text-sm leading-relaxed text-slate-700">
               {teamPageContent.founderBlock.text}
             </p>
-            <div className="mt-4">
-              <VisualPlaceholder label="PHOTO FONDATEUR" ratio="wide" />
+            <div className="mt-4 overflow-hidden rounded-xl">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={teamPageContent.founderBlock.photo}
+                alt="Fondateur de ProClean Empire"
+                className="aspect-[3/4] max-h-80 w-full object-cover object-[50%_20%]"
+              />
             </div>
           </article>
           <article className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
@@ -29,8 +33,13 @@ export function TeamPremiumSection() {
             <p className="mt-3 text-sm leading-relaxed text-slate-700">
               {teamPageContent.teamsBlock.text}
             </p>
-            <div className="mt-4">
-              <VisualPlaceholder label="PHOTO EQUIPES" ratio="wide" />
+            <div className="mt-4 overflow-hidden rounded-xl">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={teamPageContent.teamsBlock.photo}
+                alt="Equipe terrain ProClean Empire"
+                className="aspect-video w-full object-cover"
+              />
             </div>
           </article>
           <article className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
@@ -49,8 +58,13 @@ export function TeamPremiumSection() {
           <article className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
             <h2 className="text-xl font-semibold text-[#14213d]">{teamPageContent.toolsBlock.title}</h2>
             <p className="mt-3 text-sm leading-relaxed text-slate-700">{teamPageContent.toolsBlock.text}</p>
-            <div className="mt-4">
-              <VisualPlaceholder label="PHOTO MATERIEL ET PROCESS" ratio="wide" />
+            <div className="mt-4 overflow-hidden rounded-xl">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={teamPageContent.toolsBlock.photo}
+                alt="Materiel et protocoles qualite ProClean Empire"
+                className="aspect-video w-full object-cover"
+              />
             </div>
           </article>
         </div>

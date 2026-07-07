@@ -34,7 +34,7 @@ export function Footer() {
           <img
             src="/media/logo/proclean-empire-logo.png"
             alt="ProClean Empire"
-            className="h-24 w-auto rounded bg-white/95 p-2"
+            className="h-24 w-auto"
           />
           <p className="text-sm leading-relaxed text-slate-300">
             Société de propreté B2B à Pontoise. Nous aidons les entreprises à

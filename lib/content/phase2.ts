@@ -156,7 +156,7 @@ export const teamPageContent = {
     "Une organisation orientee qualite, avec des equipes formees, des methodes claires et un pilotage rigoureux.",
   founderBlock: {
     title: "Le fondateur",
-    text: "ProClean Empire est ne d'une conviction simple : la proprete d'un lieu raconte le serieux de ceux qui l'occupent. Fondee et dirigee a Pontoise, l'entreprise met un point d'honneur a traiter chaque site — bureau, commerce, vehicule ou aeronef — avec le meme niveau d'exigence, de rigueur et de respect du client.",
+    text: "Derriere ProClean Empire, il y a une ambition : offrir un service de nettoyage professionnel ou la qualite, la rigueur et la satisfaction client sont une priorite. Fondee par Kevinh Makaya, ProClean Empire accompagne les professionnels et les particuliers avec des prestations de nettoyage et de detailing automobile haut de gamme, adaptees a chaque besoin.",
     photo: "/media/photos/fondateur-proclean-empire.jpeg"
   },
   teamsBlock: {
@@ -167,9 +167,9 @@ export const teamPageContent = {
   valuesBlock: {
     title: "Valeurs et exigence de service",
     bullets: [
-      "[A REMPLIR PAR VOUS] Valeur 1",
-      "[A REMPLIR PAR VOUS] Valeur 2",
-      "[A REMPLIR PAR VOUS] Valeur 3"
+      "Qualite, rigueur et satisfaction client comme priorites",
+      "Travail soigne et prestations fiables",
+      "Service reactif pour valoriser vos espaces et votre image"
     ]
   },
   toolsBlock: {
