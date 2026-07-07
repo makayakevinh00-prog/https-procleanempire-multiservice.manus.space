@@ -2,7 +2,7 @@ import Link from "next/link";
 import { buildMetadata } from "@/lib/site";
 import { PageHero } from "@/components/sections/page-hero";
 import { CtaBand } from "@/components/sections/cta-band";
-import { VisualPlaceholder } from "@/components/ui/visual-placeholder";
+import { YoutubeVideoCard } from "@/components/ui/youtube-video-card";
 
 export const metadata = buildMetadata({
   title: "À propos",
@@ -47,7 +47,20 @@ export default function AboutPage() {
               <li>✓ Pilotage clair pour les dirigeants et services généraux</li>
             </ul>
           </article>
-          <VisualPlaceholder label="PHOTO ÉQUIPE" ratio="wide" />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="overflow-hidden rounded-2xl border border-slate-200">
+              <YoutubeVideoCard
+                youtubeUrl="https://youtube.com/shorts/a9sfrpw13cE"
+                title="ProClean Empire en intervention"
+                aspect="aspect-[9/16]"
+              />
+            </div>
+            <img
+              src="/media/photos/hero-showcase.jpg"
+              alt="ProClean Empire"
+              className="aspect-[9/16] w-full rounded-2xl border border-slate-200 object-cover"
+            />
+          </div>
         </div>
       </section>
       <CtaBand />

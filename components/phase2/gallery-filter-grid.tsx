@@ -10,7 +10,11 @@ import {
 } from "@/lib/content/phase2";
 
 export function GalleryFilterGrid() {
-  const [activeCategory, setActiveCategory] = useState<GalleryCategory>(galleryCategories[0]);
+  const availableCategories = useMemo(
+    () => galleryCategories.filter((category) => galleryItems.some((item) => item.category === category)),
+    []
+  );
+  const [activeCategory, setActiveCategory] = useState<GalleryCategory>(availableCategories[0]);
 
   const filteredItems = useMemo(
     () => galleryItems.filter((item) => item.category === activeCategory),
@@ -31,7 +35,7 @@ export function GalleryFilterGrid() {
         </p>
 
         <div className="mt-7 flex flex-wrap gap-2">
-          {galleryCategories.map((category) => {
+          {availableCategories.map((category) => {
             const isActive = category === activeCategory;
             return (
               <button
@@ -51,11 +55,7 @@ export function GalleryFilterGrid() {
           })}
         </div>
 
-        {filteredItems.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-600">
-            {galleryPageContent.placeholder}
-          </div>
-        ) : (
+        {filteredItems.length === 0 ? null : (
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredItems.map((item) => (
               <article key={item.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">

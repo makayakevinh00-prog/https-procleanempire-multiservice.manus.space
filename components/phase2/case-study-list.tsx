@@ -27,11 +27,6 @@ export function CaseStudyList() {
         <p className="mt-4 max-w-3xl text-lg leading-relaxed text-slate-700">
           {caseStudiesPageContent.description}
         </p>
-        {!hasCaseStudies ? (
-          <div className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-600">
-            {caseStudiesPageContent.placeholder}
-          </div>
-        ) : null}
       </div>
 
       <div className="mt-8 space-y-8">
