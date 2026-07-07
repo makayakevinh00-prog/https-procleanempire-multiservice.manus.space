@@ -1,13 +1,13 @@
 export const siteConfig = {
   name: "ProClean Empire",
-  url: "https://proclean-empire.fr",
-  phone: "01 23 45 67 89",
-  phoneHref: "tel:+33123456789",
-  email: "contact@proclean-empire.fr",
+  url: "https://www.procleanempire.com",
+  phone: "06 17 21 22 30",
+  phoneHref: "tel:+33617212230",
+  email: "contact@procleanempire.com",
   city: "Pontoise",
   region: "Île-de-France",
   addressLine: "12 rue des Entreprises",
-  responseDelay: "Réponse sous 24h"
+  responseDelay: "Ouvert 7j/7, 8h - 18h"
 };
 
 type BuildMetadataInput = {

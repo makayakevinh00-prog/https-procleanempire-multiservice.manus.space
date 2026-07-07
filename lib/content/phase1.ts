@@ -103,11 +103,11 @@ export const phase1Contact = {
   description:
     "Décrivez votre besoin ou appelez-nous directement : nous revenons vers vous rapidement avec une solution adaptée.",
   address: "12 rue des Entreprises, 95000 Pontoise",
-  phone: "01 23 45 67 89",
-  phoneHref: "tel:+33123456789",
-  email: "contact@proclean-empire.fr",
+  phone: "06 17 21 22 30",
+  phoneHref: "tel:+33617212230",
+  email: "contact@procleanempire.com",
   zone: "Pontoise, Val d'Oise et Île-de-France",
-  hours: "Lundi à vendredi, 8h00 - 19h00",
+  hours: "Ouvert 7j/7, de 8h à 18h",
   directContactCta: {
     label: "Nous contacter",
     href: "/contact"

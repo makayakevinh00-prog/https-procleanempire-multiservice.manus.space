@@ -27,13 +27,19 @@ composant ou la page concernée (hero, fiches services, équipe, galerie, réali
 
 ## Données à compléter avant mise en ligne
 
-Les champs suivants contiennent des valeurs placeholder (`[A COMPLETER]`) à remplacer par
-les informations réelles de l'entreprise avant publication:
+Téléphone, email, horaires et réseaux sociaux (Instagram, Facebook, LinkedIn, TikTok,
+YouTube) sont déjà renseignés avec les vraies coordonnées dans `lib/site.ts`,
+`lib/content/phase1.ts` et `lib/content/phase3.ts`.
 
-- `lib/content/legal.ts`: capital social, RCS, SIREN, SIRET, EUID, date de début d'activité, directeur de publication.
-- `lib/site.ts`: numéro de téléphone et adresse (actuellement des valeurs d'exemple).
-- `lib/content/phase1.ts` (`presentationVideo.youtubeUrl`) et `lib/content/phase3.ts` (`videosPageContent.youtubeChannelUrl`): liens YouTube réels.
-- `lib/content/phase3.ts` (`socialLinks`): liens vers les réseaux sociaux réels (actuellement `#`).
+Il reste à compléter, dans `lib/content/legal.ts` (valeurs `[A COMPLETER]`):
+
+- Capital social, RCS, SIREN, SIRET, EUID
+- Date de début d'activité
+- Directeur de publication
+
+Et dans `lib/content/phase1.ts` (`presentationVideo.youtubeUrl`): le lien direct vers la
+vidéo de présentation une fois tournée (en attendant, la chaîne YouTube complète reste
+accessible depuis la page `/videos`).
 
 ## Contenu Phase 1 (facilement modifiable)
 

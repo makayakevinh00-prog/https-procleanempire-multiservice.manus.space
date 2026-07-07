@@ -20,29 +20,34 @@ export const videosPageContent = {
     "Un espace dédié pour visionner nos contenus réels : présentation, démonstrations, études de cas et coulisses.",
   placeholder:
     "Les vidéos de cette catégorie seront ajoutées prochainement sur notre chaîne YouTube.",
-  youtubeChannelUrl: "[A REMPLIR PAR VOUS] Lien de la chaîne YouTube ProClean Empire"
+  youtubeChannelUrl: "https://www.youtube.com/@ProCleanEmpire"
 };
 
 export const socialLinks = [
   {
     label: "Instagram",
     description: "Coulisses et interventions en images.",
-    href: "#"
+    href: "https://www.instagram.com/proclean_empire/"
   },
   {
     label: "Facebook",
     description: "Actualités et avis clients.",
-    href: "#"
+    href: "https://www.facebook.com/people/Proclean-Empire/61575993812750/"
   },
   {
     label: "LinkedIn",
     description: "Suivi professionnel et opportunités B2B.",
-    href: "#"
+    href: "https://www.linkedin.com/company/procelan-empire"
   },
   {
-    label: "Google Business",
-    description: "Avis et fiche établissement.",
-    href: "#"
+    label: "TikTok",
+    description: "Interventions et astuces en vidéo courte.",
+    href: "https://www.tiktok.com/@procleanempire"
+  },
+  {
+    label: "YouTube",
+    description: "Présentations et démonstrations en vidéo.",
+    href: "https://www.youtube.com/@ProCleanEmpire"
   }
 ];
 
