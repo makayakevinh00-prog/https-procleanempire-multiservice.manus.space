@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { HeroConversion } from "@/components/phase1/hero-conversion";
+import { PartnersMarquee } from "@/components/phase1/partners-marquee";
 import {
   PresentationVideoModal,
   PresentationVideoSection
@@ -27,6 +28,7 @@ export function HomeConversionPhase1() {
   return (
     <>
       <HeroConversion onOpenVideo={() => setVideoOpen(true)} />
+      <PartnersMarquee />
       <PresentationVideoSection onOpenVideo={() => setVideoOpen(true)} />
       <ReviewsPremiumSection />
       <CommitmentsSection />

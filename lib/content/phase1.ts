@@ -75,6 +75,13 @@ export const premiumReviewsData = {
   }
 };
 
+export type Partner = {
+  name: string;
+  logo: string;
+};
+
+export const partners: Partner[] = [];
+
 export const commitments = [
   {
     title: "Qualite",
