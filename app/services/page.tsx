@@ -10,7 +10,7 @@ import { FaqList } from "@/components/sections/faq-list";
 export const metadata = buildMetadata({
   title: "Nos services de nettoyage professionnel",
   description:
-    "Découvrez nos prestations de nettoyage pour bureaux, commerces, hôtels, restaurants, vitrerie et interventions spécialisées.",
+    "Découvrez nos prestations de nettoyage automobile, bureaux, commerces, hôtels, restaurants, vitrerie et interventions spécialisées.",
   path: "/services"
 });
 
