@@ -35,17 +35,18 @@ export function HeroConversion({ onOpenVideo }: { onOpenVideo: () => void }) {
   const reducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll();
   const y = useTransform(scrollYProgress, [0, 1], [0, reducedMotion ? 0 : -90]);
+  const trustPoints = ["Réponse sous 2h", "Interventions 7j/7", "Équipe assurée et formée"];
 
   return (
     <section className="relative overflow-hidden">
       <motion.div
         aria-hidden
         style={{ y }}
-        className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(201,162,39,0.18),_rgba(20,33,61,0.08)_36%,_transparent_65%)]"
+        className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(201,162,39,0.25),_rgba(20,33,61,0.09)_35%,_transparent_67%)]"
       />
-      <div className="section relative z-10 grid items-start gap-12 pb-8 lg:grid-cols-[1.1fr,0.9fr]">
+      <div className="section relative z-10 grid items-start gap-12 pb-8 pt-10 lg:grid-cols-[1.1fr,0.9fr]">
         <div>
-          <p className="mb-5 inline-flex rounded-full bg-[#14213d]/10 px-4 py-2 text-sm font-semibold text-[#14213d]">
+          <p className="mb-5 inline-flex rounded-full border border-[#14213d]/15 bg-white px-4 py-2 text-sm font-semibold text-[#14213d] shadow-sm">
             {conversionHeroContent.eyebrow}
           </p>
           <motion.h1
@@ -64,6 +65,13 @@ export function HeroConversion({ onOpenVideo }: { onOpenVideo: () => void }) {
           >
             {conversionHeroContent.subtitle}
           </motion.p>
+          <ul className="mt-6 grid gap-2 text-sm text-slate-600 sm:grid-cols-3">
+            {trustPoints.map((point) => (
+              <li key={point} className="rounded-xl border border-slate-200 bg-white px-3 py-2">
+                {point}
+              </li>
+            ))}
+          </ul>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href={conversionHeroContent.ctaPrimary.href} className="btn-primary">
               {conversionHeroContent.ctaPrimary.label}
@@ -73,13 +81,18 @@ export function HeroConversion({ onOpenVideo }: { onOpenVideo: () => void }) {
             </button>
           </div>
         </div>
-        <div className="rounded-3xl border border-[#14213d]/15 bg-white p-6 shadow-soft">
+        <div className="rounded-3xl border border-[#14213d]/15 bg-gradient-to-b from-white to-slate-50 p-6 shadow-soft">
           <div className="mb-5 overflow-hidden rounded-2xl">
             <VisualPlaceholder label="PHOTO INTERVENTION PROCLEAN EMPIRE" ratio="wide" />
           </div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Indicateurs de confiance
-          </p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+              Indicateurs de confiance
+            </p>
+            <span className="rounded-full bg-[#14213d] px-3 py-1 text-xs font-semibold text-white">
+              Qualité premium
+            </span>
+          </div>
           <div className="mt-4 grid gap-4">
             {conversionHeroContent.stats.map((stat, index) => (
               <motion.article
@@ -87,7 +100,7 @@ export function HeroConversion({ onOpenVideo }: { onOpenVideo: () => void }) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35, delay: index * 0.06 }}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                className="rounded-2xl border border-slate-200 bg-white p-4"
               >
                 <p className="text-2xl font-bold text-[#14213d]">
                   <AnimatedValue value={stat.value} suffix={stat.suffix} fallback={stat.fallback} />
