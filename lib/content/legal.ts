@@ -6,8 +6,7 @@ export const legalInfo = {
   rcsCity: "Pontoise",
   rcsNumber: "106 602 659",
   siren: "106 602 659",
-  // Le SIRET complet (avec NIC) n'apparait pas dans l'extrait fourni.
-  siret: "[A CONFIRMER PAR VOUS - NIC MANQUANT SUR LE KBIS FOURNI]",
+  siret: "106 602 659 00018",
   euid: "FR7802.106602659",
   headOffice: "3 rue Stéphane Charbonnier, 95300 Pontoise",
   activityStartDate: "20/06/2026",
