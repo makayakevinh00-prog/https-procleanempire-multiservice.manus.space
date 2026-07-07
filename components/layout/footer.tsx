@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { navLinks } from "@/lib/data";
 import { siteConfig } from "@/lib/site";
@@ -29,7 +30,9 @@ export function Footer() {
     <footer className="border-t border-slate-200 bg-slate-950 text-slate-200">
       <div className="section grid gap-10 md:grid-cols-2 lg:grid-cols-6">
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-white">ProClean Empire</h2>
+          <Link href="/" className="inline-flex items-center" aria-label={siteConfig.name}>
+            <Image src="/logo.svg" alt={siteConfig.name} width={220} height={80} className="h-14 w-auto" />
+          </Link>
           <p className="text-sm leading-relaxed text-slate-300">
             Société de propreté B2B à Pontoise. Nous aidons les entreprises à
             garder des locaux propres, sains et valorisants.
