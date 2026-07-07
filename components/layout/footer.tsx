@@ -29,7 +29,11 @@ export function Footer() {
     <footer className="border-t border-slate-200 bg-slate-950 text-slate-200">
       <div className="section grid gap-10 md:grid-cols-2 lg:grid-cols-6">
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">ProClean Empire</h2>
+          <img
+            src="/media/logo/proclean-empire-logo.svg"
+            alt="ProClean Empire"
+            className="h-12 w-auto rounded bg-white/95 p-1"
+          />
           <p className="text-sm leading-relaxed text-slate-300">
             Société de propreté B2B à Pontoise. Nous aidons les entreprises à
             garder des locaux propres, sains et valorisants.
