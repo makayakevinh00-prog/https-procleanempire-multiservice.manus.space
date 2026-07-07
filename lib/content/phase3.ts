@@ -35,6 +35,34 @@ export const videosPageContent = {
 
 export const videosList: VideoEntry[] = [
   {
+    id: "intervention-terrain-1",
+    title: "Intervention terrain - Extrait 1",
+    youtubeUrl: "https://www.youtube.com/shorts/ek2_qMkBMYA",
+    description: "Extrait d'une intervention ProClean Empire, filmée sur site.",
+    category: "Interventions"
+  },
+  {
+    id: "intervention-terrain-2",
+    title: "Intervention terrain - Extrait 2",
+    youtubeUrl: "https://www.youtube.com/shorts/UlTWulbv2Hs",
+    description: "Extrait d'une intervention ProClean Empire, filmée sur site.",
+    category: "Interventions"
+  },
+  {
+    id: "intervention-terrain-3",
+    title: "Intervention terrain - Extrait 3",
+    youtubeUrl: "https://www.youtube.com/shorts/RvO-vX_zr3k",
+    description: "Extrait d'une intervention ProClean Empire, filmée sur site.",
+    category: "Interventions"
+  },
+  {
+    id: "intervention-terrain-4",
+    title: "Intervention terrain - Extrait 4",
+    youtubeUrl: "https://youtube.com/shorts/zB8DzPshsR0",
+    description: "Extrait d'une intervention ProClean Empire, filmée sur site.",
+    category: "Interventions"
+  },
+  {
     id: "presentation-proclean-empire",
     title: "Présentation ProClean Empire",
     videoSrc: "/media/videos/proclean-presentation.mp4",
@@ -58,6 +86,16 @@ export const videosList: VideoEntry[] = [
     poster: "/media/photos/banquette-arriere-apres.jpeg",
     description: "Traitement et remise en état des sièges et garnitures textiles/cuir.",
     category: "Demonstrations"
+  }
+];
+
+export const realisationsVideos: VideoEntry[] = [
+  {
+    id: "realisation-extrait-video",
+    title: "Extrait d'intervention filmée sur site",
+    youtubeUrl: "https://www.youtube.com/shorts/pNpWpXeaPZo",
+    description: "Extrait video d'une intervention ProClean Empire, en complement des etudes de cas.",
+    category: "Interventions"
   }
 ];
 

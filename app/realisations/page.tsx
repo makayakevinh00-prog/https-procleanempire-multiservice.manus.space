@@ -2,6 +2,7 @@ import Link from "next/link";
 import { buildMetadata } from "@/lib/site";
 import { PageHero } from "@/components/sections/page-hero";
 import { CaseStudyList } from "@/components/phase2/case-study-list";
+import { RealisationsVideos } from "@/components/phase2/realisations-videos";
 import { InteractiveProcessTimeline } from "@/components/phase2/interactive-process-timeline";
 
 export const metadata = buildMetadata({
@@ -32,6 +33,7 @@ export default function RealisationsPage() {
           </>
         }
       />
+      <RealisationsVideos />
       <CaseStudyList />
       <InteractiveProcessTimeline />
     </>

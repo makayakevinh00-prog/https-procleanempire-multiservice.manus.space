@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { videosList, videosPageContent, type VideoEntry } from "@/lib/content/phase3";
+import { YoutubeVideoCard } from "@/components/ui/youtube-video-card";
 
 const categories: Array<VideoEntry["category"] | "Toutes"> = [
   "Toutes",
@@ -13,29 +14,10 @@ const categories: Array<VideoEntry["category"] | "Toutes"> = [
   "Interventions"
 ];
 
-function getYoutubeId(url: string) {
-  try {
-    const parsed = new URL(url);
-    if (parsed.hostname.includes("youtu.be")) {
-      return parsed.pathname.replace("/", "");
-    }
-    if (parsed.hostname.includes("youtube.com")) {
-      if (parsed.pathname.startsWith("/shorts/") || parsed.pathname.startsWith("/embed/")) {
-        return parsed.pathname.split("/")[2] ?? null;
-      }
-      return parsed.searchParams.get("v");
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
-
 const hasRealChannelUrl = !videosPageContent.youtubeChannelUrl.startsWith("[");
 
 export function VideosGrid() {
   const [activeCategory, setActiveCategory] = useState<(typeof categories)[number]>("Toutes");
-  const [playingId, setPlayingId] = useState<string | null>(null);
 
   const filteredVideos = useMemo(() => {
     if (activeCategory === "Toutes") {
@@ -79,11 +61,6 @@ export function VideosGrid() {
         ) : (
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredVideos.map((video) => {
-              const id = video.youtubeUrl ? getYoutubeId(video.youtubeUrl) : null;
-              const thumb = id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : undefined;
-
-              const isPlaying = playingId === video.id;
-
               return (
                 <article key={video.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
                   {video.videoSrc ? (
@@ -95,34 +72,8 @@ export function VideosGrid() {
                       preload="metadata"
                       className="aspect-video w-full bg-black object-cover"
                     />
-                  ) : id && isPlaying ? (
-                    <iframe
-                      src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1`}
-                      title={video.title}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      className="aspect-video w-full"
-                    />
-                  ) : id ? (
-                    <button
-                      type="button"
-                      onClick={() => setPlayingId(video.id)}
-                      className="group relative block aspect-video w-full"
-                      aria-label={`Lire ${video.title}`}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={thumb}
-                        alt={`Miniature video ${video.title}`}
-                        loading="lazy"
-                        className="h-full w-full object-cover"
-                      />
-                      <span className="absolute inset-0 flex items-center justify-center bg-black/20 transition group-hover:bg-black/30">
-                        <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-[#14213d] transition group-hover:bg-white">
-                          ▶ Lire
-                        </span>
-                      </span>
-                    </button>
+                  ) : video.youtubeUrl ? (
+                    <YoutubeVideoCard youtubeUrl={video.youtubeUrl} title={video.title} />
                   ) : (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
