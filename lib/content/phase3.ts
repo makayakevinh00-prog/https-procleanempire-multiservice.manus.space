@@ -103,7 +103,24 @@ export const realisationsVideos: VideoEntry[] = [
     youtubeUrl: "https://youtube.com/shorts/EK7Mhawwy_0",
     description: "Extrait vidéo d'une intervention ProClean Empire, en complément des études de cas.",
     category: "Interventions"
+  },
+  {
+    id: "realisation-extrait-video-3",
+    title: "Entretien de locaux professionnels",
+    youtubeUrl: "https://youtube.com/shorts/B5YLOZT_glU",
+    description:
+      "Découvrez comment ProClean Empire accompagne les entreprises dans l'entretien de leurs locaux professionnels grâce à des prestations organisées, des méthodes éprouvées et un contrôle qualité permanent.",
+    category: "Interventions"
   }
+];
+
+export const realisationsSectors = [
+  { emoji: "🏢", label: "Entreprises & bureaux" },
+  { emoji: "🛍️", label: "Commerces" },
+  { emoji: "🏨", label: "Hôtels" },
+  { emoji: "🍽️", label: "Restaurants" },
+  { emoji: "🏢", label: "Copropriétés" },
+  { emoji: "🪟", label: "Vitrerie professionnelle" }
 ];
 
 export const blogPageContent = {
