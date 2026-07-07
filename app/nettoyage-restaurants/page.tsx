@@ -2,9 +2,9 @@ import { buildMetadata } from "@/lib/site";
 import { ServiceLanding } from "@/components/pages/service-landing";
 
 export const metadata = buildMetadata({
-  title: "Entretien des établissements de restauration",
+  title: "Propreté des établissements de restauration",
   description:
-    "Prestation d'entretien pour restaurants avec protocoles adaptes aux exigences d'hygiene et de service.",
+    "Prestation pour restaurants avec protocoles adaptes aux exigences d'hygiene, de conformite et de service.",
   path: "/nettoyage-restaurants"
 });
 

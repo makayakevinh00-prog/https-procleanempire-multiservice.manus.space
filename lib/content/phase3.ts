@@ -95,6 +95,22 @@ export const blogPosts: BlogPost[] = [
     excerpt:
       "L'année 2026 pointe le bout de son nez et avec elle, l'envie de renouveau. Pour bien démarrer, ProClean Empire a préparé une offre exclusive dédiée aussi bien aux entreprises qu'aux particuliers.",
     date: "28 décembre 2025"
+  },
+  {
+    id: "un-seul-prestataire-plusieurs-expertises",
+    title: "Un interlocuteur unique pour l'ensemble de vos prestations",
+    category: "Conseils",
+    excerpt:
+      "Bureaux, flottes automobiles, aéronefs, locations Airbnb : ProClean Empire réunit plusieurs expertises au sein d'une seule organisation. Pour nos clients, cela signifie un interlocuteur unique, un même niveau d'exigence et un pilotage simplifié de l'ensemble de leurs prestations.",
+    date: "15 décembre 2025"
+  },
+  {
+    id: "qui-est-proclean-empire",
+    title: "ProClean Empire : une organisation pensée pour les entreprises exigeantes",
+    category: "Entreprise",
+    excerpt:
+      "Fondée par Kevinh Makaya, ProClean Empire accompagne les entreprises avec des prestations d'entretien et de detailing automobile haut de gamme. Notre organisation repose sur des protocoles clairs, des équipes formées et un contrôle qualité systématique à chaque intervention.",
+    date: "2 décembre 2025"
   }
 ];
 

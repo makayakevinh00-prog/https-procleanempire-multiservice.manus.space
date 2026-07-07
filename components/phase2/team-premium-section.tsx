@@ -19,12 +19,12 @@ export function TeamPremiumSection() {
             <p className="mt-3 text-sm leading-relaxed text-slate-700">
               {teamPageContent.founderBlock.text}
             </p>
-            <div className="mt-4 overflow-hidden rounded-xl">
+            <div className="mt-4 mx-auto w-full max-w-[280px] overflow-hidden rounded-xl">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={teamPageContent.founderBlock.photo}
                 alt="Fondateur de ProClean Empire"
-                className="aspect-[3/4] max-h-80 w-full object-cover object-[50%_20%]"
+                className="aspect-[3/4] w-full object-cover object-[50%_12%]"
               />
             </div>
           </article>

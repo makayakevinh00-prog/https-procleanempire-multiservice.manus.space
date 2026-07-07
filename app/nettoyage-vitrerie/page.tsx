@@ -2,9 +2,9 @@ import { buildMetadata } from "@/lib/site";
 import { ServiceLanding } from "@/components/pages/service-landing";
 
 export const metadata = buildMetadata({
-  title: "Entretien de la vitrerie professionnelle",
+  title: "Entretien des surfaces vitrées",
   description:
-    "Entretien de vitrerie interieure et exterieure pour bureaux, commerces et etablissements professionnels.",
+    "Entretien des surfaces vitrees interieures et exterieures pour bureaux, commerces et etablissements professionnels.",
   path: "/nettoyage-vitrerie"
 });
 

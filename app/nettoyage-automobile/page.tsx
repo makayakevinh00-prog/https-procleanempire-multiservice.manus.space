@@ -2,9 +2,9 @@ import { buildMetadata } from "@/lib/site";
 import { ServiceLanding } from "@/components/pages/service-landing";
 
 export const metadata = buildMetadata({
-  title: "Entretien automobile professionnel",
+  title: "Gestion des flottes automobiles",
   description:
-    "Prestations de detailing automobile, interieur et exterieur, pour particuliers et flottes d'entreprise.",
+    "Prise en charge organisee du detailing interieur et exterieur pour flottes d'entreprise et vehicules de particuliers exigeants.",
   path: "/nettoyage-automobile"
 });
 

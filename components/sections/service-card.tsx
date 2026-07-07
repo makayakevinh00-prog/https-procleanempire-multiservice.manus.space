@@ -20,7 +20,7 @@ export function ServiceCard({ service }: { service: Service }) {
         href={`/services/${service.slug}`}
         className="mt-6 inline-flex items-center text-sm font-semibold text-brand-700 hover:text-brand-900"
       >
-        Voir le détail →
+        Découvrir la prestation →
       </Link>
     </article>
   );

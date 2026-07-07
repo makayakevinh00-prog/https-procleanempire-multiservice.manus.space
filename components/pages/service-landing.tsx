@@ -56,7 +56,7 @@ export function ServiceLanding({
                 Recevoir une estimation
               </Link>
               <Link href={`/services/${slug}`} className="btn-secondary">
-                Voir la fiche détaillée
+                Découvrir la prestation
               </Link>
             </div>
           </article>

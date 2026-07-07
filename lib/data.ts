@@ -8,10 +8,10 @@ export type Service = {
 };
 
 export const trustProofs = [
-  { label: "Sites entretenus", value: "70+" },
-  { label: "Interventions réalisées / mois", value: "450+" },
+  { label: "Sites entretenus", value: "+70" },
+  { label: "Interventions réalisées / mois", value: "+450" },
   { label: "Note Google", value: "4,9/5" },
-  { label: "Avis vérifiés", value: "55+" },
+  { label: "Avis vérifiés", value: "+55" },
   { label: "Zone d'intervention", value: "Toute l'Île-de-France" },
   { label: "Assurance", value: "RC Pro incluse" }
 ];
@@ -111,51 +111,51 @@ export const faqs = [
 export const services: Service[] = [
   {
     slug: "nettoyage-automobile",
-    title: "Entretien automobile professionnel",
+    title: "Gestion des flottes automobiles",
     shortDescription:
-      "Prestations de detailing automobile, interieur et exterieur, pour particuliers et flottes d'entreprise.",
+      "Une prise en charge organisée de vos véhicules afin de préserver leur valeur et l'image de votre flotte.",
     detailedDescription:
-      "Une prestation d'entretien automobile soignee, adaptee aussi bien aux vehicules personnels qu'aux flottes d'entreprise, avec un protocole constant a chaque intervention.",
-    sectors: ["Particuliers", "Flottes d'entreprise", "Concessions"],
+      "Detailing interieur et exterieur pilote selon un protocole constant, pour les flottes d'entreprise comme pour les vehicules personnels de dirigeants et particuliers exigeants. Frequence et perimetre ajustes a votre parc.",
+    sectors: ["Flottes d'entreprise", "Concessions", "Particuliers"],
     benefits: [
-      "Entretien interieur complet : sieges, moquettes, plastiques",
-      "Traitement exterieur carrosserie et jantes",
-      "Formules adaptees aux flottes professionnelles"
+      "Protocole constant sur l'ensemble du parc",
+      "Planification adaptée à la disponibilité des véhicules",
+      "Interlocuteur dédié pour le suivi de flotte"
     ]
   },
   {
     slug: "nettoyage-bureaux",
     title: "Entretien des espaces de travail",
     shortDescription:
-      "Des environnements de travail conformes aux standards de votre entreprise, jour après jour.",
+      "Des prestations planifiées permettant de garantir un environnement de travail conforme aux standards de votre entreprise.",
     detailedDescription:
       "Nous assurons l'entretien de vos bureaux avec des protocoles adaptes a la frequentation, afin de limiter les perturbations et maintenir des espaces conformes au quotidien.",
     sectors: ["PME", "Startups", "Cabinets", "Coworking"],
     benefits: [
-      "Contrôle qualité",
-      "Planification des interventions",
-      "Personnel qualifié"
+      "Planification selon vos contraintes d'exploitation",
+      "Contrôle qualité des prestations",
+      "Interlocuteur dédié"
     ]
   },
   {
     slug: "nettoyage-commerces",
     title: "Entretien des espaces commerciaux",
     shortDescription:
-      "Des points de vente valorisés pour renforcer l'experience client des l'entree.",
+      "Des interventions adaptées à votre activité afin de préserver l'image de votre enseigne et l'expérience de vos clients.",
     detailedDescription:
       "Nous assurons l'entretien regulier de vos zones de vente, vitrines et espaces d'accueil afin de soutenir votre image commerciale.",
     sectors: ["Boutiques", "Agences", "Showrooms"],
     benefits: [
-      "Contrôle qualité",
-      "Planification des interventions",
-      "Personnel qualifié"
+      "Planification selon vos contraintes d'exploitation",
+      "Contrôle qualité des prestations",
+      "Interlocuteur dédié"
     ]
   },
   {
     slug: "nettoyage-restaurants",
-    title: "Entretien des établissements de restauration",
+    title: "Propreté des établissements de restauration",
     shortDescription:
-      "Un environnement conforme aux standards d'hygiene pour proteger votre reputation.",
+      "Un environnement conforme aux standards d'hygiène pour protéger votre réputation et votre conformité réglementaire.",
     detailedDescription:
       "Nous intervenons sur les salles, sanitaires et zones techniques selon vos contraintes de service et vos obligations d'hygiene.",
     sectors: ["Restaurants", "Brasseries", "Traiteurs"],
@@ -167,9 +167,9 @@ export const services: Service[] = [
   },
   {
     slug: "nettoyage-hotels",
-    title: "Entretien des espaces hôteliers",
+    title: "Entretien hôtelier",
     shortDescription:
-      "Des espaces communs soignes pour une experience client conforme a votre standing.",
+      "Des espaces communs pilotés avec exigence pour une expérience client conforme à votre standing.",
     detailedDescription:
       "Nous prenons en charge halls, circulations, zones de detente et espaces techniques avec un controle qualite renforce.",
     sectors: ["Hôtels", "Résidences", "Apparthôtels"],
@@ -181,23 +181,23 @@ export const services: Service[] = [
   },
   {
     slug: "nettoyage-vitrerie",
-    title: "Entretien de la vitrerie professionnelle",
+    title: "Entretien des surfaces vitrées",
     shortDescription:
-      "Des vitrages entretenus pour valoriser votre facade et la luminosite interieure.",
+      "Des vitrages entretenus pour valoriser votre façade et la luminosité intérieure.",
     detailedDescription:
       "Entretien de vitres interieures et exterieures avec methodes securisees et frequence ajustee selon l'exposition.",
     sectors: ["Bureaux", "Commerces", "Hôtels"],
     benefits: [
-      "Façade valorisée",
+      "Valorisation durable de votre patrimoine immobilier",
       "Planification sans interruption d'activité",
       "Méthodes adaptées aux hauteurs et accès"
     ]
   },
   {
     slug: "desinfection",
-    title: "Protocoles de désinfection",
+    title: "Désinfection et traitement sanitaire",
     shortDescription:
-      "Protocoles de desinfection cibles pour limiter les risques sanitaires sur les points de contact.",
+      "Des protocoles ciblés pour limiter les risques sanitaires sur les points de contact et sécuriser votre conformité.",
     detailedDescription:
       "Nous deployons des protocoles de desinfection adaptes aux environnements professionnels sensibles et aux zones de forte frequentation.",
     sectors: ["Cabinets médicaux", "Bureaux", "Commerces", "Espaces publics"],
@@ -211,7 +211,7 @@ export const services: Service[] = [
     slug: "parties-communes",
     title: "Entretien des parties communes",
     shortDescription:
-      "Entretien regulier des halls, escaliers et zones de passage pour une image soignee.",
+      "Une gestion des prestations régulière des halls, escaliers et zones de passage pour une image soignée.",
     detailedDescription:
       "Nous prenons en charge les parties communes des immeubles et ensembles tertiaires avec une frequence ajustee a l'usage reel.",
     sectors: ["Copropriétés", "Immeubles de bureaux", "Résidences gérées"],
@@ -223,11 +223,11 @@ export const services: Service[] = [
   },
   {
     slug: "entretien-regulier",
-    title: "Plan d'entretien régulier",
+    title: "Contrats d'entretien récurrents",
     shortDescription:
-      "Un plan d'entretien continu pour vos locaux, sans surcharge de pilotage interne.",
+      "Un cahier des charges clair et une fréquence d'intervention stable, sans surcharge de pilotage interne.",
     detailedDescription:
-      "Nous structurons vos interventions hebdomadaires ou quotidiennes autour d'une planification stable, controlee et evolutive.",
+      "Nous structurons vos interventions selon un cahier des charges precis et une frequence d'intervention ajustee, avec reporting regulier et flexibilite en cas d'evolution de vos besoins.",
     sectors: ["PME", "Coworking", "Réseaux de commerces", "Cabinets"],
     benefits: [
       "Prévisibilité budgétaire et opérationnelle",
@@ -239,7 +239,7 @@ export const services: Service[] = [
     slug: "apres-chantier",
     title: "Remise en propreté après travaux",
     shortDescription:
-      "Une remise en propreté organisee apres travaux pour une reprise d'activite sans delai.",
+      "Une organisation cadrée après travaux pour une reprise d'activité sans délai.",
     detailedDescription:
       "Évacuation des résidus, dépoussiérage technique et finition des surfaces avant ouverture ou livraison.",
     sectors: ["Bureaux", "Commerces", "Résidentiel collectif"],
@@ -253,7 +253,7 @@ export const services: Service[] = [
     slug: "remise-en-etat",
     title: "Remise en état",
     shortDescription:
-      "Intervention approfondie pour reprendre un site et repartir sur de bonnes bases.",
+      "Intervention approfondie pour reprendre un site et repartir sur des standards conformes.",
     detailedDescription:
       "Nous traitons les zones degradees ou insuffisamment entretenues pour retrouver un niveau conforme a vos standards.",
     sectors: ["Multi-secteurs"],

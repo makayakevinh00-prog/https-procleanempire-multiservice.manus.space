@@ -8,7 +8,7 @@ const realSocialLinks = socialLinks.filter((social) => !social.href.startsWith("
 
 export function Footer() {
   const services = [
-    { label: "Entretien automobile", href: "/nettoyage-automobile" },
+    { label: "Gestion de flottes automobiles", href: "/nettoyage-automobile" },
     { label: "Entretien bureaux", href: "/nettoyage-bureaux" },
     { label: "Entretien restaurants", href: "/nettoyage-restaurants" },
     { label: "Entretien hotels", href: "/nettoyage-hotels" },
@@ -43,12 +43,6 @@ export function Footer() {
           </p>
           <p className="text-sm text-slate-300">
             {siteConfig.phone} · {siteConfig.email}
-          </p>
-          <p className="text-xs text-slate-400">
-            SIREN/RCS {legalInfo.rcsNumber} · Capital {legalInfo.capital}
-          </p>
-          <p className="text-xs text-slate-400">
-            SIRET {legalInfo.siret}
           </p>
         </div>
         <div>
