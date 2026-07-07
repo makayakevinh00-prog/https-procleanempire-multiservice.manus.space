@@ -110,6 +110,20 @@ export const faqs = [
 
 export const services: Service[] = [
   {
+    slug: "nettoyage-automobile",
+    title: "Nettoyage automobile",
+    shortDescription:
+      "Lavage et nettoyage de véhicules, intérieur et extérieur, pour particuliers et flottes professionnelles.",
+    detailedDescription:
+      "Un nettoyage automobile soigné, intérieur et extérieur, adapté aussi bien aux véhicules personnels qu'aux flottes d'entreprise.",
+    sectors: ["Particuliers", "Flottes d'entreprise", "Concessions"],
+    benefits: [
+      "Nettoyage intérieur complet: sièges, moquettes, plastiques",
+      "Lavage extérieur carrosserie et jantes",
+      "Formules adaptées aux flottes professionnelles"
+    ]
+  },
+  {
     slug: "nettoyage-bureaux",
     title: "Nettoyage de bureaux",
     shortDescription:
