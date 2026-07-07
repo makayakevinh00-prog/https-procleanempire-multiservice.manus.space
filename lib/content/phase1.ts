@@ -1,3 +1,5 @@
+import { siteConfig } from "@/lib/site";
+
 export const conversionHeroContent = {
   eyebrow: "Nettoyage professionnel premium",
   title: "Des locaux impeccables, une équipe fiable, un interlocuteur unique",
@@ -102,12 +104,12 @@ export const phase1Contact = {
   title: "Parlons de vos locaux",
   description:
     "Décrivez votre besoin ou appelez-nous directement : nous revenons vers vous rapidement avec une solution adaptée.",
-  address: "3 rue Stéphane Charbonnier, 95300 Pontoise",
-  phone: "06 17 21 22 30",
-  phoneHref: "tel:+33617212230",
-  email: "contact@procleanempire.com",
+  address: `${siteConfig.addressLine}, ${siteConfig.postalCode} ${siteConfig.city}`,
+  phone: siteConfig.phone,
+  phoneHref: siteConfig.phoneHref,
+  email: siteConfig.email,
   zone: "Pontoise, Val d'Oise et Île-de-France",
-  hours: "Ouvert 7j/7, de 8h à 18h",
+  hours: siteConfig.openingHours,
   directContactCta: {
     label: "Nous contacter",
     href: "/contact"
