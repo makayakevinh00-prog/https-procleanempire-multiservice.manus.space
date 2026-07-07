@@ -1,5 +1,4 @@
 import { MetadataRoute } from "next";
-import { services } from "@/lib/data";
 import { siteConfig } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -34,12 +33,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: path === "" ? 1 : 0.8
   }));
 
-  const serviceEntries = services.map((service) => ({
-    url: `${siteConfig.url}/services/${service.slug}`,
-    lastModified: new Date(),
-    changeFrequency: "weekly" as const,
-    priority: 0.75
-  }));
-
-  return [...staticEntries, ...serviceEntries];
+  // /services/[slug] pages aren't included here: every current service already
+  // has a dedicated static route above, so adding both would submit two
+  // indexable URLs for the same content.
+  return staticEntries;
 }

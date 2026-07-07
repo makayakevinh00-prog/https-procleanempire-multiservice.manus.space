@@ -40,7 +40,7 @@ export default function ContactPage() {
             </div>
           </article>
           <article className="card p-6 md:p-8">
-            <h2 className="text-xl font-semibold text-slate-900">Horaires de réponse</h2>
+            <h2 className="text-xl font-semibold text-slate-900">Horaires d'ouverture</h2>
             <p className="mt-3 text-sm leading-relaxed text-slate-600">
               {siteConfig.openingHours}.
             </p>
