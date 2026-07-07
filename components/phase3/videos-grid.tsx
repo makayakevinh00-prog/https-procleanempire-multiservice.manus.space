@@ -80,7 +80,7 @@ export function VideosGrid() {
               const id = getYoutubeId(video.youtubeUrl);
               const thumb = id
                 ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg`
-                : "/media/placeholders/video-thumbnail.jpg";
+                : "/media/placeholders/video-thumbnail.svg";
               return (
                 <article key={video.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
                   <Image

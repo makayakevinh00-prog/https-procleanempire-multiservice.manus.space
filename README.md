@@ -18,15 +18,22 @@ npm run dev
 
 ## Gestion des visuels
 
-Le dossier `public/media/placeholders` contient les emplacements à remplacer par vos photos réelles:
+Le site n'utilise pas encore de photos réelles: chaque emplacement photo affiche
+`components/ui/visual-placeholder.tsx`, un encart visuel signalant clairement qu'une
+photo doit être ajoutée. Pour remplacer un emplacement par une vraie photo, déposez le
+fichier dans `public/media/placeholders/` (ou `public/media/photos/`) et remplacez l'appel
+à `<VisualPlaceholder />` par un composant `<Image />` pointant vers ce fichier, dans le
+composant ou la page concernée (hero, fiches services, équipe, galerie, réalisations...).
 
-- photo-client
-- photo-bureaux
-- photo-hotel
-- photo-restaurant
-- photo-vitrerie
-- photo-equipe
-- photo-avant-apres
+## Données à compléter avant mise en ligne
+
+Les champs suivants contiennent des valeurs placeholder (`[A COMPLETER]`) à remplacer par
+les informations réelles de l'entreprise avant publication:
+
+- `lib/content/legal.ts`: capital social, RCS, SIREN, SIRET, EUID, date de début d'activité, directeur de publication.
+- `lib/site.ts`: numéro de téléphone et adresse (actuellement des valeurs d'exemple).
+- `lib/content/phase1.ts` (`presentationVideo.youtubeUrl`) et `lib/content/phase3.ts` (`videosPageContent.youtubeChannelUrl`): liens YouTube réels.
+- `lib/content/phase3.ts` (`socialLinks`): liens vers les réseaux sociaux réels (actuellement `#`).
 
 ## Contenu Phase 1 (facilement modifiable)
 

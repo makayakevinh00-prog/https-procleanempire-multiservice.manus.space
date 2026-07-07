@@ -1,39 +1,28 @@
-import { ReactNode } from "react";
-import { Breadcrumbs } from "@/components/layout/breadcrumbs";
-import { siteConfig } from "@/lib/site";
-
-type PageHeroProps = {
-  title: string;
-  description: string;
-  breadcrumbs: Array<{ label: string; href?: string }>;
-  actions?: ReactNode;
-};
-
-export function PageHero({ title, description, breadcrumbs, actions }: PageHeroProps) {
-  const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: breadcrumbs.map((item, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      name: item.label,
-      ...(item.href ? { item: `${siteConfig.url}${item.href}` } : {})
-    }))
-  };
-
-  return (
-    <>
-      <section className="section pb-8">
-        <Breadcrumbs items={breadcrumbs} />
-        <h1 className="text-4xl font-bold leading-tight text-slate-900 md:text-5xl">{title}</h1>
-        <p className="mt-4 max-w-3xl text-lg leading-relaxed text-slate-600">{description}</p>
-        {actions ? <div className="mt-8 flex flex-wrap gap-3">{actions}</div> : null}
-      </section>
-      <script
-        type="application/ld+json"
-        // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
-    </>
-  );
+{
+  "name": "procleanempire-multiservice",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "framer-motion": "^11.11.17",
+    "next": "^15.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.19",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^15.1.0",
+    "postcss": "^8.4.39",
+    "tailwindcss": "^3.4.4",
+    "typescript": "^5.5.3"
+  }
 }
