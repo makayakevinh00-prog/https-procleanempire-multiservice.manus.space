@@ -2,7 +2,7 @@ import { Metadata } from "next";
 
 export const siteConfig = {
   name: "ProClean Empire",
-  url: "https://procleanempire.com",
+  url: "https://www.procleanempire.com",
   phone: "06 17 21 22 30",
   phoneHref: "tel:+33617212230",
   email: "contact@procleanempire.com",
