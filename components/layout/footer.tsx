@@ -29,14 +29,23 @@ export function Footer() {
     <footer className="border-t border-slate-200 bg-slate-950 text-slate-200">
       <div className="section grid gap-10 md:grid-cols-2 lg:grid-cols-6">
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">ProClean Empire</h2>
+          <h2 className="text-xl font-semibold text-white">ProClean Empire</h2>
           <p className="text-sm leading-relaxed text-slate-300">
             Société de propreté B2B à Pontoise. Nous aidons les entreprises à
             garder des locaux propres, sains et valorisants.
           </p>
-          <p className="text-sm text-slate-300">
-            {siteConfig.phone} · {siteConfig.email}
+          <p className="text-sm text-slate-200">
+            <a href={`tel:${siteConfig.phone}`} className="font-medium transition hover:text-white">
+              {siteConfig.phone}
+            </a>
+            {" · "}
+            <a href={`mailto:${siteConfig.email}`} className="font-medium transition hover:text-white">
+              {siteConfig.email}
+            </a>
           </p>
+          <Link href="/devis" className="inline-flex btn-primary text-sm">
+            Demander un devis
+          </Link>
           <p className="text-xs text-slate-400">
             SIREN/RCS {legalInfo.rcsNumber} · Capital {legalInfo.capital}
           </p>
