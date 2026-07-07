@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navLinks } from "@/lib/data";
@@ -11,8 +12,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-content items-center justify-between px-6 py-4 md:px-8">
-        <Link href="/" className="text-lg font-bold text-slate-900">
-          ProClean Empire
+        <Link href="/" className="flex items-center" aria-label={siteConfig.name}>
+          <Image src="/logo.svg" alt={siteConfig.name} width={220} height={60} className="h-10 w-auto" priority />
         </Link>
         <nav className="hidden items-center gap-6 lg:flex">
           {navLinks.map((link) => {
@@ -35,7 +36,7 @@ export function Header() {
         </Link>
       </div>
       <div className="border-t border-slate-100 bg-slate-50 px-6 py-2 text-center text-xs text-slate-600 md:px-8">
-        {siteConfig.responseDelay} · Réponse rapide au {siteConfig.phone}
+        {siteConfig.openingHours} · Appelez-nous au {siteConfig.phone}
       </div>
     </header>
   );
