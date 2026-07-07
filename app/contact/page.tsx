@@ -6,7 +6,7 @@ import { SocialNetworksSection } from "@/components/phase3/social-networks-secti
 export const metadata = buildMetadata({
   title: "Contact",
   description:
-    "Contactez ProClean Empire pour organiser une visite, obtenir un devis ou être rappelé rapidement.",
+    "Echangez avec un conseiller ProClean Empire pour organiser une visite technique ou obtenir un devis personnalise.",
   path: "/contact"
 });
 
@@ -15,7 +15,7 @@ export default function ContactPage() {
     <>
       <PageHero
         title="Contact"
-        description="Un besoin urgent, un nouveau site à reprendre ou une demande d'estimation? Notre équipe vous répond rapidement."
+        description="Decrivez votre besoin afin que nous puissions vous proposer une solution adaptee a votre activite."
         breadcrumbs={[
           { label: "Accueil", href: "/" },
           { label: "Contact" }

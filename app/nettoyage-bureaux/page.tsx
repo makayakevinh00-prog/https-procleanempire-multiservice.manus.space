@@ -2,9 +2,9 @@ import { buildMetadata } from "@/lib/site";
 import { ServiceLanding } from "@/components/pages/service-landing";
 
 export const metadata = buildMetadata({
-  title: "Nettoyage de bureaux",
+  title: "Entretien des espaces de travail",
   description:
-    "Service de nettoyage de bureaux en Île-de-France pour maintenir des espaces de travail propres et valorisants.",
+    "Prestations d'entretien des espaces de travail en Ile-de-France, pour des environnements conformes aux standards de votre entreprise.",
   path: "/nettoyage-bureaux"
 });
 

@@ -37,8 +37,8 @@ export default function AboutPage() {
           <article className="card p-6 md:p-8">
             <h2 className="text-2xl font-semibold text-slate-900">Notre engagement</h2>
             <p className="mt-4 text-sm leading-relaxed text-slate-600">
-              Nous avons construit ProClean Empire pour offrir aux entreprises un service de
-              propreté plus simple à gérer: un interlocuteur unique, des décisions rapides,
+              Nous avons construit ProClean Empire pour offrir aux entreprises une gestion des
+              prestations plus simple: un interlocuteur unique, une réactivité opérationnelle,
               des équipes suivies et une qualité contrôlée dans le temps.
             </p>
             <ul className="mt-6 space-y-3 text-sm text-slate-700">

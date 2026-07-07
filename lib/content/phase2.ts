@@ -73,16 +73,16 @@ export const galleryItems: GalleryItem[] = [
   {
     id: "avion-cessna",
     category: "Aeronautique",
-    title: "Nettoyage exterieur d'un Cessna",
+    title: "Entretien exterieur d'un Cessna",
     image: "/media/photos/nettoyage-avion-cessna.jpeg",
-    alt: "Technicien ProClean Empire nettoyant l'empennage d'un avion Cessna en hangar"
+    alt: "Technicien ProClean Empire intervenant sur l'empennage d'un avion Cessna en hangar"
   },
   {
     id: "cockpit-avion",
     category: "Aeronautique",
     title: "Detailing cockpit avion",
     image: "/media/photos/cockpit-avion-detailing.jpeg",
-    alt: "Nettoyage minutieux du tableau de bord et des ecrans d'un cockpit d'avion"
+    alt: "Entretien minutieux du tableau de bord et des ecrans d'un cockpit d'avion"
   },
   {
     id: "sieges-cuir-avion",
@@ -96,21 +96,21 @@ export const galleryItems: GalleryItem[] = [
     category: "Automobile",
     title: "Detailing interieur complet",
     image: "/media/photos/interieur-auto-apres.jpeg",
-    alt: "Interieur de vehicule impeccable apres detailing complet par ProClean Empire"
+    alt: "Interieur de vehicule apres detailing complet par ProClean Empire"
   },
   {
     id: "interieur-mercedes",
     category: "Automobile",
-    title: "Nettoyage interieur Mercedes",
+    title: "Entretien interieur Mercedes",
     image: "/media/photos/interieur-mercedes.jpeg",
-    alt: "Habitacle Mercedes nettoye avec protection volant"
+    alt: "Habitacle Mercedes entretenu avec protection volant"
   },
   {
     id: "banquette-arriere",
     category: "Automobile",
     title: "Banquette arriere remise a neuf",
     image: "/media/photos/banquette-arriere-apres.jpeg",
-    alt: "Banquette arriere de vehicule parfaitement propre apres intervention"
+    alt: "Banquette arriere de vehicule remise en etat apres intervention"
   },
   {
     id: "traitement-tapis",
@@ -131,7 +131,7 @@ export const galleryItems: GalleryItem[] = [
     category: "Avant/Apres",
     title: "Cuir rouge — pendant le traitement",
     image: "/media/photos/cuir-rouge-avant.jpeg",
-    alt: "Siege en cuir rouge en cours de nettoyage et decontamination"
+    alt: "Siege en cuir rouge en cours de traitement et decontamination"
   },
   {
     id: "cuir-rouge-apres",
@@ -145,7 +145,7 @@ export const galleryItems: GalleryItem[] = [
     category: "Avant/Apres",
     title: "Canape velours ravive",
     image: "/media/photos/canape-velours-apres.jpeg",
-    alt: "Canape en velours vert nettoye en profondeur a domicile"
+    alt: "Canape en velours vert restaure en profondeur a domicile"
   }
 ];
 
@@ -156,7 +156,7 @@ export const teamPageContent = {
     "Une organisation orientee qualite, avec des equipes formees, des methodes claires et un pilotage rigoureux.",
   founderBlock: {
     title: "Le fondateur",
-    text: "Derriere ProClean Empire, il y a une ambition : offrir un service de nettoyage professionnel ou la qualite, la rigueur et la satisfaction client sont une priorite. Fondee par Kevinh Makaya, ProClean Empire accompagne les professionnels et les particuliers avec des prestations de nettoyage et de detailing automobile haut de gamme, adaptees a chaque besoin.",
+    text: "Derriere ProClean Empire, il y a une ambition : offrir un service d'entretien professionnel ou la qualite, la rigueur et l'exigence de service sont une priorite. Fondee par Kevinh Makaya, ProClean Empire accompagne les professionnels et les particuliers avec des prestations d'entretien et de detailing automobile haut de gamme, adaptees a chaque besoin.",
     photo: "/media/photos/fondateur-proclean-empire.jpeg"
   },
   teamsBlock: {
@@ -167,9 +167,9 @@ export const teamPageContent = {
   valuesBlock: {
     title: "Valeurs et exigence de service",
     bullets: [
-      "Qualite, rigueur et satisfaction client comme priorites",
+      "Qualite, rigueur et exigence de service comme priorites",
       "Travail soigne et prestations fiables",
-      "Service reactif pour valoriser vos espaces et votre image"
+      "Reactivite operationnelle pour valoriser vos espaces et votre image"
     ]
   },
   toolsBlock: {

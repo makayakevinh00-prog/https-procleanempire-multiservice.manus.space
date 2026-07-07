@@ -5,9 +5,9 @@ import { Footer } from "@/components/layout/footer";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "ProClean Empire | Nettoyage professionnel premium a Pontoise",
+  title: "ProClean Empire | Prestations de proprete et multiservices a Pontoise",
   description:
-    "ProClean Empire accompagne les entreprises avec un service de nettoyage professionnel premium a Pontoise et en Ile-de-France.",
+    "ProClean Empire accompagne les entreprises avec des prestations de proprete et multiservices a Pontoise et en Ile-de-France.",
   metadataBase: new URL(siteConfig.url)
 };
 

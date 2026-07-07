@@ -2,9 +2,9 @@ import { buildMetadata } from "@/lib/site";
 import { ServiceLanding } from "@/components/pages/service-landing";
 
 export const metadata = buildMetadata({
-  title: "Nettoyage automobile",
+  title: "Entretien automobile professionnel",
   description:
-    "Lavage et nettoyage de véhicules, intérieur et extérieur, pour particuliers et flottes professionnelles.",
+    "Prestations de detailing automobile, interieur et exterieur, pour particuliers et flottes d'entreprise.",
   path: "/nettoyage-automobile"
 });
 

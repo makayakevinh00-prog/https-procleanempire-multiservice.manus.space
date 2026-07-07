@@ -6,9 +6,9 @@ import { ServiceCard } from "@/components/sections/service-card";
 import { CtaBand } from "@/components/sections/cta-band";
 
 export const metadata = buildMetadata({
-  title: "Nos services de nettoyage professionnel",
+  title: "Nos prestations de propreté pour entreprises",
   description:
-    "Découvrez nos prestations de nettoyage pour bureaux, commerces, hôtels, restaurants, vitrerie et interventions spécialisées.",
+    "Decouvrez nos prestations de proprete pour bureaux, commerces, hotels, restaurants, vitrerie et interventions specialisees.",
   path: "/services"
 });
 

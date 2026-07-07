@@ -24,10 +24,10 @@ export type VideoTestimonial = {
 };
 
 export const conversionHeroContent = {
-  eyebrow: "Proprete professionnelle premium a Pontoise",
-  title: "Des locaux impeccables qui valorisent votre entreprise",
+  eyebrow: "Prestations de propreté et multiservices pour les entreprises exigeantes",
+  title: "La propreté au service de la performance de vos espaces professionnels",
   subtitle:
-    "ProClean Empire vous aide a proteger votre image, gagner du temps de pilotage et maintenir un niveau d'hygiene constant sur vos sites professionnels.",
+    "Nous accompagnons les entreprises, commerces, syndics et etablissements professionnels avec des prestations de proprete planifiees, un suivi qualite rigoureux et des interventions adaptees a vos contraintes d'exploitation.",
   ctaPrimary: {
     label: "Demander un devis",
     href: "/devis"
@@ -127,7 +127,7 @@ export const partners: Partner[] = [];
 
 export const commitments = [
   {
-    title: "Qualite",
+    title: "Engagement qualite",
     description: "Protocoles clairs et controle des points sensibles."
   },
   {
@@ -135,23 +135,23 @@ export const commitments = [
     description: "Interventions calees sur vos contraintes d'exploitation."
   },
   {
-    title: "Personnel forme",
-    description: "Equipes preparees aux exigences des environnements pro."
+    title: "Agents qualifies et formes",
+    description: "Equipes preparees aux exigences des environnements professionnels."
   },
   {
     title: "Produits professionnels",
-    description: "Produits adaptes aux surfaces et standards d'hygiene."
+    description: "Produits et protocoles adaptes aux surfaces et standards d'hygiene."
   },
   {
     title: "Controle qualite",
     description: "Suivi terrain regulier pour maintenir un niveau constant."
   },
   {
-    title: "Reactivite",
-    description: "Ajustements rapides en cas d'imprevu."
+    title: "Reactivite operationnelle",
+    description: "Ajustements organises en cas d'imprevu."
   },
   {
-    title: "Suivi client",
+    title: "Interlocuteur dedie",
     description: "Un interlocuteur unique pour piloter sereinement."
   }
 ];
@@ -159,7 +159,7 @@ export const commitments = [
 export const phase1Contact = {
   title: "Contact ProClean Empire",
   description:
-    "Prenez contact avec notre equipe pour organiser une visite de site ou obtenir un devis personnalise.",
+    "Decrivez votre besoin afin que nous puissions vous proposer une solution adaptee a votre activite.",
   address: "3 rue Stephane Charbonnier, 95800 Pontoise",
   zone: "Pontoise et Île-de-France",
   phone: "06 17 21 22 30",
@@ -169,7 +169,7 @@ export const phase1Contact = {
   mapsEmbedUrl:
     "https://www.google.com/maps?q=3+rue+Stephane+Charbonnier,+95800+Pontoise&output=embed",
   directContactCta: {
-    label: "Prendre rendez-vous",
+    label: "Planifier une visite technique",
     href: "/contact"
   }
 };

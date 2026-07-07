@@ -2,9 +2,9 @@ import { buildMetadata } from "@/lib/site";
 import { ServiceLanding } from "@/components/pages/service-landing";
 
 export const metadata = buildMetadata({
-  title: "Nettoyage hôtels",
+  title: "Entretien des espaces hôteliers",
   description:
-    "Nettoyage d'hôtels et d'espaces d'accueil avec exigence qualité pour protéger votre image client.",
+    "Prestations d'entretien d'hotels et d'espaces d'accueil avec un controle qualite renforce pour votre image client.",
   path: "/nettoyage-hotels"
 });
 

@@ -8,12 +8,12 @@ const realSocialLinks = socialLinks.filter((social) => !social.href.startsWith("
 
 export function Footer() {
   const services = [
-    { label: "Nettoyage automobile", href: "/nettoyage-automobile" },
-    { label: "Nettoyage bureaux", href: "/nettoyage-bureaux" },
-    { label: "Nettoyage restaurants", href: "/nettoyage-restaurants" },
-    { label: "Nettoyage hotels", href: "/nettoyage-hotels" },
-    { label: "Nettoyage commerces", href: "/nettoyage-commerces" },
-    { label: "Nettoyage vitrerie", href: "/nettoyage-vitrerie" },
+    { label: "Entretien automobile", href: "/nettoyage-automobile" },
+    { label: "Entretien bureaux", href: "/nettoyage-bureaux" },
+    { label: "Entretien restaurants", href: "/nettoyage-restaurants" },
+    { label: "Entretien hotels", href: "/nettoyage-hotels" },
+    { label: "Entretien commerces", href: "/nettoyage-commerces" },
+    { label: "Entretien vitrerie", href: "/nettoyage-vitrerie" },
     { label: "Apres chantier", href: "/apres-chantier" },
     { label: "Remise en etat", href: "/remise-en-etat" }
   ];
@@ -37,8 +37,9 @@ export function Footer() {
             className="h-24 w-auto"
           />
           <p className="text-sm leading-relaxed text-slate-300">
-            Société de propreté B2B à Pontoise. Nous aidons les entreprises à
-            garder des locaux propres, sains et valorisants.
+            Votre partenaire en propreté, entretien et multiservices pour les
+            entreprises, commerces, copropriétés et établissements
+            professionnels.
           </p>
           <p className="text-sm text-slate-300">
             {siteConfig.phone} · {siteConfig.email}

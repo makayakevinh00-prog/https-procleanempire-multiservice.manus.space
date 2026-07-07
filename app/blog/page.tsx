@@ -6,7 +6,7 @@ import { blogPageContent, blogPosts } from "@/lib/content/phase3";
 export const metadata = buildMetadata({
   title: "Blog",
   description:
-    "Structure blog ProClean Empire pour publier des contenus SEO local et expertise nettoyage professionnel.",
+    "Blog ProClean Empire : actualites et expertise sur les prestations de proprete pour entreprises.",
   path: "/blog"
 });
 

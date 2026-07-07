@@ -6,7 +6,7 @@ import { QuoteForm } from "@/components/forms/quote-form";
 export const metadata = buildMetadata({
   title: "Demande de devis",
   description:
-    "Demandez un devis de nettoyage professionnel pour vos bureaux, commerces, hôtels ou restaurants en Île-de-France.",
+    "Demandez un devis pour vos prestations de proprete : bureaux, commerces, hotels ou restaurants en Ile-de-France.",
   path: "/devis"
 });
 

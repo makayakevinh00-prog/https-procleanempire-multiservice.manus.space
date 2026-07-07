@@ -9,7 +9,7 @@ export const siteConfig = {
   city: "Pontoise",
   region: "Île-de-France",
   addressLine: "3 rue Stephane Charbonnier, 95800 Pontoise",
-  responseDelay: "Intervention rapide sur Pontoise et l'Île-de-France"
+  responseDelay: "Réactivité opérationnelle sur Pontoise et l'Île-de-France"
 };
 
 export function buildMetadata({

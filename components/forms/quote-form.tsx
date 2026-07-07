@@ -265,7 +265,7 @@ export function QuoteForm() {
       ) : null}
       {submitted ? (
         <p className="mt-4 text-sm font-medium text-green-700">
-          Demande envoyée. Un responsable vous contacte rapidement.
+          Demande envoyée. Un interlocuteur dédié revient vers vous pour la suite.
         </p>
       ) : null}
       <div className="mt-6 flex flex-wrap gap-3">

@@ -76,7 +76,7 @@ export function HeroConversion({ onOpenVideo }: { onOpenVideo: () => void }) {
           <div className="mb-5 overflow-hidden rounded-2xl">
             <img
               src="/media/photos/hero-showcase.jpg"
-              alt="ProClean Empire : nettoyage premium bureaux, automobile et aeronautique"
+              alt="ProClean Empire : entretien haut de gamme bureaux, automobile et aeronautique"
               className="h-56 w-full object-cover md:h-64"
               loading="eager"
             />

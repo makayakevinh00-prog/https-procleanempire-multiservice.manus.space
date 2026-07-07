@@ -15,7 +15,7 @@ export type VideoEntry = {
 };
 
 export type BlogCategory =
-  | "Nettoyage bureaux"
+  | "Entretien bureaux"
   | "Restaurants"
   | "Hotels"
   | "Conseils"
@@ -45,7 +45,7 @@ export const videosList: VideoEntry[] = [
   },
   {
     id: "demonstration-nettoyage-1",
-    title: "Démonstration de nettoyage - Intérieur automobile",
+    title: "Démonstration d'entretien - Intérieur automobile",
     videoSrc: "/media/videos/proclean-demonstration-1.mp4",
     poster: "/media/photos/interieur-auto-apres.jpeg",
     description: "Intervention détaillage et remise en état d'un intérieur automobile.",
@@ -53,7 +53,7 @@ export const videosList: VideoEntry[] = [
   },
   {
     id: "demonstration-nettoyage-2",
-    title: "Démonstration de nettoyage - Sièges et garnitures",
+    title: "Démonstration d'entretien - Sièges et garnitures",
     videoSrc: "/media/videos/proclean-demonstration-2.mp4",
     poster: "/media/photos/banquette-arriere-apres.jpeg",
     description: "Traitement et remise en état des sièges et garnitures textiles/cuir.",
@@ -66,7 +66,7 @@ export const blogPageContent = {
   description:
     "Structure éditoriale prête pour publier régulièrement des contenus utiles au SEO local et à la conversion B2B.",
   categories: [
-    "Nettoyage bureaux",
+    "Entretien bureaux",
     "Restaurants",
     "Hotels",
     "Conseils",
@@ -90,7 +90,7 @@ export type BlogPost = {
 export const blogPosts: BlogPost[] = [
   {
     id: "offre-nouvelle-annee-2026",
-    title: "Offre exclusive 2026 : bien démarrer l'année avec des espaces impeccables",
+    title: "Offre exclusive 2026 : bien démarrer l'année avec des espaces conformes à vos standards",
     category: "Entreprise",
     excerpt:
       "L'année 2026 pointe le bout de son nez et avec elle, l'envie de renouveau. Pour bien démarrer, ProClean Empire a préparé une offre exclusive dédiée aussi bien aux entreprises qu'aux particuliers.",

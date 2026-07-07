@@ -6,7 +6,7 @@ import { GalleryFilterGrid } from "@/components/phase2/gallery-filter-grid";
 export const metadata = buildMetadata({
   title: "Galerie",
   description:
-    "Galerie photo ProClean Empire avec filtres par categories: bureaux, restaurants, hotels, vitrerie, apres chantier, avant/apres, equipe.",
+    "Galerie ProClean Empire avec filtres par categories: bureaux, restaurants, hotels, vitrerie, apres chantier, avant/apres, equipe.",
   path: "/galerie"
 });
 
@@ -15,7 +15,7 @@ export default function GaleriePage() {
     <>
       <PageHero
         title="Galerie"
-        description="Parcourez nos photos par type d&apos;intervention pour evaluer rapidement le niveau de finition attendu."
+        description="Parcourez nos photos par type d&apos;intervention pour evaluer notre niveau de finition."
         breadcrumbs={[
           { label: "Accueil", href: "/" },
           { label: "Galerie" }

@@ -10,11 +10,11 @@ export function CtaBand() {
               Prochaine étape
             </p>
             <h2 className="mt-2 text-3xl font-bold leading-tight md:text-4xl">
-              Recevez un plan de nettoyage clair et chiffré
+              Recevez un protocole d&apos;intervention clair et chiffré
             </h2>
             <p className="mt-4 max-w-2xl text-slate-300">
-              Expliquez votre besoin en 2 minutes. Nous vous proposons une solution adaptée à
-              vos locaux, vos horaires et votre niveau d&apos;exigence.
+              Décrivez votre activité en 2 minutes. Nous vous proposons une organisation adaptée à
+              vos locaux, vos horaires et vos standards d&apos;exploitation.
             </p>
           </div>
           <div className="flex flex-col gap-3">
