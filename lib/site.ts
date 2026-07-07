@@ -2,13 +2,13 @@ import { Metadata } from "next";
 
 export const siteConfig = {
   name: "ProClean Empire",
-  url: "https://proclean-empire.fr",
+  url: "https://procleanempire.com",
   phone: "06 17 21 22 30",
   phoneHref: "tel:+33617212230",
   email: "contact@procleanempire.com",
   city: "Pontoise",
   region: "Île-de-France",
-  addressLine: "3 rue Stephane Charbonnier, 95800 Pontoise",
+  addressLine: "3 rue Stéphane Charbonnier, 95800 Pontoise",
   responseDelay: "Réactivité opérationnelle sur Pontoise et l'Île-de-France"
 };
 

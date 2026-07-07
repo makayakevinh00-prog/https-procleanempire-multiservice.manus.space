@@ -73,7 +73,7 @@ export function ServiceLanding({
             name: service.title,
             description: service.shortDescription,
             areaServed: "Île-de-France",
-            url: `https://proclean-empire.fr${path}`
+            url: `https://procleanempire.com${path}`
           })
         }}
       />
