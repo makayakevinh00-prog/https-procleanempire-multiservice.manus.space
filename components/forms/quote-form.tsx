@@ -56,6 +56,8 @@ const requiredFields: RequiredStringField[] = [
 export function QuoteForm() {
   const [values, setValues] = useState<FormValues>(initialValues);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [attempted, setAttempted] = useState(false);
   const [step, setStep] = useState(1);
 
@@ -87,15 +89,38 @@ export function QuoteForm() {
     setValues((current) => ({ ...current, [field]: value }));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setAttempted(true);
+    setSubmitError(null);
 
     if (missingFields.length > 0) {
       return;
     }
 
-    setSubmitted(true);
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values)
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error ?? "Échec de l'envoi.");
+      }
+
+      setSubmitted(true);
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Échec de l'envoi. Merci de réessayer ou de nous appeler directement."
+      );
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function nextStep() {
@@ -263,26 +288,31 @@ export function QuoteForm() {
           Merci de compléter les champs obligatoires pour recevoir votre estimation.
         </p>
       ) : null}
+      {submitError ? (
+        <p className="mt-4 text-sm font-medium text-red-700" role="alert">
+          {submitError}
+        </p>
+      ) : null}
       {submitted ? (
         <p className="mt-4 text-sm font-medium text-green-700">
           Demande envoyée. Un interlocuteur dédié revient vers vous pour la suite.
         </p>
       ) : null}
       <div className="mt-6 flex flex-wrap gap-3">
-        {step > 1 ? (
+        {step > 1 && !submitted ? (
           <button type="button" onClick={previousStep} className="btn-secondary">
             Étape précédente
           </button>
         ) : null}
-        {step < 4 ? (
+        {!submitted && (step < 4 ? (
           <button type="button" onClick={nextStep} className="btn-primary">
             Continuer
           </button>
         ) : (
-          <button type="submit" className="btn-primary">
-            Envoyer ma demande
+          <button type="submit" className="btn-primary" disabled={submitting}>
+            {submitting ? "Envoi en cours..." : "Envoyer ma demande"}
           </button>
-        )}
+        ))}
       </div>
     </form>
   );
