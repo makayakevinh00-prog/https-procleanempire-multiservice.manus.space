@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { siteConfig } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -108,8 +109,6 @@ export async function POST(request: NextRequest) {
       subject: `Nouvelle demande de devis — ${data.company}`,
       text: summaryLines.join("\n")
     });
-
-    return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Erreur d'envoi email devis:", error);
     return NextResponse.json(
@@ -117,4 +116,33 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+
+  try {
+    await transporter.sendMail({
+      from: `"${siteConfig.name}" <${gmailUser}>`,
+      to: data.email,
+      replyTo: gmailUser,
+      subject: `Confirmation de votre demande de devis — ${siteConfig.name}`,
+      text: [
+        `Bonjour ${data.name},`,
+        "",
+        `Nous avons bien reçu votre demande de devis pour ${data.company}.`,
+        `Un interlocuteur dédié revient vers vous sous 24h pour affiner votre besoin et vous proposer une solution adaptée.`,
+        "",
+        "Récapitulatif de votre demande :",
+        `- Type de prestation : ${data.localType}`,
+        `- Ville : ${data.city}`,
+        `- Surface : ${data.surface} m²`,
+        `- Fréquence souhaitée : ${data.frequency}`,
+        "",
+        "Cordialement,",
+        `L'équipe ${siteConfig.name}`,
+        `${siteConfig.phone} · ${siteConfig.email}`
+      ].join("\n")
+    });
+  } catch (error) {
+    console.error("Erreur d'envoi email de confirmation client:", error);
+  }
+
+  return NextResponse.json({ ok: true });
 }
