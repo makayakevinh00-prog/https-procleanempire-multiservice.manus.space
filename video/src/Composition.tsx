@@ -2,6 +2,7 @@ import React from "react";
 import { Composition, Still } from "remotion";
 import { PROMO_DURATION, ProCleanPromo } from "./ProCleanPromo";
 import { SocialCard } from "./scenes/SocialCard";
+import { TIKTOK_DURATION, TikTokEdit } from "./tiktok/TikTokEdit";
 
 const FPS = 30;
 
@@ -25,6 +26,14 @@ export const MyComposition: React.FC = () => {
         id="PromoVertical"
         component={ProCleanPromo}
         durationInFrames={PROMO_DURATION}
+        fps={FPS}
+        width={1080}
+        height={1920}
+      />
+      <Composition
+        id="TikTok"
+        component={TikTokEdit}
+        durationInFrames={TIKTOK_DURATION}
         fps={FPS}
         width={1080}
         height={1920}
