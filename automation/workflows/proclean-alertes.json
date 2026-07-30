@@ -1,0 +1,74 @@
+{
+  "name": "ProClean Empire — Relais d'alertes",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "proclean-alerte",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "e2b5f7d0-0001-4b20-8e02-000000000001",
+      "name": "Webhook d'alerte",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-560, 300],
+      "webhookId": "proclean-alerte",
+      "notes": "URL à renseigner dans NOTIFY_WEBHOOK_URL (.env) et dans PROCLEAN_ALERT_WEBHOOK (workflow de publication)."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "sujet",
+              "name": "sujet",
+              "value": "=[ProClean Empire] {{ $json.body.title || 'Incident de publication' }}",
+              "type": "string"
+            },
+            {
+              "id": "corps",
+              "name": "corps",
+              "value": "={{ $json.body.message || $json.body.text || 'Aucun détail fourni.' }}\n\nHorodatage : {{ $json.body.timestamp || $now.toISO() }}\n\nDétail :\n{{ JSON.stringify($json.body.results || $json.body, null, 2) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e2b5f7d0-0002-4b20-8e02-000000000002",
+      "name": "Mettre en forme",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-320, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.PROCLEAN_ALERT_FROM }}",
+        "toEmail": "={{ $env.PROCLEAN_ALERT_TO }}",
+        "subject": "={{ $json.sujet }}",
+        "emailFormat": "text",
+        "text": "={{ $json.corps }}",
+        "options": {}
+      },
+      "id": "e2b5f7d0-0003-4b20-8e02-000000000003",
+      "name": "Envoyer l'e-mail",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [-80, 300],
+      "notes": "Nécessite des identifiants SMTP dans n8n. PROCLEAN_ALERT_FROM et PROCLEAN_ALERT_TO sont des variables d'environnement n8n."
+    }
+  ],
+  "connections": {
+    "Webhook d'alerte": {
+      "main": [[{ "node": "Mettre en forme", "type": "main", "index": 0 }]]
+    },
+    "Mettre en forme": {
+      "main": [[{ "node": "Envoyer l'e-mail", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

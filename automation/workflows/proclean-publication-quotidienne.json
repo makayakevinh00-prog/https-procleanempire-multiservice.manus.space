@@ -1,0 +1,113 @@
+{
+  "name": "ProClean Empire — Publication quotidienne",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      },
+      "id": "d1a4f6c0-0001-4a10-9f01-000000000001",
+      "name": "Tous les jours à 08h00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-620, 300],
+      "notes": "Le fuseau est celui du paramétrage n8n (Settings > Timezone). Mettez-le sur Europe/Paris."
+    },
+    {
+      "parameters": {
+        "command": "=cd {{ $env.PROCLEAN_AUTOPOST_DIR }} && npm run daily"
+      },
+      "id": "d1a4f6c0-0002-4a10-9f01-000000000002",
+      "name": "Exécuter la publication",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [-380, 300],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 60000,
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "notes": "Trois tentatives espacées d'une minute. La commande gère déjà ses propres relances réseau ; cette relance-ci couvre les pannes plus larges (machine indisponible, dépendance qui redémarre)."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "exit-code-ok",
+              "leftValue": "={{ $json.exitCode }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d1a4f6c0-0003-4a10-9f01-000000000003",
+      "name": "Publication réussie ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [-140, 300]
+    },
+    {
+      "parameters": {},
+      "id": "d1a4f6c0-0004-4a10-9f01-000000000004",
+      "name": "Terminé",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [120, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.PROCLEAN_ALERT_WEBHOOK }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: '[ProClean Empire] La publication quotidienne a échoué après 3 tentatives.', exitCode: $json.exitCode, stderr: ($json.stderr || '').slice(0, 1500), stdout: ($json.stdout || '').slice(-1500), date: $now.toISO() }) }}",
+        "options": {}
+      },
+      "id": "d1a4f6c0-0005-4a10-9f01-000000000005",
+      "name": "Alerter en cas d'échec",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [120, 420],
+      "notes": "PROCLEAN_ALERT_WEBHOOK : URL Slack, Discord, ou webhook du second workflow qui envoie l'e-mail."
+    }
+  ],
+  "connections": {
+    "Tous les jours à 08h00": {
+      "main": [[{ "node": "Exécuter la publication", "type": "main", "index": 0 }]]
+    },
+    "Exécuter la publication": {
+      "main": [[{ "node": "Publication réussie ?", "type": "main", "index": 0 }]]
+    },
+    "Publication réussie ?": {
+      "main": [
+        [{ "node": "Terminé", "type": "main", "index": 0 }],
+        [{ "node": "Alerter en cas d'échec", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "pinData": {}
+}

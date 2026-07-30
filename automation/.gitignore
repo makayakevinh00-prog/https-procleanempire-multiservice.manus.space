@@ -1,0 +1,16 @@
+node_modules
+dist
+
+# Secrets
+.env
+config/google-service-account.json
+*.pem
+
+# Photos téléchargées et visuels générés
+assets/downloads
+assets/generated
+
+# Publications produites : l'historique est conservé, pas les brouillons
+posts/*
+!posts/.gitkeep
+!posts/history.json
