@@ -27,6 +27,7 @@
     "render": "remotion render PromoLandscape out/proclean-promo-landscape.mp4",
     "render:vertical": "remotion render PromoVertical out/proclean-promo-vertical.mp4",
     "render:tiktok": "remotion render TikTok out/proclean-tiktok.mp4",
+    "render:cinematic": "remotion render Cinematic out/proclean-cinematic.mp4",
     "render:card": "remotion still SocialCard out/social-card.png",
     "upgrade": "remotion upgrade",
     "lint": "eslint src && tsc"

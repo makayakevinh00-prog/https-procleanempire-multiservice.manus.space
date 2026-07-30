@@ -12,6 +12,7 @@ résout `public/media/...` du site. Aucune image n'est dupliquée.
 | --- | --- | --- |
 | `PromoLandscape` | 1920×1080, 33 s | Site web, YouTube, écrans d'accueil |
 | `PromoVertical` | 1080×1920, 33 s | YouTube Shorts, Reels, TikTok |
+| `Cinematic` | 1080×1920, 36 s | Présentation d'entreprise animée, style art déco |
 | `TikTok` | 1080×1920 | Montage des rushes filmés sur chantier (TikTok / Reels) |
 | `SocialCard` | 1200×630, image fixe | Miniature vidéo et image Open Graph |
 
@@ -44,6 +45,41 @@ installé :
 npx remotion render PromoLandscape out/promo.mp4 \
   --browser-executable=/chemin/vers/chrome
 ```
+
+## Présentation cinématique (`Cinematic`)
+
+Vidéo de présentation d'entreprise entièrement animée : art déco doré sur noir,
+typographie gravée, une idée par écran. Elle n'utilise aucun rush vidéo, donc
+elle est prête même sans tournage.
+
+```bash
+npm run render:cinematic   # exporte out/proclean-cinematic.mp4
+```
+
+Tout le texte est dans **`src/cinematic/script.ts`**. La première ligne (`hook`)
+est l'accroche : c'est la seule phrase que tout le monde verra, à remplacer par
+celle qui fonctionne le mieux sur vos publications.
+
+### Montage calé sur un tempo
+
+Le découpage est exprimé en **temps musicaux**, pas en secondes
+(`src/cinematic/theme.ts`, constante `BPM`, par défaut 120). Toutes les coupes
+tombent donc sur un temps : en posant une musique au même tempo, l'image est
+déjà synchronisée. Pour une musique plus lente ou plus rapide, changez `BPM` et
+l'ensemble du montage se recale. Les longueurs de scène sont dans
+`cinematicBeats` (`src/cinematic/Cinematic.tsx`).
+
+### Ce qui donne le style
+
+- **Éventail art déco** qui s'ouvre en cascade et **cadre à coins chanfreinés**
+  qui se dessine au trait (`Deco.tsx`).
+- **Titre gravé lettre par lettre**, avec flou qui se résorbe, puis un reflet
+  doré qui balaie le texte.
+- **Un écran, une phrase** : le vide autour du texte fait la moitié du travail.
+- **Grain argentique animé et vignettage** sur tout le film : une image
+  numérique parfaitement propre paraît plate.
+- **Photos en bandes noires** avec lent rapprochement, libellé posé dans la
+  bande pour un contraste garanti quelle que soit la photo.
 
 ## Montage TikTok / Reels
 
