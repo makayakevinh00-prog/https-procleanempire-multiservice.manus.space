@@ -9,6 +9,21 @@ npm install
 npm run dev
 ```
 
+## Vidéos de présentation
+
+Le dossier `video/` contient un projet Remotion qui génère les vidéos de
+présentation (format paysage, format vertical pour les réseaux sociaux et
+image de miniature) à partir des visuels de `public/media`.
+
+```bash
+cd video
+npm install
+npm run dev      # prévisualisation
+npm run render   # export MP4
+```
+
+Voir `video/README.md` pour le détail des compositions et du contenu éditable.
+
 ## Objectifs du site
 
 - Positionnement B2B orienté dirigeants, office managers et services généraux.

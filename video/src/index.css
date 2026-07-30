@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+/* Brand tokens mirrored from the website's tailwind.config.ts, so utilities
+   such as `text-brand-500` or `bg-accent-500` are available here too. */
+@theme {
+  --color-brand-50: #eef2f7;
+  --color-brand-100: #d7deeb;
+  --color-brand-500: #14213d;
+  --color-brand-700: #0f1a32;
+  --color-brand-900: #0b1326;
+  --color-accent-500: #c9a227;
+  --color-accent-600: #b28f1f;
+}
