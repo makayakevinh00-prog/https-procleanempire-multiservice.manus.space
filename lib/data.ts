@@ -267,6 +267,7 @@ export const services: Service[] = [
 
 export const navLinks = [
   { label: "Accueil", href: "/" },
+  { label: "Montage Auto", href: "/montage-auto-social" },
   { label: "Réalisations", href: "/realisations" },
   { label: "Galerie", href: "/galerie" },
   { label: "Équipe", href: "/equipe" },
