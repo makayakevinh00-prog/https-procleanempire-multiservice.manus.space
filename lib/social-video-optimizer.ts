@@ -35,11 +35,13 @@ export type DropOffAlert = {
   message: string;
 };
 
-export type OptimizationResult = {
+export type GeneratedVideoPlan = {
+  id: string;
+  title: string;
+  angle: string;
   platformLabel: string;
-  objectiveLabel: string;
-  targetDurationSec: number;
   estimatedDurationSec: number;
+  targetDurationSec: number;
   openingHook: string;
   subtitleStyle: string;
   captionTemplate: string;
@@ -47,6 +49,12 @@ export type OptimizationResult = {
   trendAudioSuggestions: string[];
   timeline: OptimizedClip[];
   dropOffAlerts: DropOffAlert[];
+  publishMoment: string;
+};
+
+export type MultiVideoPlanResult = {
+  objectiveLabel: string;
+  plans: GeneratedVideoPlan[];
 };
 
 const platformProfiles: Record<SocialPlatform, PlatformProfile> = {
@@ -101,6 +109,20 @@ const objectiveBoosts: Record<VideoObjective, Partial<Record<keyof RushClipInput
     speechClarity: 1.4
   }
 };
+
+const objectiveAngles: Record<VideoObjective, string[]> = {
+  conversion: ["Résultat immédiat", "Objection client", "Preuve sociale", "Offre claire"],
+  education: ["Erreur fréquente", "Checklist rapide", "Astuce pro", "Comparatif simple"],
+  before_after: ["Reveal choc", "Transformation étape par étape", "Mini making-of", "Top 3 changements"],
+  authority: ["Preuve méthode", "Coulisses process", "Standard qualité", "Pourquoi ça marche"]
+};
+
+const publishMoments = [
+  "Créneau recommandé: 12h30-13h30",
+  "Créneau recommandé: 18h00-19h30",
+  "Créneau recommandé: 20h30-22h00",
+  "Créneau recommandé: 09h00-10h00"
+];
 
 const audioThemeMap: Record<string, string[]> = {
   nettoyage: [
@@ -157,21 +179,6 @@ function getClipScore(clip: RushClipInput, objective: VideoObjective): number {
   return Number((base + bonus).toFixed(2));
 }
 
-function getOpeningHook(theme: string, objective: VideoObjective, profile: PlatformProfile): string {
-  const cleanedTheme = theme.trim() || "votre sujet";
-
-  if (objective === "before_after") {
-    return `Montrez le résultat final en moins de ${profile.firstHookWindowSec}s puis révélez le avant/après de ${cleanedTheme}.`;
-  }
-  if (objective === "education") {
-    return `Commencez par la promesse: "Voici l'erreur n°1 en ${cleanedTheme}" puis enchaînez immédiatement sur une preuve visuelle.`;
-  }
-  if (objective === "conversion") {
-    return `Hook direct: "Vous voulez ce résultat en ${cleanedTheme} ? Regardez ça." puis cut sur l'élément le plus satisfaisant.`;
-  }
-  return `Hook crédibilité: "Technique pro utilisée en ${cleanedTheme}" + plan rapproché d'exécution dans les ${profile.firstHookWindowSec}s.`;
-}
-
 function getSubtitleStyle(platform: SocialPlatform): string {
   if (platform === "tiktok") {
     return "Sous-titres centrés, mots-clés en jaune, animation mot-par-mot rapide.";
@@ -182,18 +189,18 @@ function getSubtitleStyle(platform: SocialPlatform): string {
   return "Sous-titres dynamiques type Shorts, transitions légères et ponctuation visuelle.";
 }
 
-function getCaptionTemplate(theme: string, objective: VideoObjective): string {
+function getCaptionTemplate(theme: string, objective: VideoObjective, angle: string): string {
   const subject = theme.trim() || "ce sujet";
   if (objective === "education") {
-    return `3 erreurs qui ruinent ${subject} (et comment les éviter). Laquelle vous faites encore ?`;
+    return `${angle}: 3 erreurs qui ruinent ${subject}. Laquelle vous faites encore ?`;
   }
   if (objective === "before_after") {
-    return `Avant/Après ${subject} en moins de 30 sec. Vous notez combien /10 le résultat ?`;
+    return `${angle} en moins de 30 sec sur ${subject}. Vous notez le résultat combien /10 ?`;
   }
   if (objective === "authority") {
-    return `Notre protocole pro pour ${subject}, étape par étape. Vous voulez le process complet ?`;
+    return `${angle}: notre protocole pro sur ${subject}, version ultra courte.`;
   }
-  return `Si vous voulez ce niveau de résultat en ${subject}, écrivez "INFO" en commentaire.`;
+  return `${angle}: vous voulez ce niveau de résultat en ${subject} ? Commentez "INFO".`;
 }
 
 function getCtaLine(objective: VideoObjective): string {
@@ -214,26 +221,26 @@ function getTrendAudio(theme: string): string[] {
   return audioThemeMap[normalizedTheme] ?? audioThemeMap.default;
 }
 
-export function optimizeSocialVideo(params: {
-  clips: RushClipInput[];
-  platform: SocialPlatform;
-  objective: VideoObjective;
-  theme: string;
-}): OptimizationResult {
-  const { clips, platform, objective, theme } = params;
-  const profile = platformProfiles[platform];
+function getOpeningHook(theme: string, angle: string, profile: PlatformProfile): string {
+  const cleanedTheme = theme.trim() || "votre sujet";
+  return `${angle}: montrez un résultat fort dans les ${profile.firstHookWindowSec}s puis enchaînez sur ${cleanedTheme} sans intro longue.`;
+}
 
-  const ranked = [...clips]
-    .map((clip) => ({
-      ...clip,
-      score: getClipScore(clip, objective)
-    }))
-    .sort((a, b) => b.score - a.score);
+function buildTimeline(params: {
+  rankedClips: (RushClipInput & { score: number })[];
+  profile: PlatformProfile;
+  rotationOffset: number;
+}): { timeline: OptimizedClip[]; estimatedDurationSec: number } {
+  const { rankedClips, profile, rotationOffset } = params;
+  const rotated = [
+    ...rankedClips.slice(rotationOffset),
+    ...rankedClips.slice(0, Math.min(rotationOffset, rankedClips.length))
+  ];
 
   const timeline: OptimizedClip[] = [];
   let totalDuration = 0;
 
-  for (const clip of ranked) {
+  for (const clip of rotated) {
     if (totalDuration >= profile.hardMaxDurationSec) {
       break;
     }
@@ -241,7 +248,7 @@ export function optimizeSocialVideo(params: {
     const keepDurationSec = Math.min(
       clip.durationSec,
       profile.maxClipDurationSec,
-      Math.max(1.5, profile.cutPaceSec + clip.actionDensity * 0.35)
+      Math.max(1.4, profile.cutPaceSec + clip.actionDensity * 0.35)
     );
 
     if (totalDuration + keepDurationSec > profile.hardMaxDurationSec + 0.7) {
@@ -270,15 +277,20 @@ export function optimizeSocialVideo(params: {
     }
   }
 
-  const dropOffAlerts: DropOffAlert[] = [];
-  let runningCursor = 0;
+  return { timeline, estimatedDurationSec: Number(totalDuration.toFixed(1)) };
+}
+
+function buildDropOffAlerts(timeline: OptimizedClip[]): DropOffAlert[] {
+  const alerts: DropOffAlert[] = [];
+  let cursor = 0;
+
   for (const clip of timeline) {
     const lowHook = clip.hookStrength <= 2;
     const lowAction = clip.actionDensity <= 2;
 
     if (lowHook || lowAction) {
-      dropOffAlerts.push({
-        atSecond: Number(runningCursor.toFixed(1)),
+      alerts.push({
+        atSecond: Number(cursor.toFixed(1)),
         severity: lowHook && lowAction ? "high" : "medium",
         message:
           lowHook && lowAction
@@ -287,20 +299,73 @@ export function optimizeSocialVideo(params: {
       });
     }
 
-    runningCursor += clip.keepDurationSec;
+    cursor += clip.keepDurationSec;
   }
 
+  return alerts;
+}
+
+function pickPlanPlatforms(basePlatform: SocialPlatform, count: number, crossPost: boolean): SocialPlatform[] {
+  if (!crossPost) {
+    return Array.from({ length: count }, () => basePlatform);
+  }
+
+  const allPlatforms: SocialPlatform[] = ["instagram_reels", "tiktok", "youtube_shorts"];
+  const startsWith = [basePlatform, ...allPlatforms.filter((item) => item !== basePlatform)];
+  return Array.from({ length: count }, (_, index) => startsWith[index % startsWith.length]);
+}
+
+export function generateMultiVideoPlans(params: {
+  clips: RushClipInput[];
+  basePlatform: SocialPlatform;
+  objective: VideoObjective;
+  theme: string;
+  variantsCount: number;
+  crossPostPlatforms: boolean;
+}): MultiVideoPlanResult {
+  const { clips, basePlatform, objective, theme, variantsCount, crossPostPlatforms } = params;
+  const count = Math.max(1, Math.min(6, variantsCount));
+
+  const ranked = [...clips]
+    .map((clip) => ({
+      ...clip,
+      score: getClipScore(clip, objective)
+    }))
+    .sort((a, b) => b.score - a.score);
+
+  const platformSequence = pickPlanPlatforms(basePlatform, count, crossPostPlatforms);
+  const angles = objectiveAngles[objective];
+
+  const plans: GeneratedVideoPlan[] = platformSequence.map((platform, index) => {
+    const profile = platformProfiles[platform];
+    const angle = angles[index % angles.length];
+    const rotationOffset = ranked.length === 0 ? 0 : index % ranked.length;
+    const { timeline, estimatedDurationSec } = buildTimeline({
+      rankedClips: ranked,
+      profile,
+      rotationOffset
+    });
+
+    return {
+      id: `plan-${index + 1}`,
+      title: `Vidéo ${index + 1}`,
+      angle,
+      platformLabel: profile.label,
+      estimatedDurationSec,
+      targetDurationSec: profile.idealDurationSec,
+      openingHook: getOpeningHook(theme, angle, profile),
+      subtitleStyle: getSubtitleStyle(platform),
+      captionTemplate: getCaptionTemplate(theme, objective, angle),
+      ctaLine: getCtaLine(objective),
+      trendAudioSuggestions: getTrendAudio(theme),
+      timeline,
+      dropOffAlerts: buildDropOffAlerts(timeline),
+      publishMoment: publishMoments[index % publishMoments.length]
+    };
+  });
+
   return {
-    platformLabel: profile.label,
     objectiveLabel: objectiveLabels[objective],
-    targetDurationSec: profile.idealDurationSec,
-    estimatedDurationSec: Number(totalDuration.toFixed(1)),
-    openingHook: getOpeningHook(theme, objective, profile),
-    subtitleStyle: getSubtitleStyle(platform),
-    captionTemplate: getCaptionTemplate(theme, objective),
-    ctaLine: getCtaLine(objective),
-    trendAudioSuggestions: getTrendAudio(theme),
-    timeline,
-    dropOffAlerts
+    plans
   };
 }
