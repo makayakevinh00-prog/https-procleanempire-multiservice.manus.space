@@ -153,8 +153,8 @@ export function SocialVideoStudio() {
             Montage vidéo automatique orienté rétention réseaux sociaux
           </h1>
           <p className="mt-3 max-w-3xl text-slate-600">
-            Chargez vos rushs, sélectionnez votre objectif et laissez l&apos;assistant vous proposer un plan de
-            montage qui maximise le watch time, les hooks et la conversion.
+            Application de montage indépendante du site vitrine: chargez vos rushs, sélectionnez votre objectif et
+            laissez l&apos;assistant vous proposer un plan qui maximise le watch time, les hooks et la conversion.
           </p>
         </div>
 
@@ -324,7 +324,7 @@ export function SocialVideoStudio() {
 
             <div className="mt-5 grid gap-5 lg:grid-cols-2">
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <h3 className="text-sm font-semibold text-slate-900">Hook d'ouverture</h3>
+                <h3 className="text-sm font-semibold text-slate-900">Hook d&apos;ouverture</h3>
                 <p className="mt-2 text-sm text-slate-700">{optimization.openingHook}</p>
               </div>
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
