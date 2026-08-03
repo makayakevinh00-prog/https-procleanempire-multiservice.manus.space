@@ -40,11 +40,12 @@
       "usage": ["chiffre"],
       "calques": [
         { "role": "fond", "asset": "composants/fonds/fond-bleu-nuit.svg", "x": 0, "y": 0, "w": 1080, "h": 1350 },
-        { "role": "surtitre", "x": 72, "y": 150, "style": "surtitre", "couleur": "#4A93F0", "icone": "chiffre" },
-        { "role": "chiffre", "x": 72, "y": 620, "taille": 240, "couleur": "#FFFFFF" },
-        { "role": "texte", "x": 72, "y": 760, "w": 620, "style": "corps-l", "couleur": "#7A8BA0" },
+        { "role": "icone", "asset": "composants/icones/chiffre.svg", "variante": "pleine", "x": 72, "y": 148, "w": 40, "h": 40, "couleur": "#4A93F0" },
+        { "role": "surtitre", "x": 132, "y": 148, "w": 600, "style": "surtitre", "couleur": "#4A93F0" },
+        { "role": "chiffre", "x": 72, "y": 540, "w": 620, "taille": 240, "interlignage": 0.95, "couleur": "#FFFFFF" },
+        { "role": "texte", "x": 72, "y": 880, "w": 620, "style": "corps-l", "interlignage": 1.45, "couleur": "#7A8BA0" },
         { "role": "mascotte", "pose": "presente-paume", "cadrage": "silhouette", "x": 814, "y": 846, "w": 194, "h": 432 },
-        { "role": "signature", "x": 72, "y": 1290, "style": "mention" }
+        { "role": "signature", "x": 72, "y": 1284, "w": 700, "style": "mention", "couleur": "#7A8BA0" }
       ]
     },
     {

@@ -91,12 +91,12 @@ Respiration titre ↔ mascotte : **122 px** (> 0,25 × 432 = 108 ✅)
 
 ```
 ┌──────────────────────────────────┐
-│  📊 LE CHIFFRE DE LA SEMAINE     │  150
+│  📊 LE CHIFFRE DE LA SEMAINE     │  148
 │                                  │
 │                                  │
-│      8 7 %                       │  620   ← 240 px
+│      8 7 %                       │  540   ← 240 px
 │                                  │
-│  des salissures visibles         │  760
+│  des salissures visibles         │  880
 │  sont dans les angles.      ┌──┐ │
 │                             │🦊│ │  846
 │  ── PROCLEAN EMPIRE         └──┘ │  1278
@@ -106,11 +106,15 @@ Respiration titre ↔ mascotte : **122 px** (> 0,25 × 432 = 108 ✅)
 | Élément | x | y | l × h | Réglage |
 |---|---|---|---|---|
 | `fond-bleu-nuit.svg` | 0 | 0 | 1080 × 1350 | |
-| Surtitre + icône `chiffre` | 72 | 150 | — | Surtitre 28 px, `#4A93F0` |
-| Chiffre | 72 | 620 | — | **240 px**, Poppins ExtraBold, blanc |
-| Phrase | 72 | 760 | 620 × auto | Corps L 36 px, `#7A8BA0` |
+| Icône `chiffre` | 72 | 148 | 40 × 40 | `#4A93F0`, **version pleine** |
+| Surtitre | 132 | 148 | 600 × auto | Surtitre 28 px, `#4A93F0` |
+| Chiffre | 72 | 540 | 620 × auto | **240 px**, ExtraBold, blanc, interlignage 0,95 |
+| Phrase | 72 | 880 | 620 × auto | Corps L 36 px, `#7A8BA0`, interlignage 1,45 |
 | **Mascotte** `presente-paume` | 814 | 846 | 194 × 432 | il présente le chiffre |
-| Signature | 72 | 1290 | — | |
+| Signature | 72 | 1284 | 700 × auto | Mention 22 px, `#7A8BA0` |
+
+*Coordonnées vérifiées par construction réelle dans Canva — le chiffre à 240 px occupe
+la bande 540 → 828, la phrase ne peut donc pas démarrer avant 880.*
 
 ---
 
