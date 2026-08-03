@@ -158,19 +158,57 @@
   #v10 .foot .name { color: #fff; }
   #v10 .foot .base { color: #94a3b8; }
   #v10 .foot .cta { color: var(--gold); }
+
+  .badge .ico { width: 25px; height: 25px; flex: 0 0 auto; }
+  .seal .ico { width: 19px; height: 19px; flex: 0 0 auto; }
+  .seal .butler { width: 34px; height: 34px; flex: 0 0 auto; color: var(--navy); margin: -6px 2px -6px -4px; }
+  .key, #v6 .row .tx b.key, .s p b.key { color: var(--gold-ink); font-weight: 800; }
+  .foot .cta { letter-spacing: -.005em; }
 </style>
 </head>
 <body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 17.5a6.5 6.5 0 1 1 6 0"/><path d="M9.5 20.5h5"/><path d="M10 23h4"/>
+  </symbol>
+  <symbol id="i-flask" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 2v6.5L3.6 18A2.2 2.2 0 0 0 5.5 21.4h13A2.2 2.2 0 0 0 20.4 18L15 8.5V2"/><path d="M7.5 2h9"/><path d="M6.6 14h10.8"/>
+  </symbol>
+  <symbol id="i-star" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/>
+  </symbol>
+  <symbol id="i-swap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 8h14"/><path d="M13.5 4.5L17 8l-3.5 3.5"/><path d="M21 16H7"/><path d="M10.5 12.5L7 16l3.5 3.5"/>
+  </symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 22s7-6.6 7-12A7 7 0 0 0 5 10c0 5.4 7 12 7 12z"/><circle cx="12" cy="10" r="2.6"/>
+  </symbol>
+  <symbol id="i-cam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 8.5h11.5A2.5 2.5 0 0 1 17 11v6.5H5.5A2.5 2.5 0 0 1 3 15z"/><path d="M17 12.6l4-2.4v7l-4-2.4z"/>
+  </symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 12.5l5.2 5.2L20 6.9"/>
+  </symbol>
+
+  <!-- Le Majordome ProClean -->
+  <symbol id="butler" viewBox="0 0 64 64">
+    <circle cx="32" cy="17.5" r="9.6" fill="currentColor"/>
+    <path d="M11 62c0-11.6 9.4-20 21-20s21 8.4 21 20z" fill="currentColor"/>
+    <path d="M26.2 43.4L32 57l5.8-13.6-5.8-3.2z" fill="#ffffff"/>
+    <path d="M32 44.4l-5.1 2.9 5.1 2.9 5.1-2.9z" fill="#c9a227"/>
+    <path d="M45.2 47.6a2.6 2.6 0 1 1 5.2 0v5.2h-5.2z" fill="#ffffff"/>
+  </symbol>
+</defs></svg>
 
 <!-- ================= 1 · LUNDI 08h · CONSEIL 01 ================= -->
 <section class="card p" id="v1">
   <div class="glow"></div>
   <div class="stage">
     <div class="top">
-      <span class="badge conseil">Conseil <span class="num">#01</span></span>
-      <span class="seal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6b12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.9"/></svg>Méthode ProClean</span>
-    </div>
-    <h1>Un bureau propre n&rsquo;est pas un détail.<br>C&rsquo;est un <span class="hl">levier</span>.</h1>
+      <span class="badge conseil"><svg class="ico"><use href="#i-bulb"/></svg>Conseil <span class="num">#01</span></span>
+      <span class="seal"><svg class="butler"><use href="#butler"/></svg>Le conseil ProClean</span></div>
+    <h1>Un bureau propre n&rsquo;est pas un détail.<br>C&rsquo;est un <span class="hl">levier</span></h1>
     <div class="panel shot">
       <img src="../../../../../home/user/https-procleanempire-multiservice.manus.space/public/media/photos/hero-showcase.jpg" alt="">
     </div>
@@ -180,7 +218,7 @@
         <svg class="mark" width="46" height="40" viewBox="0 0 46 40" fill="#c9a227"><rect x="0" y="20" width="6" height="20" rx="2"/><rect x="10" y="12" width="6" height="28" rx="2"/><rect x="20" y="4" width="6" height="36" rx="2"/><rect x="30" y="10" width="6" height="30" rx="2"/><rect x="40" y="18" width="6" height="22" rx="2"/></svg>
         <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
       </div>
-      <span class="cta"><i>&rarr;</i> Demandez votre devis</span>
+      <span class="cta"><i>&rarr;</i> Parlons de votre projet</span>
     </div>
   </div>
 </section>
@@ -190,10 +228,9 @@
   <div class="glow"></div>
   <div class="stage">
     <div class="top">
-      <span class="badge preuve">Avant / Après <span class="num">#01</span></span>
-      <span class="seal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6b12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.9"/></svg>Méthode ProClean</span>
-    </div>
-    <h1>Le remplacement était envisagé.<br>Il n&rsquo;a pas été nécessaire.</h1>
+      <span class="badge preuve"><svg class="ico"><use href="#i-swap"/></svg>Avant / Après <span class="num">#01</span></span>
+      <span class="seal"><svg class="ico"><use href="#i-check"/></svg>Méthode ProClean</span></div>
+    <h1>Le remplacement était envisagé.<br>Il n&rsquo;a pas été nécessaire</h1>
     <div class="panel shot">
       <div class="half">
         <img src="../../../../../home/user/https-procleanempire-multiservice.manus.space/public/media/photos/cuir-rouge-avant.jpeg" alt="">
@@ -219,9 +256,8 @@
   <div class="glow"></div>
   <div class="stage">
     <div class="top">
-      <span class="badge savoir">Le saviez-vous <span class="num">#01</span></span>
-      <span class="seal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6b12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.9"/></svg>Méthode ProClean</span>
-    </div>
+      <span class="badge savoir"><svg class="ico"><use href="#i-flask"/></svg>Le saviez-vous <span class="num">#01</span></span>
+      <span class="seal"><svg class="ico"><use href="#i-check"/></svg>Astuce ProClean</span></div>
     <div class="panel">
       <h1>Le saviez-vous&nbsp;?</h1>
       <div class="dash"></div>
@@ -232,7 +268,7 @@
         <svg class="mark" width="46" height="40" viewBox="0 0 46 40" fill="#c9a227"><rect x="0" y="20" width="6" height="20" rx="2"/><rect x="10" y="12" width="6" height="28" rx="2"/><rect x="20" y="4" width="6" height="36" rx="2"/><rect x="30" y="10" width="6" height="30" rx="2"/><rect x="40" y="18" width="6" height="22" rx="2"/></svg>
         <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
       </div>
-      <span class="cta"><i>&rarr;</i> Voir plus sur notre site</span>
+      <span class="cta"><i>&rarr;</i> Obtenez votre devis en 24 h</span>
     </div>
   </div>
 </section>
@@ -242,9 +278,8 @@
   <div class="glow"></div>
   <div class="stage">
     <div class="top">
-      <span class="badge conseil">Conseil <span class="num">#02</span></span>
-      <span class="seal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6b12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.9"/></svg>Conseil validé</span>
-    </div>
+      <span class="badge conseil"><svg class="ico"><use href="#i-bulb"/></svg>Conseil <span class="num">#02</span></span>
+      <span class="seal"><svg class="butler"><use href="#butler"/></svg>Le conseil ProClean</span></div>
     <div class="panel">
       <div class="big">30<em>&nbsp;s</em></div>
       <div class="dash"></div>
@@ -255,7 +290,7 @@
         <svg class="mark" width="46" height="40" viewBox="0 0 46 40" fill="#c9a227"><rect x="0" y="20" width="6" height="20" rx="2"/><rect x="10" y="12" width="6" height="28" rx="2"/><rect x="20" y="4" width="6" height="36" rx="2"/><rect x="30" y="10" width="6" height="30" rx="2"/><rect x="40" y="18" width="6" height="22" rx="2"/></svg>
         <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
       </div>
-      <span class="cta"><i>&rarr;</i> Voir plus sur notre site</span>
+      <span class="cta"><i>&rarr;</i> Contactez un expert ProClean</span>
     </div>
   </div>
 </section>
@@ -265,21 +300,20 @@
   <div class="glow"></div>
   <div class="stage">
     <div class="top">
-      <span class="badge conseil">Conseil <span class="num">#03</span></span>
-      <span class="seal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6b12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.9"/></svg>Conseil validé</span>
-    </div>
-    <h1>On ne nettoie pas des vitres pour qu&rsquo;elles brillent.<br>On les nettoie pour <span class="hl">ce qu&rsquo;elles laissent entrer</span>.</h1>
+      <span class="badge conseil"><svg class="ico"><use href="#i-bulb"/></svg>Conseil <span class="num">#03</span></span>
+      <span class="seal"><svg class="butler"><use href="#butler"/></svg>Le conseil du Majordome</span></div>
+    <h1>On ne nettoie pas des vitres pour qu&rsquo;elles brillent.<br>On les nettoie pour <span class="hl">ce qu&rsquo;elles laissent entrer</span></h1>
     <div class="panel list">
-      <div class="row"><span class="dot"></span><span class="tx"><b>Plus de lumière naturelle</b> — donc moins d&rsquo;éclairage artificiel dans la journée.</span></div>
+      <div class="row"><span class="dot"></span><span class="tx"><b class="key">Plus de lumière naturelle</b> — donc moins d&rsquo;éclairage artificiel dans la journée.</span></div>
       <div class="row"><span class="dot"></span><span class="tx"><b>Un confort visuel réel</b> pour les équipes installées près des baies.</span></div>
-      <div class="row"><span class="dot"></span><span class="tx"><b>Une façade qui parle</b> — c&rsquo;est la première chose qu&rsquo;un visiteur voit.</span></div>
+      <div class="row"><span class="dot"></span><span class="tx"><b class="key">Une façade qui parle</b> — c&rsquo;est la première chose qu&rsquo;un visiteur voit.</span></div>
     </div>
     <div class="foot">
       <div class="left">
         <svg class="mark" width="46" height="40" viewBox="0 0 46 40" fill="#c9a227"><rect x="0" y="20" width="6" height="20" rx="2"/><rect x="10" y="12" width="6" height="28" rx="2"/><rect x="20" y="4" width="6" height="36" rx="2"/><rect x="30" y="10" width="6" height="30" rx="2"/><rect x="40" y="18" width="6" height="22" rx="2"/></svg>
         <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
       </div>
-      <span class="cta"><i>&rarr;</i> Demandez votre devis</span>
+      <span class="cta"><i>&rarr;</i> Parlons de votre projet</span>
     </div>
   </div>
 </section>
@@ -289,9 +323,8 @@
   <div class="glow"></div>
   <div class="stage">
     <div class="top">
-      <span class="badge conseil">Conseil <span class="num">#04</span></span>
-      <span class="seal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6b12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.9"/></svg>Conseil validé</span>
-    </div>
+      <span class="badge conseil"><svg class="ico"><use href="#i-bulb"/></svg>Conseil <span class="num">#04</span></span>
+      <span class="seal"><svg class="ico"><use href="#i-check"/></svg>Astuce ProClean</span></div>
     <div class="panel">
       <div class="grid">
         <div class="cell"><span class="dot"></span><span class="n">CUIR</span></div>
@@ -299,14 +332,14 @@
         <div class="cell"><span class="dot"></span><span class="n">INOX</span></div>
         <div class="cell"><span class="dot"></span><span class="n">VITRE</span></div>
       </div>
-      <div class="kicker">Une matière = un protocole.</div>
+      <div class="kicker">Une matière = un protocole</div>
     </div>
     <div class="foot">
       <div class="left">
         <svg class="mark" width="46" height="40" viewBox="0 0 46 40" fill="#c9a227"><rect x="0" y="20" width="6" height="20" rx="2"/><rect x="10" y="12" width="6" height="28" rx="2"/><rect x="20" y="4" width="6" height="36" rx="2"/><rect x="30" y="10" width="6" height="30" rx="2"/><rect x="40" y="18" width="6" height="22" rx="2"/></svg>
         <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
       </div>
-      <span class="cta"><i>&rarr;</i> Voir plus sur notre site</span>
+      <span class="cta"><i>&rarr;</i> Obtenez votre devis en 24 h</span>
     </div>
   </div>
 </section>
@@ -316,9 +349,8 @@
   <div class="glow"></div>
   <div class="stage">
     <div class="top">
-      <span class="badge avis">Paroles de clients <span class="num">#01</span></span>
-      <span class="seal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6b12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.9"/></svg>Avis vérifié</span>
-    </div>
+      <span class="badge avis"><svg class="ico"><use href="#i-star"/></svg>Paroles de clients <span class="num">#01</span></span>
+      <span class="seal"><svg class="ico"><use href="#i-check"/></svg>Retour client vérifié</span></div>
     <div class="panel">
       <div class="stars">
         <svg width="52" height="52" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
@@ -337,7 +369,7 @@
         <svg class="mark" width="46" height="40" viewBox="0 0 46 40" fill="#c9a227"><rect x="0" y="20" width="6" height="20" rx="2"/><rect x="10" y="12" width="6" height="28" rx="2"/><rect x="20" y="4" width="6" height="36" rx="2"/><rect x="30" y="10" width="6" height="30" rx="2"/><rect x="40" y="18" width="6" height="22" rx="2"/></svg>
         <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
       </div>
-      <span class="cta"><i>&rarr;</i> Demandez votre devis</span>
+      <span class="cta"><i>&rarr;</i> Contactez un expert ProClean</span>
     </div>
   </div>
 </section>
@@ -347,10 +379,9 @@
   <div class="glow"></div>
   <div class="stage">
     <div class="top">
-      <span class="badge preuve">Réalisation <span class="num">#01</span></span>
-      <span class="seal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6b12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.9"/></svg>Méthode ProClean</span>
-    </div>
-    <h1>Ce n&rsquo;est pas une banquette neuve.<br>C&rsquo;est la même.</h1>
+      <span class="badge preuve"><svg class="ico"><use href="#i-pin"/></svg>Réalisation <span class="num">#01</span></span>
+      <span class="seal"><svg class="ico"><use href="#i-check"/></svg>Méthode ProClean</span></div>
+    <h1>Ce n&rsquo;est pas une banquette neuve.<br>C&rsquo;est la même</h1>
     <div class="panel shot">
       <img src="../../../../../home/user/https-procleanempire-multiservice.manus.space/public/media/photos/banquette-arriere-apres.jpeg" alt="">
       <span class="tagimg b">APRÈS</span>
@@ -370,10 +401,9 @@
   <div class="glow"></div>
   <div class="stage">
     <div class="top">
-      <span class="badge preuve">Réalisation <span class="num">#02</span></span>
-      <span class="seal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6b12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.9"/></svg>Méthode ProClean</span>
-    </div>
-    <h1>On ne nettoie pas un avion comme une voiture.</h1>
+      <span class="badge preuve"><svg class="ico"><use href="#i-pin"/></svg>Réalisation <span class="num">#02</span></span>
+      <span class="seal"><svg class="ico"><use href="#i-check"/></svg>Méthode ProClean</span></div>
+    <h1>On ne nettoie pas un avion comme une voiture</h1>
     <div class="panel shot">
       <img src="../../../../../home/user/https-procleanempire-multiservice.manus.space/public/media/photos/nettoyage-avion-cessna.jpeg" alt="">
     </div>
@@ -393,19 +423,18 @@
     <div class="shotwrap">
       <img src="../../../../../home/user/https-procleanempire-multiservice.manus.space/public/media/photos/fondateur-proclean-empire.jpeg" alt="">
       <div class="top">
-        <span class="badge coulisses">Les coulisses <span class="num">#01</span></span>
-        <span class="seal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.9"/></svg>Méthode ProClean</span>
-      </div>
+        <span class="badge coulisses"><svg class="ico"><use href="#i-cam"/></svg>Les coulisses <span class="num">#01</span></span>
+        <span class="seal"><svg class="ico"><use href="#i-check"/></svg>Méthode ProClean</span></div>
     </div>
     <div class="plate">
-      <h1>Pourquoi j&rsquo;ai créé ProClean Empire.</h1>
+      <h1>Pourquoi j&rsquo;ai créé ProClean Empire</h1>
       <div class="sig">Kevin H. — Fondateur</div>
       <div class="foot">
         <div class="left">
           <svg class="mark" width="46" height="40" viewBox="0 0 46 40" fill="#c9a227"><rect x="0" y="20" width="6" height="20" rx="2"/><rect x="10" y="12" width="6" height="28" rx="2"/><rect x="20" y="4" width="6" height="36" rx="2"/><rect x="30" y="10" width="6" height="30" rx="2"/><rect x="40" y="18" width="6" height="22" rx="2"/></svg>
           <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
         </div>
-        <span class="cta"><i>&rarr;</i> Voir plus sur notre site</span>
+        <span class="cta"><i>&rarr;</i> Parlons de votre projet</span>
       </div>
     </div>
   </div>
