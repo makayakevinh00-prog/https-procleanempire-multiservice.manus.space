@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1350" width="1080" height="1350" role="img" aria-label="Voile de lisibilité à poser sur une photo">
+  <title>Voile photo — bleu nuit 0 → 70 % sur les 45 % inférieurs</title>
+  <defs>
+    <linearGradient id="voile" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#0A1A2F" stop-opacity="0.70"/>
+      <stop offset="0.45" stop-color="#0A1A2F" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1080" height="1350" fill="url(#voile)"/>
+</svg>

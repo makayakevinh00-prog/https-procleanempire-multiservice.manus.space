@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 56" width="120" height="56" role="img" aria-label="Numéro de slide">
+  <title>Pagination de carrousel</title>
+  <rect x="0" y="0" width="120" height="56" rx="28" fill="#FFFFFF" fill-opacity="0.12"/>
+  <text x="60" y="37" text-anchor="middle" font-family="Inter, sans-serif" font-weight="500" font-size="24" letter-spacing="1.9" fill="#FFFFFF">03/07</text>
+</svg>

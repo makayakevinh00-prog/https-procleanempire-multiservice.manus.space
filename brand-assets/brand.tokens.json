@@ -1,0 +1,166 @@
+{
+  "$schema": "https://proclean-empire.local/brand-tokens.schema.json",
+  "brand": "ProClean Empire",
+  "version": "1.0.0",
+  "updated": "2026-08-03",
+  "signature": "L'exigence jusque dans les détails.",
+  "mascotte": {
+    "nom": "L'Inspecteur ProClean",
+    "espece": "renard",
+    "statut": "FIGÉ — design non modifiable",
+    "role": "expert / observateur / conseil — jamais commercial, jamais exécutant",
+    "reference": "regles/charte-mascotte.md"
+  },
+
+  "couleurs": {
+    "marque": {
+      "bleu-nuit-profond": { "hex": "#0A1A2F", "usage": "fonds pleins, aplats premium, fin de carrousel" },
+      "bleu-nuit": { "hex": "#12294A", "usage": "fond principal sombre, cartouches, bandeaux" },
+      "bleu-proclean": { "hex": "#1E6FD8", "usage": "accent unique, badges, icônes, mots-clés" },
+      "bleu-proclean-clair": { "hex": "#4A93F0", "usage": "survol, dégradés, traits fins sur fond sombre" },
+      "gris-clair": { "hex": "#E9EEF4", "usage": "cartes, séparateurs, aplats secondaires" },
+      "gris-fond": { "hex": "#F5F7FA", "usage": "fond clair de publication" },
+      "gris-texte": { "hex": "#7A8BA0", "usage": "texte secondaire, légendes, mentions" },
+      "blanc": { "hex": "#FFFFFF", "usage": "texte sur fond sombre, fond clair, gants de l'Inspecteur" }
+    },
+    "mascotte_verrouillee": {
+      "_note": "Couleurs officielles du renard. Ne jamais recoloriser, filtrer, désaturer ou teinter.",
+      "pelage-orange": { "hex": "#E4622B" },
+      "pelage-orange-clair": { "hex": "#F58A3E" },
+      "pelage-creme": { "hex": "#F7E3CB" },
+      "costume-navy": { "hex": "#1D2E52" },
+      "cravate": { "hex": "#16294D" },
+      "gants": { "hex": "#FFFFFF" },
+      "chaussures": { "hex": "#131A26" }
+    },
+    "interdites": [
+      "jaune / doré en couleur dominante",
+      "vert, rouge, violet, rose, turquoise",
+      "dégradés multicolores",
+      "néons et couleurs flashy",
+      "noir pur #000000 en aplat de fond"
+    ],
+    "ratio_cible": {
+      "bleu_nuit": "50-60%",
+      "blanc_gris_clair": "30-40%",
+      "bleu_proclean": "5-10% maximum (accent)",
+      "orange": "uniquement celui du pelage de la mascotte"
+    }
+  },
+
+  "typographie": {
+    "titre": {
+      "famille": "Poppins",
+      "graisse": "ExtraBold 800",
+      "fallback": ["Montserrat ExtraBold", "Inter ExtraBold"],
+      "interlignage": 0.95,
+      "interlettrage": "-2%",
+      "casse": "Phrase normale (pas de CAPS sur les titres longs)"
+    },
+    "surtitre": {
+      "famille": "Poppins",
+      "graisse": "SemiBold 600",
+      "casse": "MAJUSCULES",
+      "interlettrage": "+12%",
+      "usage": "nom de rubrique, au-dessus du titre"
+    },
+    "corps": {
+      "famille": "Inter",
+      "graisse": "Regular 400 / Medium 500",
+      "interlignage": 1.45
+    },
+    "mention": {
+      "famille": "Inter",
+      "graisse": "Medium 500",
+      "casse": "MAJUSCULES",
+      "interlettrage": "+8%",
+      "usage": "signature, @proclean.empire, numéro de slide"
+    },
+    "echelle_1080": {
+      "titre-xxl": 128,
+      "titre-xl": 96,
+      "titre-l": 72,
+      "titre-m": 56,
+      "surtitre": 28,
+      "corps-l": 36,
+      "corps-m": 30,
+      "mention": 22
+    },
+    "regles": [
+      "Un seul niveau de titre dominant par visuel.",
+      "Maximum 12 mots sur une image de couverture.",
+      "Le titre est un élément graphique : il occupe la largeur utile, il ne flotte pas.",
+      "Jamais plus de 2 familles typographiques dans un visuel."
+    ]
+  },
+
+  "formats": {
+    "post-portrait": { "w": 1080, "h": 1350, "usage": "format par défaut du feed", "marge": 72 },
+    "post-carre": { "w": 1080, "h": 1080, "usage": "grille 9, avant/après", "marge": 64 },
+    "carrousel": { "w": 1080, "h": 1350, "usage": "séries pédagogiques", "marge": 72 },
+    "story": { "w": 1080, "h": 1920, "usage": "coulisses, mission du jour", "marge": 80, "safe_top": 250, "safe_bottom": 320 },
+    "presentation": { "w": 1920, "h": 1080, "usage": "Canva deck client", "marge": 120 }
+  },
+
+  "grille": {
+    "colonnes": 12,
+    "gouttiere_1080": 24,
+    "rayon_carte": 32,
+    "rayon_badge": 999,
+    "rayon_bouton": 20,
+    "ombre": "0 24px 60px -30px rgba(10, 26, 47, 0.55)"
+  },
+
+  "placement_mascotte": {
+    "hauteur_pleine_silhouette": {
+      "min": "24% de la hauteur du visuel",
+      "standard": "32% de la hauteur du visuel",
+      "max": "40% de la hauteur du visuel"
+    },
+    "largeur_buste": {
+      "standard": "22% de la largeur du visuel",
+      "max": "28% de la largeur du visuel"
+    },
+    "surface_occupee": "10% à 20% maximum de la surface totale",
+    "zones_autorisees": ["bas-droite", "bas-gauche", "tiers-droit", "tiers-gauche"],
+    "zones_interdites": ["centre du visuel", "sur un visage de la photo", "sur le logo", "à cheval sur le titre"],
+    "espace_de_respiration": "0,25 × hauteur de la mascotte, côté texte",
+    "px_par_format": {
+      "1080x1350": { "silhouette_standard": 432, "silhouette_max": 540, "buste_standard": 238, "buste_max": 302 },
+      "1080x1080": { "silhouette_standard": 346, "silhouette_max": 432, "buste_standard": 238, "buste_max": 302 },
+      "1080x1920": { "silhouette_standard": 614, "silhouette_max": 768, "buste_standard": 238, "buste_max": 302 },
+      "1920x1080": { "silhouette_standard": 346, "silhouette_max": 432, "buste_standard": 422, "buste_max": 538 }
+    }
+  },
+
+  "photo": {
+    "part_du_visuel": "60% à 80%",
+    "traitement": "lumière naturelle, blancs propres, contraste doux",
+    "voile_lisibilite": "dégradé bleu nuit #0A1A2F de 0% à 70% depuis le bas, sur 45% de la hauteur",
+    "interdits": ["filtres colorés", "vignettage lourd", "HDR agressif", "saturation poussée", "collage de plusieurs photos sans grille"]
+  },
+
+  "rubriques": [
+    { "slug": "conseil", "nom": "Le conseil de l'Inspecteur", "emoji": "💡", "icone": "conseil", "expression": "doigt-leve", "intention": "conseil d'expert" },
+    { "slug": "saviez-vous", "nom": "Le saviez-vous ?", "emoji": "🧪", "icone": "saviez-vous", "expression": "loupe-oeil", "intention": "fait utile et concret" },
+    { "slug": "validation", "nom": "Inspection validée", "emoji": "⭐", "icone": "validation", "expression": "ok-main", "intention": "avant / après, réalisations", "libelle_planche": "Alan valide" },
+    { "slug": "oeil", "nom": "L'œil de l'Inspecteur", "emoji": "👀", "icone": "oeil", "expression": "loupe-detail", "intention": "le détail que personne ne voit" },
+    { "slug": "retour-client", "nom": "Retour client vérifié", "emoji": "⭐", "icone": "retour-client", "expression": "bras-croises", "intention": "avis et témoignages" },
+    { "slug": "mission", "nom": "Mission du jour", "emoji": "📍", "icone": "inspection", "expression": "tablette", "intention": "terrain, coulisses" },
+    { "slug": "chiffre", "nom": "Le chiffre de la semaine", "emoji": "📊", "icone": "chiffre", "expression": "doigt-pointe", "intention": "donnée marquante" },
+    { "slug": "chez-un-client", "nom": "Chez un client", "emoji": "🏢", "icone": "bureau", "expression": "tablette", "intention": "cas concret" },
+    { "slug": "detailing", "nom": "Detailing", "emoji": "🚘", "icone": "voiture", "expression": "loupe-detail", "intention": "automobile" },
+    { "slug": "vitrerie", "nom": "Vitrerie", "emoji": "🪟", "icone": "vitrerie", "expression": "doigt-pointe", "intention": "vitres et surfaces vitrées" },
+    { "slug": "airbnb", "nom": "Airbnb", "emoji": "🛏️", "icone": "airbnb", "expression": "ok-main", "intention": "location courte durée" },
+    { "slug": "bureaux", "nom": "Bureaux", "emoji": "🏢", "icone": "bureau", "expression": "tablette", "intention": "tertiaire" },
+    { "slug": "aeronautique", "nom": "Aéronautique", "emoji": "✈️", "icone": "aeronautique", "expression": "bras-croises", "intention": "aviation" }
+  ],
+
+  "icones": {
+    "style": "trait uniquement, grille 24, épaisseur 1.75, extrémités et jonctions arrondies",
+    "couleur_defaut": "#1E6FD8",
+    "couleur_sur_fond_sombre": "#FFFFFF",
+    "taille_min": 40,
+    "liste": ["inspection", "validation", "conseil", "proprete", "vitrerie", "airbnb", "bureau", "voiture", "aeronautique", "oeil", "saviez-vous", "retour-client", "chiffre", "lumiere", "confort"]
+  }
+}

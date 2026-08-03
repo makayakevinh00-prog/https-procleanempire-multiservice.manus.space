@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 104" width="520" height="104" role="img" aria-label="Bouton secondaire">
+  <title>CTA secondaire — sur fond sombre</title>
+  <rect x="1.5" y="1.5" width="517" height="101" rx="18.5" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="3"/>
+  <text x="44" y="63" font-family="Poppins, Montserrat, sans-serif" font-weight="600" font-size="32" fill="#FFFFFF">Voir nos réalisations</text>
+  <path d="M424 52h32m-13-13 13 13-13 13" fill="none" stroke="#4A93F0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

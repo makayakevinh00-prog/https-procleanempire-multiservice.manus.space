@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 104" width="520" height="104" role="img" aria-label="Bouton principal">
+  <title>CTA primaire</title>
+  <rect x="0" y="0" width="520" height="104" rx="20" fill="#1E6FD8"/>
+  <text x="44" y="63" font-family="Poppins, Montserrat, sans-serif" font-weight="600" font-size="32" fill="#FFFFFF">Demander une inspection</text>
+  <path d="M448 52h32m-13-13 13 13-13 13" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,149 @@
+{
+  "bibliotheque": "Mascotte — L'Inspecteur ProClean",
+  "version": "1.0.0",
+  "convention_nommage": "inspecteur-{slug}-{cadrage}.png",
+  "cadrages": {
+    "silhouette": "corps entier, pieds compris",
+    "plan-us": "coupé à mi-cuisse",
+    "buste": "poitrine et tête"
+  },
+  "export": {
+    "format": "PNG 32 bits, fond transparent",
+    "hauteur_source_min": 2400,
+    "profil": "sRGB",
+    "detourage": "net, sans halo, sans contour blanc résiduel",
+    "marge_transparente": "0 px — le sujet touche les bords du canevas"
+  },
+  "poses": [
+    {
+      "slug": "face-tablette",
+      "fichier": "poses/inspecteur-face-tablette-silhouette.png",
+      "cadrage": "silhouette",
+      "source": "planche de référence — VUES / FACE",
+      "regard": "face",
+      "description": "De face, tablette d'inspection tenue à deux mains, posture droite.",
+      "usage": ["couverture de présentation", "page services", "photo de profil"],
+      "statut": "à produire"
+    },
+    {
+      "slug": "profil-tablette",
+      "fichier": "poses/inspecteur-profil-tablette-silhouette.png",
+      "cadrage": "silhouette",
+      "source": "planche de référence — VUES / PROFIL",
+      "regard": "gauche",
+      "description": "De profil, tablette le long du corps, en marche vers l'inspection.",
+      "usage": ["transition de carrousel", "bandeau horizontal"],
+      "statut": "à produire"
+    },
+    {
+      "slug": "dos",
+      "fichier": "poses/inspecteur-dos-silhouette.png",
+      "cadrage": "silhouette",
+      "source": "planche de référence — VUES / DOS",
+      "regard": "de dos",
+      "description": "De dos, mains dans le dos, face à une surface — il observe.",
+      "usage": ["slide d'ouverture de carrousel", "il regarde une photo", "fin de présentation"],
+      "statut": "à produire"
+    },
+    {
+      "slug": "bras-croises",
+      "fichier": "poses/inspecteur-bras-croises-plan-us.png",
+      "cadrage": "plan-us",
+      "source": "planche de référence — POSES SIGNATURE",
+      "regard": "face",
+      "description": "Bras croisés, léger sourire, posture de validation calme.",
+      "usage": ["retour client vérifié", "aéronautique", "slide d'autorité"],
+      "statut": "à produire"
+    },
+    {
+      "slug": "doigt-pointe",
+      "fichier": "poses/inspecteur-doigt-pointe-plan-us.png",
+      "cadrage": "plan-us",
+      "source": "planche de référence — POSES SIGNATURE",
+      "regard": "vers le doigt",
+      "description": "Index tendu latéralement — il désigne un élément hors de lui.",
+      "usage": ["il pointe une erreur", "il montre un chiffre", "vitrerie"],
+      "statut": "à produire",
+      "note": "Version miroir obligatoire — voir slug doigt-pointe-gauche."
+    },
+    {
+      "slug": "doigt-pointe-gauche",
+      "fichier": "poses/inspecteur-doigt-pointe-gauche-plan-us.png",
+      "cadrage": "plan-us",
+      "source": "miroir de doigt-pointe",
+      "regard": "vers le doigt",
+      "description": "Même pose, orientée vers la gauche, pour un placement à droite du visuel.",
+      "usage": ["placement bas-droite pointant vers le titre"],
+      "statut": "à produire"
+    },
+    {
+      "slug": "tablette",
+      "fichier": "poses/inspecteur-tablette-plan-us.png",
+      "cadrage": "plan-us",
+      "source": "planche de référence — POSES SIGNATURE",
+      "regard": "vers la tablette",
+      "description": "Tablette d'inspection en main, stylet dans l'autre — il note.",
+      "usage": ["mission du jour", "chez un client", "bureaux", "étude de cas"],
+      "statut": "à produire"
+    },
+    {
+      "slug": "salut",
+      "fichier": "poses/inspecteur-salut-plan-us.png",
+      "cadrage": "plan-us",
+      "source": "planche de référence — POSES SIGNATURE",
+      "regard": "face",
+      "description": "Main gantée levée, salut ProClean.",
+      "usage": ["première slide", "accueil", "fin de présentation", "appel à l'action"],
+      "statut": "à produire"
+    },
+    {
+      "slug": "accroupi-inspection",
+      "fichier": "poses/inspecteur-accroupi-inspection-silhouette.png",
+      "cadrage": "silhouette",
+      "source": "à créer dans le style figé",
+      "regard": "vers le sol / la surface",
+      "description": "Accroupi, un genou au sol, il examine une surface basse.",
+      "usage": ["il inspecte une surface", "detailing", "tapis, moquette, sièges"],
+      "statut": "à produire"
+    },
+    {
+      "slug": "regarde-en-haut",
+      "fichier": "poses/inspecteur-regarde-en-haut-plan-us.png",
+      "cadrage": "plan-us",
+      "source": "à créer dans le style figé",
+      "regard": "vers le haut",
+      "description": "Il lève les yeux vers une baie vitrée, une hauteur, un plafond.",
+      "usage": ["vitrerie", "hauteur sous plafond", "il regarde une photo placée au-dessus"],
+      "statut": "à produire"
+    },
+    {
+      "slug": "presente-paume",
+      "fichier": "poses/inspecteur-presente-paume-plan-us.png",
+      "cadrage": "plan-us",
+      "source": "à créer dans le style figé",
+      "regard": "vers la paume",
+      "description": "Main ouverte paume vers le haut — il présente un résultat, un chiffre.",
+      "usage": ["le chiffre de la semaine", "présentation d'un avant/après"],
+      "statut": "à produire"
+    },
+    {
+      "slug": "gant-blanc",
+      "fichier": "poses/inspecteur-gant-blanc-buste.png",
+      "cadrage": "buste",
+      "source": "planche de référence — LE TEST DU GANT BLANC",
+      "regard": "vers le gant",
+      "description": "Il montre la paume de son gant blanc, resté impeccable après passage.",
+      "usage": ["Le Test du Gant Blanc", "preuve de propreté", "signature de marque"],
+      "statut": "à produire"
+    }
+  ],
+  "poses_interdites": [
+    "avec un balai, une serpillère, un aspirateur, un seau ou un chiffon",
+    "en train de nettoyer",
+    "avec une pancarte promotionnelle ou un pourcentage de réduction",
+    "en train de courir, sauter, danser",
+    "pouce levé (trop commercial — utiliser ok-main)",
+    "avec un autre personnage",
+    "sans lien avec le contenu du visuel"
+  ]
+}

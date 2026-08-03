@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#1E6FD8" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Bureau">
+  <title>Bureau</title>
+  <path d="M3.8 21.2V4.6a2 2 0 0 1 2-2h7.4a2 2 0 0 1 2 2v16.6"/>
+  <path d="M15.2 10.6h3a2 2 0 0 1 2 2v8.6"/>
+  <path d="M2 21.2h20"/>
+  <path d="M7 7h1.6M11 7h1.6M7 11.2h1.6M11 11.2h1.6M7 15.4h1.6M11 15.4h1.6"/>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1350" width="1080" height="1350" role="img" aria-label="Fond clair">
+  <title>Fond — gris clair</title>
+  <defs>
+    <linearGradient id="clair" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E9EEF4"/>
+    </linearGradient>
+  </defs>
+  <rect width="1080" height="1350" fill="url(#clair)"/>
+</svg>

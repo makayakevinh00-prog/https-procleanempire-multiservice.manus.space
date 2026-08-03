@@ -2,6 +2,14 @@
 
 Site développé avec Next.js, TypeScript, Tailwind CSS et Framer Motion.
 
+## Direction artistique
+
+La bibliothèque graphique de la marque (mascotte L'Inspecteur ProClean, couleurs,
+typographie, icônes, gabarits Canva, règles d'usage) est dans **[`brand-assets/`](brand-assets/)**.
+
+Toute création visuelle — publication, carrousel, présentation, page du site — s'appuie
+sur ce dossier. Point d'entrée : [`brand-assets/README.md`](brand-assets/README.md).
+
 ## Lancer le projet
 
 ```bash

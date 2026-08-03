@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1350" width="1080" height="1350" role="img" aria-label="Fond bleu nuit">
+  <title>Fond — bleu nuit dégradé</title>
+  <defs>
+    <linearGradient id="nuit" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#12294A"/>
+      <stop offset="1" stop-color="#0A1A2F"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="0.78" cy="0.18" r="0.62">
+      <stop offset="0" stop-color="#1E6FD8" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#1E6FD8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1080" height="1350" fill="url(#nuit)"/>
+  <rect width="1080" height="1350" fill="url(#halo)"/>
+</svg>

@@ -1,0 +1,136 @@
+{
+  "bibliotheque": "Gabarits Canva — ProClean Empire",
+  "version": "1.0.0",
+  "unite": "px",
+  "origine": "coin supérieur gauche",
+  "gabarits": [
+    {
+      "id": "A",
+      "nom": "Photo + titre",
+      "format": "1080x1350",
+      "usage": ["conseil sur photo", "rubriques métier", "réalisation"],
+      "calques": [
+        { "role": "photo", "x": 0, "y": 0, "w": 1080, "h": 1350, "note": "plein cadre, recadrage 4:5 à la prise de vue" },
+        { "role": "voile", "asset": "composants/fonds/voile-photo.svg", "x": 0, "y": 0, "w": 1080, "h": 1350 },
+        { "role": "badge-rubrique", "asset": "composants/badges/badge-rubrique-sombre.svg", "x": 72, "y": 72, "w": 470, "h": 72 },
+        { "role": "titre", "x": 72, "y": 940, "w": 620, "style": "titre-l", "lignes_max": 3 },
+        { "role": "mascotte", "cadrage": "silhouette", "x": 814, "y": 846, "w": 194, "h": 432, "ancrage": "pieds à y=1278" },
+        { "role": "signature", "x": 72, "y": 1290, "style": "mention" }
+      ]
+    },
+    {
+      "id": "B",
+      "nom": "Conseil fond clair",
+      "format": "1080x1350",
+      "usage": ["le conseil de l'Inspecteur", "le saviez-vous ?"],
+      "calques": [
+        { "role": "fond", "asset": "composants/fonds/fond-clair.svg", "x": 0, "y": 0, "w": 1080, "h": 1350 },
+        { "role": "badge-rubrique", "asset": "composants/badges/badge-rubrique-clair.svg", "x": 72, "y": 72, "w": 470, "h": 72 },
+        { "role": "titre", "x": 72, "y": 260, "w": 700, "style": "titre-xl", "lignes_max": 4 },
+        { "role": "separateur", "asset": "composants/fonds/separateur-accent.svg", "x": 72, "y": 700, "w": 300, "h": 8 },
+        { "role": "texte", "x": 72, "y": 760, "w": 620, "style": "corps-l", "lignes_max": 2 },
+        { "role": "mascotte", "cadrage": "buste", "x": 770, "y": 978, "w": 238, "h": 300 },
+        { "role": "signature", "x": 72, "y": 1290, "style": "mention" }
+      ]
+    },
+    {
+      "id": "C",
+      "nom": "Le chiffre de la semaine",
+      "format": "1080x1350",
+      "usage": ["chiffre"],
+      "calques": [
+        { "role": "fond", "asset": "composants/fonds/fond-bleu-nuit.svg", "x": 0, "y": 0, "w": 1080, "h": 1350 },
+        { "role": "surtitre", "x": 72, "y": 150, "style": "surtitre", "couleur": "#4A93F0", "icone": "chiffre" },
+        { "role": "chiffre", "x": 72, "y": 620, "taille": 240, "couleur": "#FFFFFF" },
+        { "role": "texte", "x": 72, "y": 760, "w": 620, "style": "corps-l", "couleur": "#7A8BA0" },
+        { "role": "mascotte", "pose": "presente-paume", "cadrage": "silhouette", "x": 814, "y": 846, "w": 194, "h": 432 },
+        { "role": "signature", "x": 72, "y": 1290, "style": "mention" }
+      ]
+    },
+    {
+      "id": "D",
+      "nom": "Avant / après",
+      "format": "1080x1350",
+      "usage": ["validation", "detailing", "airbnb"],
+      "calques": [
+        { "role": "photo-avant", "x": 0, "y": 0, "w": 537, "h": 1350 },
+        { "role": "filet", "x": 537, "y": 0, "w": 6, "h": 1350, "couleur": "#FFFFFF" },
+        { "role": "photo-apres", "x": 543, "y": 0, "w": 537, "h": 1350 },
+        { "role": "badge-avant", "asset": "composants/badges/badge-avant.svg", "x": 72, "y": 1150, "w": 190, "h": 64 },
+        { "role": "badge-apres", "asset": "composants/badges/badge-apres.svg", "x": 615, "y": 1150, "w": 190, "h": 64 },
+        { "role": "mascotte", "pose": "ok-main", "cadrage": "buste", "x": 770, "y": 978, "w": 238, "h": 300 },
+        { "role": "signature", "x": 72, "y": 1290, "style": "mention" }
+      ],
+      "contrainte": "même point de vue, même focale, même lumière sur les deux photos"
+    },
+    {
+      "id": "E",
+      "nom": "Retour client vérifié",
+      "format": "1080x1350",
+      "usage": ["retour-client"],
+      "calques": [
+        { "role": "fond", "asset": "composants/fonds/fond-bleu-nuit.svg", "x": 0, "y": 0, "w": 1080, "h": 1350 },
+        { "role": "badge-rubrique", "asset": "composants/badges/badge-rubrique-sombre.svg", "x": 72, "y": 72, "w": 470, "h": 72, "icone": "retour-client" },
+        { "role": "guillemet", "x": 72, "y": 300, "taille": 160, "couleur": "#1E6FD8", "opacite": 0.4 },
+        { "role": "citation", "x": 72, "y": 420, "w": 700, "style": "titre-l", "lignes_max": 4 },
+        { "role": "auteur", "x": 72, "y": 960, "style": "mention", "couleur": "#7A8BA0" },
+        { "role": "mascotte", "pose": "bras-croises", "cadrage": "silhouette", "x": 814, "y": 846, "w": 194, "h": 432 },
+        { "role": "signature", "x": 72, "y": 1290, "style": "mention" }
+      ]
+    },
+    {
+      "id": "F",
+      "nom": "Couverture de carrousel",
+      "format": "1080x1350",
+      "usage": ["carrousel — slide 1"],
+      "calques": [
+        { "role": "fond", "asset": "photo + composants/fonds/voile-photo.svg | composants/fonds/fond-bleu-nuit.svg", "x": 0, "y": 0, "w": 1080, "h": 1350 },
+        { "role": "surtitre", "x": 72, "y": 150, "style": "surtitre", "couleur": "#4A93F0" },
+        { "role": "titre", "x": 72, "y": 240, "w": 700, "style": "titre-xl", "lignes_max": 4 },
+        { "role": "mascotte", "pose": "salut", "cadrage": "silhouette", "x": 814, "y": 846, "w": 194, "h": 432 },
+        { "role": "indice", "x": 72, "y": 1250, "style": "mention", "texte": "FAITES GLISSER →", "opacite": 0.55 }
+      ]
+    },
+    {
+      "id": "G",
+      "nom": "Slide intérieure de carrousel",
+      "format": "1080x1350",
+      "usage": ["carrousel — slides 2 à n-1"],
+      "calques": [
+        { "role": "fond", "asset": "composants/fonds/fond-clair.svg | composants/fonds/fond-filets.svg", "x": 0, "y": 0, "w": 1080, "h": 1350, "note": "alterner clair et sombre d'une slide à l'autre" },
+        { "role": "numero", "x": 72, "y": 180, "taille": 120, "couleur": "#1E6FD8", "opacite": 0.25 },
+        { "role": "titre", "x": 72, "y": 340, "w": 700, "style": "titre-m" },
+        { "role": "texte", "x": 72, "y": 560, "w": 620, "style": "corps-m", "lignes_max": 4 },
+        { "role": "visuel", "x": 72, "y": 760, "w": 620, "h": 400, "rayon": 32, "optionnel": true },
+        { "role": "mascotte", "cadrage": "buste", "x": 770, "y": 978, "w": 238, "h": 300, "note": "changer de pose toutes les 2 slides" },
+        { "role": "pagination", "asset": "composants/badges/badge-numero-slide.svg", "x": 888, "y": 1230, "w": 120, "h": 56 }
+      ]
+    },
+    {
+      "id": "H",
+      "nom": "Slide finale de carrousel",
+      "format": "1080x1350",
+      "usage": ["carrousel — dernière slide"],
+      "calques": [
+        { "role": "fond", "asset": "composants/fonds/fond-bleu-nuit.svg", "x": 0, "y": 0, "w": 1080, "h": 1350 },
+        { "role": "titre", "x": 72, "y": 380, "w": 700, "style": "titre-l" },
+        { "role": "mascotte", "pose": "gant-blanc | salut", "cadrage": "silhouette", "x": 814, "y": 700, "w": 194, "h": 432 },
+        { "role": "cta", "asset": "composants/cta/cta-bandeau-final.svg", "x": 0, "y": 1050, "w": 1080, "h": 300 }
+      ]
+    }
+  ],
+  "story": {
+    "format": "1080x1920",
+    "marge": 80,
+    "zone_sure": { "haut": 250, "bas": 1600 },
+    "mascotte": { "cadrage": "silhouette", "h": 614, "x": 730, "pieds_y": 1600, "variante_posee": "pieds à y=1920" }
+  },
+  "presentation": {
+    "format": "1920x1080",
+    "marge": 120,
+    "echelle_typo": 1.4,
+    "mascotte": { "couverture": { "cadrage": "buste", "w": 422 }, "interieur": { "cadrage": "silhouette", "h": 346 } },
+    "pages_avec_mascotte": ["couverture", "transition de chapitre", "conseils", "FAQ", "services", "étude de cas", "statistiques", "appel à l'action"],
+    "pages_sans_mascotte": ["tableau dense", "annexe"]
+  }
+}

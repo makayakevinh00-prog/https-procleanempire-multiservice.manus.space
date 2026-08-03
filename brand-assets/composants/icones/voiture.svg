@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#1E6FD8" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Voiture">
+  <title>Voiture</title>
+  <path d="M2.6 16.4v-3.1l2.4-6a2.4 2.4 0 0 1 2.2-1.5h9.6a2.4 2.4 0 0 1 2.2 1.5l2.4 6v3.1"/>
+  <path d="M2.6 13.3h18.8"/>
+  <path d="M2.6 16.4h2.9M18.5 16.4h2.9"/>
+  <circle cx="7.4" cy="16.9" r="2"/>
+  <circle cx="16.6" cy="16.9" r="2"/>
+</svg>

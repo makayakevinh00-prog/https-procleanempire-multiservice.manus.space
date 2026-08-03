@@ -1,0 +1,110 @@
+{
+  "bibliotheque": "Expressions — L'Inspecteur ProClean",
+  "version": "1.0.0",
+  "convention_nommage": "inspecteur-{slug}-buste.png",
+  "cadrage": "buste — poitrine et tête, celui de la planche de référence",
+  "regle": "Une expression se choisit par l'intention du message, jamais par esthétique.",
+  "expressions": [
+    {
+      "slug": "doigt-leve",
+      "fichier": "png/inspecteur-doigt-leve-buste.png",
+      "libelle": "Le conseil de l'Inspecteur",
+      "source": "planche de référence — EXPRESSIONS 1/5",
+      "description": "Index levé, sourire léger, regard direct. Il énonce un principe.",
+      "intention": "conseil d'expert",
+      "rubriques": ["conseil"],
+      "icone": "conseil",
+      "statut": "à produire"
+    },
+    {
+      "slug": "loupe-oeil",
+      "fichier": "png/inspecteur-loupe-oeil-buste.png",
+      "libelle": "Le saviez-vous ?",
+      "source": "planche de référence — EXPRESSIONS 2/5",
+      "description": "Loupe devant l'œil, œil complice. Il révèle un fait.",
+      "intention": "fait utile et concret",
+      "rubriques": ["saviez-vous"],
+      "icone": "saviez-vous",
+      "statut": "à produire"
+    },
+    {
+      "slug": "ok-main",
+      "fichier": "png/inspecteur-ok-main-buste.png",
+      "libelle": "Alan valide / Inspection validée",
+      "source": "planche de référence — EXPRESSIONS 3/5",
+      "description": "Main gantée en signe OK, expression satisfaite et sobre.",
+      "intention": "avant / après, réalisation validée",
+      "rubriques": ["validation", "airbnb"],
+      "icone": "validation",
+      "statut": "à produire"
+    },
+    {
+      "slug": "loupe-detail",
+      "fichier": "png/inspecteur-loupe-detail-buste.png",
+      "libelle": "L'œil de l'Inspecteur",
+      "source": "planche de référence — EXPRESSIONS 4/5",
+      "description": "Penché en avant, loupe dirigée vers le bas, sourcils froncés. Il traque le détail.",
+      "intention": "le détail que personne ne voit",
+      "rubriques": ["oeil", "detailing"],
+      "icone": "oeil",
+      "statut": "à produire"
+    },
+    {
+      "slug": "bras-croises",
+      "fichier": "png/inspecteur-bras-croises-buste.png",
+      "libelle": "Retour client vérifié",
+      "source": "planche de référence — EXPRESSIONS 5/5",
+      "description": "Bras croisés, posture d'autorité tranquille.",
+      "intention": "avis et témoignages, prise de position",
+      "rubriques": ["retour-client", "aeronautique"],
+      "icone": "retour-client",
+      "statut": "à produire"
+    },
+    {
+      "slug": "reflexion",
+      "fichier": "png/inspecteur-reflexion-buste.png",
+      "libelle": "Il réfléchit",
+      "source": "à créer dans le style figé",
+      "description": "Main gantée au menton, regard légèrement de côté. Il évalue.",
+      "intention": "ouvrir une question, poser un problème",
+      "rubriques": ["conseil", "saviez-vous"],
+      "icone": "conseil",
+      "statut": "à produire"
+    },
+    {
+      "slug": "regarde-photo",
+      "fichier": "png/inspecteur-regarde-photo-buste.png",
+      "libelle": "Il regarde une photo",
+      "source": "à créer dans le style figé",
+      "description": "Buste tourné, regard dirigé vers le bord du cadre, vers l'image.",
+      "intention": "accompagner une photo, faire regarder le lecteur",
+      "rubriques": ["validation", "chez-un-client", "detailing", "vitrerie"],
+      "icone": "inspection",
+      "statut": "à produire",
+      "note": "Version miroir indispensable — il doit toujours regarder vers l'intérieur du visuel."
+    },
+    {
+      "slug": "montre-tablette",
+      "fichier": "png/inspecteur-montre-tablette-buste.png",
+      "libelle": "Il présente sa tablette",
+      "source": "à créer dans le style figé",
+      "description": "Tablette tournée vers le lecteur, écran orienté face caméra.",
+      "intention": "présenter une donnée, un rapport, un résultat",
+      "rubriques": ["chiffre", "chez-un-client", "bureaux"],
+      "icone": "chiffre",
+      "statut": "à produire"
+    }
+  ],
+  "correspondance_rapide": {
+    "je donne un conseil": "doigt-leve",
+    "je révèle un fait": "loupe-oeil",
+    "je valide un résultat": "ok-main",
+    "je montre un détail invisible": "loupe-detail",
+    "je cite un client": "bras-croises",
+    "je pose une question": "reflexion",
+    "j'accompagne une photo": "regarde-photo",
+    "je montre un chiffre": "montre-tablette",
+    "j'ouvre une série": "salut (voir ../mascotte/manifest.json)",
+    "je prouve la propreté": "gant-blanc (voir ../mascotte/manifest.json)"
+  }
+}

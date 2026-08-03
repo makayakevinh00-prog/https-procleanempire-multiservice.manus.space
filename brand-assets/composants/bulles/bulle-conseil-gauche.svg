@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 240" width="640" height="240" role="img" aria-label="Bulle de conseil, pointe à droite">
+  <title>Bulle — pointe à droite (Inspecteur placé à droite)</title>
+  <path d="M32 0h544a32 32 0 0 1 32 32v120a32 32 0 0 1-32 32h-84l-14 40-42-40H32a32 32 0 0 1-32-32V32A32 32 0 0 1 32 0Z" fill="#FFFFFF"/>
+  <text x="48" y="82" font-family="Inter, sans-serif" font-weight="500" font-size="34" fill="#0A1A2F">Une vitre propre ne se voit pas.</text>
+  <text x="48" y="132" font-family="Inter, sans-serif" font-weight="500" font-size="34" fill="#7A8BA0">C'est exactement le but.</text>
+</svg>

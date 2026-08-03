@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 360" width="560" height="360" role="img" aria-label="Cartouche de chiffre">
+  <title>Cartouche — le chiffre de la semaine</title>
+  <rect x="0" y="0" width="560" height="360" rx="40" fill="#12294A"/>
+  <text x="48" y="76" font-family="Poppins, Montserrat, sans-serif" font-weight="600" font-size="26" letter-spacing="3.1" fill="#4A93F0">LE CHIFFRE DE LA SEMAINE</text>
+  <text x="44" y="240" font-family="Poppins, Montserrat, sans-serif" font-weight="800" font-size="168" letter-spacing="-4" fill="#FFFFFF">87 %</text>
+  <text x="48" y="300" font-family="Inter, sans-serif" font-weight="400" font-size="30" fill="#7A8BA0">des salissures visibles sont dans les angles.</text>
+</svg>
