@@ -3,391 +3,296 @@
 <head>
 <meta charset="utf-8">
 <style>
-  /* Inter — la police du site (globals.css) */
   @font-face { font-family: "Inter"; src: url("node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2") format("woff2"); font-weight: 400; }
   @font-face { font-family: "Inter"; src: url("node_modules/@fontsource/inter/files/inter-latin-500-normal.woff2") format("woff2"); font-weight: 500; }
   @font-face { font-family: "Inter"; src: url("node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2") format("woff2"); font-weight: 600; }
   @font-face { font-family: "Inter"; src: url("node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2") format("woff2"); font-weight: 700; }
   @font-face { font-family: "Inter"; src: url("node_modules/@fontsource/inter/files/inter-latin-800-normal.woff2") format("woff2"); font-weight: 800; }
 
-  /* Jetons repris du site : globals.css + tailwind.config.ts */
   :root {
-    --ground: #f8f9fb;      /* body background */
-    --navy: #14213d;        /* brand-500 */
-    --navy-deep: #0f1a32;   /* brand-700 */
-    --slate: #334155;       /* slate-700, texte courant */
-    --slate-line: #e2e8f0;  /* slate-200, bordure des cartes */
-    --gold: #c9a227;        /* accent-500 */
+    --ground: #f8f9fb;
+    --navy: #14213d;
+    --slate: #334155;
+    --slate-soft: #64748b;
+    --line: #e2e8f0;
+    --gold: #c9a227;
+    --gold-ink: #8a6b12;
     --shadow: 0 15px 35px -20px rgba(12, 27, 64, .4);
+
+    /* Code couleur par collection */
+    --c-conseil:   #2f5d9e;   --c-conseil-bg:   #e8effa;
+    --c-savoir:    #a8801a;   --c-savoir-bg:    #fbf3dc;
+    --c-avis:      #2b7a55;   --c-avis-bg:      #e5f4ec;
+    --c-preuve:    #a4453c;   --c-preuve-bg:    #fbeae8;
+    --c-coulisses: #14213d;   --c-coulisses-bg: #e6eaf1;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #888; font-family: Inter, sans-serif; }
 
   .card { overflow: hidden; margin: 40px auto; position: relative; background: var(--ground); }
-
-  /* halo doré du hero : radial-gradient circle at top right */
   .glow {
     position: absolute; inset: 0;
     background: radial-gradient(circle at top right,
       rgba(201,162,39,.20), rgba(20,33,61,.07) 36%, transparent 66%);
   }
-
   .stage { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; }
 
-  /* pastille eyebrow : rounded-full bg-[#14213d]/10 */
-  .pill {
-    align-self: flex-start;
-    display: inline-flex; align-items: center;
-    background: rgba(20,33,61,.10);
-    color: var(--navy);
-    font-weight: 600;
-    border-radius: 999px;
+  /* ---- bandeau haut : collection + sceau ---- */
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 14px;
+    border-radius: 999px; padding: 16px 30px;
+    font-size: 25px; font-weight: 700; letter-spacing: .02em;
   }
+  .badge .num { font-weight: 800; opacity: .55; }
+  .badge.conseil   { background: var(--c-conseil-bg);   color: var(--c-conseil); }
+  .badge.savoir    { background: var(--c-savoir-bg);    color: var(--c-savoir); }
+  .badge.avis      { background: var(--c-avis-bg);      color: var(--c-avis); }
+  .badge.preuve    { background: var(--c-preuve-bg);    color: var(--c-preuve); }
+  .badge.coulisses { background: var(--c-coulisses-bg); color: var(--c-coulisses); }
 
-  /* bouton : btn-primary, rounded-xl bg navy */
-  .btn {
-    align-self: flex-start;
-    display: inline-flex; align-items: center;
-    background: var(--navy); color: #fff; font-weight: 600;
-    border-radius: 20px;
+  .seal {
+    display: inline-flex; align-items: center; gap: 11px;
+    border: 1.5px solid rgba(201,162,39,.55); border-radius: 999px;
+    padding: 12px 22px; font-size: 20px; font-weight: 700;
+    letter-spacing: .11em; text-transform: uppercase; color: var(--gold-ink);
+    white-space: nowrap;
   }
+  .seal svg { display: block; }
 
-  /* carte blanche : rounded-2xl border-slate-200 bg-white shadow-soft */
-  .panel {
-    background: #fff;
-    border: 1px solid var(--slate-line);
-    border-radius: 40px;
-    box-shadow: var(--shadow);
-  }
-
+  /* ---- pied constant : marque + signature de marque + CTA ---- */
   .foot {
-    display: flex; align-items: center; justify-content: space-between;
-    border-top: 1px solid var(--slate-line);
+    margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 24px; padding-top: 30px; border-top: 1px solid var(--line);
   }
-  .foot .brand { font-weight: 700; color: var(--navy); letter-spacing: .16em; }
-  .foot .site { font-weight: 500; color: #64748b; }
+  .foot .left { display: flex; align-items: center; gap: 18px; }
+  .foot .mark { display: block; flex: 0 0 auto; }
+  .foot .name { font-size: 25px; font-weight: 800; letter-spacing: .17em; color: var(--navy); }
+  .foot .base { margin-top: 5px; font-size: 22px; font-weight: 500; color: var(--slate-soft); }
+  .foot .cta { font-size: 24px; font-weight: 700; color: var(--gold-ink); white-space: nowrap; }
+  .foot .cta i { font-style: normal; color: var(--gold); }
 
-  /* ============ 1 — LUNDI · 1080×1350 ============ */
-  #v1 { width: 1080px; height: 1350px; }
-  #v1 .stage { padding: 92px 88px 0; }
-  #v1 .pill { padding: 17px 30px; font-size: 27px; margin-bottom: 44px; }
-  #v1 h1 {
-    font-weight: 800; font-size: 84px; line-height: 1.13;
-    letter-spacing: -.03em; color: var(--navy);
-  }
-  #v1 h1 .hl {
-    background-image: linear-gradient(to top, rgba(201,162,39,.45) 20px, rgba(0,0,0,0) 20px);
-    padding: 0 3px;
-  }
-  #v1 .sub {
-    margin-top: 40px; font-size: 34px; line-height: 1.55; color: var(--slate); max-width: 780px;
-  }
-  #v1 .panel { margin-top: auto; padding: 22px; border-radius: 44px; }
-  #v1 .panel img { width: 100%; height: 420px; object-fit: cover; object-position: center 62%; border-radius: 30px; display: block; }
-  #v1 .foot { margin-top: 40px; padding: 34px 0 42px; }
-  #v1 .foot .brand { font-size: 27px; }
-  #v1 .foot .site { font-size: 26px; }
+  /* ---- blocs communs ---- */
+  .panel { background: #fff; border: 1px solid var(--line); border-radius: 40px; box-shadow: var(--shadow); }
+  h1 { font-weight: 800; letter-spacing: -.032em; color: var(--navy); }
+  .sub { color: var(--slate); }
+  .hl { background-image: linear-gradient(to top, rgba(201,162,39,.45) 20px, rgba(0,0,0,0) 20px); padding: 0 3px; }
 
-  /* ============ 2 — MERCREDI · 1080×1080 ============ */
-  #v2 { width: 1080px; height: 1080px; }
-  #v2 .stage { padding: 76px 76px 0; justify-content: center; }
-  #v2 .panel { flex: 0 0 auto; padding: 92px 68px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-  #v2 .pill { align-self: center; padding: 15px 30px; font-size: 25px; margin-bottom: 46px; }
-  #v2 h1 {
-    font-weight: 800; font-size: 76px; line-height: 1.05;
-    letter-spacing: -.032em; color: var(--navy); white-space: nowrap;
+  /* ============ PORTRAIT 1080×1350 ============ */
+  .p { width: 1080px; height: 1350px; }
+  .p .stage { padding: 64px 72px 56px; }
+  .p .top { margin-bottom: 40px; }
+  .p h1 { font-size: 70px; line-height: 1.2; }
+  .p .shot { margin-top: 38px; padding: 18px; border-radius: 44px; position: relative; }
+  .p .shot img { width: 100%; height: 740px; object-fit: cover; border-radius: 30px; display: block; }
+  .p .sub { margin-top: 32px; font-size: 30px; line-height: 1.62; }
+  .p .tagimg {
+    position: absolute; left: 42px; top: 42px;
+    font-size: 21px; font-weight: 800; letter-spacing: .15em;
+    padding: 13px 24px; border-radius: 999px;
   }
-  #v2 .dash { width: 88px; height: 5px; background: var(--gold); border-radius: 3px; margin: 40px 0 40px; }
-  #v2 p { font-size: 40px; line-height: 1.45; color: var(--slate); max-width: 790px; }
-  #v2 p b { font-weight: 700; color: var(--navy); }
-  #v2 .foot { position: absolute; left: 88px; right: 88px; bottom: 46px; padding: 0; border-top: 0; }
-  #v2 .foot .brand { font-size: 26px; }
-  #v2 .foot .site { font-size: 25px; }
+  .p .tagimg.a { background: rgba(255,255,255,.94); color: var(--navy); }
+  .p .tagimg.b { background: var(--gold); color: var(--navy); }
 
-  /* ============ 3 — VENDREDI · 1080×1350 ============ */
-  #v3 { width: 1080px; height: 1350px; }
-  #v3 .stage { padding: 88px 84px 0; }
-  #v3 .pill { padding: 17px 30px; font-size: 26px; margin-bottom: 40px; }
-  #v3 .panel { padding: 70px 62px; }
-  #v3 .stars { display: flex; gap: 14px; margin-bottom: 42px; }
-  #v3 .quote {
-    font-weight: 700; font-size: 52px; line-height: 1.36;
-    letter-spacing: -.026em; color: var(--navy);
-  }
-  #v3 .who { margin-top: 46px; font-size: 29px; font-weight: 700; color: var(--navy); }
-  #v3 .src { margin-top: 8px; font-size: 26px; font-weight: 500; color: #64748b; }
-  #v3 .score {
-    margin-top: 46px; padding-top: 40px; border-top: 1px solid var(--slate-line);
-    display: flex; align-items: baseline; gap: 18px;
-  }
-  #v3 .score .n { font-size: 62px; font-weight: 800; letter-spacing: -.035em; color: var(--navy); }
-  #v3 .score .l { font-size: 28px; font-weight: 500; color: var(--slate); }
-  #v3 .btn { margin-top: auto; padding: 27px 44px; font-size: 30px; }
-  #v3 .foot { margin-top: 40px; padding: 34px 0 42px; }
-  #v3 .foot .brand { font-size: 27px; }
-  #v3 .foot .site { font-size: 26px; }
+  /* ============ CARRÉ 1080×1080 ============ */
+  .s { width: 1080px; height: 1080px; }
+  .s .stage { padding: 60px 66px 52px; }
+  .s .top { margin-bottom: 0; }
+  .s .panel { margin: 40px 0; flex: 1; padding: 62px 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .s h1 { font-size: 74px; line-height: 1.08; }
+  .s .dash { width: 88px; height: 5px; background: var(--gold); border-radius: 3px; margin: 38px 0; }
+  .s p { font-size: 39px; line-height: 1.58; color: var(--slate); max-width: 800px; }
+  .s p b { font-weight: 700; color: var(--navy); }
 
-  /* ============ 4 — AVANT / APRÈS · 1080×1350 ============ */
-  #v4 { width: 1080px; height: 1350px; }
-  #v4 .stage { padding: 88px 84px 0; }
-  #v4 .pill { padding: 17px 30px; font-size: 26px; margin-bottom: 38px; }
-  #v4 h1 {
-    font-weight: 800; font-size: 68px; line-height: 1.12;
-    letter-spacing: -.032em; color: var(--navy); margin-bottom: 44px;
-  }
-  #v4 .panel { padding: 20px; border-radius: 44px; display: flex; gap: 16px; }
-  #v4 .shot { position: relative; flex: 1; }
-  #v4 .shot img { width: 100%; height: 470px; object-fit: cover; border-radius: 30px; display: block; }
-  #v4 .shot .lab {
-    position: absolute; left: 22px; top: 22px;
-    font-size: 22px; font-weight: 700; letter-spacing: .14em;
-    padding: 12px 22px; border-radius: 999px;
-  }
-  #v4 .shot .lab.a { background: rgba(255,255,255,.92); color: var(--navy); }
-  #v4 .shot .lab.b { background: var(--gold); color: var(--navy); }
-  #v4 .sub { margin-top: 40px; font-size: 32px; line-height: 1.5; color: var(--slate); }
-  #v4 .foot { margin-top: auto; padding: 34px 0 42px; }
-  #v4 .foot .brand { font-size: 27px; }
-  #v4 .foot .site { font-size: 26px; }
+  /* --- variantes --- */
+  #v1 h1 { font-size: 72px; }
+  #v1 .shot img { height: 520px; }
 
-  /* ============ 5 — MERCREDI MIDI · 1080×1080 ============ */
-  #v5 { width: 1080px; height: 1080px; }
-  #v5 .stage { padding: 76px 76px 0; justify-content: center; }
-  #v5 .panel { flex: 0 0 auto; padding: 84px 68px; display: flex; flex-direction: column; align-items: center; text-align: center; }
-  #v5 .pill { align-self: center; padding: 15px 30px; font-size: 25px; margin-bottom: 40px; }
-  #v5 .big {
-    font-size: 210px; font-weight: 800; line-height: .92;
-    letter-spacing: -.055em; color: var(--navy);
-  }
-  #v5 .big span { color: var(--gold); }
-  #v5 .dash { width: 88px; height: 5px; background: var(--gold); border-radius: 3px; margin: 40px 0; }
-  #v5 p { font-size: 40px; line-height: 1.42; color: var(--slate); max-width: 760px; }
-  #v5 p b { font-weight: 700; color: var(--navy); }
-  #v5 .foot { position: absolute; left: 88px; right: 88px; bottom: 46px; padding: 0; border-top: 0; }
-  #v5 .foot .brand { font-size: 26px; }
-  #v5 .foot .site { font-size: 25px; }
+  #v5 .big { font-size: 216px; font-weight: 800; line-height: .92; letter-spacing: -.055em; color: var(--gold); }
+  #v5 .big em { font-style: normal; color: var(--navy); }
 
-  /* ============ 6 — JEUDI MATIN · 1080×1350 ============ */
-  #v6 { width: 1080px; height: 1350px; }
-  #v6 .stage { padding: 96px 88px 0; }
-  #v6 .pill { padding: 17px 30px; font-size: 27px; margin-bottom: 46px; }
-  #v6 h1 {
-    font-weight: 800; font-size: 82px; line-height: 1.14;
-    letter-spacing: -.032em; color: var(--navy);
-  }
-  #v6 h1 .hl {
-    background-image: linear-gradient(to top, rgba(201,162,39,.45) 20px, rgba(0,0,0,0) 20px);
-    padding: 0 3px;
-  }
-  #v6 .panel { margin-top: 60px; padding: 56px 54px; display: flex; flex-direction: column; gap: 34px; }
+  #v6 h1 { font-size: 66px; }
+  #v6 .list { margin-top: 40px; padding: 52px 50px; display: flex; flex-direction: column; gap: 38px; }
   #v6 .row { display: flex; align-items: flex-start; gap: 26px; }
-  #v6 .row .dot { flex: 0 0 auto; width: 15px; height: 15px; border-radius: 50%; background: var(--gold); margin-top: 15px; }
-  #v6 .row .tx { font-size: 33px; line-height: 1.45; color: var(--slate); }
+  #v6 .row .dot { flex: 0 0 auto; width: 15px; height: 15px; border-radius: 50%; background: var(--gold); margin-top: 16px; }
+  #v6 .row .tx { font-size: 32px; line-height: 1.62; color: var(--slate); }
   #v6 .row .tx b { font-weight: 700; color: var(--navy); }
-  #v6 .foot { margin-top: auto; padding: 34px 0 42px; }
-  #v6 .foot .brand { font-size: 27px; }
-  #v6 .foot .site { font-size: 26px; }
 
-  /* ============ 7 — JEUDI MIDI · 1080×1080 ============ */
-  #v7 { width: 1080px; height: 1080px; }
-  #v7 .stage { padding: 72px 72px 0; justify-content: center; }
-  #v7 .panel { flex: 0 0 auto; padding: 62px 58px; }
-  #v7 .pill { align-self: flex-start; padding: 15px 30px; font-size: 25px; margin-bottom: 36px; }
-  #v7 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  #v7 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; width: 100%; }
   #v7 .cell {
-    background: var(--ground); border: 1px solid var(--slate-line); border-radius: 26px;
+    background: var(--ground); border: 1px solid var(--line); border-radius: 26px;
     padding: 34px 32px; display: flex; align-items: center; gap: 20px;
   }
   #v7 .cell .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--gold); }
-  #v7 .cell .n { font-size: 34px; font-weight: 700; letter-spacing: .04em; color: var(--navy); }
-  #v7 .kicker {
-    margin-top: 40px; font-size: 42px; font-weight: 800; letter-spacing: -.03em;
-    color: var(--navy); text-align: center;
-  }
-  #v7 .foot { position: absolute; left: 84px; right: 84px; bottom: 44px; padding: 0; border-top: 0; }
-  #v7 .foot .brand { font-size: 26px; }
-  #v7 .foot .site { font-size: 25px; }
+  #v7 .cell .n { font-size: 33px; font-weight: 700; letter-spacing: .04em; color: var(--navy); }
+  #v7 .kicker { margin-top: 42px; font-size: 44px; font-weight: 800; letter-spacing: -.03em; color: var(--navy); }
 
-  /* ============ 8 & 9 — PHOTO DOMINANTE · 1080×1350 ============ */
-  #v8, #v9 { width: 1080px; height: 1350px; }
-  #v8 .stage, #v9 .stage { padding: 84px 80px 0; }
-  #v8 .pill, #v9 .pill { padding: 17px 30px; font-size: 26px; margin-bottom: 34px; }
-  #v8 h1, #v9 h1 {
-    font-weight: 800; font-size: 66px; line-height: 1.13;
-    letter-spacing: -.032em; color: var(--navy); margin-bottom: 38px;
-  }
-  #v8 .panel, #v9 .panel { padding: 20px; border-radius: 44px; position: relative; }
-  #v8 .panel img, #v9 .panel img { width: 100%; height: 620px; object-fit: cover; border-radius: 30px; display: block; }
-  #v8 .panel img { object-position: center 42%; }
-  #v9 .panel img { object-position: center 34%; }
-  #v8 .tagimg {
-    position: absolute; left: 44px; top: 44px;
-    font-size: 22px; font-weight: 700; letter-spacing: .14em;
-    padding: 13px 24px; border-radius: 999px; background: var(--gold); color: var(--navy);
-  }
-  #v8 .sub, #v9 .sub { margin-top: 36px; font-size: 31px; line-height: 1.5; color: var(--slate); }
-  #v8 .foot, #v9 .foot { margin-top: auto; padding: 32px 0 40px; }
-  #v8 .foot .brand, #v9 .foot .brand { font-size: 27px; }
-  #v8 .foot .site, #v9 .foot .site { font-size: 26px; }
+  #v3 .panel { padding: 62px 58px; margin-top: 40px; }
+  #v3 .stars { display: flex; gap: 14px; margin-bottom: 40px; }
+  #v3 .quote { font-weight: 700; font-size: 50px; line-height: 1.46; letter-spacing: -.026em; color: var(--navy); }
+  #v3 .who { margin-top: 44px; font-size: 29px; font-weight: 700; color: var(--navy); }
+  #v3 .src { margin-top: 8px; font-size: 25px; font-weight: 500; color: var(--slate-soft); }
+  #v3 .score { margin-top: 42px; padding-top: 38px; border-top: 1px solid var(--line); display: flex; align-items: baseline; gap: 18px; }
+  #v3 .score .n { font-size: 74px; font-weight: 800; letter-spacing: -.04em; color: var(--gold); }
+  #v3 .score .l { font-size: 28px; font-weight: 500; color: var(--slate); }
 
-  /* ============ 10 — DIMANCHE · PORTRAIT · 1080×1350 ============ */
-  #v10 { width: 1080px; height: 1350px; }
+  #v4 .shot { display: flex; gap: 14px; padding: 16px; }
+  #v4 .half { position: relative; flex: 1; }
+  #v4 .half img { width: 100%; height: 700px; object-fit: cover; border-radius: 28px; display: block; }
+  #v4 h1 { font-size: 64px; }
+
+  #v9 .shot img { object-position: center 34%; }
+  #v8 .shot img { object-position: center 42%; }
+
+  /* --- 10 : portrait fondateur, photo dominante --- */
   #v10 .stage { padding: 0; }
-  #v10 .shotwrap { position: relative; height: 900px; }
-  #v10 .shotwrap img { width: 100%; height: 100%; object-fit: cover; object-position: center 22%; display: block; }
-  #v10 .pill {
-    position: absolute; left: 72px; top: 68px;
-    background: rgba(255,255,255,.92); padding: 16px 30px; font-size: 26px;
-  }
-  #v10 .plate {
-    flex: 1; background: var(--navy); padding: 62px 72px 0;
-    display: flex; flex-direction: column;
-  }
-  #v10 .plate h1 {
-    font-weight: 800; font-size: 62px; line-height: 1.14;
-    letter-spacing: -.032em; color: #fff;
-  }
-  #v10 .plate .who {
-    margin-top: 26px; font-size: 30px; font-weight: 600; color: var(--gold);
-  }
-  #v10 .plate .foot {
-    margin-top: auto; padding: 30px 0 40px; border-top: 1px solid rgba(255,255,255,.18);
-  }
-  #v10 .plate .foot .brand { color: #fff; font-size: 26px; }
-  #v10 .plate .foot .site { color: #94a3b8; font-size: 25px; }
+  #v10 .shotwrap { position: relative; height: 880px; }
+  #v10 .shotwrap img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; }
+  #v10 .top { position: absolute; left: 66px; right: 66px; top: 60px; z-index: 2; }
+  #v10 .seal { border-color: rgba(255,255,255,.6); color: #fff; background: rgba(20,33,61,.42); }
+  #v10 .plate { flex: 1; background: var(--navy); padding: 56px 72px 52px; display: flex; flex-direction: column; }
+  #v10 .plate h1 { color: #fff; font-size: 58px; line-height: 1.2; }
+  #v10 .plate .sig { margin-top: 22px; font-size: 28px; font-weight: 600; color: var(--gold); }
+  #v10 .foot { border-top-color: rgba(255,255,255,.18); }
+  #v10 .foot .name { color: #fff; }
+  #v10 .foot .base { color: #94a3b8; }
+  #v10 .foot .cta { color: var(--gold); }
 </style>
 </head>
 <body>
 
-<!-- 1 — LUNDI 3 AOÛT, 08:00 -->
-<section class="card" id="v1">
+<!-- ================= 1 · LUNDI 08h · CONSEIL 01 ================= -->
+<section class="card p" id="v1">
   <div class="glow"></div>
   <div class="stage">
-    <span class="pill">Propreté professionnelle</span>
+    <div class="top">
+      <span class="badge conseil">Conseil <span class="num">#01</span></span>
+      <span class="seal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6b12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.9"/></svg>Méthode ProClean</span>
+    </div>
     <h1>Un bureau propre n&rsquo;est pas un détail.<br>C&rsquo;est un <span class="hl">levier</span>.</h1>
-    <p class="sub">Concentration, image de marque, bien-être des équipes : tout commence par un environnement maîtrisé.</p>
-    <div class="panel">
+    <div class="panel shot">
       <img src="../../../../../home/user/https-procleanempire-multiservice.manus.space/public/media/photos/hero-showcase.jpg" alt="">
     </div>
+    <p class="sub">Concentration, image de marque, bien-être des équipes : tout commence par un environnement maîtrisé.</p>
     <div class="foot">
-      <span class="brand">PROCLEAN EMPIRE</span>
-      <span class="site">procleanempire.com</span>
+      <div class="left">
+        <svg class="mark" width="46" height="40" viewBox="0 0 46 40" fill="#c9a227"><rect x="0" y="20" width="6" height="20" rx="2"/><rect x="10" y="12" width="6" height="28" rx="2"/><rect x="20" y="4" width="6" height="36" rx="2"/><rect x="30" y="10" width="6" height="30" rx="2"/><rect x="40" y="18" width="6" height="22" rx="2"/></svg>
+        <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
+      </div>
+      <span class="cta"><i>&rarr;</i> Demandez votre devis</span>
     </div>
   </div>
 </section>
 
-<!-- 2 — MERCREDI 5 AOÛT, 08:00 -->
-<section class="card" id="v2">
+<!-- ================= 2 · MARDI 08h · AVANT / APRÈS 01 ================= -->
+<section class="card p" id="v4">
   <div class="glow"></div>
   <div class="stage">
+    <div class="top">
+      <span class="badge preuve">Avant / Après <span class="num">#01</span></span>
+      <span class="seal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6b12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.9"/></svg>Méthode ProClean</span>
+    </div>
+    <h1>Le remplacement était envisagé.<br>Il n&rsquo;a pas été nécessaire.</h1>
+    <div class="panel shot">
+      <div class="half">
+        <img src="../../../../../home/user/https-procleanempire-multiservice.manus.space/public/media/photos/cuir-rouge-avant.jpeg" alt="">
+        <span class="tagimg a">AVANT</span>
+      </div>
+      <div class="half">
+        <img src="../../../../../home/user/https-procleanempire-multiservice.manus.space/public/media/photos/cuir-rouge-apres.jpeg" alt="">
+        <span class="tagimg b">APRÈS</span>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="left">
+        <svg class="mark" width="46" height="40" viewBox="0 0 46 40" fill="#c9a227"><rect x="0" y="20" width="6" height="20" rx="2"/><rect x="10" y="12" width="6" height="28" rx="2"/><rect x="20" y="4" width="6" height="36" rx="2"/><rect x="30" y="10" width="6" height="30" rx="2"/><rect x="40" y="18" width="6" height="22" rx="2"/></svg>
+        <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
+      </div>
+      <span class="cta"><i>&rarr;</i> Découvrez nos réalisations</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 3 · MERCREDI 08h · LE SAVIEZ-VOUS 01 ================= -->
+<section class="card s" id="v2">
+  <div class="glow"></div>
+  <div class="stage">
+    <div class="top">
+      <span class="badge savoir">Le saviez-vous <span class="num">#01</span></span>
+      <span class="seal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6b12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.9"/></svg>Méthode ProClean</span>
+    </div>
     <div class="panel">
-      <span class="pill">Hygiène des locaux</span>
       <h1>Le saviez-vous&nbsp;?</h1>
       <div class="dash"></div>
       <p>Un bureau peut héberger <b>bien plus de bactéries</b> qu&rsquo;une lunette de toilettes.</p>
     </div>
     <div class="foot">
-      <span class="brand">PROCLEAN EMPIRE</span>
-      <span class="site">procleanempire.com</span>
+      <div class="left">
+        <svg class="mark" width="46" height="40" viewBox="0 0 46 40" fill="#c9a227"><rect x="0" y="20" width="6" height="20" rx="2"/><rect x="10" y="12" width="6" height="28" rx="2"/><rect x="20" y="4" width="6" height="36" rx="2"/><rect x="30" y="10" width="6" height="30" rx="2"/><rect x="40" y="18" width="6" height="22" rx="2"/></svg>
+        <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
+      </div>
+      <span class="cta"><i>&rarr;</i> Voir plus sur notre site</span>
     </div>
   </div>
 </section>
 
-<!-- 3 — VENDREDI 7 AOÛT, 08:00 -->
-<section class="card" id="v3">
+<!-- ================= 4 · MERCREDI 12h · CONSEIL 02 ================= -->
+<section class="card s" id="v5">
   <div class="glow"></div>
   <div class="stage">
-    <span class="pill">Avis clients</span>
+    <div class="top">
+      <span class="badge conseil">Conseil <span class="num">#02</span></span>
+      <span class="seal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6b12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.9"/></svg>Conseil validé</span>
+    </div>
     <div class="panel">
-      <div class="stars">
-        <svg width="54" height="54" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
-        <svg width="54" height="54" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
-        <svg width="54" height="54" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
-        <svg width="54" height="54" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
-        <svg width="54" height="54" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
-      </div>
-      <div class="quote">&laquo;&nbsp;Service sérieux, équipe professionnelle et résultat impeccable à chaque intervention.&nbsp;&raquo;</div>
-      <div class="who">Concierg&rsquo;air</div>
-      <div class="src">Avis Google vérifié</div>
-      <div class="score">
-        <span class="n">5,0 / 5</span>
-        <span class="l">sur 30 avis Google</span>
-      </div>
-    </div>
-    <span class="btn">Demander un devis</span>
-    <div class="foot">
-      <span class="brand">PROCLEAN EMPIRE</span>
-      <span class="site">procleanempire.com</span>
-    </div>
-  </div>
-</section>
-
-<!-- 4 — MARDI 4 AOÛT, 08:00 -->
-<section class="card" id="v4">
-  <div class="glow"></div>
-  <div class="stage">
-    <span class="pill">Avant / Après</span>
-    <h1>Le remplacement était envisagé.<br>Il n&rsquo;a pas été nécessaire.</h1>
-    <div class="panel">
-      <div class="shot">
-        <img src="../../../../../home/user/https-procleanempire-multiservice.manus.space/public/media/photos/cuir-rouge-avant.jpeg" alt="">
-        <span class="lab a">AVANT</span>
-      </div>
-      <div class="shot">
-        <img src="../../../../../home/user/https-procleanempire-multiservice.manus.space/public/media/photos/cuir-rouge-apres.jpeg" alt="">
-        <span class="lab b">APRÈS</span>
-      </div>
-    </div>
-    <p class="sub">Le cuir ne s&rsquo;use pas toujours. Souvent, il s&rsquo;encrasse — et un traitement adapté à la matière le fait repartir pour des années.</p>
-    <div class="foot">
-      <span class="brand">PROCLEAN EMPIRE</span>
-      <span class="site">procleanempire.com</span>
-    </div>
-  </div>
-</section>
-
-<!-- 5 — MERCREDI 5 AOÛT, 12:00 -->
-<section class="card" id="v5">
-  <div class="glow"></div>
-  <div class="stage">
-    <div class="panel">
-      <span class="pill">Le geste pro</span>
-      <div class="big">30<span>s</span></div>
+      <div class="big">30<em>&nbsp;s</em></div>
       <div class="dash"></div>
       <p>Le temps de contact minimum pour qu&rsquo;un désinfectant <b>agisse vraiment</b>.</p>
     </div>
     <div class="foot">
-      <span class="brand">PROCLEAN EMPIRE</span>
-      <span class="site">procleanempire.com</span>
+      <div class="left">
+        <svg class="mark" width="46" height="40" viewBox="0 0 46 40" fill="#c9a227"><rect x="0" y="20" width="6" height="20" rx="2"/><rect x="10" y="12" width="6" height="28" rx="2"/><rect x="20" y="4" width="6" height="36" rx="2"/><rect x="30" y="10" width="6" height="30" rx="2"/><rect x="40" y="18" width="6" height="22" rx="2"/></svg>
+        <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
+      </div>
+      <span class="cta"><i>&rarr;</i> Voir plus sur notre site</span>
     </div>
   </div>
 </section>
 
-<!-- 6 — JEUDI 6 AOÛT, 08:00 -->
-<section class="card" id="v6">
+<!-- ================= 5 · JEUDI 08h · CONSEIL 03 ================= -->
+<section class="card p" id="v6">
   <div class="glow"></div>
   <div class="stage">
-    <span class="pill">Vitrerie</span>
+    <div class="top">
+      <span class="badge conseil">Conseil <span class="num">#03</span></span>
+      <span class="seal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6b12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.9"/></svg>Conseil validé</span>
+    </div>
     <h1>On ne nettoie pas des vitres pour qu&rsquo;elles brillent.<br>On les nettoie pour <span class="hl">ce qu&rsquo;elles laissent entrer</span>.</h1>
-    <div class="panel">
+    <div class="panel list">
       <div class="row"><span class="dot"></span><span class="tx"><b>Plus de lumière naturelle</b> — donc moins d&rsquo;éclairage artificiel dans la journée.</span></div>
       <div class="row"><span class="dot"></span><span class="tx"><b>Un confort visuel réel</b> pour les équipes installées près des baies.</span></div>
       <div class="row"><span class="dot"></span><span class="tx"><b>Une façade qui parle</b> — c&rsquo;est la première chose qu&rsquo;un visiteur voit.</span></div>
     </div>
     <div class="foot">
-      <span class="brand">PROCLEAN EMPIRE</span>
-      <span class="site">procleanempire.com</span>
+      <div class="left">
+        <svg class="mark" width="46" height="40" viewBox="0 0 46 40" fill="#c9a227"><rect x="0" y="20" width="6" height="20" rx="2"/><rect x="10" y="12" width="6" height="28" rx="2"/><rect x="20" y="4" width="6" height="36" rx="2"/><rect x="30" y="10" width="6" height="30" rx="2"/><rect x="40" y="18" width="6" height="22" rx="2"/></svg>
+        <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
+      </div>
+      <span class="cta"><i>&rarr;</i> Demandez votre devis</span>
     </div>
   </div>
 </section>
 
-<!-- 7 — JEUDI 6 AOÛT, 12:00 -->
-<section class="card" id="v7">
+<!-- ================= 6 · JEUDI 12h · CONSEIL 04 ================= -->
+<section class="card s" id="v7">
   <div class="glow"></div>
   <div class="stage">
+    <div class="top">
+      <span class="badge conseil">Conseil <span class="num">#04</span></span>
+      <span class="seal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6b12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.9"/></svg>Conseil validé</span>
+    </div>
     <div class="panel">
-      <span class="pill">Conseil pro</span>
       <div class="grid">
         <div class="cell"><span class="dot"></span><span class="n">CUIR</span></div>
         <div class="cell"><span class="dot"></span><span class="n">TEXTILE</span></div>
@@ -397,60 +302,110 @@
       <div class="kicker">Une matière = un protocole.</div>
     </div>
     <div class="foot">
-      <span class="brand">PROCLEAN EMPIRE</span>
-      <span class="site">procleanempire.com</span>
+      <div class="left">
+        <svg class="mark" width="46" height="40" viewBox="0 0 46 40" fill="#c9a227"><rect x="0" y="20" width="6" height="20" rx="2"/><rect x="10" y="12" width="6" height="28" rx="2"/><rect x="20" y="4" width="6" height="36" rx="2"/><rect x="30" y="10" width="6" height="30" rx="2"/><rect x="40" y="18" width="6" height="22" rx="2"/></svg>
+        <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
+      </div>
+      <span class="cta"><i>&rarr;</i> Voir plus sur notre site</span>
     </div>
   </div>
 </section>
 
-<!-- 8 — SAMEDI 8 AOÛT, 08:00 -->
-<section class="card" id="v8">
+<!-- ================= 7 · VENDREDI 08h · PAROLES DE CLIENTS 01 ================= -->
+<section class="card p" id="v3">
   <div class="glow"></div>
   <div class="stage">
-    <span class="pill">Detailing automobile</span>
-    <h1>Ce n&rsquo;est pas une banquette neuve.<br>C&rsquo;est la même.</h1>
-    <div class="panel">
-      <img src="../../../../../home/user/https-procleanempire-multiservice.manus.space/public/media/photos/banquette-arriere-apres.jpeg" alt="">
-      <span class="tagimg">APRÈS</span>
+    <div class="top">
+      <span class="badge avis">Paroles de clients <span class="num">#01</span></span>
+      <span class="seal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6b12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.9"/></svg>Avis vérifié</span>
     </div>
-    <p class="sub">Sièges, tapis, plastiques, cuir : chaque matière son traitement. Sur véhicule individuel comme sur flotte d&rsquo;entreprise.</p>
+    <div class="panel">
+      <div class="stars">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
+      </div>
+      <div class="quote">&laquo;&nbsp;Service sérieux, équipe professionnelle et résultat impeccable à chaque intervention.&nbsp;&raquo;</div>
+      <div class="who">Concierg&rsquo;air</div>
+      <div class="src">Avis Google vérifié</div>
+      <div class="score"><span class="n">5,0 / 5</span><span class="l">sur 30 avis Google</span></div>
+    </div>
     <div class="foot">
-      <span class="brand">PROCLEAN EMPIRE</span>
-      <span class="site">procleanempire.com</span>
+      <div class="left">
+        <svg class="mark" width="46" height="40" viewBox="0 0 46 40" fill="#c9a227"><rect x="0" y="20" width="6" height="20" rx="2"/><rect x="10" y="12" width="6" height="28" rx="2"/><rect x="20" y="4" width="6" height="36" rx="2"/><rect x="30" y="10" width="6" height="30" rx="2"/><rect x="40" y="18" width="6" height="22" rx="2"/></svg>
+        <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
+      </div>
+      <span class="cta"><i>&rarr;</i> Demandez votre devis</span>
     </div>
   </div>
 </section>
 
-<!-- 9 — SAMEDI 8 AOÛT, 18:30 (visuel de couverture) -->
-<section class="card" id="v9">
+<!-- ================= 8 · SAMEDI 08h · RÉALISATION 01 ================= -->
+<section class="card p" id="v8">
   <div class="glow"></div>
   <div class="stage">
-    <span class="pill">Aéronautique</span>
+    <div class="top">
+      <span class="badge preuve">Réalisation <span class="num">#01</span></span>
+      <span class="seal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6b12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.9"/></svg>Méthode ProClean</span>
+    </div>
+    <h1>Ce n&rsquo;est pas une banquette neuve.<br>C&rsquo;est la même.</h1>
+    <div class="panel shot">
+      <img src="../../../../../home/user/https-procleanempire-multiservice.manus.space/public/media/photos/banquette-arriere-apres.jpeg" alt="">
+      <span class="tagimg b">APRÈS</span>
+    </div>
+    <div class="foot">
+      <div class="left">
+        <svg class="mark" width="46" height="40" viewBox="0 0 46 40" fill="#c9a227"><rect x="0" y="20" width="6" height="20" rx="2"/><rect x="10" y="12" width="6" height="28" rx="2"/><rect x="20" y="4" width="6" height="36" rx="2"/><rect x="30" y="10" width="6" height="30" rx="2"/><rect x="40" y="18" width="6" height="22" rx="2"/></svg>
+        <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
+      </div>
+      <span class="cta"><i>&rarr;</i> Découvrez nos réalisations</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 9 · SAMEDI · RÉALISATION 02 ================= -->
+<section class="card p" id="v9">
+  <div class="glow"></div>
+  <div class="stage">
+    <div class="top">
+      <span class="badge preuve">Réalisation <span class="num">#02</span></span>
+      <span class="seal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6b12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.9"/></svg>Méthode ProClean</span>
+    </div>
     <h1>On ne nettoie pas un avion comme une voiture.</h1>
-    <div class="panel">
+    <div class="panel shot">
       <img src="../../../../../home/user/https-procleanempire-multiservice.manus.space/public/media/photos/nettoyage-avion-cessna.jpeg" alt="">
     </div>
-    <p class="sub">Produits compatibles avec les revêtements, protocoles adaptés aux instruments. Ce niveau d&rsquo;exigence, nous l&rsquo;appliquons ensuite partout ailleurs.</p>
     <div class="foot">
-      <span class="brand">PROCLEAN EMPIRE</span>
-      <span class="site">procleanempire.com</span>
+      <div class="left">
+        <svg class="mark" width="46" height="40" viewBox="0 0 46 40" fill="#c9a227"><rect x="0" y="20" width="6" height="20" rx="2"/><rect x="10" y="12" width="6" height="28" rx="2"/><rect x="20" y="4" width="6" height="36" rx="2"/><rect x="30" y="10" width="6" height="30" rx="2"/><rect x="40" y="18" width="6" height="22" rx="2"/></svg>
+        <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
+      </div>
+      <span class="cta"><i>&rarr;</i> Découvrez nos réalisations</span>
     </div>
   </div>
 </section>
 
-<!-- 10 — DIMANCHE 9 AOÛT, 08:00 -->
-<section class="card" id="v10">
+<!-- ================= 10 · DIMANCHE 08h · LES COULISSES 01 ================= -->
+<section class="card p" id="v10">
   <div class="stage">
     <div class="shotwrap">
       <img src="../../../../../home/user/https-procleanempire-multiservice.manus.space/public/media/photos/fondateur-proclean-empire.jpeg" alt="">
-      <span class="pill">Notre histoire</span>
+      <div class="top">
+        <span class="badge coulisses">Les coulisses <span class="num">#01</span></span>
+        <span class="seal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.9"/></svg>Méthode ProClean</span>
+      </div>
     </div>
     <div class="plate">
       <h1>Pourquoi j&rsquo;ai créé ProClean Empire.</h1>
-      <div class="who">Kevin, fondateur</div>
+      <div class="sig">Kevin H. — Fondateur</div>
       <div class="foot">
-        <span class="brand">PROCLEAN EMPIRE</span>
-        <span class="site">procleanempire.com</span>
+        <div class="left">
+          <svg class="mark" width="46" height="40" viewBox="0 0 46 40" fill="#c9a227"><rect x="0" y="20" width="6" height="20" rx="2"/><rect x="10" y="12" width="6" height="28" rx="2"/><rect x="20" y="4" width="6" height="36" rx="2"/><rect x="30" y="10" width="6" height="30" rx="2"/><rect x="40" y="18" width="6" height="22" rx="2"/></svg>
+          <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
+        </div>
+        <span class="cta"><i>&rarr;</i> Voir plus sur notre site</span>
       </div>
     </div>
   </div>
