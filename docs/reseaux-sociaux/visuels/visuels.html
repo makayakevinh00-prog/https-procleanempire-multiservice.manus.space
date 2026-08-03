@@ -3,137 +3,241 @@
 <head>
 <meta charset="utf-8">
 <style>
-  @font-face { font-family: "Montserrat"; src: url("node_modules/@fontsource/montserrat/files/montserrat-latin-400-normal.woff2") format("woff2"); font-weight: 400; }
-  @font-face { font-family: "Montserrat"; src: url("node_modules/@fontsource/montserrat/files/montserrat-latin-600-normal.woff2") format("woff2"); font-weight: 600; }
-  @font-face { font-family: "Montserrat"; src: url("node_modules/@fontsource/montserrat/files/montserrat-latin-700-normal.woff2") format("woff2"); font-weight: 700; }
-  @font-face { font-family: "Montserrat"; src: url("node_modules/@fontsource/montserrat/files/montserrat-latin-800-normal.woff2") format("woff2"); font-weight: 800; }
+  /* Inter — la police du site (globals.css) */
   @font-face { font-family: "Inter"; src: url("node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2") format("woff2"); font-weight: 400; }
+  @font-face { font-family: "Inter"; src: url("node_modules/@fontsource/inter/files/inter-latin-500-normal.woff2") format("woff2"); font-weight: 500; }
   @font-face { font-family: "Inter"; src: url("node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2") format("woff2"); font-weight: 600; }
+  @font-face { font-family: "Inter"; src: url("node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2") format("woff2"); font-weight: 700; }
+  @font-face { font-family: "Inter"; src: url("node_modules/@fontsource/inter/files/inter-latin-800-normal.woff2") format("woff2"); font-weight: 800; }
+
+  /* Jetons repris du site : globals.css + tailwind.config.ts */
+  :root {
+    --ground: #f8f9fb;      /* body background */
+    --navy: #14213d;        /* brand-500 */
+    --navy-deep: #0f1a32;   /* brand-700 */
+    --slate: #334155;       /* slate-700, texte courant */
+    --slate-line: #e2e8f0;  /* slate-200, bordure des cartes */
+    --gold: #c9a227;        /* accent-500 */
+    --shadow: 0 15px 35px -20px rgba(12, 27, 64, .4);
+  }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #888; font-family: Inter, sans-serif; }
 
-  .card { overflow: hidden; margin: 40px auto; display: flex; flex-direction: column; }
-  .stage { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-  .band { flex: 0 0 auto; display: flex; align-items: center; }
+  .card { overflow: hidden; margin: 40px auto; position: relative; background: var(--ground); }
 
-  /* ============ 1 — LUNDI MATIN · 1080×1350 ============ */
-  #v1 { width: 1080px; height: 1350px; background: #14213d; }
-  #v1 .stage { padding: 0 96px; }
-  #v1 .eyebrow {
-    font-family: Inter; font-weight: 600; font-size: 26px;
-    letter-spacing: .28em; text-transform: uppercase; color: #c9a227;
+  /* halo doré du hero : radial-gradient circle at top right */
+  .glow {
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at top right,
+      rgba(201,162,39,.20), rgba(20,33,61,.07) 36%, transparent 66%);
   }
-  #v1 .rule { width: 96px; height: 5px; background: #c9a227; margin: 34px 0 60px; }
+
+  .stage { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; }
+
+  /* pastille eyebrow : rounded-full bg-[#14213d]/10 */
+  .pill {
+    align-self: flex-start;
+    display: inline-flex; align-items: center;
+    background: rgba(20,33,61,.10);
+    color: var(--navy);
+    font-weight: 600;
+    border-radius: 999px;
+  }
+
+  /* bouton : btn-primary, rounded-xl bg navy */
+  .btn {
+    align-self: flex-start;
+    display: inline-flex; align-items: center;
+    background: var(--navy); color: #fff; font-weight: 600;
+    border-radius: 20px;
+  }
+
+  /* carte blanche : rounded-2xl border-slate-200 bg-white shadow-soft */
+  .panel {
+    background: #fff;
+    border: 1px solid var(--slate-line);
+    border-radius: 40px;
+    box-shadow: var(--shadow);
+  }
+
+  .foot {
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 1px solid var(--slate-line);
+  }
+  .foot .brand { font-weight: 700; color: var(--navy); letter-spacing: .16em; }
+  .foot .site { font-weight: 500; color: #64748b; }
+
+  /* ============ 1 — LUNDI · 1080×1350 ============ */
+  #v1 { width: 1080px; height: 1350px; }
+  #v1 .stage { padding: 92px 88px 0; }
+  #v1 .pill { padding: 17px 30px; font-size: 27px; margin-bottom: 44px; }
   #v1 h1 {
-    font-family: Montserrat; font-weight: 800; font-size: 80px; line-height: 1.18;
-    letter-spacing: -.022em; color: #fff;
+    font-weight: 800; font-size: 84px; line-height: 1.13;
+    letter-spacing: -.03em; color: var(--navy);
   }
-  #v1 .hl {
-    background-image: linear-gradient(to top, #c9a227 16px, rgba(0,0,0,0) 16px);
-    padding: 0 4px;
+  #v1 h1 .hl {
+    background-image: linear-gradient(to top, rgba(201,162,39,.45) 20px, rgba(0,0,0,0) 20px);
+    padding: 0 3px;
   }
   #v1 .sub {
-    margin-top: 58px; font-family: Inter; font-weight: 400; font-size: 35px;
-    line-height: 1.5; color: #a7b4cd; max-width: 730px;
+    margin-top: 40px; font-size: 34px; line-height: 1.55; color: var(--slate); max-width: 780px;
   }
-  #v1 .band { height: 112px; background: #c9a227; justify-content: space-between; padding: 0 96px; }
-  #v1 .band .name { font-family: Montserrat; font-weight: 700; font-size: 27px; letter-spacing: .2em; color: #14213d; }
-  #v1 .band .loc { font-family: Inter; font-weight: 600; font-size: 23px; letter-spacing: .07em; color: #14213d; opacity: .8; }
+  #v1 .panel { margin-top: auto; padding: 22px; border-radius: 44px; }
+  #v1 .panel img { width: 100%; height: 420px; object-fit: cover; object-position: center 62%; border-radius: 30px; display: block; }
+  #v1 .foot { margin-top: 40px; padding: 34px 0 42px; }
+  #v1 .foot .brand { font-size: 27px; }
+  #v1 .foot .site { font-size: 26px; }
 
-  /* ============ 2 — MERCREDI MATIN · 1080×1080 ============ */
-  #v2 { width: 1080px; height: 1080px; background: #eef2f7; }
-  #v2 .stage { padding: 0 92px; align-items: center; text-align: center; }
-  #v2 .glass { margin-bottom: 46px; }
+  /* ============ 2 — MERCREDI · 1080×1080 ============ */
+  #v2 { width: 1080px; height: 1080px; }
+  #v2 .stage { padding: 76px 76px 0; justify-content: center; }
+  #v2 .panel { flex: 0 0 auto; padding: 92px 68px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  #v2 .pill { align-self: center; padding: 15px 30px; font-size: 25px; margin-bottom: 46px; }
   #v2 h1 {
-    font-family: Montserrat; font-weight: 800; font-size: 78px; line-height: 1;
-    letter-spacing: -.018em; color: #14213d; white-space: nowrap;
+    font-weight: 800; font-size: 76px; line-height: 1.05;
+    letter-spacing: -.032em; color: var(--navy); white-space: nowrap;
   }
-  #v2 .dash { width: 84px; height: 5px; background: #c9a227; margin: 46px 0 48px; }
-  #v2 p {
-    font-family: Inter; font-weight: 400; font-size: 44px; line-height: 1.42;
-    color: #2c3a5c; max-width: 830px;
-  }
-  #v2 p b { font-weight: 600; color: #14213d; }
-  #v2 .band { height: 120px; background: #14213d; justify-content: center; gap: 22px; }
-  #v2 .band .name { font-family: Montserrat; font-weight: 700; font-size: 28px; letter-spacing: .2em; color: #fff; }
-  #v2 .band .dot { width: 7px; height: 7px; border-radius: 50%; background: #c9a227; }
-  #v2 .band .loc { font-family: Inter; font-weight: 400; font-size: 24px; letter-spacing: .04em; color: #9aa8c4; }
+  #v2 .dash { width: 88px; height: 5px; background: var(--gold); border-radius: 3px; margin: 40px 0 40px; }
+  #v2 p { font-size: 40px; line-height: 1.45; color: var(--slate); max-width: 790px; }
+  #v2 p b { font-weight: 700; color: var(--navy); }
+  #v2 .foot { position: absolute; left: 88px; right: 88px; bottom: 46px; padding: 0; border-top: 0; }
+  #v2 .foot .brand { font-size: 26px; }
+  #v2 .foot .site { font-size: 25px; }
 
-  /* ============ 3 — VENDREDI MATIN · 1080×1350 ============ */
-  #v3 { width: 1080px; height: 1350px; background: #14213d; }
-  #v3 .stage { padding: 0 92px; align-items: center; text-align: center; }
-  #v3 .stars { display: flex; gap: 18px; margin-bottom: 66px; }
+  /* ============ 3 — VENDREDI · 1080×1350 ============ */
+  #v3 { width: 1080px; height: 1350px; }
+  #v3 .stage { padding: 88px 84px 0; }
+  #v3 .pill { padding: 17px 30px; font-size: 26px; margin-bottom: 40px; }
+  #v3 .panel { padding: 70px 62px; }
+  #v3 .stars { display: flex; gap: 14px; margin-bottom: 42px; }
   #v3 .quote {
-    font-family: Montserrat; font-weight: 600; font-size: 60px; line-height: 1.36;
-    letter-spacing: -.012em; color: #fff; max-width: 870px;
+    font-weight: 700; font-size: 52px; line-height: 1.36;
+    letter-spacing: -.026em; color: var(--navy);
   }
-  #v3 .who {
-    margin-top: 64px; font-family: Inter; font-weight: 600; font-size: 30px;
-    letter-spacing: .14em; text-transform: uppercase; color: #c9a227;
+  #v3 .who { margin-top: 46px; font-size: 29px; font-weight: 700; color: var(--navy); }
+  #v3 .src { margin-top: 8px; font-size: 26px; font-weight: 500; color: #64748b; }
+  #v3 .score {
+    margin-top: 46px; padding-top: 40px; border-top: 1px solid var(--slate-line);
+    display: flex; align-items: baseline; gap: 18px;
   }
-  #v3 .src { margin-top: 14px; font-family: Inter; font-weight: 400; font-size: 25px; color: #8e9cbb; }
-  #v3 .band { height: 136px; background: #c9a227; justify-content: center; gap: 26px; }
-  #v3 .band .score { font-family: Montserrat; font-weight: 800; font-size: 46px; letter-spacing: -.01em; color: #14213d; }
-  #v3 .band .sep { width: 7px; height: 7px; border-radius: 50%; background: #14213d; opacity: .5; }
-  #v3 .band .lab { font-family: Inter; font-weight: 600; font-size: 27px; letter-spacing: .12em; text-transform: uppercase; color: #14213d; }
+  #v3 .score .n { font-size: 62px; font-weight: 800; letter-spacing: -.035em; color: var(--navy); }
+  #v3 .score .l { font-size: 28px; font-weight: 500; color: var(--slate); }
+  #v3 .btn { margin-top: auto; padding: 27px 44px; font-size: 30px; }
+  #v3 .foot { margin-top: 40px; padding: 34px 0 42px; }
+  #v3 .foot .brand { font-size: 27px; }
+  #v3 .foot .site { font-size: 26px; }
+
+  /* ============ 4 — AVANT / APRÈS · 1080×1350 ============ */
+  #v4 { width: 1080px; height: 1350px; }
+  #v4 .stage { padding: 88px 84px 0; }
+  #v4 .pill { padding: 17px 30px; font-size: 26px; margin-bottom: 38px; }
+  #v4 h1 {
+    font-weight: 800; font-size: 68px; line-height: 1.12;
+    letter-spacing: -.032em; color: var(--navy); margin-bottom: 44px;
+  }
+  #v4 .panel { padding: 20px; border-radius: 44px; display: flex; gap: 16px; }
+  #v4 .shot { position: relative; flex: 1; }
+  #v4 .shot img { width: 100%; height: 470px; object-fit: cover; border-radius: 30px; display: block; }
+  #v4 .shot .lab {
+    position: absolute; left: 22px; top: 22px;
+    font-size: 22px; font-weight: 700; letter-spacing: .14em;
+    padding: 12px 22px; border-radius: 999px;
+  }
+  #v4 .shot .lab.a { background: rgba(255,255,255,.92); color: var(--navy); }
+  #v4 .shot .lab.b { background: var(--gold); color: var(--navy); }
+  #v4 .sub { margin-top: 40px; font-size: 32px; line-height: 1.5; color: var(--slate); }
+  #v4 .foot { margin-top: auto; padding: 34px 0 42px; }
+  #v4 .foot .brand { font-size: 27px; }
+  #v4 .foot .site { font-size: 26px; }
 </style>
 </head>
 <body>
 
 <!-- 1 — LUNDI 3 AOÛT, 08:00 -->
 <section class="card" id="v1">
+  <div class="glow"></div>
   <div class="stage">
-    <span class="eyebrow">Propreté professionnelle</span>
-    <div class="rule"></div>
+    <span class="pill">Propreté professionnelle</span>
     <h1>Un bureau propre n&rsquo;est pas un détail.<br>C&rsquo;est un <span class="hl">levier</span>.</h1>
     <p class="sub">Concentration, image de marque, bien-être des équipes : tout commence par un environnement maîtrisé.</p>
-  </div>
-  <div class="band">
-    <span class="name">PROCLEAN EMPIRE</span>
-    <span class="loc">Pontoise &middot; Île-de-France</span>
+    <div class="panel">
+      <img src="../../../../../home/user/https-procleanempire-multiservice.manus.space/public/media/photos/hero-showcase.jpg" alt="">
+    </div>
+    <div class="foot">
+      <span class="brand">PROCLEAN EMPIRE</span>
+      <span class="site">procleanempire.com</span>
+    </div>
   </div>
 </section>
 
 <!-- 2 — MERCREDI 5 AOÛT, 08:00 -->
 <section class="card" id="v2">
+  <div class="glow"></div>
   <div class="stage">
-    <svg class="glass" width="108" height="108" viewBox="0 0 24 24" fill="none"
-         stroke="#c9a227" stroke-width="1.7" stroke-linecap="round">
-      <circle cx="10.5" cy="10.5" r="7.5"/>
-      <line x1="16" y1="16" x2="21.5" y2="21.5"/>
-      <line x1="7.6" y1="10.5" x2="13.4" y2="10.5"/>
-      <line x1="10.5" y1="7.6" x2="10.5" y2="13.4"/>
-    </svg>
-    <h1>LE SAVIEZ-VOUS&nbsp;?</h1>
-    <div class="dash"></div>
-    <p>Un bureau peut héberger <b>bien plus de bactéries</b> qu&rsquo;une lunette de toilettes.</p>
-  </div>
-  <div class="band">
-    <span class="name">PROCLEAN EMPIRE</span>
-    <span class="dot"></span>
-    <span class="loc">Nettoyage professionnel</span>
+    <div class="panel">
+      <span class="pill">Hygiène des locaux</span>
+      <h1>Le saviez-vous&nbsp;?</h1>
+      <div class="dash"></div>
+      <p>Un bureau peut héberger <b>bien plus de bactéries</b> qu&rsquo;une lunette de toilettes.</p>
+    </div>
+    <div class="foot">
+      <span class="brand">PROCLEAN EMPIRE</span>
+      <span class="site">procleanempire.com</span>
+    </div>
   </div>
 </section>
 
 <!-- 3 — VENDREDI 7 AOÛT, 08:00 -->
 <section class="card" id="v3">
+  <div class="glow"></div>
   <div class="stage">
-    <div class="stars">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
+    <span class="pill">Avis clients</span>
+    <div class="panel">
+      <div class="stars">
+        <svg width="54" height="54" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
+        <svg width="54" height="54" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
+        <svg width="54" height="54" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
+        <svg width="54" height="54" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
+        <svg width="54" height="54" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
+      </div>
+      <div class="quote">&laquo;&nbsp;Service sérieux, équipe professionnelle et résultat impeccable à chaque intervention.&nbsp;&raquo;</div>
+      <div class="who">Concierg&rsquo;air</div>
+      <div class="src">Avis Google vérifié</div>
+      <div class="score">
+        <span class="n">5,0 / 5</span>
+        <span class="l">sur 30 avis Google</span>
+      </div>
     </div>
-    <div class="quote">&laquo;&nbsp;Service sérieux, équipe professionnelle et résultat impeccable à chaque intervention.&nbsp;&raquo;</div>
-    <div class="who">Concierg&rsquo;air</div>
-    <div class="src">Avis Google vérifié</div>
+    <span class="btn">Demander un devis</span>
+    <div class="foot">
+      <span class="brand">PROCLEAN EMPIRE</span>
+      <span class="site">procleanempire.com</span>
+    </div>
   </div>
-  <div class="band">
-    <span class="score">5,0 / 5</span>
-    <span class="sep"></span>
-    <span class="lab">30 avis Google</span>
+</section>
+
+<!-- 4 — MARDI 4 AOÛT, 08:00 -->
+<section class="card" id="v4">
+  <div class="glow"></div>
+  <div class="stage">
+    <span class="pill">Avant / Après</span>
+    <h1>Le remplacement était envisagé.<br>Il n&rsquo;a pas été nécessaire.</h1>
+    <div class="panel">
+      <div class="shot">
+        <img src="../../../../../home/user/https-procleanempire-multiservice.manus.space/public/media/photos/cuir-rouge-avant.jpeg" alt="">
+        <span class="lab a">AVANT</span>
+      </div>
+      <div class="shot">
+        <img src="../../../../../home/user/https-procleanempire-multiservice.manus.space/public/media/photos/cuir-rouge-apres.jpeg" alt="">
+        <span class="lab b">APRÈS</span>
+      </div>
+    </div>
+    <p class="sub">Le cuir ne s&rsquo;use pas toujours. Souvent, il s&rsquo;encrasse — et un traitement adapté à la matière le fait repartir pour des années.</p>
+    <div class="foot">
+      <span class="brand">PROCLEAN EMPIRE</span>
+      <span class="site">procleanempire.com</span>
+    </div>
   </div>
 </section>
 
