@@ -1,0 +1,285 @@
+<title>Alan — Bible de personnage · ProClean Empire</title>
+
+<style>
+  :root {
+    --ground:#f8f9fb; --surface:#ffffff; --navy:#14213d; --navy-deep:#0f1a32;
+    --slate:#334155; --slate-soft:#64748b; --line:#e2e8f0;
+    --gold:#c9a227; --gold-ink:#8a6b12; --gold-wash:#faf4e0;
+    --warn-bg:#fdf4f3; --warn-line:#e8c4bf; --warn-ink:#8f3b32;
+    --shadow: 0 1px 2px rgba(12,27,64,.05), 0 14px 30px -24px rgba(12,27,64,.55);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground:#0b1326; --surface:#141d33; --navy:#e9edf6; --navy-deep:#ffffff;
+      --slate:#9aa4bb; --slate-soft:#6e7896; --line:#253152;
+      --gold:#d9b545; --gold-ink:#e0c164; --gold-wash:#241f10;
+      --warn-bg:#2a1614; --warn-line:#5c2f29; --warn-ink:#e9a79e;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 14px 30px -24px rgba(0,0,0,.9);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0b1326; --surface:#141d33; --navy:#e9edf6; --navy-deep:#ffffff;
+    --slate:#9aa4bb; --slate-soft:#6e7896; --line:#253152;
+    --gold:#d9b545; --gold-ink:#e0c164; --gold-wash:#241f10;
+    --warn-bg:#2a1614; --warn-line:#5c2f29; --warn-ink:#e9a79e;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 14px 30px -24px rgba(0,0,0,.9);
+  }
+  :root[data-theme="light"] {
+    --ground:#f8f9fb; --surface:#ffffff; --navy:#14213d; --navy-deep:#0f1a32;
+    --slate:#334155; --slate-soft:#64748b; --line:#e2e8f0;
+    --gold:#c9a227; --gold-ink:#8a6b12; --gold-wash:#faf4e0;
+    --warn-bg:#fdf4f3; --warn-line:#e8c4bf; --warn-ink:#8f3b32;
+    --shadow: 0 1px 2px rgba(12,27,64,.05), 0 14px 30px -24px rgba(12,27,64,.55);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin:0; background:var(--ground); color:var(--slate);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size:16px; line-height:1.65; -webkit-text-size-adjust:100%;
+  }
+  .wrap { max-width:760px; margin:0 auto; padding:0 20px 90px; }
+
+  header.top { padding:48px 0 26px; border-bottom:2px solid var(--navy); }
+  .eyebrow { font-size:11px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--gold-ink); }
+  h1 { margin:14px 0 0; font-size:clamp(32px,7vw,48px); line-height:1.08; font-weight:800;
+       letter-spacing:-.03em; color:var(--navy); text-wrap:balance; }
+  .dek { margin-top:16px; max-width:60ch; }
+
+  h2 { margin:48px 0 12px; font-size:12px; font-weight:700; letter-spacing:.18em;
+       text-transform:uppercase; color:var(--slate-soft);
+       padding-bottom:8px; border-bottom:1px solid var(--line); }
+  h3 { margin:26px 0 8px; font-size:19px; font-weight:700; color:var(--navy); letter-spacing:-.01em; }
+  p { margin:0 0 14px; }
+  strong { color:var(--navy); font-weight:650; }
+
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:12px;
+          padding:20px 22px; box-shadow:var(--shadow); margin:16px 0; }
+
+  .warn { background:var(--warn-bg); border:1px solid var(--warn-line); border-radius:12px;
+          padding:18px 22px; margin:18px 0; color:var(--warn-ink); }
+  .warn strong { color:var(--warn-ink); }
+  .warn .h { font-weight:700; display:block; margin-bottom:6px; color:var(--warn-ink); }
+
+  .tablewrap { overflow-x:auto; margin:14px 0; }
+  table { width:100%; border-collapse:collapse; font-size:15px; min-width:440px; }
+  th, td { text-align:left; padding:10px 14px 10px 0; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--slate-soft); }
+  td strong { color:var(--navy); }
+  code { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.9em;
+         background:var(--gold-wash); color:var(--gold-ink); padding:1px 6px; border-radius:4px; }
+
+  ul.clean { margin:0 0 14px; padding-left:20px; }
+  ul.clean li { margin-bottom:7px; }
+
+  .prompt { background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--gold);
+            border-radius:0 10px 10px 0; padding:16px 18px; margin:12px 0;
+            font-family:ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size:13.5px; line-height:1.6; white-space:pre-wrap; color:var(--slate); }
+  .prompt b { color:var(--navy); font-weight:600; }
+
+  .split { display:grid; gap:14px; grid-template-columns:1fr 1fr; }
+  @media (max-width:600px) { .split { grid-template-columns:1fr; } }
+  .split .card { margin:0; }
+  .yes .t, .no .t { font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; margin-bottom:8px; }
+  .yes .t { color:#2b7a55; }
+  .no .t { color:#a4453c; }
+
+  .swatches { display:flex; flex-wrap:wrap; gap:10px; margin:14px 0; }
+  .sw { border:1px solid var(--line); border-radius:10px; overflow:hidden; width:132px; background:var(--surface); }
+  .sw .chip { height:44px; }
+  .sw .lab { padding:7px 9px; font-size:12px; }
+  .sw .lab b { display:block; color:var(--navy); font-weight:600; }
+  .sw .lab code { background:none; color:var(--slate-soft); padding:0; }
+
+  footer.foot { margin-top:52px; padding-top:18px; border-top:1px solid var(--line);
+                font-size:13px; color:var(--slate-soft); }
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <div class="eyebrow">ProClean Empire · Univers de marque</div>
+  <h1>Alan — bible de personnage</h1>
+  <p class="dek">Le document à remettre à un illustrateur, ou à utiliser comme base de prompts. Il définit qui est Alan, à quoi il ressemble, ce qu'il dit, et à quelles conditions il vous appartient.</p>
+</header>
+
+<div class="warn">
+  <span class="h">À lire avant tout le reste</span>
+  Ce document ne contient <strong>aucun dessin d'Alan</strong>. Le personnage n'existe pas encore. Un style semi-réaliste type Pixar ou Arcane demande un illustrateur, ou un outil de génération d'images. Ce qui suit est le cahier des charges qui rend ce travail commandable — et vérifiable à la livraison.
+</div>
+
+<h2>1 · Qui est Alan</h2>
+
+<p>Alan n'est pas un agent de propreté. <strong>Il ne nettoie pas.</strong> Il inspecte, il conseille, il valide. C'est cette distinction qui fait de lui une figure d'autorité plutôt qu'une mascotte de service.</p>
+
+<p>Sa référence n'est pas le majordome de 1900 : c'est le <strong>directeur de la qualité d'un hôtel cinq étoiles</strong>. Quelqu'un qui passe dans une chambre après le personnel, remarque ce que personne n'a vu, et ne dit rien tant que ce n'est pas nécessaire.</p>
+
+<div class="card">
+  <h3 style="margin-top:0">Traits de caractère</h3>
+  <ul class="clean">
+    <li><strong>Exigeant sans être méprisant.</strong> Il ne humilie jamais celui qui a mal fait — il montre ce qui manque.</li>
+    <li><strong>Économe en mots.</strong> Une phrase, un conseil. Jamais de discours.</li>
+    <li><strong>Obsédé par ce qui ne se voit pas.</strong> Les dessus d'armoire, les rails de stores, les plinthes.</li>
+    <li><strong>Calme.</strong> Il ne s'enthousiasme pas. Quand il valide, ça compte.</li>
+    <li><strong>Il déteste une seule chose :</strong> les traces sur les vitres.</li>
+  </ul>
+</div>
+
+<h2>2 · Spécification physique</h2>
+
+<div class="tablewrap">
+<table>
+  <thead><tr><th>Élément</th><th>Spécification</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Âge apparent</strong></td><td>32 à 38 ans</td></tr>
+    <tr><td><strong>Silhouette</strong></td><td>Élancée, droite, épaules ouvertes. Pas athlétique, pas frêle.</td></tr>
+    <tr><td><strong>Costume</strong></td><td>Deux pièces bleu nuit <code>#14213d</code>, coupe ajustée moderne, revers étroits. Aucune queue-de-pie.</td></tr>
+    <tr><td><strong>Chemise</strong></td><td>Blanche, col italien, parfaitement repassée.</td></tr>
+    <tr><td><strong>Cravate</strong></td><td>Dorée <code>#c9a227</code>, unie, nouée serré. Pas de nœud papillon — trop daté.</td></tr>
+    <tr><td><strong>Gants</strong></td><td>Blancs, coton fin, ajustés. <strong>Élément non négociable : ils sont la marque.</strong></td></tr>
+    <tr><td><strong>Pochette</strong></td><td>Blanche, pliure droite. Discrète.</td></tr>
+    <tr><td><strong>Expression par défaut</strong></td><td>Attentive. Un demi-sourire, jamais de rire. Le regard porte sur un détail hors champ.</td></tr>
+    <tr><td><strong>Accessoire</strong></td><td>Une tablette d'inspection fine, tenue à plat contre le buste.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Palette imposée</h3>
+<div class="swatches">
+  <div class="sw"><div class="chip" style="background:#14213d"></div><div class="lab"><b>Costume</b><code>#14213d</code></div></div>
+  <div class="sw"><div class="chip" style="background:#c9a227"></div><div class="lab"><b>Cravate</b><code>#c9a227</code></div></div>
+  <div class="sw"><div class="chip" style="background:#ffffff;border-bottom:1px solid #e2e8f0"></div><div class="lab"><b>Gants, chemise</b><code>#ffffff</code></div></div>
+  <div class="sw"><div class="chip" style="background:#f8f9fb;border-bottom:1px solid #e2e8f0"></div><div class="lab"><b>Fond</b><code>#f8f9fb</code></div></div>
+</div>
+
+<p>Aucune autre couleur saturée sur le personnage. Le décor derrière lui reste désaturé pour que la cravate dorée soit le seul point chaud de l'image.</p>
+
+<h2>3 · Ce qu'il faut, ce qu'il faut éviter</h2>
+
+<div class="split">
+  <div class="card yes">
+    <div class="t">À viser</div>
+    <ul class="clean" style="margin-bottom:0">
+      <li>Semi-réaliste, proportions humaines</li>
+      <li>Éclairage doux, directionnel</li>
+      <li>Tissu qui a du poids et des plis</li>
+      <li>Posture droite, épaules basses</li>
+      <li>Un visage qu'on pourrait croiser</li>
+    </ul>
+  </div>
+  <div class="card no">
+    <div class="t">À proscrire</div>
+    <ul class="clean" style="margin-bottom:0">
+      <li>Grosse tête, grands yeux cartoon</li>
+      <li>Monocle, moustache, queue-de-pie</li>
+      <li>Pouce levé, clin d'œil, pose « mascotte »</li>
+      <li>Balai, seau, chariot — il ne nettoie pas</li>
+      <li>Contours noirs épais, aplats plats</li>
+    </ul>
+  </div>
+</div>
+
+<h2>4 · Le kit à commander</h2>
+
+<p>Ne commandez pas « un dessin d'Alan ». Commandez ces neuf pièces — c'est ce qui transforme une illustration en propriété utilisable.</p>
+
+<div class="tablewrap">
+<table>
+  <thead><tr><th>#</th><th>Pièce</th><th>Usage</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td><strong>Face, plein pied</strong></td><td>Référence maîtresse</td></tr>
+    <tr><td>2</td><td><strong>Profil</strong></td><td>Cohérence de construction</td></tr>
+    <tr><td>3</td><td><strong>Trois quarts</strong></td><td>Pose la plus utilisée</td></tr>
+    <tr><td>4</td><td><strong>Buste — sourire discret</strong></td><td>Posts « Le conseil d'Alan »</td></tr>
+    <tr><td>5</td><td><strong>Buste — réflexion</strong></td><td>Posts « Le saviez-vous »</td></tr>
+    <tr><td>6</td><td><strong>Buste — validation</strong></td><td>Posts « Alan valide »</td></tr>
+    <tr><td>7</td><td><strong>Bras croisés</strong></td><td>Autorité, pages de garde</td></tr>
+    <tr><td>8</td><td><strong>Doigt ganté pointant un détail</strong></td><td>« L'œil d'Alan » — la pose signature</td></tr>
+    <tr><td>9</td><td><strong>Tablette d'inspection en main</strong></td><td>Devis, e-mails, site</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Exigez la livraison en <strong>vectoriel ou PNG détouré à 4000 px minimum</strong>, fond transparent, plus les fichiers sources ouverts.</p>
+
+<h2>5 · Prompts prêts à l'emploi</h2>
+
+<p>Si vous passez par un générateur d'images, partez de ceci. Le préambule est constant, seule la dernière ligne change.</p>
+
+<div class="prompt"><b>PRÉAMBULE CONSTANT —</b>
+Semi-realistic 3D character render, Pixar-quality lighting but grounded
+proportions, no caricature. A 35-year-old five-star hotel quality director.
+Tailored navy blue two-piece suit (#14213d), narrow lapels, crisp white
+shirt, solid gold satin tie (#c9a227), white cotton inspection gloves,
+white pocket square. Calm attentive expression, faint smile, never grinning.
+Soft directional key light from upper left, desaturated pale grey seamless
+background (#f8f9fb). Full colour, no outline, no text, no logo.</div>
+
+<div class="prompt"><b>1 — Face</b>
+… + standing straight, full body, facing camera, arms relaxed at sides,
+neutral confident expression, front orthographic view, character sheet style.</div>
+
+<div class="prompt"><b>8 — La pose signature</b>
+… + medium shot, three-quarter view, one gloved index finger raised and
+pointing at an unseen detail off-frame to his right, eyes following the
+finger, focused expression, the white glove is the brightest element
+of the frame.</div>
+
+<div class="prompt"><b>6 — Validation</b>
+… + chest-up portrait, three-quarter view, looking directly at camera,
+subtle approving nod, faint closed-mouth smile, both gloved hands
+lightly holding a slim inspection tablet against his chest.</div>
+
+<h2>6 · Sa voix dans les publications</h2>
+
+<p>La collection ne change pas, seul le sceau parle désormais avec Alan. Le libellé est déjà appliqué sur les dix visuels d'août.</p>
+
+<div class="tablewrap">
+<table>
+  <thead><tr><th>Sceau</th><th>Quand</th><th>Registre</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Le conseil d'Alan</strong></td><td>Publications éducatives</td><td>Affirmatif, une phrase</td></tr>
+    <tr><td><strong>Alan a testé</strong></td><td>Chiffres, protocoles, « le saviez-vous »</td><td>Factuel, vérifiable</td></tr>
+    <tr><td><strong>Alan valide</strong></td><td>Avant/après, réalisations, avis</td><td>Sobre, jamais triomphant</td></tr>
+    <tr><td><strong>L'œil d'Alan</strong></td><td>Le détail que personne ne voit</td><td>Révélation, ton bas</td></tr>
+    <tr><td><strong>Le Test du Gant Blanc</strong></td><td>Preuve qualité en fin d'intervention</td><td>Aucun commentaire — le geste suffit</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Règle d'écriture</h3>
+<p>Alan ne dit jamais « nous ». Il dit <strong>« vous »</strong> ou il constate. Il ne vend pas — le CTA n'est jamais dans sa bouche, il est dans le pied de page. Le jour où Alan fait la promotion d'un devis, il redevient une mascotte publicitaire et perd son autorité.</p>
+
+<h2>7 · La question du nom</h2>
+
+<div class="warn">
+  <span class="h">Alan est déjà une marque très installée sur votre audience</span>
+  <p style="margin-bottom:10px"><strong>Alan</strong> est le nom d'une mutuelle santé française majeure, omniprésente auprès des dirigeants, DRH et office managers — exactement les personnes que vos publications LinkedIn visent. Un post « Le conseil d'Alan » sur LinkedIn en France sera lu à travers ce filtre.</p>
+  <p style="margin-bottom:0">Le risque juridique direct est faible : les classes de dépôt diffèrent (assurance contre propreté). Le risque de marque, lui, est réel — vous construiriez une notoriété qui renvoie à quelqu'un d'autre. Des pistes qui gardent le registre sans la collision : <strong>Adrien</strong>, <strong>Auguste</strong>, <strong>Armand</strong>, <strong>Aurélien</strong>. La lettre A conserve l'idée, et « Le conseil d'Auguste » sonne plus majordome moderne que « Le conseil d'Alan ».</p>
+</div>
+
+<h2>8 · À quelles conditions Alan vous appartient</h2>
+
+<p>Vous voulez en faire une vraie propriété intellectuelle. Trois points déterminent si c'est le cas.</p>
+
+<h3>Si vous commandez à un illustrateur</h3>
+<p>En France, <strong>payer une prestation ne transfère aucun droit d'auteur.</strong> Sans écrit, l'illustrateur reste titulaire et vous n'avez qu'un droit d'usage implicite très étroit. Le contrat doit contenir une <strong>cession de droits patrimoniaux</strong> qui énumère précisément : les droits cédés (reproduction, représentation, adaptation, modification), les supports, le territoire et la durée. Une clause vague est réputée non écrite.</p>
+<p>Le <strong>droit moral reste à l'auteur</strong> — c'est inaliénable en droit français. Concrètement : vous ne pourrez pas dénaturer le personnage sans son accord. Prévoyez donc explicitement le droit d'adapter et de décliner.</p>
+
+<h3>Si vous le générez par IA</h3>
+<p>Une image produite sans intervention créative humaine <strong>n'est probablement pas protégeable par le droit d'auteur</strong> en France et dans l'UE : pas d'auteur humain, pas d'œuvre. Autrement dit, un Alan purement généré serait librement réutilisable par un concurrent. C'est l'inverse de ce que vous cherchez.</p>
+
+<h3>Ce que je recommande</h3>
+<ul class="clean">
+  <li><strong>Générez d'abord</strong> pour explorer et valider la direction — c'est rapide et peu coûteux.</li>
+  <li><strong>Faites produire les neuf pièces finales par un illustrateur</strong>, avec cession écrite. Comptez 600 à 1 500 € pour un kit de ce niveau.</li>
+  <li><strong>Déposez le personnage comme marque figurative à l'INPI</strong>, classe 37. Environ 190 € pour une classe. C'est cette protection-là, et non le droit d'auteur, qui empêche un concurrent de l'utiliser.</li>
+  <li>Déposez <strong>« Le Test du Gant Blanc »</strong> en même temps, en marque verbale. C'est votre actif le plus copiable.</li>
+</ul>
+
+<footer class="foot">
+  ProClean Empire · L'exigence jusque dans les détails · Document de travail interne
+</footer>
+
+</div>
