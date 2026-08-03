@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: "Montserrat"; src: url("node_modules/@fontsource/montserrat/files/montserrat-latin-400-normal.woff2") format("woff2"); font-weight: 400; }
+  @font-face { font-family: "Montserrat"; src: url("node_modules/@fontsource/montserrat/files/montserrat-latin-600-normal.woff2") format("woff2"); font-weight: 600; }
+  @font-face { font-family: "Montserrat"; src: url("node_modules/@fontsource/montserrat/files/montserrat-latin-700-normal.woff2") format("woff2"); font-weight: 700; }
+  @font-face { font-family: "Montserrat"; src: url("node_modules/@fontsource/montserrat/files/montserrat-latin-800-normal.woff2") format("woff2"); font-weight: 800; }
+  @font-face { font-family: "Inter"; src: url("node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2") format("woff2"); font-weight: 400; }
+  @font-face { font-family: "Inter"; src: url("node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2") format("woff2"); font-weight: 600; }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #888; font-family: Inter, sans-serif; }
+
+  .card { overflow: hidden; margin: 40px auto; display: flex; flex-direction: column; }
+  .stage { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .band { flex: 0 0 auto; display: flex; align-items: center; }
+
+  /* ============ 1 — LUNDI MATIN · 1080×1350 ============ */
+  #v1 { width: 1080px; height: 1350px; background: #14213d; }
+  #v1 .stage { padding: 0 96px; }
+  #v1 .eyebrow {
+    font-family: Inter; font-weight: 600; font-size: 26px;
+    letter-spacing: .28em; text-transform: uppercase; color: #c9a227;
+  }
+  #v1 .rule { width: 96px; height: 5px; background: #c9a227; margin: 34px 0 60px; }
+  #v1 h1 {
+    font-family: Montserrat; font-weight: 800; font-size: 80px; line-height: 1.18;
+    letter-spacing: -.022em; color: #fff;
+  }
+  #v1 .hl {
+    background-image: linear-gradient(to top, #c9a227 16px, rgba(0,0,0,0) 16px);
+    padding: 0 4px;
+  }
+  #v1 .sub {
+    margin-top: 58px; font-family: Inter; font-weight: 400; font-size: 35px;
+    line-height: 1.5; color: #a7b4cd; max-width: 730px;
+  }
+  #v1 .band { height: 112px; background: #c9a227; justify-content: space-between; padding: 0 96px; }
+  #v1 .band .name { font-family: Montserrat; font-weight: 700; font-size: 27px; letter-spacing: .2em; color: #14213d; }
+  #v1 .band .loc { font-family: Inter; font-weight: 600; font-size: 23px; letter-spacing: .07em; color: #14213d; opacity: .8; }
+
+  /* ============ 2 — MERCREDI MATIN · 1080×1080 ============ */
+  #v2 { width: 1080px; height: 1080px; background: #eef2f7; }
+  #v2 .stage { padding: 0 92px; align-items: center; text-align: center; }
+  #v2 .glass { margin-bottom: 46px; }
+  #v2 h1 {
+    font-family: Montserrat; font-weight: 800; font-size: 78px; line-height: 1;
+    letter-spacing: -.018em; color: #14213d; white-space: nowrap;
+  }
+  #v2 .dash { width: 84px; height: 5px; background: #c9a227; margin: 46px 0 48px; }
+  #v2 p {
+    font-family: Inter; font-weight: 400; font-size: 44px; line-height: 1.42;
+    color: #2c3a5c; max-width: 830px;
+  }
+  #v2 p b { font-weight: 600; color: #14213d; }
+  #v2 .band { height: 120px; background: #14213d; justify-content: center; gap: 22px; }
+  #v2 .band .name { font-family: Montserrat; font-weight: 700; font-size: 28px; letter-spacing: .2em; color: #fff; }
+  #v2 .band .dot { width: 7px; height: 7px; border-radius: 50%; background: #c9a227; }
+  #v2 .band .loc { font-family: Inter; font-weight: 400; font-size: 24px; letter-spacing: .04em; color: #9aa8c4; }
+
+  /* ============ 3 — VENDREDI MATIN · 1080×1350 ============ */
+  #v3 { width: 1080px; height: 1350px; background: #14213d; }
+  #v3 .stage { padding: 0 92px; align-items: center; text-align: center; }
+  #v3 .stars { display: flex; gap: 18px; margin-bottom: 66px; }
+  #v3 .quote {
+    font-family: Montserrat; font-weight: 600; font-size: 60px; line-height: 1.36;
+    letter-spacing: -.012em; color: #fff; max-width: 870px;
+  }
+  #v3 .who {
+    margin-top: 64px; font-family: Inter; font-weight: 600; font-size: 30px;
+    letter-spacing: .14em; text-transform: uppercase; color: #c9a227;
+  }
+  #v3 .src { margin-top: 14px; font-family: Inter; font-weight: 400; font-size: 25px; color: #8e9cbb; }
+  #v3 .band { height: 136px; background: #c9a227; justify-content: center; gap: 26px; }
+  #v3 .band .score { font-family: Montserrat; font-weight: 800; font-size: 46px; letter-spacing: -.01em; color: #14213d; }
+  #v3 .band .sep { width: 7px; height: 7px; border-radius: 50%; background: #14213d; opacity: .5; }
+  #v3 .band .lab { font-family: Inter; font-weight: 600; font-size: 27px; letter-spacing: .12em; text-transform: uppercase; color: #14213d; }
+</style>
+</head>
+<body>
+
+<!-- 1 — LUNDI 3 AOÛT, 08:00 -->
+<section class="card" id="v1">
+  <div class="stage">
+    <span class="eyebrow">Propreté professionnelle</span>
+    <div class="rule"></div>
+    <h1>Un bureau propre n&rsquo;est pas un détail.<br>C&rsquo;est un <span class="hl">levier</span>.</h1>
+    <p class="sub">Concentration, image de marque, bien-être des équipes : tout commence par un environnement maîtrisé.</p>
+  </div>
+  <div class="band">
+    <span class="name">PROCLEAN EMPIRE</span>
+    <span class="loc">Pontoise &middot; Île-de-France</span>
+  </div>
+</section>
+
+<!-- 2 — MERCREDI 5 AOÛT, 08:00 -->
+<section class="card" id="v2">
+  <div class="stage">
+    <svg class="glass" width="108" height="108" viewBox="0 0 24 24" fill="none"
+         stroke="#c9a227" stroke-width="1.7" stroke-linecap="round">
+      <circle cx="10.5" cy="10.5" r="7.5"/>
+      <line x1="16" y1="16" x2="21.5" y2="21.5"/>
+      <line x1="7.6" y1="10.5" x2="13.4" y2="10.5"/>
+      <line x1="10.5" y1="7.6" x2="10.5" y2="13.4"/>
+    </svg>
+    <h1>LE SAVIEZ-VOUS&nbsp;?</h1>
+    <div class="dash"></div>
+    <p>Un bureau peut héberger <b>bien plus de bactéries</b> qu&rsquo;une lunette de toilettes.</p>
+  </div>
+  <div class="band">
+    <span class="name">PROCLEAN EMPIRE</span>
+    <span class="dot"></span>
+    <span class="loc">Nettoyage professionnel</span>
+  </div>
+</section>
+
+<!-- 3 — VENDREDI 7 AOÛT, 08:00 -->
+<section class="card" id="v3">
+  <div class="stage">
+    <div class="stars">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
+    </div>
+    <div class="quote">&laquo;&nbsp;Service sérieux, équipe professionnelle et résultat impeccable à chaque intervention.&nbsp;&raquo;</div>
+    <div class="who">Concierg&rsquo;air</div>
+    <div class="src">Avis Google vérifié</div>
+  </div>
+  <div class="band">
+    <span class="score">5,0 / 5</span>
+    <span class="sep"></span>
+    <span class="lab">30 avis Google</span>
+  </div>
+</section>
+
+</body>
+</html>
