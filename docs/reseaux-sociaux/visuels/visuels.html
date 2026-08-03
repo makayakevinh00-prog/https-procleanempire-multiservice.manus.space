@@ -12,19 +12,13 @@
   :root {
     --ground: #f8f9fb;
     --navy: #14213d;
+    --steel: #3f6193;          /* bleu acier — accent unique */
+    --steel-wash: #eaeff6;
+    --silver: #8e99ad;         /* gris métallisé */
     --slate: #334155;
     --slate-soft: #64748b;
     --line: #e2e8f0;
-    --gold: #c9a227;
-    --gold-ink: #8a6b12;
-    --shadow: 0 15px 35px -20px rgba(12, 27, 64, .4);
-
-    /* Code couleur par collection */
-    --c-conseil:   #2f5d9e;   --c-conseil-bg:   #e8effa;
-    --c-savoir:    #a8801a;   --c-savoir-bg:    #fbf3dc;
-    --c-avis:      #2b7a55;   --c-avis-bg:      #e5f4ec;
-    --c-preuve:    #a4453c;   --c-preuve-bg:    #fbeae8;
-    --c-coulisses: #14213d;   --c-coulisses-bg: #e6eaf1;
+    --shadow: 0 15px 35px -20px rgba(12, 27, 64, .32);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -34,7 +28,7 @@
   .glow {
     position: absolute; inset: 0;
     background: radial-gradient(circle at top right,
-      rgba(201,162,39,.20), rgba(20,33,61,.07) 36%, transparent 66%);
+      rgba(63,97,147,.13), rgba(20,33,61,.05) 38%, transparent 66%);
   }
   .stage { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; }
 
@@ -45,18 +39,15 @@
     border-radius: 999px; padding: 16px 30px;
     font-size: 25px; font-weight: 700; letter-spacing: .02em;
   }
-  .badge .num { font-weight: 800; opacity: .55; }
-  .badge.conseil   { background: var(--c-conseil-bg);   color: var(--c-conseil); }
-  .badge.savoir    { background: var(--c-savoir-bg);    color: var(--c-savoir); }
-  .badge.avis      { background: var(--c-avis-bg);      color: var(--c-avis); }
-  .badge.preuve    { background: var(--c-preuve-bg);    color: var(--c-preuve); }
-  .badge.coulisses { background: var(--c-coulisses-bg); color: var(--c-coulisses); }
+  .badge { background: var(--steel-wash); color: var(--navy); }
+  .badge .num { font-weight: 800; color: var(--silver); }
+  .badge .ico { color: var(--steel); }
 
   .seal {
     display: inline-flex; align-items: center; gap: 11px;
-    border: 1.5px solid rgba(201,162,39,.55); border-radius: 999px;
+    border: 1.5px solid rgba(142,153,173,.6); border-radius: 999px;
     padding: 12px 22px; font-size: 20px; font-weight: 700;
-    letter-spacing: .11em; text-transform: uppercase; color: var(--gold-ink);
+    letter-spacing: .11em; text-transform: uppercase; color: var(--steel);
     white-space: nowrap;
   }
   .seal svg { display: block; }
@@ -70,52 +61,52 @@
   .foot .mark { display: block; flex: 0 0 auto; }
   .foot .name { font-size: 25px; font-weight: 800; letter-spacing: .17em; color: var(--navy); }
   .foot .base { margin-top: 5px; font-size: 22px; font-weight: 500; color: var(--slate-soft); }
-  .foot .cta { font-size: 24px; font-weight: 700; color: var(--gold-ink); white-space: nowrap; }
-  .foot .cta i { font-style: normal; color: var(--gold); }
+  .foot .cta { font-size: 24px; font-weight: 700; color: var(--steel); white-space: nowrap; }
+  .foot .cta i { font-style: normal; color: var(--steel); }
 
   /* ---- blocs communs ---- */
   .panel { background: #fff; border: 1px solid var(--line); border-radius: 40px; box-shadow: var(--shadow); }
   h1 { font-weight: 800; letter-spacing: -.032em; color: var(--navy); }
   .sub { color: var(--slate); }
-  .hl { background-image: linear-gradient(to top, rgba(201,162,39,.45) 20px, rgba(0,0,0,0) 20px); padding: 0 3px; }
+  .hl { background-image: linear-gradient(to top, rgba(63,97,147,.22) 20px, rgba(0,0,0,0) 20px); padding: 0 3px; }
 
   /* ============ PORTRAIT 1080×1350 ============ */
   .p { width: 1080px; height: 1350px; }
   .p .stage { padding: 64px 72px 56px; }
   .p .top { margin-bottom: 40px; }
-  .p h1 { font-size: 70px; line-height: 1.2; }
+  .p h1 { font-size: 74px; line-height: 1.16; }
   .p .shot { margin-top: 38px; padding: 18px; border-radius: 44px; position: relative; }
   .p .shot img { width: 100%; height: 740px; object-fit: cover; border-radius: 30px; display: block; }
-  .p .sub { margin-top: 32px; font-size: 30px; line-height: 1.62; }
+  .p .sub { margin-top: 34px; font-size: 31px; line-height: 1.68; }
   .p .tagimg {
     position: absolute; left: 42px; top: 42px;
     font-size: 21px; font-weight: 800; letter-spacing: .15em;
     padding: 13px 24px; border-radius: 999px;
   }
   .p .tagimg.a { background: rgba(255,255,255,.94); color: var(--navy); }
-  .p .tagimg.b { background: var(--gold); color: var(--navy); }
+  .p .tagimg.b { background: var(--navy); color: #fff; }
 
   /* ============ CARRÉ 1080×1080 ============ */
   .s { width: 1080px; height: 1080px; }
   .s .stage { padding: 60px 66px 52px; }
   .s .top { margin-bottom: 0; }
   .s .panel { margin: 40px 0; flex: 1; padding: 62px 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-  .s h1 { font-size: 74px; line-height: 1.08; }
-  .s .dash { width: 88px; height: 5px; background: var(--gold); border-radius: 3px; margin: 38px 0; }
-  .s p { font-size: 39px; line-height: 1.58; color: var(--slate); max-width: 800px; }
+  .s h1 { font-size: 80px; line-height: 1.06; }
+  .s .dash { width: 88px; height: 5px; background: var(--steel); border-radius: 3px; margin: 38px 0; }
+  .s p { font-size: 40px; line-height: 1.62; color: var(--slate); max-width: 800px; }
   .s p b { font-weight: 700; color: var(--navy); }
 
   /* --- variantes --- */
   #v1 h1 { font-size: 72px; }
   #v1 .shot img { height: 520px; }
 
-  #v5 .big { font-size: 216px; font-weight: 800; line-height: .92; letter-spacing: -.055em; color: var(--gold); }
+  #v5 .big { font-size: 216px; font-weight: 800; line-height: .92; letter-spacing: -.055em; color: var(--steel); }
   #v5 .big em { font-style: normal; color: var(--navy); }
 
   #v6 h1 { font-size: 66px; }
   #v6 .list { margin-top: 40px; padding: 52px 50px; display: flex; flex-direction: column; gap: 38px; }
   #v6 .row { display: flex; align-items: flex-start; gap: 26px; }
-  #v6 .row .dot { flex: 0 0 auto; width: 15px; height: 15px; border-radius: 50%; background: var(--gold); margin-top: 16px; }
+  #v6 .row .dot { flex: 0 0 auto; width: 15px; height: 15px; border-radius: 50%; background: var(--steel); margin-top: 16px; }
   #v6 .row .tx { font-size: 32px; line-height: 1.62; color: var(--slate); }
   #v6 .row .tx b { font-weight: 700; color: var(--navy); }
 
@@ -124,7 +115,7 @@
     background: var(--ground); border: 1px solid var(--line); border-radius: 26px;
     padding: 34px 32px; display: flex; align-items: center; gap: 20px;
   }
-  #v7 .cell .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--gold); }
+  #v7 .cell .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--steel); }
   #v7 .cell .n { font-size: 33px; font-weight: 700; letter-spacing: .04em; color: var(--navy); }
   #v7 .kicker { margin-top: 42px; font-size: 44px; font-weight: 800; letter-spacing: -.03em; color: var(--navy); }
 
@@ -134,7 +125,7 @@
   #v3 .who { margin-top: 44px; font-size: 29px; font-weight: 700; color: var(--navy); }
   #v3 .src { margin-top: 8px; font-size: 25px; font-weight: 500; color: var(--slate-soft); }
   #v3 .score { margin-top: 42px; padding-top: 38px; border-top: 1px solid var(--line); display: flex; align-items: baseline; gap: 18px; }
-  #v3 .score .n { font-size: 74px; font-weight: 800; letter-spacing: -.04em; color: var(--gold); }
+  #v3 .score .n { font-size: 74px; font-weight: 800; letter-spacing: -.04em; color: var(--steel); }
   #v3 .score .l { font-size: 28px; font-weight: 500; color: var(--slate); }
 
   #v4 .shot { display: flex; gap: 14px; padding: 16px; }
@@ -151,20 +142,20 @@
   #v10 .shotwrap img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; }
   #v10 .top { position: absolute; left: 66px; right: 66px; top: 60px; z-index: 2; }
   #v10 .seal { border-color: rgba(255,255,255,.6); color: #fff; background: rgba(20,33,61,.42); }
-  #v10 .seal .gant { color: #c9a227; }
+  #v10 .seal .gant { color: #3f6193; }
   #v10 .plate { flex: 1; background: var(--navy); padding: 56px 72px 52px; display: flex; flex-direction: column; }
   #v10 .plate h1 { color: #fff; font-size: 58px; line-height: 1.2; }
-  #v10 .plate .sig { margin-top: 22px; font-size: 28px; font-weight: 600; color: var(--gold); }
+  #v10 .plate .sig { margin-top: 22px; font-size: 28px; font-weight: 600; color: var(--steel); }
   #v10 .foot { border-top-color: rgba(255,255,255,.18); }
   #v10 .foot .name { color: #fff; }
   #v10 .foot .base { color: #94a3b8; }
-  #v10 .foot .cta { color: var(--gold); }
+  #v10 .foot .cta { color: var(--steel); }
 
   .badge .ico { width: 25px; height: 25px; flex: 0 0 auto; }
   .seal .ico { width: 19px; height: 19px; flex: 0 0 auto; }
-  .seal .gant { width: 27px; height: 27px; flex: 0 0 auto; color: var(--gold-ink); margin-left: -3px; }
+  .seal .gant { width: 27px; height: 27px; flex: 0 0 auto; color: var(--steel); margin-left: -3px; }
   .seal .inspecteur { width: 34px; height: 34px; flex: 0 0 auto; color: var(--navy); margin: -6px 2px -6px -4px; }
-  .key, #v6 .row .tx b.key, .s p b.key { color: var(--gold-ink); font-weight: 800; }
+  .key, #v6 .row .tx b.key, .s p b.key { color: var(--steel); font-weight: 800; }
   .foot .cta { letter-spacing: -.005em; }
 </style>
 </head>
@@ -208,8 +199,8 @@
     <circle cx="32" cy="17.5" r="9.6" fill="currentColor"/>
     <path d="M11 62c0-11.6 9.4-20 21-20s21 8.4 21 20z" fill="currentColor"/>
     <path d="M26.2 43.4L32 55l5.8-11.6-5.8-3.2z" fill="#ffffff"/>
-    <path d="M32 45.6l-2.6 2.4 1.5 12.4h2.2l1.5-12.4z" fill="#c9a227"/>
-    <circle cx="20.5" cy="50" r="3.1" fill="#c9a227"/>
+    <path d="M32 45.6l-2.6 2.4 1.5 12.4h2.2l1.5-12.4z" fill="#8e99ad"/>
+    <circle cx="20.5" cy="50" r="3.1" fill="#8e99ad"/>
   </symbol>
 </defs></svg>
 
@@ -219,7 +210,7 @@
   <div class="stage">
     <div class="top">
       <span class="badge conseil"><svg class="ico"><use href="#i-bulb"/></svg>Conseil <span class="num">#01</span></span>
-      <span class="seal"><svg class="inspecteur"><use href="#inspecteur"/></svg>Le conseil de l’Inspecteur</span></div>
+      <span class="seal"><svg class="inspecteur"><use href="#inspecteur"/></svg>Le conseil de Kiro</span></div>
     <h1>Un bureau propre n&rsquo;est pas un détail.<br>C&rsquo;est un <span class="hl">levier</span></h1>
     <div class="panel shot">
       <img src="../../../../../home/user/https-procleanempire-multiservice.manus.space/public/media/photos/hero-showcase.jpg" alt="">
@@ -227,7 +218,7 @@
     <p class="sub">Concentration, image de marque, bien-être des équipes : tout commence par un environnement maîtrisé.</p>
     <div class="foot">
       <div class="left">
-        <svg class="mark" width="44" height="44" style="color:#c9a227"><use href="#gant"/></svg>
+        <svg class="mark" width="44" height="44" style="color:#3f6193"><use href="#gant"/></svg>
         <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
       </div>
       <span class="cta"><i>&rarr;</i> Parlons de votre projet</span>
@@ -241,7 +232,7 @@
   <div class="stage">
     <div class="top">
       <span class="badge preuve"><svg class="ico"><use href="#i-swap"/></svg>Avant / Après <span class="num">#01</span></span>
-      <span class="seal"><svg class="gant"><use href="#gant"/></svg>Inspection validée</span></div>
+      <span class="seal"><svg class="gant"><use href="#gant"/></svg>Kiro valide</span></div>
     <h1>Le remplacement était envisagé.<br>Il n&rsquo;a pas été nécessaire</h1>
     <div class="panel shot">
       <div class="half">
@@ -255,7 +246,7 @@
     </div>
     <div class="foot">
       <div class="left">
-        <svg class="mark" width="44" height="44" style="color:#c9a227"><use href="#gant"/></svg>
+        <svg class="mark" width="44" height="44" style="color:#3f6193"><use href="#gant"/></svg>
         <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
       </div>
       <span class="cta"><i>&rarr;</i> Découvrez nos réalisations</span>
@@ -269,7 +260,7 @@
   <div class="stage">
     <div class="top">
       <span class="badge savoir"><svg class="ico"><use href="#i-flask"/></svg>Le saviez-vous <span class="num">#01</span></span>
-      <span class="seal"><svg class="inspecteur"><use href="#inspecteur"/></svg>Le saviez-vous ?</span></div>
+      <span class="seal"><svg class="inspecteur"><use href="#inspecteur"/></svg>Kiro explique</span></div>
     <div class="panel">
       <h1>Le saviez-vous&nbsp;?</h1>
       <div class="dash"></div>
@@ -277,7 +268,7 @@
     </div>
     <div class="foot">
       <div class="left">
-        <svg class="mark" width="44" height="44" style="color:#c9a227"><use href="#gant"/></svg>
+        <svg class="mark" width="44" height="44" style="color:#3f6193"><use href="#gant"/></svg>
         <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
       </div>
       <span class="cta"><i>&rarr;</i> Obtenez votre devis en 24 h</span>
@@ -291,7 +282,7 @@
   <div class="stage">
     <div class="top">
       <span class="badge conseil"><svg class="ico"><use href="#i-bulb"/></svg>Conseil <span class="num">#02</span></span>
-      <span class="seal"><svg class="inspecteur"><use href="#inspecteur"/></svg>Le conseil de l’Inspecteur</span></div>
+      <span class="seal"><svg class="inspecteur"><use href="#inspecteur"/></svg>Le conseil de Kiro</span></div>
     <div class="panel">
       <div class="big">30<em>&nbsp;s</em></div>
       <div class="dash"></div>
@@ -299,7 +290,7 @@
     </div>
     <div class="foot">
       <div class="left">
-        <svg class="mark" width="44" height="44" style="color:#c9a227"><use href="#gant"/></svg>
+        <svg class="mark" width="44" height="44" style="color:#3f6193"><use href="#gant"/></svg>
         <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
       </div>
       <span class="cta"><i>&rarr;</i> Contactez un expert ProClean</span>
@@ -313,7 +304,7 @@
   <div class="stage">
     <div class="top">
       <span class="badge conseil"><svg class="ico"><use href="#i-bulb"/></svg>Conseil <span class="num">#03</span></span>
-      <span class="seal"><svg class="inspecteur"><use href="#inspecteur"/></svg>Le conseil de l’Inspecteur</span></div>
+      <span class="seal"><svg class="inspecteur"><use href="#inspecteur"/></svg>Le conseil de Kiro</span></div>
     <h1>On ne nettoie pas des vitres pour qu&rsquo;elles brillent.<br>On les nettoie pour <span class="hl">ce qu&rsquo;elles laissent entrer</span></h1>
     <div class="panel list">
       <div class="row"><span class="dot"></span><span class="tx"><b class="key">Plus de lumière naturelle</b> — donc moins d&rsquo;éclairage artificiel dans la journée.</span></div>
@@ -322,7 +313,7 @@
     </div>
     <div class="foot">
       <div class="left">
-        <svg class="mark" width="44" height="44" style="color:#c9a227"><use href="#gant"/></svg>
+        <svg class="mark" width="44" height="44" style="color:#3f6193"><use href="#gant"/></svg>
         <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
       </div>
       <span class="cta"><i>&rarr;</i> Parlons de votre projet</span>
@@ -336,7 +327,7 @@
   <div class="stage">
     <div class="top">
       <span class="badge conseil"><svg class="ico"><use href="#i-bulb"/></svg>Conseil <span class="num">#04</span></span>
-      <span class="seal"><svg class="inspecteur"><use href="#inspecteur"/></svg>L’œil de l’Inspecteur</span></div>
+      <span class="seal"><svg class="inspecteur"><use href="#inspecteur"/></svg>L’œil de Kiro</span></div>
     <div class="panel">
       <div class="grid">
         <div class="cell"><span class="dot"></span><span class="n">CUIR</span></div>
@@ -348,7 +339,7 @@
     </div>
     <div class="foot">
       <div class="left">
-        <svg class="mark" width="44" height="44" style="color:#c9a227"><use href="#gant"/></svg>
+        <svg class="mark" width="44" height="44" style="color:#3f6193"><use href="#gant"/></svg>
         <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
       </div>
       <span class="cta"><i>&rarr;</i> Obtenez votre devis en 24 h</span>
@@ -362,14 +353,14 @@
   <div class="stage">
     <div class="top">
       <span class="badge avis"><svg class="ico"><use href="#i-star"/></svg>Paroles de clients <span class="num">#01</span></span>
-      <span class="seal"><svg class="inspecteur"><use href="#inspecteur"/></svg>Retour client vérifié</span></div>
+      <span class="seal"><svg class="inspecteur"><use href="#inspecteur"/></svg>Kiro valide</span></div>
     <div class="panel">
       <div class="stars">
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="#c9a227"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="#3f6193"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="#3f6193"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="#3f6193"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="#3f6193"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="#3f6193"><path d="M12 2.4l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.2l6.5-.9z"/></svg>
       </div>
       <div class="quote">&laquo;&nbsp;Service sérieux, équipe professionnelle et résultat impeccable à chaque intervention.&nbsp;&raquo;</div>
       <div class="who">Concierg&rsquo;air</div>
@@ -378,7 +369,7 @@
     </div>
     <div class="foot">
       <div class="left">
-        <svg class="mark" width="44" height="44" style="color:#c9a227"><use href="#gant"/></svg>
+        <svg class="mark" width="44" height="44" style="color:#3f6193"><use href="#gant"/></svg>
         <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
       </div>
       <span class="cta"><i>&rarr;</i> Contactez un expert ProClean</span>
@@ -392,7 +383,7 @@
   <div class="stage">
     <div class="top">
       <span class="badge preuve"><svg class="ico"><use href="#i-pin"/></svg>Réalisation <span class="num">#01</span></span>
-      <span class="seal"><svg class="gant"><use href="#gant"/></svg>Inspection validée</span></div>
+      <span class="seal"><svg class="gant"><use href="#gant"/></svg>Mission de Kiro</span></div>
     <h1>Ce n&rsquo;est pas une banquette neuve.<br>C&rsquo;est la même</h1>
     <div class="panel shot">
       <img src="../../../../../home/user/https-procleanempire-multiservice.manus.space/public/media/photos/banquette-arriere-apres.jpeg" alt="">
@@ -400,7 +391,7 @@
     </div>
     <div class="foot">
       <div class="left">
-        <svg class="mark" width="44" height="44" style="color:#c9a227"><use href="#gant"/></svg>
+        <svg class="mark" width="44" height="44" style="color:#3f6193"><use href="#gant"/></svg>
         <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
       </div>
       <span class="cta"><i>&rarr;</i> Découvrez nos réalisations</span>
@@ -414,14 +405,14 @@
   <div class="stage">
     <div class="top">
       <span class="badge preuve"><svg class="ico"><use href="#i-pin"/></svg>Réalisation <span class="num">#02</span></span>
-      <span class="seal"><svg class="gant"><use href="#gant"/></svg>L’œil de l’Inspecteur</span></div>
+      <span class="seal"><svg class="gant"><use href="#gant"/></svg>Mission de Kiro</span></div>
     <h1>On ne nettoie pas un avion comme une voiture</h1>
     <div class="panel shot">
       <img src="../../../../../home/user/https-procleanempire-multiservice.manus.space/public/media/photos/nettoyage-avion-cessna.jpeg" alt="">
     </div>
     <div class="foot">
       <div class="left">
-        <svg class="mark" width="44" height="44" style="color:#c9a227"><use href="#gant"/></svg>
+        <svg class="mark" width="44" height="44" style="color:#3f6193"><use href="#gant"/></svg>
         <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
       </div>
       <span class="cta"><i>&rarr;</i> Découvrez nos réalisations</span>
@@ -443,7 +434,7 @@
       <div class="sig">Kevin H. — Fondateur</div>
       <div class="foot">
         <div class="left">
-          <svg class="mark" width="44" height="44" style="color:#c9a227"><use href="#gant"/></svg>
+          <svg class="mark" width="44" height="44" style="color:#3f6193"><use href="#gant"/></svg>
           <div><div class="name">PROCLEAN EMPIRE</div><div class="base">L&rsquo;exigence jusque dans les détails.</div></div>
         </div>
         <span class="cta"><i>&rarr;</i> Parlons de votre projet</span>
