@@ -76,8 +76,8 @@
   .p .top { margin-bottom: 40px; }
   .p h1 { font-size: 74px; line-height: 1.16; }
   .p .shot { margin-top: 38px; padding: 18px; border-radius: 44px; position: relative; }
-  .p .shot img { width: 100%; height: 740px; object-fit: cover; border-radius: 30px; display: block; }
-  .p .sub { margin-top: 34px; font-size: 31px; line-height: 1.68; }
+  .p .shot img { width: 100%; height: 640px; object-fit: cover; border-radius: 30px; display: block; }
+  .p .sub { margin-top: 34px; font-size: 31px; line-height: 1.68; max-width: 640px; }
   .p .tagimg {
     position: absolute; left: 42px; top: 42px;
     font-size: 21px; font-weight: 800; letter-spacing: .15em;
@@ -93,18 +93,18 @@
   .s .panel { margin: 40px 0; flex: 1; padding: 62px 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
   .s h1 { font-size: 80px; line-height: 1.06; }
   .s .dash { width: 88px; height: 5px; background: var(--steel); border-radius: 3px; margin: 38px 0; }
-  .s p { font-size: 40px; line-height: 1.62; color: var(--slate); max-width: 800px; }
+  .s p { font-size: 40px; line-height: 1.62; color: var(--slate); max-width: 660px; }
   .s p b { font-weight: 700; color: var(--navy); }
 
   /* --- variantes --- */
   #v1 h1 { font-size: 72px; }
-  #v1 .shot img { height: 520px; }
+  #v1 .shot img { height: 430px; }
 
   #v5 .big { font-size: 216px; font-weight: 800; line-height: .92; letter-spacing: -.055em; color: var(--steel); }
   #v5 .big em { font-style: normal; color: var(--navy); }
 
   #v6 h1 { font-size: 66px; }
-  #v6 .list { margin-top: 40px; padding: 52px 50px; display: flex; flex-direction: column; gap: 38px; }
+  #v6 .list { margin-top: 40px; padding: 52px 330px 52px 50px; display: flex; flex-direction: column; gap: 38px; }
   #v6 .row { display: flex; align-items: flex-start; gap: 26px; }
   #v6 .row .dot { flex: 0 0 auto; width: 15px; height: 15px; border-radius: 50%; background: var(--steel); margin-top: 16px; }
   #v6 .row .tx { font-size: 32px; line-height: 1.62; color: var(--slate); }
@@ -130,7 +130,7 @@
 
   #v4 .shot { display: flex; gap: 14px; padding: 16px; }
   #v4 .half { position: relative; flex: 1; }
-  #v4 .half img { width: 100%; height: 700px; object-fit: cover; border-radius: 28px; display: block; }
+  #v4 .half img { width: 100%; height: 610px; object-fit: cover; border-radius: 28px; display: block; }
   #v4 h1 { font-size: 64px; }
 
   #v9 .shot img { object-position: center 34%; }
@@ -157,6 +157,34 @@
   .seal .inspecteur { width: 34px; height: 34px; flex: 0 0 auto; color: var(--navy); margin: -6px 2px -6px -4px; }
   .key, #v6 .row .tx b.key, .s p b.key { color: var(--steel); font-weight: 800; }
   .foot .cta { letter-spacing: -.005em; }
+
+  /* ============ EMPLACEMENT KIRO ============
+     Zone réservée à la mascotte officielle. Remplacer le bloc .kiro par :
+     <img class="kiro" src="…/kiro-<pose>.png" alt="">
+     Contraintes : jamais sur une photo, jamais au centre, <= 20 % de la surface. */
+  .kiro {
+    position: absolute; z-index: 3; pointer-events: none;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    border: 2px dashed var(--silver); border-radius: 24px;
+    background: rgba(248,249,251,.92);
+    color: var(--silver); text-align: center; padding: 14px;
+  }
+  .kiro .pose {
+    font-size: 20px; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; line-height: 1.35;
+  }
+  .kiro .pct { margin-top: 6px; font-size: 17px; font-weight: 500; }
+
+  /* placement au cas par cas — la pose répond au contenu */
+  #v1  .kiro { right: 72px;  bottom: 150px; width: 300px; height: 400px; }   /* 8,2 % */
+  #v4  .kiro { right: 88px;  bottom: 132px; width: 280px; height: 370px; }   /* 7,1 % */
+  #v2  .kiro { right: 60px;  bottom: 118px; width: 285px; height: 380px; }   /* 9,3 % */
+  #v5  .kiro { right: 60px;  bottom: 118px; width: 285px; height: 380px; }   /* 9,3 % */
+  #v6  .kiro { right: 76px;  bottom: 128px; width: 290px; height: 385px; }   /* 7,7 % */
+  #v7  .kiro { right: 60px;  bottom: 118px; width: 285px; height: 380px; }   /* 9,3 % */
+  #v3  .kiro { right: 78px;  bottom: 132px; width: 290px; height: 385px; }   /* 7,7 % */
+  #v8  .kiro { right: 86px;  bottom: 130px; width: 275px; height: 365px; }   /* 6,9 % */
+  #v9  .kiro { right: 86px;  bottom: 130px; width: 275px; height: 365px; }   /* 6,9 % */
 </style>
 </head>
 <body>
@@ -208,6 +236,8 @@
 <section class="card p" id="v1">
   <div class="glow"></div>
   <div class="stage">
+  <div class="kiro"><span class="pose">Doigt levé<br>Il donne le conseil</span><span class="pct">emplacement réservé</span></div>
+  
     <div class="top">
       <span class="badge conseil"><svg class="ico"><use href="#i-bulb"/></svg>Conseil <span class="num">#01</span></span>
       <span class="seal"><svg class="inspecteur"><use href="#inspecteur"/></svg>Le conseil de Kiro</span></div>
@@ -230,6 +260,8 @@
 <section class="card p" id="v4">
   <div class="glow"></div>
   <div class="stage">
+  <div class="kiro"><span class="pose">Regard vers la photo<br>Il constate le résultat</span><span class="pct">emplacement réservé</span></div>
+  
     <div class="top">
       <span class="badge preuve"><svg class="ico"><use href="#i-swap"/></svg>Avant / Après <span class="num">#01</span></span>
       <span class="seal"><svg class="gant"><use href="#gant"/></svg>Kiro valide</span></div>
@@ -258,6 +290,8 @@
 <section class="card s" id="v2">
   <div class="glow"></div>
   <div class="stage">
+  <div class="kiro"><span class="pose">Loupe en main<br>Il explique</span><span class="pct">emplacement réservé</span></div>
+  
     <div class="top">
       <span class="badge savoir"><svg class="ico"><use href="#i-flask"/></svg>Le saviez-vous <span class="num">#01</span></span>
       <span class="seal"><svg class="inspecteur"><use href="#inspecteur"/></svg>Kiro explique</span></div>
@@ -280,6 +314,8 @@
 <section class="card s" id="v5">
   <div class="glow"></div>
   <div class="stage">
+  <div class="kiro"><span class="pose">Doigt pointé vers le chiffre<br>Il montre la donnée</span><span class="pct">emplacement réservé</span></div>
+  
     <div class="top">
       <span class="badge conseil"><svg class="ico"><use href="#i-bulb"/></svg>Conseil <span class="num">#02</span></span>
       <span class="seal"><svg class="inspecteur"><use href="#inspecteur"/></svg>Le conseil de Kiro</span></div>
@@ -302,6 +338,8 @@
 <section class="card p" id="v6">
   <div class="glow"></div>
   <div class="stage">
+  <div class="kiro"><span class="pose">Accoudé au bloc<br>Il commente la liste</span><span class="pct">emplacement réservé</span></div>
+  
     <div class="top">
       <span class="badge conseil"><svg class="ico"><use href="#i-bulb"/></svg>Conseil <span class="num">#03</span></span>
       <span class="seal"><svg class="inspecteur"><use href="#inspecteur"/></svg>Le conseil de Kiro</span></div>
@@ -325,6 +363,8 @@
 <section class="card s" id="v7">
   <div class="glow"></div>
   <div class="stage">
+  <div class="kiro"><span class="pose">Doigt pointé vers la grille<br>Il désigne les matières</span><span class="pct">emplacement réservé</span></div>
+  
     <div class="top">
       <span class="badge conseil"><svg class="ico"><use href="#i-bulb"/></svg>Conseil <span class="num">#04</span></span>
       <span class="seal"><svg class="inspecteur"><use href="#inspecteur"/></svg>L’œil de Kiro</span></div>
@@ -351,6 +391,8 @@
 <section class="card p" id="v3">
   <div class="glow"></div>
   <div class="stage">
+  <div class="kiro"><span class="pose">Signe de validation<br>Il regarde le lecteur</span><span class="pct">emplacement réservé</span></div>
+  
     <div class="top">
       <span class="badge avis"><svg class="ico"><use href="#i-star"/></svg>Paroles de clients <span class="num">#01</span></span>
       <span class="seal"><svg class="inspecteur"><use href="#inspecteur"/></svg>Kiro valide</span></div>
@@ -381,6 +423,8 @@
 <section class="card p" id="v8">
   <div class="glow"></div>
   <div class="stage">
+  <div class="kiro"><span class="pose">Bras croisés<br>Il observe le résultat</span><span class="pct">emplacement réservé</span></div>
+  
     <div class="top">
       <span class="badge preuve"><svg class="ico"><use href="#i-pin"/></svg>Réalisation <span class="num">#01</span></span>
       <span class="seal"><svg class="gant"><use href="#gant"/></svg>Mission de Kiro</span></div>
@@ -403,6 +447,8 @@
 <section class="card p" id="v9">
   <div class="glow"></div>
   <div class="stage">
+  <div class="kiro"><span class="pose">Observation d’un détail<br>Il inspecte</span><span class="pct">emplacement réservé</span></div>
+  
     <div class="top">
       <span class="badge preuve"><svg class="ico"><use href="#i-pin"/></svg>Réalisation <span class="num">#02</span></span>
       <span class="seal"><svg class="gant"><use href="#gant"/></svg>Mission de Kiro</span></div>
