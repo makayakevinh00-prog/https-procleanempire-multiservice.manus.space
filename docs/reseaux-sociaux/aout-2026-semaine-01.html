@@ -1,0 +1,1038 @@
+<title>ProClean Empire — Semaine 1 · 3 au 9 août</title>
+
+<style>
+  :root {
+    --ground: #f5f7fb;
+    --surface: #ffffff;
+    --surface-alt: #eef2f7;
+    --ink: #14213d;
+    --ink-soft: #5c6580;
+    --ink-faint: #8b93a8;
+    --line: #dbe1ec;
+    --gold: #c9a227;
+    --gold-ink: #866712;
+    --gold-wash: #faf4e0;
+    --radius: 10px;
+    --shadow: 0 1px 2px rgba(12, 27, 64, .06), 0 12px 28px -22px rgba(12, 27, 64, .5);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #0b1326;
+      --surface: #141d33;
+      --surface-alt: #1b2743;
+      --ink: #e9edf6;
+      --ink-soft: #9aa4bb;
+      --ink-faint: #6e7896;
+      --line: #253152;
+      --gold: #d9b545;
+      --gold-ink: #e0c164;
+      --gold-wash: #241f10;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 28px -22px rgba(0, 0, 0, .9);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0b1326;
+    --surface: #141d33;
+    --surface-alt: #1b2743;
+    --ink: #e9edf6;
+    --ink-soft: #9aa4bb;
+    --ink-faint: #6e7896;
+    --line: #253152;
+    --gold: #d9b545;
+    --gold-ink: #e0c164;
+    --gold-wash: #241f10;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 28px -22px rgba(0, 0, 0, .9);
+  }
+  :root[data-theme="light"] {
+    --ground: #f5f7fb;
+    --surface: #ffffff;
+    --surface-alt: #eef2f7;
+    --ink: #14213d;
+    --ink-soft: #5c6580;
+    --ink-faint: #8b93a8;
+    --line: #dbe1ec;
+    --gold: #c9a227;
+    --gold-ink: #866712;
+    --gold-wash: #faf4e0;
+    --shadow: 0 1px 2px rgba(12, 27, 64, .06), 0 12px 28px -22px rgba(12, 27, 64, .5);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .mono {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 20px 96px;
+  }
+
+  /* ---------- masthead ---------- */
+
+  .masthead {
+    padding: 44px 0 28px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .brandline {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 11px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 18px;
+  }
+  .brandline b { color: var(--ink); font-weight: 700; letter-spacing: .16em; }
+  .masthead h1 {
+    margin: 0;
+    font-size: clamp(30px, 7vw, 46px);
+    line-height: 1.08;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    text-wrap: balance;
+  }
+  .masthead h1 em {
+    font-style: normal;
+    color: var(--gold-ink);
+  }
+  .dek {
+    margin: 16px 0 0;
+    color: var(--ink-soft);
+    max-width: 60ch;
+  }
+
+  /* ---------- rhythm strip ---------- */
+
+  .rhythm {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin: 28px 0;
+  }
+  .rhythm div {
+    background: var(--surface);
+    padding: 14px 16px;
+  }
+  .rhythm .t {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    display: block;
+  }
+  .rhythm .d {
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- section headings ---------- */
+
+  h2.sec {
+    font-size: 12px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 700;
+    margin: 48px 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  /* ---------- day nav ---------- */
+
+  .daynav {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 4px 0 10px;
+    margin: 0 -20px 0;
+    padding-inline: 20px;
+    scrollbar-width: thin;
+  }
+  .daynav a {
+    flex: 0 0 auto;
+    text-decoration: none;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .daynav a:hover { border-color: var(--gold); }
+  .daynav a:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  /* ---------- mix table ---------- */
+
+  .tablewrap { overflow-x: auto; }
+  table.mix {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  table.mix th, table.mix td {
+    text-align: left;
+    padding: 9px 12px 9px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  table.mix th {
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  table.mix td.num { text-align: right; padding-right: 0; }
+
+  .bar {
+    display: block;
+    height: 4px;
+    background: var(--gold);
+    border-radius: 2px;
+    min-width: 3px;
+  }
+
+  /* ---------- palette ---------- */
+
+  .palette {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+  }
+  .sw {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .sw .chip { height: 52px; }
+  .sw .lab { padding: 8px 10px; font-size: 12px; }
+  .sw .lab b { display: block; font-weight: 600; }
+  .sw .lab code { color: var(--ink-soft); font-size: 11px; }
+
+  /* ---------- day ---------- */
+
+  .day {
+    margin-top: 52px;
+    scroll-margin-top: 12px;
+  }
+  .dayhead {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .dayhead .n {
+    font-size: 12px;
+    letter-spacing: .14em;
+    color: var(--ink-faint);
+  }
+  .dayhead h3 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -.01em;
+  }
+
+  /* ---------- post card ---------- */
+
+  .post {
+    display: grid;
+    grid-template-columns: 78px 1fr;
+    gap: 0 18px;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .post:last-child { border-bottom: 0; }
+
+  .slot { padding-top: 2px; }
+  .slot .time {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    display: block;
+  }
+  .slot .when {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-faint);
+  }
+  .slot .fmt {
+    margin-top: 6px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-soft);
+  }
+
+  .body-col { min-width: 0; }
+
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: var(--surface-alt);
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+  .tag.sell {
+    background: var(--gold);
+    color: #14213d;
+  }
+
+  .post h4 {
+    margin: 0 0 6px;
+    font-size: 19px;
+    line-height: 1.3;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    text-wrap: balance;
+  }
+  .hook {
+    margin: 0 0 14px;
+    color: var(--ink-soft);
+    font-size: 15px;
+  }
+  .hook b {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* blocks */
+  .block {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    margin-top: 10px;
+    overflow: hidden;
+  }
+  .block > .bh {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--surface-alt);
+    border-bottom: 1px solid var(--line);
+  }
+  .block > .bh span {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .block .bc {
+    padding: 12px;
+    font-size: 15px;
+    white-space: pre-wrap;
+  }
+  .block .bc.small { font-size: 14px; }
+  .block.visual .bc {
+    font-weight: 600;
+    text-align: center;
+    padding: 18px 12px;
+    background: var(--surface-alt);
+  }
+  .block.gold { border-color: var(--gold); }
+  .block.gold > .bh { background: var(--gold-wash); }
+  .block.gold > .bh span { color: var(--gold-ink); }
+
+  button.copy {
+    flex: 0 0 auto;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    color: var(--ink-soft);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 3px 9px;
+    cursor: pointer;
+  }
+  button.copy:hover { border-color: var(--gold); color: var(--ink); }
+  button.copy:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  button.copy.done { border-color: var(--gold); color: var(--gold-ink); }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .meta .k {
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    flex: 0 0 100%;
+    margin-bottom: -4px;
+  }
+  .tags .h {
+    font-size: 12.5px;
+    background: var(--surface-alt);
+    border-radius: 4px;
+    padding: 2px 7px;
+  }
+
+  .cta {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-left: 3px solid var(--gold);
+    background: var(--gold-wash);
+    border-radius: 0 6px 6px 0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .caution {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: 1px dashed var(--line);
+    border-radius: 6px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+  }
+  .caution b { color: var(--ink); }
+
+  /* script table */
+  table.script {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    min-width: 460px;
+  }
+  table.script th, table.script td {
+    text-align: left;
+    vertical-align: top;
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  table.script th {
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  table.script td:first-child { white-space: nowrap; color: var(--ink-soft); }
+
+  /* ---------- banks ---------- */
+  ol.hooks { padding-left: 22px; margin: 0; }
+  ol.hooks li { margin-bottom: 7px; }
+
+  .ctas { display: grid; gap: 8px; }
+  .ctarow {
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    gap: 12px;
+    align-items: baseline;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 14.5px;
+  }
+  .ctarow em {
+    font-style: normal;
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .notes { counter-reset: n; padding: 0; margin: 0; list-style: none; }
+  .notes li {
+    counter-increment: n;
+    position: relative;
+    padding: 0 0 14px 30px;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+  }
+  .notes li::before {
+    content: counter(n);
+    position: absolute;
+    left: 0; top: 1px;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--ground);
+    font-size: 11px;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+  }
+  .notes li b { color: var(--ink); }
+
+  footer.foot {
+    margin-top: 56px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--ink-faint);
+  }
+
+  @media (max-width: 560px) {
+    .post { grid-template-columns: 1fr; gap: 0; }
+    .slot {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .slot .fmt { margin-top: 0; }
+    .ctarow { grid-template-columns: 1fr; gap: 2px; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="brandline"><b>ProClean Empire</b> <span>Plan de contenu</span> <span class="mono">Semaine 01 / 52</span></div>
+    <h1>Du 3 au 9 août :<br>être visible <em>tous les jours</em>.</h1>
+    <p class="dek">18 publications. Trois créneaux quotidiens. 80 % de valeur, 20 % de promotion — une seule publication de la semaine vend directement.</p>
+  </header>
+
+  <div class="rhythm">
+    <div><span class="t mono">08:00 — 09:00</span><span class="d">Matin · photo ou carrousel</span></div>
+    <div><span class="t mono">12:00 — 13:00</span><span class="d">Midi · si tu as de la matière</span></div>
+    <div><span class="t mono">18:30 — 20:30</span><span class="d">Soir · vidéo courte</span></div>
+  </div>
+
+  <nav class="daynav" id="daynav" aria-label="Aller à un jour"></nav>
+
+  <h2 class="sec">Répartition réelle</h2>
+  <div class="tablewrap">
+    <table class="mix">
+      <thead>
+        <tr><th>Type de contenu</th><th>Cible</th><th>Semaine 1</th><th style="width:26%">Part</th></tr>
+      </thead>
+      <tbody id="mixbody"></tbody>
+    </table>
+  </div>
+  <p class="dek" style="font-size:14px">Semaine de lancement : l'éducatif et la preuve visuelle sont volontairement chargés — ils installent la crédibilité plus vite que le conseil. Le rééquilibrage vers 30 % de conseils se fait sur les semaines 2 à 4.</p>
+
+  <h2 class="sec">Charte à saisir dans Canva</h2>
+  <div class="palette">
+    <div class="sw"><div class="chip" style="background:#14213d"></div><div class="lab"><b>Bleu nuit</b><code class="mono">#14213d</code></div></div>
+    <div class="sw"><div class="chip" style="background:#0f1a32"></div><div class="lab"><b>Bleu profond</b><code class="mono">#0f1a32</code></div></div>
+    <div class="sw"><div class="chip" style="background:#c9a227"></div><div class="lab"><b>Doré · accent</b><code class="mono">#c9a227</code></div></div>
+    <div class="sw"><div class="chip" style="background:#eef2f7"></div><div class="lab"><b>Gris clair</b><code class="mono">#eef2f7</code></div></div>
+  </div>
+  <p class="dek" style="font-size:14px">Ton kit de marque Canva est vide : ces valeurs sont à saisir à la main dans chaque design. Titres en sans-serif géométrique Bold (Montserrat, Poppins), textes en sans-serif lisible (Inter, Open Sans). <b>8 mots maximum sur un visuel</b> — le reste va dans la légende.</p>
+
+  <div id="days"></div>
+
+  <h2 class="sec">Accroches réutilisables</h2>
+  <ol class="hooks" id="hookbank"></ol>
+
+  <h2 class="sec">Appels à l'action</h2>
+  <div class="ctas" id="ctabank"></div>
+
+  <h2 class="sec">Hashtags par catégorie</h2>
+  <div id="hashbank"></div>
+  <p class="dek" style="font-size:14px">Dosage : Instagram 8 à 12 · Facebook 3 à 5 · LinkedIn 3 à 5 (au-delà, LinkedIn réduit la portée) · TikTok 3 à 5.</p>
+
+  <h2 class="sec">Avant de publier</h2>
+  <ol class="notes" id="notes"></ol>
+
+  <footer class="foot">
+    ProClean Empire · 3 rue Stéphane Charbonnier, 95800 Pontoise · 06 17 21 22 30 · contact@procleanempire.com · Devis sous 24 h sur procleanempire.com/devis
+  </footer>
+</div>
+
+<script>
+const DAYS = [
+  {
+    id: "lun", n: "Jour 1", name: "Lundi 3 août",
+    posts: [
+      {
+        time: "08:00", when: "Matin", fmt: "Photo", type: "Conseils",
+        title: "Pourquoi un bureau propre change tout",
+        hook: "Vos locaux parlent de votre entreprise avant vous.",
+        visual: "Un bureau propre n'est pas un détail. C'est un levier.",
+        canva: "Crée un visuel portrait 1080×1350 pour LinkedIn. Fond bleu nuit #14213d. Titre centré en gros caractères blancs Bold : « Un bureau propre n'est pas un détail. C'est un levier. ». Souligne le mot « levier » d'un trait doré #c9a227 épais. En bas, sur une bande dorée fine, le texte blanc « ProClean Empire — Propreté professionnelle en Île-de-France ». Style corporate épuré, beaucoup d'espace négatif, aucune photo.",
+        texts: [
+          ["LinkedIn", "Un environnement de travail propre n'est pas un simple confort : c'est un levier de performance.\n\nDes locaux entretenus, c'est une meilleure expérience pour vos collaborateurs, une image maîtrisée auprès de vos visiteurs, et un cadre où l'on travaille mieux. À l'inverse, des espaces négligés envoient un signal que ni un client ni un candidat n'oublie.\n\nChez ProClean Empire, nous accompagnons les entreprises d'Île-de-France avec des prestations planifiées, calées sur vos contraintes d'exploitation, et un contrôle qualité régulier.\n\n📩 Réponse à toute demande de devis sous 24 h."],
+          ["Facebook", "Saviez-vous qu'un bureau propre influence autant vos collaborateurs que vos clients ?\n\nPremière impression, confort au quotidien, image de l'entreprise : tout se joue sur des détails que l'on ne remarque que lorsqu'ils manquent.\n\nProClean Empire aide les entreprises à garder des locaux impeccables toute l'année, à Pontoise et partout en Île-de-France.\n\n👉 Devis gratuit sous 24 h : procleanempire.com/devis"],
+          ["Instagram", "✨ Un espace propre, c'est une meilleure première impression.\n\nPrenez soin de vos locaux comme vous prenez soin de votre entreprise.\n\n📩 Devis gratuit — lien en bio."]
+        ],
+        cta: "Demandez votre devis personnalisé — réponse sous 24 h.",
+        tags: ["#ProCleanEmpire","#NettoyageProfessionnel","#Bureaux","#Entreprise","#Propreté","#ServicesAuxEntreprises","#IleDeFrance","#Pontoise"],
+        note: "Sur LinkedIn, n'en garde que trois : #NettoyageProfessionnel #ServicesAuxEntreprises #IleDeFrance"
+      },
+      {
+        time: "12:00", when: "Midi", fmt: "Photo", type: "Coulisses",
+        title: "Préparation d'intervention",
+        hook: "6h45. Avant que vos bureaux ne se réveillent.",
+        visual: "Le travail commence avant le vôtre",
+        photo: "Photo réelle du matériel chargé dans le véhicule, ou de l'équipe en préparation. Lumière naturelle, pas de filtre.",
+        canva: "Prends ma photo et place-la en plein cadre portrait 1080×1350. Ajoute en bas un dégradé sombre du bleu nuit #14213d vers transparent, et par-dessus le texte blanc Bold « Le travail commence avant le vôtre ». Ajoute discrètement en haut à droite le logo ProClean Empire. Aucune bordure, aucun cadre décoratif.",
+        texts: [
+          ["Facebook + Instagram", "6h45. Le matériel est prêt, l'équipe aussi.\n\nQuand vos équipes arrivent, tout est déjà fait. C'est ça, une intervention bien organisée : elle ne se voit pas, elle se constate. 🧼"]
+        ],
+        tags: ["#Coulisses","#ProCleanEmpire","#NettoyageProfessionnel","#EquipeTerrain","#IleDeFrance"],
+        note: "Aucun appel à l'action : publication de confiance pure."
+      },
+      {
+        time: "18:30", when: "Soir", fmt: "Vidéo", type: "Éducation",
+        title: "Les 5 surfaces que tout le monde oublie",
+        hook: "Ces 5 surfaces sont touchées 100 fois par jour. Et presque jamais nettoyées.",
+        script: [
+          ["0–3 s", "Gros plan main sur une poignée de porte", "« Touchées 100 fois par jour. Jamais nettoyées. »"],
+          ["3–8 s", "Poignée de porte", "1 — Les poignées de porte"],
+          ["8–13 s", "Interrupteur", "2 — Les interrupteurs"],
+          ["13–18 s", "Clavier, gros plan", "3 — Les claviers"],
+          ["18–23 s", "Bouton d'ascenseur ou photocopieur", "4 — Les boutons partagés"],
+          ["23–28 s", "Robinet de kitchenette", "5 — La kitchenette"],
+          ["28–35 s", "Plan large des locaux propres + logo", "Les points de contact, c'est notre routine. Devis sous 24 h."]
+        ],
+        shoot: "Vertical 9:16, téléphone, lumière du jour. Coupes sèches entre les 5 plans, rythme rapide. Musique instrumentale sobre, sans paroles.",
+        texts: [
+          ["Les 3 plateformes", "Les surfaces les plus touchées sont presque toujours les plus oubliées.\n\nUn nettoyage régulier des points de contact limite la circulation des microbes dans les locaux professionnels — et ça ne coûte pas plus cher, ça demande juste un protocole.\n\nChez nous, ces 5 points font partie de la routine, pas des options. 📩 Devis sous 24 h."]
+        ],
+        tags: ["#Hygiène","#NettoyageProfessionnel","#ProCleanEmpire","#Bureaux","#PointsDeContact","#Entreprise"]
+      }
+    ]
+  },
+  {
+    id: "mar", n: "Jour 2", name: "Mardi 4 août",
+    posts: [
+      {
+        time: "08:00", when: "Matin", fmt: "Carrousel", type: "Avant / Après",
+        title: "Siège textile",
+        hook: "Le client pensait qu'il fallait le jeter.",
+        photo: "Ton avant/après réel « siège textile », déjà dans la galerie du site.",
+        canva: "Crée un visuel portrait 1080×1350 en deux moitiés horizontales. Moitié haute : ma photo « avant ». Moitié basse : ma photo « après ». Sépare-les par une ligne dorée #c9a227 de 6 px. Ajoute en haut à gauche une étiquette bleu nuit #14213d avec le texte blanc « AVANT », et en bas à gauche une étiquette dorée avec le texte bleu nuit « APRÈS ». Aucun autre texte. Logo discret en bas à droite.",
+        texts: [
+          ["LinkedIn", "Voici le résultat d'une de nos interventions sur un siège textile.\n\nLe remplacement était envisagé. Il n'a pas été nécessaire.\n\nNotre travail ne consiste pas seulement à nettoyer : il consiste à prolonger la durée de vie de vos équipements et à rendre chaque espace prêt à l'usage. Sur un parc de mobilier, l'écart budgétaire entre entretenir et remplacer se compte vite en milliers d'euros.\n\nLa différence se voit au premier regard."],
+          ["Facebook", "Avant ➜ Après ✨\n\nRien ne remplace un nettoyage réalisé avec méthode et exigence.\n\nTextile, cuir, velours : chaque matière a son protocole."],
+          ["Instagram", "Swipe pour voir la transformation. ✨\n\nIl n'était pas bon à jeter. Il était juste sale."]
+        ],
+        cta: "Un mobilier fatigué ? Demandez un diagnostic gratuit.",
+        tags: ["#AvantAprès","#Nettoyage","#ProCleanEmpire","#Textile","#Mobilier","#Detailing","#Propreté"]
+      },
+      {
+        time: "18:30", when: "Soir", fmt: "Vidéo", type: "Avant / Après",
+        title: "Cuir rouge — 20 minutes",
+        hook: "Regardez ce que 20 minutes changent sur un cuir.",
+        script: [
+          ["0–3 s", "Gros plan du cuir encrassé", "20 minutes. Regardez."],
+          ["3–10 s", "Application du produit, mousse", "— (silence, son réel)"],
+          ["10–20 s", "Passage progressif, moitié traitée / moitié non", "La ligne de séparation ↔"],
+          ["20–27 s", "Plan large du résultat final", "Même cuir. Même jour."],
+          ["27–30 s", "Logo sur fond bleu nuit", "ProClean Empire"]
+        ],
+        shoot: "Trépied fixe, cadrage identique du début à la fin — c'est ce qui rend la transformation crédible. Le plan « moitié / moitié » est le plus performant : ne le coupe pas.",
+        texts: [
+          ["Les 3 plateformes", "Le cuir ne s'use pas toujours. Souvent, il s'encrasse.\n\nUn traitement adapté à la matière et il repart pour des années. C'est valable sur un siège de bureau, une banquette de restaurant ou un intérieur de véhicule.\n\n📩 Devis sous 24 h — Pontoise et toute l'Île-de-France."]
+        ],
+        tags: ["#AvantAprès","#Cuir","#Detailing","#ProCleanEmpire","#Satisfying","#Nettoyage"]
+      }
+    ]
+  },
+  {
+    id: "mer", n: "Jour 3", name: "Mercredi 5 août",
+    posts: [
+      {
+        time: "08:00", when: "Matin", fmt: "Photo", type: "Éducation",
+        title: "Le saviez-vous ?",
+        hook: "Votre bureau est-il plus sale que les toilettes ?",
+        visual: "Un bureau peut héberger bien plus de bactéries qu'une lunette de toilettes.",
+        canva: "Crée un visuel carré 1080×1080. Fond gris clair #eef2f7. Au centre, en très gros caractères bleu nuit #14213d Bold : « LE SAVIEZ-VOUS ? ». En dessous, en taille moyenne : « Un bureau peut héberger bien plus de bactéries qu'une lunette de toilettes. ». Ajoute une icône de loupe stylisée dorée #c9a227 en haut. Bandeau bleu nuit en bas avec le logo ProClean Empire en blanc.",
+        texts: [
+          ["LinkedIn", "Les surfaces les plus fréquentées sont souvent les moins nettoyées.\n\nUn poste de travail concentre en permanence ce que l'on y apporte : mains, téléphone, repas pris sur le clavier. Les sanitaires, eux, sont nettoyés quotidiennement. L'écart d'attention explique l'écart de propreté.\n\nC'est pour cette raison que nos protocoles traitent les points de contact avec la même rigueur que les sanitaires. Ce ne sont pas les zones les plus visibles, ce sont les plus sollicitées."],
+          ["Facebook", "💡 Le saviez-vous ?\n\nPoignées de porte, claviers, interrupteurs : ce sont les surfaces les plus touchées de vos locaux… et les plus souvent oubliées lors du nettoyage.\n\nUn protocole sérieux commence par là."],
+          ["Instagram", "Les détails font la différence. 🧼\n\nCe que personne ne regarde, c'est exactement ce que nous nettoyons."]
+        ],
+        cta: "Vous voulez savoir ce que couvre réellement votre prestataire actuel ? Parlons-en.",
+        tags: ["#LeSaviezVous","#Hygiène","#NettoyageProfessionnel","#ProCleanEmpire","#Bureaux","#Santé","#Entreprise"],
+        caution: "Formulation prudente volontaire. Le chiffre « 400 fois plus » circule partout, mais il vient d'études commanditées par des fabricants de produits d'entretien. Reste sur « bien plus » plutôt que sur un multiple précis : c'est tout aussi frappant, et personne ne pourra te contredire en commentaire."
+      },
+      {
+        time: "12:00", when: "Midi", fmt: "Photo", type: "Conseils",
+        title: "Le bon geste de désinfection",
+        hook: "Désinfecter sans laisser agir, c'est ne pas désinfecter.",
+        visual: "Le produit a besoin de temps.",
+        canva: "Visuel carré 1080×1080, fond bleu nuit #14213d. Grand chiffre doré #c9a227 « 30 s » au centre. En dessous, texte blanc Bold : « Le temps de contact minimum pour qu'un désinfectant agisse. ». En bas, petite mention blanche : « ProClean Empire — Le geste pro ».",
+        texts: [
+          ["Facebook + Instagram", "L'erreur la plus fréquente : pulvériser puis essuyer immédiatement.\n\nUn désinfectant a besoin d'un temps de contact pour agir — souvent quelques dizaines de secondes selon le produit. Essuyé trop vite, il nettoie… mais il ne désinfecte pas.\n\nVérifiez toujours la durée indiquée sur l'étiquette du produit. 🧴"]
+        ],
+        tags: ["#Astuce","#Hygiène","#ProCleanEmpire","#NettoyageProfessionnel","#ConseilPro"]
+      },
+      {
+        time: "18:30", when: "Soir", fmt: "Vidéo", type: "Coulisses",
+        title: "Une journée avec l'équipe",
+        hook: "Une journée chez ProClean Empire, en 40 secondes.",
+        script: [
+          ["0–3 s", "Lever de soleil sur le véhicule chargé", "6h30"],
+          ["3–10 s", "Briefing rapide de l'équipe", "Le brief. Chacun sait où il va."],
+          ["10–20 s", "Trois plans d'intervention différents", "3 sites. 3 protocoles."],
+          ["20–28 s", "Contrôle qualité, passage de la main sur une surface", "Le contrôle. À chaque fois."],
+          ["28–36 s", "Locaux terminés, plan large", "18h. Prêt pour demain."],
+          ["36–40 s", "Équipe face caméra + logo", "ProClean Empire"]
+        ],
+        shoot: "Filme sur une vraie journée, pas en reconstitution — ça se voit. Demande l'accord de chaque personne filmée avant publication.",
+        texts: [
+          ["Les 3 plateformes", "Derrière un résultat impeccable, il y a une organisation.\n\nUn brief le matin, un protocole par site, un contrôle qualité systématique, un interlocuteur unique pour piloter. Ce n'est pas du hasard, c'est une méthode.\n\nMerci à l'équipe. 💪"]
+        ],
+        tags: ["#Coulisses","#Equipe","#ProCleanEmpire","#NettoyageProfessionnel","#Métier","#Savoirfaire"]
+      }
+    ]
+  },
+  {
+    id: "jeu", n: "Jour 4", name: "Jeudi 6 août",
+    posts: [
+      {
+        time: "08:00", when: "Matin", fmt: "Photo", type: "Conseils",
+        title: "Vitrerie et lumière",
+        hook: "On ne nettoie pas des vitres pour qu'elles brillent.",
+        visual: "Des vitres propres, c'est +30 % de lumière ressentie.",
+        canva: "Visuel portrait 1080×1350. Utilise ma photo de baie vitrée nettoyée en fond, plein cadre. Applique un léger voile bleu nuit #14213d à 30 % d'opacité en bas. Texte blanc Bold aligné à gauche en bas : « On ne nettoie pas des vitres pour qu'elles brillent. On les nettoie pour ce qu'elles laissent entrer. ». Accent doré #c9a227 sur « ce qu'elles laissent entrer ». Logo en haut à droite.",
+        texts: [
+          ["LinkedIn", "La vitrerie est souvent traitée comme une prestation esthétique. C'est une erreur de lecture.\n\nDes vitres encrassées, c'est moins de lumière naturelle, donc plus d'éclairage artificiel, un confort visuel dégradé, et une façade qui envoie un signal négatif à chaque visiteur avant même l'accueil.\n\nSur un showroom, un commerce ou un hall d'immeuble, c'est la première chose que l'on voit. Et la première chose que l'on juge."],
+          ["Facebook", "Vos vitres font la première impression, avant même votre accueil. 🪟\n\nLuminosité, confort, image de marque : trois raisons de ne pas les laisser au second plan."],
+          ["Instagram", "La lumière change tout. ☀️🪟"]
+        ],
+        cta: "Vitrerie en hauteur, showroom, façade : demandez une visite technique gratuite.",
+        tags: ["#Vitrerie","#NettoyageVitres","#ProCleanEmpire","#Commerce","#Bureaux","#ImageDeMarque","#IleDeFrance"],
+        caution: "Le « +30 % » n'est pas sourçable. Si tu ne veux avancer aucun chiffre, remplace le texte du visuel par : « Des vitres propres, c'est une pièce qui change. »"
+      },
+      {
+        time: "12:00", when: "Midi", fmt: "Photo", type: "Éducation",
+        title: "Une matière, un protocole",
+        hook: "Le même produit sur toutes les surfaces ? C'est comme ça qu'on abîme.",
+        visual: "Une matière = un protocole.",
+        canva: "Visuel carré 1080×1080, fond blanc. Crée une grille de 4 cases égales avec bordures bleu nuit #14213d fines. Dans chaque case, une icône simple et un mot en bleu nuit Bold : « CUIR », « TEXTILE », « INOX », « VITRE ». Sous la grille, en doré #c9a227 Bold : « Une matière = un protocole. ». Logo ProClean Empire en bas.",
+        texts: [
+          ["Facebook + Instagram", "Cuir, textile, inox, vitre, marbre : cinq matières, cinq protocoles, cinq produits différents.\n\nUtiliser un nettoyant universel partout, c'est le moyen le plus rapide d'abîmer durablement une surface — et de payer une rénovation qu'on aurait pu éviter. 🧴"]
+        ],
+        tags: ["#ConseilPro","#Nettoyage","#ProCleanEmpire","#Matières","#Entretien"]
+      },
+      {
+        time: "18:30", when: "Soir", fmt: "Vidéo", type: "Conseils",
+        title: "La vitre sans traces",
+        hook: "Vos vitres font des traces ? Ce n'est pas le produit.",
+        script: [
+          ["0–4 s", "Vitre pleine de traces au soleil", "Ce n'est pas le produit."],
+          ["4–12 s", "Geste : mouillage à la raclette", "1 — On mouille toute la surface"],
+          ["12–22 s", "Raclette en S, sans lever", "2 — La raclette ne se lève jamais"],
+          ["22–29 s", "Essuyage du bord à la microfibre", "3 — Les bords, à la microfibre sèche"],
+          ["29–35 s", "Vitre parfaite à contre-jour + logo", "Zéro trace."]
+        ],
+        shoot: "Filme à contre-jour — c'est le seul angle où les traces, et leur absence, se voient vraiment à l'écran.",
+        texts: [
+          ["Les 3 plateformes", "Les traces ne viennent presque jamais du produit. Elles viennent du geste : raclette levée en cours de passage, surface qui sèche trop vite, bords oubliés.\n\nTrois règles et le problème disparaît. 🪟\n\nEt si vos vitres sont en hauteur ou en façade, laissez faire des professionnels équipés — ce n'est plus une question de geste, c'est une question de sécurité."]
+        ],
+        tags: ["#Astuce","#Vitrerie","#ProCleanEmpire","#NettoyageProfessionnel","#TutoPro","#ZeroTrace"]
+      }
+    ]
+  },
+  {
+    id: "ven", n: "Jour 5", name: "Vendredi 7 août",
+    posts: [
+      {
+        time: "08:00", when: "Matin", fmt: "Photo", type: "Témoignage",
+        title: "Avis client vérifié",
+        hook: "5,0/5 sur 30 avis Google. Ça ne s'achète pas.",
+        visual: "« Service sérieux, équipe professionnelle et résultat impeccable à chaque intervention. »",
+        canva: "Visuel portrait 1080×1350. Fond bleu nuit #14213d. En haut, cinq étoiles dorées #c9a227. Au centre, la citation en blanc, taille moyenne, entre guillemets : « Service sérieux, équipe professionnelle et résultat impeccable à chaque intervention. Je recommande sans hésitation. ». En dessous, en doré et plus petit : « Concierg'air — avis Google ». En bas, bandeau doré avec le texte bleu nuit « 5,0/5 · 30 avis Google ». Design sobre, aucune photo.",
+        texts: [
+          ["LinkedIn", "5,0/5 sur 30 avis Google.\n\n« Service sérieux, équipe professionnelle et résultat impeccable à chaque intervention. » — Concierg'air\n\nCe qui revient le plus souvent dans les retours, ce n'est pas la performance d'une intervention isolée. C'est la régularité. Sur un contrat d'entretien, c'est exactement là que se joue la différence entre un prestataire et un partenaire.\n\nMerci à nos clients pour leur confiance."],
+          ["Facebook", "⭐⭐⭐⭐⭐ 5,0/5 sur Google, sur 30 avis.\n\n« Service sérieux, équipe professionnelle et résultat impeccable à chaque intervention. »\n\nMerci pour votre confiance. C'est ce qui nous fait avancer. 🙏"],
+          ["Instagram", "⭐ 5,0/5 · 30 avis\n\nMerci. Vraiment. 🙏"]
+        ],
+        cta: "Rejoignez-les — devis gratuit sous 24 h.",
+        tags: ["#AvisClient","#Témoignage","#ProCleanEmpire","#5Etoiles","#Confiance","#NettoyageProfessionnel"]
+      },
+      {
+        time: "12:00", when: "Midi", fmt: "Carrousel", type: "Avant / Après",
+        title: "Préparation Airbnb",
+        hook: "Entre deux voyageurs, il y a nous.",
+        photo: "Ta série « préparation logement Airbnb » : entrée, salon, table d'accueil.",
+        canva: "Carrousel Instagram 1080×1350, 3 pages. Page 1 : ma photo du salon préparé, avec le texte blanc Bold en bas sur voile sombre « Entre deux voyageurs, il y a nous. ». Page 2 : ma photo de l'entrée, texte « Chaque détail est vérifié. ». Page 3 : fond bleu nuit #14213d avec le texte doré #c9a227 centré « Conciergerie · Airbnb · Locations courte durée » et le logo ProClean Empire. Style clair et hôtelier.",
+        texts: [
+          ["Facebook + Instagram", "Une location courte durée se joue sur la première minute : l'odeur, la lumière, la netteté de l'entrée.\n\nNous préparons les logements entre deux voyageurs avec un standard hôtelier — parce qu'un commentaire à 4 étoiles au lieu de 5, c'est souvent un détail de propreté. 🏠✨"]
+        ],
+        cta: "Conciergeries et propriétaires : parlons de vos rotations.",
+        tags: ["#Airbnb","#Conciergerie","#LocationCourteDurée","#ProCleanEmpire","#Ménage","#IleDeFrance"]
+      },
+      {
+        time: "18:30", when: "Soir", fmt: "Vidéo", type: "Offre", sell: true,
+        title: "La fenêtre d'août",
+        hook: "Vos bureaux sont vides en août. C'est exactement le moment.",
+        script: [
+          ["0–4 s", "Open space vide, chaises rangées", "Vos bureaux sont vides."],
+          ["4–12 s", "Nettoyage de moquette en profondeur", "Remise en état des sols"],
+          ["12–20 s", "Vitrerie complète", "Vitrerie intégrale"],
+          ["20–27 s", "Désinfection des points de contact", "Sans déranger personne"],
+          ["27–35 s", "Open space impeccable à la rentrée + logo", "Prêt pour septembre. Devis sous 24 h."]
+        ],
+        shoot: "Le plan final « bureaux impeccables » est celui qui fait la vente. Soigne la lumière.",
+        texts: [
+          ["Les 3 plateformes", "Août est le seul mois où vos locaux sont accessibles sans contrainte.\n\nRemise en état des sols, vitrerie intégrale, traitement en profondeur des surfaces : des interventions qui, le reste de l'année, obligent à travailler de nuit ou le week-end. En août, elles se font sans gêner personne — et vos équipes rentrent dans des locaux comme neufs.\n\n📩 Devis sous 24 h · 06 17 21 22 30 · Pontoise et toute l'Île-de-France."]
+        ],
+        cta: "Planifiez votre remise en état avant la rentrée.",
+        tags: ["#RemiseEnEtat","#Bureaux","#Rentrée","#ProCleanEmpire","#NettoyageProfessionnel","#IleDeFrance","#Août"],
+        note: "C'est LA publication qui vend de la semaine — la seule sur 18."
+      }
+    ]
+  },
+  {
+    id: "sam", n: "Jour 6", name: "Samedi 8 août",
+    posts: [
+      {
+        time: "08:00", when: "Matin", fmt: "Photo", type: "Avant / Après",
+        title: "Detailing automobile",
+        hook: "Ce n'est pas une voiture neuve. C'est la même.",
+        photo: "Ton avant/après « banquette arrière remise à neuf » ou « traitement des tapis en profondeur ».",
+        canva: "Visuel carré 1080×1080 en split vertical gauche/droite. Gauche : ma photo « avant ». Droite : ma photo « après ». Ligne de séparation dorée #c9a227 verticale de 6 px au centre. En haut, sur toute la largeur, une bande bleu nuit #14213d avec le texte blanc Bold centré : « MÊME VÉHICULE. MÊME JOURNÉE. ». Logo en bas à droite.",
+        texts: [
+          ["LinkedIn", "Detailing intérieur complet, réalisé en une journée.\n\nPour les flottes d'entreprise et les véhicules de fonction, l'état intérieur d'un véhicule engage l'image de l'entreprise auprès du client transporté — au même titre que des locaux.\n\nNous intervenons sur véhicules individuels comme sur flottes."],
+          ["Facebook", "Même véhicule. Même journée. 🚗✨\n\nSièges, tapis, plastiques, cuir : chaque matière son traitement."],
+          ["Instagram", "Ce n'est pas une voiture neuve. C'est la même. 🚗"]
+        ],
+        cta: "Flotte d'entreprise ou véhicule personnel : demandez un devis.",
+        tags: ["#Detailing","#AvantAprès","#NettoyageAuto","#ProCleanEmpire","#Automobile","#FlotteEntreprise","#IleDeFrance"]
+      },
+      {
+        time: "18:30", when: "Soir", fmt: "Vidéo", type: "Éducation",
+        title: "L'aéronautique",
+        hook: "On ne nettoie pas un avion comme une voiture.",
+        script: [
+          ["0–4 s", "Plan large du Cessna", "On ne nettoie pas un avion comme une voiture."],
+          ["4–14 s", "Nettoyage extérieur fuselage", "Produits certifiés, zéro agression du revêtement"],
+          ["14–26 s", "Detailing cockpit, instruments", "Le cockpit : précision maximale"],
+          ["26–34 s", "Rénovation cuir cabine", "Cuir de cabine rénové, pas remplacé"],
+          ["34–40 s", "Avion terminé + logo", "ProClean Empire — Aéronautique"]
+        ],
+        shoot: "C'est ton meilleur différenciateur : peu de concurrents peuvent montrer ça. Mets-le en avant sans complexe.",
+        texts: [
+          ["Les 3 plateformes", "Aéronautique : le secteur où l'exigence de propreté ne tolère aucun compromis.\n\nProduits compatibles avec les revêtements, protocoles adaptés aux instruments, rénovation du cuir de cabine plutôt que remplacement. Ce niveau d'exigence, nous l'appliquons ensuite partout ailleurs — dans vos bureaux comme dans vos véhicules.\n\nC'est ça, notre standard. ✈️"]
+        ],
+        tags: ["#Aéronautique","#Aviation","#Detailing","#ProCleanEmpire","#Exigence","#SavoirFaire","#Cessna"]
+      }
+    ]
+  },
+  {
+    id: "dim", n: "Jour 7", name: "Dimanche 9 août",
+    posts: [
+      {
+        time: "08:00", when: "Matin", fmt: "Photo", type: "Coulisses",
+        title: "L'histoire de ProClean Empire",
+        hook: "Pourquoi j'ai créé ProClean Empire.",
+        photo: "Portrait de toi, Kevin. Regard caméra, lumière naturelle, tenue professionnelle. Photo réelle, pas de mise en scène.",
+        canva: "Visuel portrait 1080×1350. Ma photo de portrait occupe les deux tiers supérieurs. Tiers inférieur : bloc uni bleu nuit #14213d avec le texte blanc Bold aligné à gauche « Pourquoi j'ai créé ProClean Empire » et, en dessous, en doré #c9a227 plus petit : « Kevin, fondateur ». Design éditorial et sobre.",
+        texts: [
+          ["LinkedIn — structure à compléter", "On me demande souvent pourquoi j'ai créé ProClean Empire.\n\n1. LE CONSTAT — Ce que tu as vu dans le secteur et qui ne te convenait pas : prestations bâclées, prestataires injoignables, engagements non tenus, turnover permanent des équipes.\n\n2. LA DÉCISION — Le moment précis où tu as décidé de te lancer. Une date, un lieu, une situation concrète. C'est ce détail-là que les gens retiennent.\n\n3. LA PROMESSE — Ce que tu voulais construire : un interlocuteur unique, des équipes formées et stables, un contrôle qualité réel, une réponse sous 24 h.\n\nAujourd'hui, ProClean Empire accompagne des entreprises dans toute l'Île-de-France, avec la même exigence qu'au premier jour.\n\nMerci à ceux qui nous font confiance. 🙏"],
+          ["Facebook", "Ce dimanche, on parle un peu de nous.\n\n[Version courte de ton histoire, 4 à 5 lignes, ton chaleureux.]\n\nMerci à tous nos clients — et à mon équipe. 🙏"],
+          ["Instagram", "Tout a commencé avec une idée simple : faire les choses correctement.\n\n[2 lignes de ton histoire.]"]
+        ],
+        tags: ["#Entrepreneuriat","#ProCleanEmpire","#Histoire","#Fondateur","#Pontoise","#IleDeFrance","#PME"],
+        caution: "C'est le seul post que je n'ai pas écrit pour toi, et c'est volontaire. Une histoire de fondateur inventée se sent immédiatement. La structure en 3 temps est là — les faits doivent venir de toi."
+      },
+      {
+        time: "18:30", when: "Soir", fmt: "Vidéo", type: "Témoignage",
+        title: "La semaine en images",
+        hook: "Une semaine chez ProClean Empire.",
+        script: [
+          ["0–4 s", "Montage rapide de 3 plans de la semaine", "Une semaine."],
+          ["4–12 s", "Meilleur avant/après de la semaine", "Des transformations"],
+          ["12–20 s", "Équipe au travail", "Une équipe"],
+          ["20–26 s", "Capture de l'avis 5 étoiles à l'écran", "Et vos retours. Merci."],
+          ["26–30 s", "Logo sur fond bleu nuit", "À lundi."]
+        ],
+        shoot: "Aucun tournage supplémentaire : c'est un montage des rushs de la semaine. Prévois 10 minutes de montage, pas plus.",
+        texts: [
+          ["Les 3 plateformes", "Retour sur la semaine : des chantiers, des transformations, et surtout vos retours.\n\nMerci à chaque client qui nous fait confiance. On remet ça dès demain matin. 💪\n\n📩 Un besoin pour la rentrée ? Devis sous 24 h."]
+        ],
+        tags: ["#RécapSemaine","#ProCleanEmpire","#NettoyageProfessionnel","#Equipe","#Merci","#IleDeFrance"]
+      }
+    ]
+  }
+];
+
+const MIX = [
+  ["Conseils et astuces", "30 %", 4],
+  ["Avant / Après", "20 %", 4],
+  ["Éducation (hygiène, normes)", "15 %", 4],
+  ["Coulisses ProClean Empire", "15 %", 3],
+  ["Témoignages / réalisations", "10 %", 2],
+  ["Offres et appels à l'action", "10 %", 1]
+];
+
+const HOOKS = [
+  "Ces 5 surfaces sont touchées 100 fois par jour.",
+  "Le client pensait qu'il fallait le jeter.",
+  "On ne nettoie pas des vitres pour qu'elles brillent.",
+  "Même journée. Même surface. Regardez.",
+  "L'erreur que font 90 % des entreprises.",
+  "Vos locaux parlent avant vous.",
+  "Ce que votre prestataire ne nettoie probablement pas.",
+  "20 minutes. Regardez la différence.",
+  "Vos bureaux sont vides en août. C'est le moment.",
+  "Ce n'est pas neuf. C'est nettoyé."
+];
+
+const CTAS = [
+  ["Doux", "Enregistrez ce post pour plus tard."],
+  ["Doux", "Vous en pensez quoi ? Dites-le en commentaire."],
+  ["Moyen", "Une question sur vos locaux ? Écrivez-nous en message."],
+  ["Moyen", "Visite technique gratuite, sans engagement."],
+  ["Fort", "Devis personnalisé sous 24 h : procleanempire.com/devis"],
+  ["Fort", "Appelez-nous au 06 17 21 22 30, 7j/7 de 8h à 18h."]
+];
+
+const HASH = [
+  ["Marque — toujours", ["#ProCleanEmpire"]],
+  ["Métier", ["#NettoyageProfessionnel","#Propreté","#ServicesAuxEntreprises","#Nettoyage","#Entretien","#Hygiène"]],
+  ["Local", ["#Pontoise","#Cergy","#ValDOise","#IleDeFrance","#Paris","#Versailles","#LaDéfense","#95"]],
+  ["Secteurs", ["#Bureaux","#Hôtellerie","#Restauration","#Commerce","#Vitrerie","#Automobile","#Detailing","#Airbnb","#Aéronautique","#AprèsChantier","#RemiseEnEtat"]],
+  ["Engagement", ["#AvantAprès","#Satisfying","#LeSaviezVous","#ConseilPro","#Coulisses","#AvisClient"]]
+];
+
+const NOTES = [
+  ["Témoignages et clients nommés.", "Les avis cités sont tes vrais avis Google publics — leur reprise est légitime. En revanche, ne publie jamais le nom d'un client B2B ni de photos de ses locaux sans accord écrit. C'est vrai en particulier pour l'hôtellerie et l'aéronautique, où les contrats comportent souvent des clauses de confidentialité."],
+  ["Personnes filmées.", "Chaque salarié apparaissant dans une vidéo doit avoir donné son accord — idéalement une autorisation de droit à l'image signée une fois pour toutes."],
+  ["Affirmations chiffrées.", "Deux chiffres sont signalés dans la semaine. Les versions prudentes proposées sont tout aussi efficaces et ne t'exposent à aucune contestation. En B2B, un chiffre contesté en commentaire coûte plus cher qu'il ne rapporte."],
+  ["Avant / Après.", "Uniquement tes propres interventions, sans retouche de la photo « après » au-delà d'un ajustement de luminosité identique sur les deux images. Cadrage et lumière identiques : c'est ce qui rend la preuve crédible."],
+  ["Publication.", "Le connecteur Canva crée et exporte les visuels, mais ne publie pas sur les réseaux. La publication reste manuelle, ou passe par le planificateur Canva / Meta Business Suite."]
+];
+
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+function block(label, content, opts) {
+  opts = opts || {};
+  const cls = "block" + (opts.gold ? " gold" : "") + (opts.visual ? " visual" : "");
+  const btn = opts.copy === false ? "" : '<button class="copy" type="button" data-copy="' + esc(content) + '">Copier</button>';
+  return '<div class="' + cls + '"><div class="bh"><span>' + esc(label) + '</span>' + btn + '</div>'
+    + '<div class="bc' + (opts.small ? " small" : "") + '">' + esc(content) + '</div></div>';
+}
+
+function renderPost(p) {
+  let h = '<article class="post">';
+
+  h += '<div class="slot"><span class="time mono">' + p.time + '</span>'
+    + '<span class="when">' + p.when + '</span>'
+    + '<span class="fmt">' + p.fmt + '</span></div>';
+
+  h += '<div class="body-col">';
+  h += '<span class="tag' + (p.sell ? " sell" : "") + '">' + esc(p.type) + '</span>';
+  h += '<h4>' + esc(p.title) + '</h4>';
+  h += '<p class="hook"><b>Accroche —</b> ' + esc(p.hook) + '</p>';
+
+  if (p.visual) h += block("Texte sur le visuel", p.visual, { visual: true, copy: false });
+  if (p.photo) h += block("Photo à utiliser", p.photo, { small: true, copy: false });
+
+  if (p.script) {
+    h += '<div class="block"><div class="bh"><span>Script vidéo</span></div>'
+      + '<div style="overflow-x:auto"><table class="script"><thead><tr><th>Temps</th><th>Image</th><th>Texte à l\'écran</th></tr></thead><tbody>';
+    p.script.forEach(r => {
+      h += '<tr><td class="mono">' + esc(r[0]) + '</td><td>' + esc(r[1]) + '</td><td>' + esc(r[2]) + '</td></tr>';
+    });
+    h += '</tbody></table></div></div>';
+  }
+  if (p.shoot) h += block("Tournage", p.shoot, { small: true, copy: false });
+  if (p.canva) h += block("Prompt Canva", p.canva, { gold: true, small: true });
+
+  p.texts.forEach(t => { h += block(t[0], t[1]); });
+
+  if (p.cta) h += '<div class="cta">' + esc(p.cta) + '</div>';
+
+  h += '<div class="meta tags"><span class="k">Hashtags</span>'
+    + p.tags.map(t => '<span class="h">' + esc(t) + '</span>').join("")
+    + '<button class="copy" type="button" data-copy="' + esc(p.tags.join(" ")) + '">Copier</button></div>';
+
+  if (p.note) h += '<div class="caution">' + esc(p.note) + '</div>';
+  if (p.caution) h += '<div class="caution"><b>À noter —</b> ' + esc(p.caution) + '</div>';
+
+  h += '</div></article>';
+  return h;
+}
+
+document.getElementById("days").innerHTML = DAYS.map(d =>
+  '<section class="day" id="' + d.id + '"><div class="dayhead"><span class="n mono">' + d.n + '</span><h3>' + d.name + '</h3></div>'
+  + d.posts.map(renderPost).join("") + '</section>'
+).join("");
+
+document.getElementById("daynav").innerHTML = DAYS.map(d =>
+  '<a href="#' + d.id + '">' + d.name.split(" ")[0] + ' <span class="mono">' + d.name.split(" ")[1] + '</span></a>'
+).join("");
+
+const total = MIX.reduce((a, m) => a + m[2], 0);
+document.getElementById("mixbody").innerHTML = MIX.map(m => {
+  const pct = Math.round(m[2] / total * 100);
+  return '<tr><td>' + m[0] + '</td><td class="mono">' + m[1] + '</td><td class="mono">' + m[2] + '</td>'
+    + '<td><span class="bar" style="width:' + (pct * 3.4) + '%"></span><span class="mono" style="font-size:12px">' + pct + ' %</span></td></tr>';
+}).join("");
+
+document.getElementById("hookbank").innerHTML = HOOKS.map(x => "<li>" + esc(x) + "</li>").join("");
+
+document.getElementById("ctabank").innerHTML = CTAS.map(c =>
+  '<div class="ctarow"><em>' + c[0] + '</em><span>' + esc(c[1]) + '</span></div>'
+).join("");
+
+document.getElementById("hashbank").innerHTML = HASH.map(g =>
+  '<div class="meta tags" style="margin-bottom:14px"><span class="k">' + esc(g[0]) + '</span>'
+  + g[1].map(t => '<span class="h">' + esc(t) + '</span>').join("")
+  + '<button class="copy" type="button" data-copy="' + esc(g[1].join(" ")) + '">Copier</button></div>'
+).join("");
+
+document.getElementById("notes").innerHTML = NOTES.map(n =>
+  "<li><b>" + esc(n[0]) + "</b> " + esc(n[1]) + "</li>"
+).join("");
+
+document.addEventListener("click", e => {
+  const b = e.target.closest("button.copy");
+  if (!b) return;
+  const txt = b.getAttribute("data-copy");
+  const done = () => {
+    const old = b.textContent;
+    b.textContent = "Copié";
+    b.classList.add("done");
+    setTimeout(() => { b.textContent = old; b.classList.remove("done"); }, 1600);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(done, () => fallback(txt, done));
+  } else {
+    fallback(txt, done);
+  }
+});
+
+function fallback(txt, done) {
+  const ta = document.createElement("textarea");
+  ta.value = txt;
+  ta.setAttribute("readonly", "");
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand("copy"); done(); } catch (err) { /* copie manuelle */ }
+  document.body.removeChild(ta);
+}
+</script>
