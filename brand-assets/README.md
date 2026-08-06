@@ -40,6 +40,7 @@ formats, règles de placement, rubriques. Tout le reste en découle.
 
 | Vous voulez… | Lisez |
 |---|---|
+| Produire une publicité corporate | [`regles/signature-visuelle.md`](regles/signature-visuelle.md) |
 | Comprendre les règles de la mascotte | [`regles/charte-mascotte.md`](regles/charte-mascotte.md) |
 | Créer une publication | [`templates-canva/formats.md`](templates-canva/formats.md) |
 | Créer un carrousel | [`templates-canva/carrousels.md`](templates-canva/carrousels.md) |
