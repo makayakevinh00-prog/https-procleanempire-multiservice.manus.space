@@ -10,8 +10,8 @@ export type Service = {
 export const trustProofs = [
   { label: "Sites entretenus", value: "+70" },
   { label: "Interventions réalisées / mois", value: "+450" },
-  { label: "Note Google", value: "4,9/5" },
-  { label: "Avis vérifiés", value: "+55" },
+  { label: "Note Google", value: "5/5" },
+  { label: "Avis Google", value: "+30" },
   { label: "Zone d'intervention", value: "Toute l'Île-de-France" },
   { label: "Assurance", value: "RC Pro incluse" }
 ];
@@ -267,6 +267,7 @@ export const services: Service[] = [
 
 export const navLinks = [
   { label: "Accueil", href: "/" },
+  { label: "Ménage Airbnb", href: "/menage-airbnb" },
   { label: "Réalisations", href: "/realisations" },
   { label: "Galerie", href: "/galerie" },
   { label: "Équipe", href: "/equipe" },

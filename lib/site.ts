@@ -8,7 +8,9 @@ export const siteConfig = {
   email: "contact@procleanempire.com",
   city: "Pontoise",
   region: "Île-de-France",
-  addressLine: "3 rue Stéphane Charbonnier, 95800 Pontoise",
+  streetAddress: "3 rue Stéphane Charbonnier",
+  postalCode: "95300",
+  addressLine: "3 rue Stéphane Charbonnier, 95300 Pontoise",
   responseDelay: "Réactivité opérationnelle sur Pontoise et l'Île-de-France"
 };
 
