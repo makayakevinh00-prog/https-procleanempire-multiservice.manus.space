@@ -1,10 +1,10 @@
+import { serviceSeo } from "@/lib/content/service-seo";
 import { buildMetadata } from "@/lib/site";
 import { ServiceLanding } from "@/components/pages/service-landing";
 
 export const metadata = buildMetadata({
-  title: "Propreté des établissements de restauration",
-  description:
-    "Prestation pour restaurants avec protocoles adaptés aux exigences d'hygiène, de conformité et de service.",
+  title: serviceSeo["nettoyage-restaurants"].metaTitle,
+  description: serviceSeo["nettoyage-restaurants"].metaDescription,
   path: "/nettoyage-restaurants"
 });
 
