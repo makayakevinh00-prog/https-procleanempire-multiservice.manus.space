@@ -133,7 +133,7 @@ export const realisationsSectors = [
 export const blogPageContent = {
   title: "Blog ProClean Empire",
   description:
-    "Structure éditoriale prête pour publier régulièrement des contenus utiles au SEO local et à la conversion B2B.",
+    "Prix, conseils et guides pratiques sur le nettoyage professionnel de bureaux, commerces et locaux en Île-de-France.",
   categories: [
     "Entretien bureaux",
     "Restaurants",

@@ -24,8 +24,8 @@ export type VideoTestimonial = {
 };
 
 export const conversionHeroContent = {
-  eyebrow: "Prestations de propreté et multiservices pour les entreprises exigeantes",
-  title: "La propreté au service de la performance de vos espaces professionnels",
+  eyebrow: "La propreté au service de la performance de vos espaces professionnels",
+  title: "Entreprise de nettoyage professionnel à Pontoise, Cergy et en Île-de-France",
   subtitle:
     "Nous accompagnons les entreprises, commerces, syndics et établissements professionnels avec des prestations de propreté planifiées, un suivi qualité rigoureux et des interventions adaptées à vos contraintes d'exploitation.",
   ctaPrimary: {
@@ -47,7 +47,7 @@ export const conversionHeroContent = {
     },
     {
       label: "Secteurs couverts",
-      fallback: "Bureaux, commerces, auto, aéronautique"
+      fallback: "Bureaux, commerces, Airbnb, auto"
     }
   ] as AnimatedStat[]
 };
