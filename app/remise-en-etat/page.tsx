@@ -1,10 +1,10 @@
+import { serviceSeo } from "@/lib/content/service-seo";
 import { buildMetadata } from "@/lib/site";
 import { ServiceLanding } from "@/components/pages/service-landing";
 
 export const metadata = buildMetadata({
-  title: "Remise en état",
-  description:
-    "Remise en état de locaux professionnels pour repartir sur une base conforme à vos standards.",
+  title: serviceSeo["remise-en-etat"].metaTitle,
+  description: serviceSeo["remise-en-etat"].metaDescription,
   path: "/remise-en-etat"
 });
 
