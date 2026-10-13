@@ -2,11 +2,12 @@ import Link from "next/link";
 import { buildMetadata } from "@/lib/site";
 import { PageHero } from "@/components/sections/page-hero";
 import { blogPageContent, blogPosts } from "@/lib/content/phase3";
+import { articles } from "@/lib/content/articles";
 
 export const metadata = buildMetadata({
-  title: "Blog",
+  title: "Blog nettoyage professionnel : prix, conseils et guides",
   description:
-    "Blog ProClean Empire : actualités et expertise sur les prestations de propreté pour entreprises.",
+    "Guides et conseils d'une entreprise de nettoyage à Pontoise : prix du nettoyage de bureaux, choisir son prestataire, nettoyage après chantier.",
   path: "/blog"
 });
 
@@ -27,18 +28,27 @@ export default function BlogPage() {
         }
       />
       <section className="section pt-0">
+        <h2 className="text-2xl font-semibold text-[#14213d]">Guides et conseils</h2>
+        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {articles.map((article) => (
+            <article key={article.slug} className="card p-6">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#c9a227]">{article.category}</p>
+              <h3 className="mt-2 text-lg font-semibold text-[#14213d]">
+                <Link href={`/blog/${article.slug}`} className="hover:underline">
+                  {article.title}
+                </Link>
+              </h3>
+              <p className="mt-2 text-sm text-slate-600">{article.excerpt}</p>
+              <Link href={`/blog/${article.slug}`} className="mt-4 inline-block text-sm font-semibold text-[#14213d] underline">
+                Lire l&apos;article
+              </Link>
+            </article>
+          ))}
+        </div>
+      </section>
+      <section className="section pt-0">
         <div className="card p-6 md:p-8">
-          <h2 className="text-xl font-semibold text-[#14213d]">Catégories éditoriales prévues</h2>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {blogPageContent.categories.map((category) => (
-              <span
-                key={category}
-                className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700"
-              >
-                {category}
-              </span>
-            ))}
-          </div>
+          <h2 className="text-xl font-semibold text-[#14213d]">Actualités</h2>
           {blogPosts.length > 0 ? (
             <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {blogPosts.map((post) => (
