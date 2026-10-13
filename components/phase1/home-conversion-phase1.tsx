@@ -10,6 +10,7 @@ import {
 import { ReviewsPremiumSection } from "@/components/phase1/reviews-premium-section";
 import { CommitmentsSection } from "@/components/phase1/commitments-section";
 import { ContactPhase1Section } from "@/components/phase1/contact-phase1-section";
+import { AirbnbHighlight } from "@/components/sections/airbnb-highlight";
 
 export function HomeConversionPhase1() {
   const [videoOpen, setVideoOpen] = useState(false);
@@ -29,6 +30,7 @@ export function HomeConversionPhase1() {
     <>
       <HeroConversion onOpenVideo={() => setVideoOpen(true)} />
       <PartnersMarquee />
+      <AirbnbHighlight />
       <PresentationVideoSection onOpenVideo={() => setVideoOpen(true)} />
       <ReviewsPremiumSection />
       <CommitmentsSection />
