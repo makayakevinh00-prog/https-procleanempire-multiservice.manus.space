@@ -1,10 +1,10 @@
+import { serviceSeo } from "@/lib/content/service-seo";
 import { buildMetadata } from "@/lib/site";
 import { ServiceLanding } from "@/components/pages/service-landing";
 
 export const metadata = buildMetadata({
-  title: "Entretien des espaces de travail",
-  description:
-    "Prestations d'entretien des espaces de travail en Île-de-France, pour des environnements conformes aux standards de votre entreprise.",
+  title: serviceSeo["nettoyage-bureaux"].metaTitle,
+  description: serviceSeo["nettoyage-bureaux"].metaDescription,
   path: "/nettoyage-bureaux"
 });
 
