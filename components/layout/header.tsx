@@ -4,7 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navLinks } from "@/lib/data";
+
 import { siteConfig } from "@/lib/site";
+
+const desktopLinks = navLinks.filter(
+  (link) => !["/galerie", "/videos", "/equipe"].includes(link.href)
+);
 
 export function Header() {
   const pathname = usePathname();
@@ -26,7 +31,7 @@ export function Header() {
           <span className="text-lg font-bold text-slate-900">ProClean Empire</span>
         </Link>
         <nav className="hidden items-center gap-6 lg:flex">
-          {navLinks.map((link) => {
+          {desktopLinks.map((link) => {
             const active = pathname === link.href;
             return (
               <Link
