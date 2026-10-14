@@ -43,9 +43,9 @@ export default function MenageAirbnbPage() {
             <Link href="/devis" className="btn-primary">
               Demander un devis Airbnb
             </Link>
-            <a href={siteConfig.phoneHref} className="btn-secondary">
-              Appeler le {siteConfig.phone}
-            </a>
+            <Link href="/rendez-vous" className="btn-secondary">
+              Planifier un appel ou une visite
+            </Link>
           </>
         }
       />
