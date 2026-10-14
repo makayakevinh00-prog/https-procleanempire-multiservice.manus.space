@@ -39,7 +39,7 @@ export function PresentationVideoSection({
               style={{ backgroundImage: `url(${thumbnail})` }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-            <span className="absolute left-4 top-4 rounded-full bg-[#c9a227] px-3 py-1 text-xs font-semibold text-[#14213d]">
+            <span className="absolute left-4 top-4 rounded-full bg-[#1d6fe0] px-3 py-1 text-xs font-semibold text-white">
               VIDEO
             </span>
             <span className="absolute bottom-4 left-4 inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-[#14213d] transition group-hover:bg-white">

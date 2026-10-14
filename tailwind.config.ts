@@ -16,12 +16,26 @@ const config: Config = {
           900: "#0b1326"
         },
         accent: {
-          500: "#c9a227",
-          600: "#b28f1f"
-        }
+          400: "#4f8df5",
+          500: "#1d6fe0",
+          600: "#1559bd"
+        },
+        ink: "#0b1220",
+        mist: "#f5f5f7"
       },
       boxShadow: {
         soft: "0 15px 35px -20px rgba(12, 27, 64, 0.4)"
+      },
+      fontFamily: {
+        display: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "\"SF Pro Display\"",
+          "Inter",
+          "\"Helvetica Neue\"",
+          "Arial",
+          "sans-serif"
+        ]
       },
       maxWidth: {
         content: "1200px"

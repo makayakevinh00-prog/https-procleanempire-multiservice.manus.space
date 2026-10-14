@@ -267,14 +267,9 @@ export const services: Service[] = [
 
 export const navLinks = [
   { label: "Accueil", href: "/" },
-  { label: "Réalisations", href: "/realisations" },
-  { label: "Galerie", href: "/galerie" },
-  { label: "Équipe", href: "/equipe" },
-  { label: "Vidéos", href: "/videos" },
-  { label: "À propos", href: "/a-propos" },
-  { label: "Nos services", href: "/services" },
-  { label: "FAQ", href: "/faq" },
-  { label: "Blog", href: "/blog" },
-  { label: "Devis", href: "/devis" },
+  { label: "Ménage Airbnb", href: "/#menage-airbnb" },
+  { label: "Bureaux & commerces", href: "/nettoyage-bureaux" },
+  { label: "Conciergerie d'entreprise", href: "/#conciergerie-entreprise" },
+  { label: "Auto & avion", href: "/nettoyage-automobile" },
   { label: "Contact", href: "/contact" }
 ];

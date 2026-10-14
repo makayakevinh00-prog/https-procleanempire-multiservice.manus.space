@@ -22,7 +22,7 @@ export function InteractiveProcessTimeline() {
               transition={{ duration: 0.35, delay: index * 0.04 }}
               className="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 md:grid-cols-[90px,1fr]"
             >
-              <p className="text-2xl font-bold text-[#c9a227]">{item.step}</p>
+              <p className="text-2xl font-bold text-[#1d6fe0]">{item.step}</p>
               <div>
                 <h3 className="text-xl font-semibold text-[#14213d]">{item.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.description}</p>

@@ -24,7 +24,7 @@ export function GalleryFilterGrid() {
   return (
     <section className="section pt-0">
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft md:p-10">
-        <p className="text-sm font-semibold uppercase tracking-wide text-[#c9a227]">
+        <p className="text-sm font-semibold uppercase tracking-wide text-[#1d6fe0]">
           {galleryPageContent.eyebrow}
         </p>
         <h1 className="mt-3 text-4xl font-bold text-[#14213d] md:text-5xl">
@@ -45,7 +45,7 @@ export function GalleryFilterGrid() {
                 className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                   isActive
                     ? "bg-[#14213d] text-white"
-                    : "border border-slate-300 bg-white text-slate-700 hover:border-[#c9a227]"
+                    : "border border-slate-300 bg-white text-slate-700 hover:border-[#1d6fe0]"
                 }`}
                 aria-pressed={isActive}
               >

@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Header } from "@/components/layout/header";
+import { Header, HeaderSpacer } from "@/components/layout/header";
+import { BookingButton } from "@/components/layout/booking-button";
 import { Footer } from "@/components/layout/footer";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "ProClean Empire | Prestations de propreté et multiservices à Pontoise",
+  title: "ProClean Empire | Ménage Airbnb, nettoyage de bureaux et conciergerie à Pontoise",
   description:
-    "ProClean Empire accompagne les entreprises avec des prestations de propreté et multiservices à Pontoise et en Île-de-France.",
+    "Ménage Airbnb, nettoyage de bureaux et commerces, conciergerie d'entreprise et detailing auto & avion à Pontoise, dans le Val-d'Oise et en Île-de-France.",
   metadataBase: new URL(siteConfig.url)
 };
 
@@ -39,8 +40,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Aller au contenu
         </a>
         <Header />
+        <HeaderSpacer />
         <main id="main-content">{children}</main>
         <Footer />
+        <BookingButton />
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger

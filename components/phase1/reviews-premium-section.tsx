@@ -10,7 +10,7 @@ type CarouselSlide =
 
 function Rating({ value }: { value: number }) {
   return (
-    <div className="flex items-center gap-1 text-[#c9a227]" aria-label={`${value} sur 5`}>
+    <div className="flex items-center gap-1 text-[#1d6fe0]" aria-label={`${value} sur 5`}>
       {Array.from({ length: 5 }).map((_, index) => (
         <span key={index} aria-hidden>
           {index < value ? "★" : "☆"}
@@ -90,7 +90,7 @@ export function ReviewsPremiumSection() {
                   </>
                 ) : (
                   <>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-[#c9a227]">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[#1d6fe0]">
                       Temoignage video
                     </p>
                     <p className="mt-3 text-lg font-semibold text-[#14213d]">

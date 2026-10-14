@@ -9,6 +9,8 @@ export const siteConfig = {
   city: "Pontoise",
   region: "Île-de-France",
   addressLine: "3 rue Stéphane Charbonnier, 95800 Pontoise",
+  // Pas de lien de réservation Axonaut trouvé dans le site : « Prendre RDV » mène à /contact.
+  bookingUrl: "/contact",
   responseDelay: "Réactivité opérationnelle sur Pontoise et l'Île-de-France"
 };
 

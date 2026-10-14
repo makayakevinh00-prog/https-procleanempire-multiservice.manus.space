@@ -18,7 +18,7 @@ export function CaseStudyList() {
   return (
     <section className="section pt-0">
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft md:p-10">
-        <p className="text-sm font-semibold uppercase tracking-wide text-[#c9a227]">
+        <p className="text-sm font-semibold uppercase tracking-wide text-[#1d6fe0]">
           {caseStudiesPageContent.eyebrow}
         </p>
         <h1 className="mt-3 text-4xl font-bold text-[#14213d] md:text-5xl">
@@ -103,7 +103,7 @@ export function CaseStudyList() {
                 </div>
 
                 {item.testimonial ? (
-                  <blockquote className="mt-6 rounded-2xl border-l-4 border-[#c9a227] bg-slate-50 p-4">
+                  <blockquote className="mt-6 rounded-2xl border-l-4 border-[#1d6fe0] bg-slate-50 p-4">
                     <p className="text-sm italic text-slate-700">{item.testimonial.quote}</p>
                     <footer className="mt-2 text-xs font-semibold text-[#14213d]">
                       {item.testimonial.name} · {item.testimonial.role} · {item.testimonial.company}

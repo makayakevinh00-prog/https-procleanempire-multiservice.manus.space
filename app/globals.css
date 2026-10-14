@@ -10,9 +10,10 @@ html,
 body {
   margin: 0;
   padding: 0;
-  font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: #f8f9fb;
-  color: #0f172a;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: #ffffff;
+  color: #0b1220;
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
@@ -33,7 +34,7 @@ a {
 }
 
 .btn-secondary {
-  @apply inline-flex items-center justify-center rounded-xl border border-[#14213d]/30 bg-white px-5 py-3 font-semibold text-[#14213d] transition hover:border-[#c9a227] hover:text-[#0f1a32] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#14213d];
+  @apply inline-flex items-center justify-center rounded-xl border border-[#14213d]/30 bg-white px-5 py-3 font-semibold text-[#14213d] transition hover:border-[#1d6fe0] hover:text-[#0f1a32] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#14213d];
 }
 
 .marquee-mask {
@@ -62,4 +63,20 @@ a {
   .marquee-track {
     animation: none;
   }
+}
+
+.btn-pill {
+  @apply inline-flex items-center justify-center rounded-full bg-[#1d6fe0] px-6 py-3 text-base font-semibold text-white transition hover:bg-[#1559bd] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1d6fe0];
+}
+
+.btn-pill-ghost {
+  @apply inline-flex items-center justify-center rounded-full border border-current px-6 py-3 text-base font-semibold transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2;
+}
+
+.display-xl {
+  @apply font-display text-5xl font-semibold leading-[1.02] tracking-tight sm:text-6xl md:text-7xl lg:text-8xl;
+}
+
+.display-lg {
+  @apply font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl md:text-6xl;
 }
