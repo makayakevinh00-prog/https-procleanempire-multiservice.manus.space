@@ -18,7 +18,8 @@ export function Footer() {
   const actions = [
     { label: "Prendre RDV", href: siteConfig.bookingUrl },
     { label: "Demander un devis", href: "/contact#devis" },
-    { label: "Nous appeler", href: siteConfig.phoneHref }
+    { label: "Nous appeler", href: siteConfig.phoneHref },
+    { label: "Laisser un avis Google", href: siteConfig.googleReviewsUrl }
   ];
 
   return (

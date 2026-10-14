@@ -119,10 +119,27 @@ export const premiumReviewsData = {
 
 export type Partner = {
   name: string;
-  logo: string;
+  /** Logo facultatif : ne l'ajouter qu'avec l'accord écrit du client. */
+  logo?: string;
 };
 
-export const partners: Partner[] = [];
+/*
+ * Bannière « Ils nous font confiance » — À VALIDER PAR KEVINH avant la mise en ligne.
+ * Noms affichés en texte uniquement (aucun logo client sans accord) :
+ *   - SEA
+ *   - SARB Optique
+ *   - Île-de-France Recyclage
+ *   - Concierg'Air
+ *   - Easy Stay
+ * Retirer une ligne ci-dessous suffit à retirer le nom du site.
+ */
+export const partners: Partner[] = [
+  { name: "SEA" },
+  { name: "SARB Optique" },
+  { name: "Île-de-France Recyclage" },
+  { name: "Concierg'Air" },
+  { name: "Easy Stay" }
+];
 
 export const commitments = [
   {

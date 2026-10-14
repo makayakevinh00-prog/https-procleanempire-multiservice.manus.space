@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { premiumReviewsData } from "@/lib/content/phase1";
+import { siteConfig } from "@/lib/site";
 
 type CarouselSlide =
   | { kind: "text"; id: string; name: string; company?: string; role?: string; rating: number; text: string }
@@ -57,6 +58,16 @@ export function ReviewsPremiumSection() {
         <p className="mt-4 max-w-3xl text-lg leading-relaxed text-slate-700">
           {premiumReviewsData.sectionDescription}
         </p>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <a
+            href={siteConfig.googleReviewsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-pill"
+          >
+            Laisser un avis
+          </a>
+        </div>
 
         {slides.length === 0 ? (
           <div className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">

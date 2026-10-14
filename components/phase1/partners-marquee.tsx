@@ -1,28 +1,37 @@
 import { partners } from "@/lib/content/phase1";
 
+/** Bannière défilante « Ils nous font confiance » (noms en texte, liste dans lib/content/phase1.ts). */
 export function PartnersMarquee() {
   if (partners.length === 0) {
     return null;
   }
 
-  const loop = [...partners, ...partners];
+  // La liste est répétée pour que la boucle soit continue ; seule la première copie est lue par les lecteurs d'écran.
+  const loop = [...partners, ...partners, ...partners, ...partners];
 
   return (
-    <section className="border-y border-slate-200 bg-white py-8">
-      <div className="mx-auto max-w-content px-6 md:px-8">
-        <p className="mb-5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">
+    <section className="border-y border-slate-200 bg-white py-10" aria-labelledby="partners-title">
+      <div className="mx-auto max-w-[1400px] px-5 md:px-8">
+        <p
+          id="partners-title"
+          className="mb-6 text-center text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+        >
           Ils nous font confiance
         </p>
-        <div className="marquee-mask overflow-hidden">
-          <div className="marquee-track flex w-max items-center gap-16">
+        <ul className="sr-only">
+          {partners.map((partner) => (
+            <li key={partner.name}>{partner.name}</li>
+          ))}
+        </ul>
+        <div className="marquee-mask overflow-hidden" aria-hidden>
+          <div className="marquee-track flex w-max items-center gap-14 md:gap-20">
             {loop.map((partner, index) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <span
                 key={`${partner.name}-${index}`}
-                src={partner.logo}
-                alt={partner.name}
-                className="h-10 w-auto shrink-0 object-contain opacity-70 grayscale transition hover:opacity-100 hover:grayscale-0"
-              />
+                className="shrink-0 whitespace-nowrap font-display text-xl font-semibold tracking-tight text-slate-400 transition-colors hover:text-ink md:text-2xl"
+              >
+                {partner.name}
+              </span>
             ))}
           </div>
         </div>
