@@ -3,6 +3,7 @@ import { navLinks } from "@/lib/data";
 import { siteConfig } from "@/lib/site";
 import { legalInfo } from "@/lib/content/legal";
 import { socialLinks } from "@/lib/content/phase3";
+import { localPages } from "@/lib/content/local-pages";
 
 const realSocialLinks = socialLinks.filter((social) => !social.href.startsWith("["));
 
@@ -69,7 +70,15 @@ export function Footer() {
           <h3 className="mb-3 mt-6 text-sm font-semibold uppercase tracking-wide text-slate-300">
             Zones
           </h3>
-          <p className="text-sm text-slate-300">Pontoise · Val d&apos;Oise · Île-de-France</p>
+          <ul className="space-y-1 text-sm">
+            {localPages.map((page) => (
+              <li key={page.slug}>
+                <Link href={`/${page.slug}`} className="text-slate-300 transition hover:text-white">
+                  {page.city}
+                </Link>
+              </li>
+            ))}
+          </ul>
           <Link href="/zones-intervention" className="mt-1 inline-block text-sm text-slate-300 underline transition hover:text-white">
             Voir toutes les zones
           </Link>

@@ -46,12 +46,14 @@ export function buildMetadata({
       url: canonical,
       siteName: siteConfig.name,
       locale: "fr_FR",
-      type: "website"
+      type: "website",
+      images: [{ url: `${siteConfig.url}/media/photos/hero-showcase.jpg`, width: 1600, height: 1600, alt: "ProClean Empire" }]
     },
     twitter: {
       card: "summary_large_image",
       title: fullTitle,
-      description
+      description,
+      images: [`${siteConfig.url}/media/photos/hero-showcase.jpg`]
     }
   };
 }

@@ -9,13 +9,20 @@ export const metadata: Metadata = {
   title: "ProClean Empire | Ménage Airbnb, nettoyage de bureaux et conciergerie à Pontoise",
   description:
     "Ménage Airbnb, nettoyage de bureaux et commerces, conciergerie d'entreprise et detailing auto & avion à Pontoise, dans le Val-d'Oise et en Île-de-France.",
-  metadataBase: new URL(siteConfig.url)
+  metadataBase: new URL(siteConfig.url),
+  openGraph: {
+    siteName: siteConfig.name,
+    locale: "fr_FR",
+    type: "website",
+    images: [{ url: "/media/photos/hero-showcase.jpg", width: 1600, height: 1600, alt: "ProClean Empire" }]
+  }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const organizationSchema = {
     "@context": "https://schema.org",
-    "@type": "ProfessionalService",
+    "@type": ["LocalBusiness", "ProfessionalService"],
+    "@id": `${siteConfig.url}/#entreprise`,
     name: siteConfig.name,
     url: siteConfig.url,
     logo: `${siteConfig.url}/media/logo/proclean-empire-logo.png`,
@@ -34,14 +41,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       "Conciergerie d'entreprise",
       "Remise en état"
     ].map((name) => ({ "@type": "Offer", itemOffered: { "@type": "Service", name } })),
-    areaServed: siteConfig.region,
+    areaServed: ["Pontoise", "Cergy", "Val-d'Oise", "Paris", "Saint-Ouen-sur-Seine", "Île-de-France"].map((name) => ({ "@type": "Place", name })),
     telephone: siteConfig.phone,
     email: siteConfig.email,
     address: {
       "@type": "PostalAddress",
       streetAddress: siteConfig.addressLine,
       addressLocality: siteConfig.city,
-      postalCode: "95800",
       addressRegion: siteConfig.region,
       addressCountry: "FR"
     }
