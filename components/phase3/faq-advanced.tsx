@@ -73,7 +73,7 @@ export function FaqAdvanced() {
                   className={`rounded-full px-4 py-2 text-sm font-semibold ${
                     active
                       ? "bg-[#14213d] text-white"
-                      : "border border-slate-300 bg-white text-slate-700 hover:border-[#c9a227]"
+                      : "border border-slate-300 bg-white text-slate-700 hover:border-[#1d6fe0]"
                   }`}
                 >
                   {item}
@@ -100,7 +100,7 @@ export function FaqAdvanced() {
                     aria-expanded={isOpen}
                   >
                     <span>
-                      <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[#c9a227]">
+                      <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[#1d6fe0]">
                         {item.theme}
                       </span>
                       <span className="font-semibold text-[#14213d]">{item.question}</span>

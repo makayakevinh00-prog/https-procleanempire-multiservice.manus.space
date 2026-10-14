@@ -6,7 +6,7 @@ export function TeamPremiumSection() {
   return (
     <section className="section pt-0">
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft md:p-10">
-        <p className="text-sm font-semibold uppercase tracking-wide text-[#c9a227]">
+        <p className="text-sm font-semibold uppercase tracking-wide text-[#1d6fe0]">
           {teamPageContent.eyebrow}
         </p>
         <h1 className="mt-3 text-4xl font-bold text-[#14213d] md:text-5xl">{teamPageContent.title}</h1>
@@ -47,7 +47,7 @@ export function TeamPremiumSection() {
             <ul className="mt-3 space-y-2 text-sm text-slate-700">
               {teamPageContent.valuesBlock.bullets.map((bullet) => (
                 <li key={bullet} className="flex items-start gap-2">
-                  <span className="text-[#c9a227]" aria-hidden>
+                  <span className="text-[#1d6fe0]" aria-hidden>
                     ✓
                   </span>
                   <span>{bullet}</span>

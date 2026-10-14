@@ -43,7 +43,7 @@ export default function BlogPage() {
             <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {blogPosts.map((post) => (
                 <article key={post.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[#c9a227]">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[#1d6fe0]">
                     {post.category}
                   </p>
                   <h3 className="mt-2 text-base font-semibold text-[#14213d]">{post.title}</h3>

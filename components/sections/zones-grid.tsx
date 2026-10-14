@@ -6,7 +6,7 @@ export function ZonesGrid() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {zoneDepartments.map((zone) => (
           <article key={zone.code} className="card p-5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#c9a227]">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#1d6fe0]">
               {zone.department} ({zone.code})
             </p>
             <ul className="mt-3 space-y-1 text-sm text-slate-700">

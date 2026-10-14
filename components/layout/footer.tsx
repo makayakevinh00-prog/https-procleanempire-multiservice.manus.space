@@ -8,23 +8,17 @@ const realSocialLinks = socialLinks.filter((social) => !social.href.startsWith("
 
 export function Footer() {
   const services = [
-    { label: "Gestion de flottes automobiles", href: "/nettoyage-automobile" },
-    { label: "Entretien bureaux", href: "/nettoyage-bureaux" },
-    { label: "Entretien restaurants", href: "/nettoyage-restaurants" },
-    { label: "Entretien hôtelier", href: "/nettoyage-hotels" },
-    { label: "Entretien commerces", href: "/nettoyage-commerces" },
-    { label: "Entretien vitrerie", href: "/nettoyage-vitrerie" },
-    { label: "Après chantier", href: "/apres-chantier" },
-    { label: "Remise en état", href: "/remise-en-etat" }
+    { label: "Ménage Airbnb", href: "/menage-airbnb" },
+    { label: "Nettoyage de bureaux", href: "/nettoyage-bureaux" },
+    { label: "Nettoyage de commerces", href: "/nettoyage-commerces" },
+    { label: "Conciergerie d'entreprise", href: "/conciergerie-entreprise" },
+    { label: "Remise en état / fin de chantier", href: "/remise-en-etat" }
   ];
 
-  const sectors = [
-    "Bureaux",
-    "Restaurants",
-    "Hôtels",
-    "Commerces",
-    "Cabinets",
-    "Coworking"
+  const actions = [
+    { label: "Prendre RDV", href: siteConfig.bookingUrl },
+    { label: "Demander un devis", href: "/contact#devis" },
+    { label: "Nous appeler", href: siteConfig.phoneHref }
   ];
 
   return (
@@ -37,9 +31,8 @@ export function Footer() {
             className="h-24 w-auto"
           />
           <p className="text-sm leading-relaxed text-slate-300">
-            Votre partenaire en propreté, entretien et multiservices pour les
-            entreprises, commerces, copropriétés et établissements
-            professionnels.
+            Ménage Airbnb, nettoyage des bureaux et commerces, conciergerie
+            d&apos;entreprise. Pontoise, Val-d&apos;Oise et Île-de-France.
           </p>
           <p className="text-sm text-slate-300">
             {siteConfig.phone} · {siteConfig.email}
@@ -61,11 +54,15 @@ export function Footer() {
         </div>
         <div>
           <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-300">
-            Secteurs
+            Passer à l&apos;action
           </h3>
-          <ul className="space-y-2 text-sm text-slate-300">
-            {sectors.map((sector) => (
-              <li key={sector}>{sector}</li>
+          <ul className="space-y-2 text-sm">
+            {actions.map((action) => (
+              <li key={action.label}>
+                <Link href={action.href} className="font-semibold text-[#8db8ff] transition hover:text-white">
+                  {action.label} ›
+                </Link>
+              </li>
             ))}
           </ul>
           <h3 className="mb-3 mt-6 text-sm font-semibold uppercase tracking-wide text-slate-300">
