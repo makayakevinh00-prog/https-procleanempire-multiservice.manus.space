@@ -21,8 +21,8 @@ export function CtaBand() {
             <Link href="/devis" className="btn-primary">
               Demander un devis
             </Link>
-            <Link href="/contact" className="btn-secondary border-slate-500 bg-transparent text-white">
-              Être rappelé
+            <Link href="/rendez-vous" className="btn-secondary border-slate-500 bg-transparent text-white">
+              Planifier un appel ou une visite
             </Link>
           </div>
         </div>

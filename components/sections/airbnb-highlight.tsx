@@ -19,8 +19,8 @@ export function AirbnbHighlight() {
             <Link href="/menage-airbnb" className="btn-primary">
               Découvrir l&apos;offre Airbnb
             </Link>
-            <Link href="/devis" className="btn-secondary">
-              Devis conciergerie
+            <Link href="/rendez-vous" className="btn-secondary">
+              Réserver un appel
             </Link>
           </div>
         </div>
