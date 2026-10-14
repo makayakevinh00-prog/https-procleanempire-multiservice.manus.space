@@ -22,7 +22,9 @@ export type BlogCategory =
   | "Hygiène"
   | "Entreprise"
   | "Google Business"
-  | "SEO local";
+  | "SEO local"
+  | "Ménage Airbnb"
+  | "Conciergerie d'entreprise";
 
 export const videosPageContent = {
   title: "Vidéos ProClean Empire",
@@ -133,19 +135,17 @@ export const realisationsSectors = [
 export const blogPageContent = {
   title: "Blog ProClean Empire",
   description:
-    "Structure éditoriale prête pour publier régulièrement des contenus utiles au SEO local et à la conversion B2B.",
+    "Conseils pratiques, nouveautés et coulisses de ProClean Empire : ménage Airbnb, entretien des bureaux et des commerces, conciergerie d'entreprise.",
   categories: [
+    "Ménage Airbnb",
     "Entretien bureaux",
-    "Restaurants",
-    "Hôtels",
+    "Conciergerie d'entreprise",
     "Conseils",
     "Hygiène",
-    "Entreprise",
-    "Google Business",
-    "SEO local"
+    "Entreprise"
   ] as BlogCategory[],
   placeholder:
-    "[A REMPLIR PAR VOUS] Ajoutez vos articles réels (titre, extrait, catégorie, slug) pour éviter toute page fine."
+    "Nos premiers articles arrivent bientôt."
 };
 
 export type BlogPost = {

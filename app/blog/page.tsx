@@ -28,7 +28,7 @@ export default function BlogPage() {
       />
       <section className="section pt-0">
         <div className="card p-6 md:p-8">
-          <h2 className="text-xl font-semibold text-[#14213d]">Catégories éditoriales prévues</h2>
+          <h2 className="text-xl font-semibold text-[#14213d]">Nos thèmes</h2>
           <div className="mt-4 flex flex-wrap gap-2">
             {blogPageContent.categories.map((category) => (
               <span
