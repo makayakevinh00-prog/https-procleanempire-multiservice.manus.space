@@ -138,7 +138,14 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-slate-800 px-6 py-6 text-center text-xs text-slate-400 md:px-8">
-        © {new Date().getFullYear()} ProClean Empire. Tous droits réservés.
+        <p>© {new Date().getFullYear()} ProClean Empire. Tous droits réservés.</p>
+        <p className="mt-2">
+          Propriétaire ?{" "}
+          <Link href="/proprietaires" className="underline transition hover:text-white">
+            Nous pouvons aussi gérer votre bien
+          </Link>
+          .
+        </p>
       </div>
     </footer>
   );
