@@ -97,13 +97,11 @@ export function PremiumService(props: PremiumServiceProps) {
           </Reveal>
           <ol className="mt-12 grid gap-6 md:grid-cols-3">
             {props.steps.map((step, index) => (
-              <Reveal key={step.title} delay={0.08 * index} y={20}>
-                <li className="rounded-[24px] bg-white/5 p-7">
+              <Reveal as="li" className="rounded-[24px] bg-white/5 p-7" key={step.title} delay={0.08 * index} y={20}>
                   <span className="font-display text-5xl font-semibold text-[#8db8ff]">{index + 1}</span>
                   <h3 className="mt-4 text-xl font-semibold">{step.title}</h3>
                   <p className="mt-2 text-white/70">{step.text}</p>
-                </li>
-              </Reveal>
+                </Reveal>
             ))}
           </ol>
         </div>
@@ -151,7 +149,7 @@ export function PremiumService(props: PremiumServiceProps) {
           <div className="mt-10">
             <QuoteForm defaultService={props.serviceId} />
           </div>
-          <p className="mt-6 text-center text-sm text-slate-500">
+          <p className="mt-6 text-center text-sm text-slate-600">
             <Link href="/contact" className="underline">
               Autre besoin ? Toutes les façons de nous contacter
             </Link>

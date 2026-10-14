@@ -28,7 +28,7 @@ export function PartnersMarquee() {
             {loop.map((partner, index) => (
               <span
                 key={`${partner.name}-${index}`}
-                className="shrink-0 whitespace-nowrap font-display text-xl font-semibold tracking-tight text-slate-400 transition-colors hover:text-ink md:text-2xl"
+                className="shrink-0 whitespace-nowrap font-display text-xl font-semibold tracking-tight text-slate-500 transition-colors hover:text-ink md:text-2xl"
               >
                 {partner.name}
               </span>

@@ -156,12 +156,10 @@ function AirbnbFeature() {
           </Reveal>
           <ul className="mt-10 space-y-4">
             {points.map((point, index) => (
-              <Reveal key={point} delay={0.08 * index} y={20}>
-                <li className="flex items-start gap-3 text-lg text-ink">
+              <Reveal as="li" className="flex items-start gap-3 text-lg text-ink" key={point} delay={0.08 * index} y={20}>
                   <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#1d6fe0]" aria-hidden />
                   {point}
-                </li>
-              </Reveal>
+                </Reveal>
             ))}
           </ul>
           <Reveal delay={0.3}>
@@ -365,13 +363,11 @@ function HowItWorks() {
         </Reveal>
         <ol className="mt-14 grid gap-6 md:grid-cols-3">
           {steps.map((step, index) => (
-            <Reveal key={step.title} delay={0.08 * index} y={20}>
-              <li className="h-full rounded-[28px] bg-white p-8 shadow-soft">
+            <Reveal as="li" className="h-full rounded-[28px] bg-white p-8 shadow-soft" key={step.title} delay={0.08 * index} y={20}>
                 <span className="font-display text-6xl font-semibold text-[#1d6fe0]">{index + 1}</span>
                 <h3 className="mt-4 text-xl font-semibold text-ink">{step.title}</h3>
                 <p className="mt-2 text-slate-600">{step.text}</p>
-              </li>
-            </Reveal>
+              </Reveal>
           ))}
         </ol>
         <div className="mx-auto mt-24 max-w-[900px]">

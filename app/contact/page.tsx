@@ -70,7 +70,7 @@ export default function ContactPage() {
       <section className="bg-mist">
         <div className="mx-auto max-w-[1200px] px-5 pb-20 pt-16 md:px-8 md:pb-28 md:pt-24">
           <Reveal>
-            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-[#1d6fe0]">
+            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-[#1559bd]">
               Contact
             </p>
             <h1 className="display-xl text-ink">Parlons de votre projet.</h1>
@@ -96,7 +96,7 @@ export default function ContactPage() {
                   </span>
                   <span
                     className={`mt-6 flex items-center justify-between text-base ${
-                      action.primary ? "text-white/85" : "text-slate-600"
+                      action.primary ? "text-white" : "text-slate-600"
                     }`}
                   >
                     {action.text}
@@ -108,7 +108,7 @@ export default function ContactPage() {
               </Reveal>
             ))}
           </div>
-          <p className="mt-6 text-sm text-slate-500">
+          <p className="mt-6 text-sm text-slate-600">
             Par téléphone :{" "}
             <a href={siteConfig.phoneHref} className="font-semibold text-[#1d6fe0]">
               {siteConfig.phone}

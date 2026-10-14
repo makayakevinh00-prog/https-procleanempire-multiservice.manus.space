@@ -11,7 +11,7 @@ type CarouselSlide =
 
 function Rating({ value }: { value: number }) {
   return (
-    <div className="flex items-center gap-1 text-[#1d6fe0]" aria-label={`${value} sur 5`}>
+    <div className="flex items-center gap-1 text-[#1d6fe0]" role="img" aria-label={`Note : ${value} sur 5`}>
       {Array.from({ length: 5 }).map((_, index) => (
         <span key={index} aria-hidden>
           {index < value ? "★" : "☆"}
@@ -122,17 +122,23 @@ export function ReviewsPremiumSection() {
             </AnimatePresence>
 
             {slides.length > 1 && (
-              <div className="flex items-center justify-center gap-2 pb-5">
+              <div className="flex items-center justify-center gap-1 pb-5">
                 {slides.map((slide, index) => (
                   <button
                     key={slide.id}
                     type="button"
                     aria-label={`Avis ${index + 1}`}
+                    aria-current={index === activeIndex ? "true" : undefined}
                     onClick={() => setActiveIndex(index)}
-                    className={`h-2 rounded-full transition-all ${
-                      index === activeIndex ? "w-6 bg-[#14213d]" : "w-2 bg-slate-300"
-                    }`}
-                  />
+                    className="flex h-6 min-w-6 items-center justify-center"
+                  >
+                    <span
+                      aria-hidden
+                      className={`block h-2 rounded-full transition-all ${
+                        index === activeIndex ? "w-6 bg-[#14213d]" : "w-2 bg-slate-400"
+                      }`}
+                    />
+                  </button>
                 ))}
               </div>
             )}

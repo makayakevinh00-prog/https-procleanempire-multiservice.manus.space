@@ -8,16 +8,20 @@ export function Reveal({
   children,
   delay = 0,
   y = 40,
-  className
+  className,
+  as = "div"
 }: {
   children: ReactNode;
+  /** « li » quand l'élément est l'enfant direct d'une liste (accessibilité). */
+  as?: "div" | "li";
   delay?: number;
   y?: number;
   className?: string;
 }) {
   const reduce = useReducedMotion();
+  const Tag = as === "li" ? motion.li : motion.div;
   return (
-    <motion.div
+    <Tag
       className={className}
       initial={reduce ? false : { opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -25,6 +29,6 @@ export function Reveal({
       viewport={{ once: true, amount: 0.2 }}
     >
       {children}
-    </motion.div>
+    </Tag>
   );
 }

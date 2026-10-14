@@ -240,7 +240,7 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
             <span
               className={`block h-1.5 rounded-full ${index + 1 <= step ? "bg-[#1d6fe0]" : "bg-slate-200"}`}
             />
-            <span className={`mt-2 block ${index + 1 === step ? "text-[#1d6fe0]" : "text-slate-400"}`}>
+            <span className={`mt-2 block ${index + 1 === step ? "text-[#1d6fe0]" : "text-slate-500"}`}>
               {index + 1}. {label}
             </span>
           </li>
