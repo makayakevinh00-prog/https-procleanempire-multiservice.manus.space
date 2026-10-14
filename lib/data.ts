@@ -270,6 +270,5 @@ export const navLinks = [
   { label: "Ménage Airbnb", href: "/#menage-airbnb" },
   { label: "Bureaux & commerces", href: "/nettoyage-bureaux" },
   { label: "Conciergerie d'entreprise", href: "/#conciergerie-entreprise" },
-  { label: "Auto & avion", href: "/nettoyage-automobile" },
   { label: "Contact", href: "/contact" }
 ];

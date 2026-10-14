@@ -165,10 +165,11 @@ export function QuoteForm() {
 
       {step === 1 ? (
         <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <InputField
-            label="Type de prestation / locaux"
+          <SelectField
+            label="Type de prestation"
             value={values.localType}
             onChange={(value) => updateField("localType", value)}
+            options={serviceOptions}
             required
           />
           <InputField
@@ -315,6 +316,49 @@ export function QuoteForm() {
         ))}
       </div>
     </form>
+  );
+}
+
+const serviceOptions = [
+  "Ménage Airbnb / location courte durée",
+  "Nettoyage de bureaux",
+  "Nettoyage de commerce",
+  "Conciergerie d'entreprise",
+  "Remise en état / fin de chantier",
+  "Nettoyage de véhicules de société",
+  "Autre"
+];
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+  required = false
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: string[];
+  required?: boolean;
+}) {
+  return (
+    <label className="text-sm font-medium text-slate-700">
+      {label} {required ? <span aria-hidden="true">*</span> : null}
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        required={required}
+        className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-[#14213d] focus:outline-none focus:ring-1 focus:ring-[#14213d]"
+      >
+        <option value="">Choisir…</option>
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 

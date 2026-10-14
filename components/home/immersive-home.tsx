@@ -63,8 +63,8 @@ function Hero() {
           transition={{ duration: 0.8, delay: 0.45 }}
           className="mt-6 max-w-2xl text-lg text-white/85 md:text-xl"
         >
-          Ménage Airbnb, bureaux &amp; commerces, conciergerie d&apos;entreprise et detailing auto
-          &amp; avion. Une seule équipe, un seul niveau d&apos;exigence.
+          Ménage Airbnb, nettoyage des bureaux &amp; commerces et conciergerie d&apos;entreprise.
+          Une seule équipe, un seul niveau d&apos;exigence.
         </motion.p>
         <motion.div
           initial={reduce ? false : { opacity: 0, y: 16 }}
@@ -101,7 +101,7 @@ function Statement() {
       <div className="mx-auto max-w-[1100px] px-5 py-28 md:px-8 md:py-40">
         <Reveal>
           <p className="font-display text-3xl font-semibold leading-tight tracking-tight text-slate-400 sm:text-4xl md:text-5xl">
-            <span className="text-ink">Logements, bureaux, véhicules.</span> Chaque espace mérite
+            <span className="text-ink">Logements, bureaux, commerces.</span> Chaque espace mérite
             le même soin du détail.{" "}
             <span className="text-[#1d6fe0]">C&apos;est notre métier, depuis Pontoise.</span>
           </p>
@@ -151,7 +151,7 @@ function AirbnbFeature() {
           </ul>
           <Reveal delay={0.3}>
             <div className="mt-12 flex flex-col gap-3 sm:flex-row">
-              <Link href="/devis" className="btn-pill">
+              <Link href="/contact#devis" className="btn-pill">
                 Demander un devis Airbnb
               </Link>
               <Link href={siteConfig.bookingUrl} className="btn-pill-ghost text-ink">
@@ -197,121 +197,107 @@ function AirbnbFeature() {
   );
 }
 
-/* ---------- 4. Univers de services ---------- */
+/* ---------- 4. Bureaux & commerces + Conciergerie d'entreprise ---------- */
+const conciergerieItems = [
+  { title: "Nettoyage quotidien", text: "Bureaux, sanitaires, cuisines et espaces d'accueil, avant votre arrivée." },
+  { title: "Entretien des équipements", text: "Postes de travail, électroménager, vitrines, sols et mobilier." },
+  { title: "Véhicules de société", text: "Voitures, utilitaires et même avions : nettoyage intérieur et extérieur sur site." },
+  { title: "Décoration des fêtes", text: "Halloween, Noël, Saint-Valentin, Pâques : installée puis retirée." },
+  { title: "Consommables & réassort", text: "Papier, savon, café, produits d'entretien : jamais en rupture." },
+  { title: "Plantes", text: "Arrosage, entretien et remplacement des plantes de vos locaux." },
+  { title: "Accueil & petits services", text: "Réception des livraisons, préparation des salles, petites interventions." },
+  { title: "Gestion de l'espace de travail", text: "Un interlocuteur unique qui veille à ce que tout soit prêt, chaque jour." }
+];
+
 function ServicesTiles() {
   return (
     <section className="bg-white">
       <div className="mx-auto max-w-[1400px] px-5 py-28 md:px-8 md:py-36">
         <Reveal>
-          <h2 className="display-lg max-w-3xl text-ink">Tous vos espaces. Une seule équipe.</h2>
+          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-[#1d6fe0]">
+            Pour les professionnels
+          </p>
+          <h2 className="display-lg max-w-4xl text-ink">
+            Vos locaux propres chaque matin. Le reste, on s&apos;en occupe aussi.
+          </h2>
         </Reveal>
 
-        <div className="mt-16 grid gap-5 lg:grid-cols-2">
+        <div className="mt-16 grid gap-5 lg:grid-cols-[1fr_1.4fr]">
           <Reveal>
             <Link
               href="/nettoyage-bureaux"
-              className="group relative block h-[520px] overflow-hidden rounded-[32px] bg-ink"
+              className="group relative block h-full min-h-[520px] overflow-hidden rounded-[32px] bg-ink"
             >
               <Image
                 src="/media/photos/hero-showcase.jpg"
                 alt="Espace de bureaux haut de gamme entretenu par ProClean Empire"
                 fill
-                sizes="(min-width: 1024px) 50vw, 100vw"
+                sizes="(min-width: 1024px) 40vw, 100vw"
                 className="object-cover opacity-80 transition duration-700 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-8 text-white md:p-10">
                 <h3 className="font-display text-4xl font-semibold tracking-tight md:text-5xl">
                   Bureaux &amp; commerces.
                 </h3>
                 <p className="mt-3 max-w-md text-lg text-white/80">
-                  Bureaux, boutiques, halls d&apos;immeuble et remises en état, planifiés selon vos
-                  horaires.
+                  Nettoyage quotidien ou hebdomadaire, halls d&apos;immeuble et remises en état,
+                  planifiés selon vos horaires.
                 </p>
                 <span className="mt-5 inline-block text-base font-semibold text-[#8db8ff]">
-                  En savoir plus ›
+                  Voir le nettoyage de bureaux ›
                 </span>
               </div>
             </Link>
           </Reveal>
 
           <Reveal delay={0.1}>
-            <Link
-              href="/nettoyage-automobile"
-              className="group relative block h-[520px] overflow-hidden rounded-[32px] bg-ink"
+            <div
+              id="conciergerie-entreprise"
+              className="h-full scroll-mt-24 overflow-hidden rounded-[32px] bg-gradient-to-br from-[#0b1f4d] via-[#123a8a] to-[#1d6fe0] p-8 text-white md:p-12"
             >
-              <Image
-                src="/media/photos/nettoyage-avion-cessna.jpeg"
-                alt="Nettoyage extérieur d'un avion de tourisme par ProClean Empire"
-                fill
-                sizes="(min-width: 1024px) 50vw, 100vw"
-                className="object-cover transition duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-8 text-white md:p-10">
-                <h3 className="font-display text-4xl font-semibold tracking-tight md:text-5xl">
-                  Auto &amp; avion.
-                </h3>
-                <p className="mt-3 max-w-md text-lg text-white/80">
-                  Detailing intérieur et extérieur, de la citadine au cockpit.
-                </p>
-                <span className="mt-5 inline-block text-base font-semibold text-[#8db8ff]">
-                  En savoir plus ›
-                </span>
-              </div>
-            </Link>
-          </Reveal>
-        </div>
-
-        <Reveal delay={0.1}>
-          <div
-            id="conciergerie-entreprise"
-            className="mt-5 scroll-mt-24 overflow-hidden rounded-[32px] bg-gradient-to-br from-[#0b1f4d] via-[#123a8a] to-[#1d6fe0] p-8 text-white md:p-14"
-          >
-            <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr] lg:items-end">
-              <div>
-                <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
-                  Sur mesure
-                </p>
-                <h3 className="display-lg">Conciergerie d&apos;entreprise.</h3>
-                <p className="mt-5 max-w-xl text-lg text-white/80 md:text-xl">
-                  Vos bureaux et commerces toujours prêts à recevoir : on s&apos;occupe des détails,
-                  vous vous occupez de vos clients.
-                </p>
-              </div>
-              <ul className="grid grid-cols-2 gap-3 text-base font-medium">
-                {[
-                  "Décoration des fêtes",
-                  "Consommables & réassort",
-                  "Plantes",
-                  "Accueil & petits services"
-                ].map((item) => (
-                  <li key={item} className="rounded-2xl bg-white/10 px-4 py-5 backdrop-blur">
-                    {item}
+              <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
+                Sur mesure
+              </p>
+              <h3 className="display-lg">Conciergerie d&apos;entreprise.</h3>
+              <p className="mt-5 max-w-2xl text-lg text-white/85 md:text-xl">
+                Un seul prestataire pour la gestion complète de vos espaces de travail : vos
+                équipes et vos clients trouvent un lieu impeccable, vous n&apos;y pensez plus.
+              </p>
+              <ul className="mt-10 grid gap-3 sm:grid-cols-2">
+                {conciergerieItems.map((item) => (
+                  <li key={item.title} className="rounded-2xl bg-white/10 p-5 backdrop-blur">
+                    <p className="font-semibold">{item.title}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-white/75">{item.text}</p>
                   </li>
                 ))}
               </ul>
+              <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+                <Link
+                  href="/contact#devis"
+                  className="inline-flex justify-center rounded-full bg-white px-6 py-3 font-semibold text-[#0b1f4d] transition hover:bg-white/90"
+                >
+                  Demander un devis conciergerie
+                </Link>
+                <Link href={siteConfig.bookingUrl} className="btn-pill-ghost justify-center text-white">
+                  Prendre RDV
+                </Link>
+              </div>
             </div>
-            <Link
-              href="/contact"
-              className="mt-10 inline-flex rounded-full bg-white px-6 py-3 font-semibold text-[#0b1f4d] transition hover:bg-white/90"
-            >
-              Parler de votre projet
-            </Link>
-          </div>
-        </Reveal>
+          </Reveal>
+        </div>
       </div>
     </section>
   );
 }
 
-/* ---------- 5. Galerie auto & avion (fond sombre) ---------- */
+/* ---------- 5. Galerie (fond sombre) ---------- */
 function DetailingStrip() {
   const shots = [
-    { src: "/media/photos/cockpit-avion-detailing.jpeg", alt: "Detailing du cockpit d'un avion" },
-    { src: "/media/photos/interieur-auto-apres.jpeg", alt: "Intérieur de voiture après detailing" },
-    { src: "/media/photos/sieges-cuir-avion.jpeg", alt: "Sièges cuir d'avion nettoyés" },
-    { src: "/media/photos/interieur-mercedes-apres.jpeg", alt: "Intérieur Mercedes après nettoyage" }
+    { src: "/media/photos/airbnb-table-accueil.jpeg", alt: "Table d'accueil préparée dans un logement Airbnb" },
+    { src: "/media/photos/canape-velours-apres.jpeg", alt: "Canapé en velours après nettoyage" },
+    { src: "/media/photos/traitement-tapis.jpeg", alt: "Traitement d'un tapis professionnel" },
+    { src: "/media/photos/interieur-auto-apres.jpeg", alt: "Véhicule de société après nettoyage intérieur" }
   ];
   return (
     <section className="bg-ink text-white">
@@ -320,6 +306,9 @@ function DetailingStrip() {
           <h2 className="display-lg max-w-3xl">
             Le détail fait <span className="text-[#8db8ff]">toute la différence.</span>
           </h2>
+          <p className="mt-5 max-w-2xl text-lg text-white/70">
+            Logements, locaux, mobilier, véhicules de vos équipes : le même soin partout.
+          </p>
         </Reveal>
         <div className="mt-14 grid grid-cols-2 gap-4 md:grid-cols-4">
           {shots.map((shot, index) => (

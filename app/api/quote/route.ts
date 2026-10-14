@@ -106,7 +106,8 @@ export async function POST(request: NextRequest) {
       from: `"Formulaire ProClean Empire" <${gmailUser}>`,
       to: gmailUser,
       replyTo: data.email,
-      subject: `Nouvelle demande de devis — ${data.company}`,
+      // Tag lu par le Manager Commercial de la PROCLEAN MACHINE (traitement automatique du devis).
+      subject: `[DEVIS SITE] ${data.localType} — ${data.company} (${data.city})`,
       text: summaryLines.join("\n")
     });
   } catch (error) {
