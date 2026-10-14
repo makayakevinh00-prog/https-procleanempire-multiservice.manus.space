@@ -26,7 +26,14 @@ export type Lead = {
 
 export type AxonautResult = { companyId: number; companyCreated: boolean; opportunityId: number };
 
-export class AxonautError extends Error {}
+/** Codes courts affichés au visiteur (et dans les logs) pour diagnostiquer sans exposer de secret. */
+export type AxonautErrorCode = "CLE_ABSENTE" | "CLE_REFUSEE" | "AXONAUT_INJOIGNABLE" | "AXONAUT_REFUS";
+
+export class AxonautError extends Error {
+  constructor(message: string, public code: AxonautErrorCode = "AXONAUT_REFUS") {
+    super(message);
+  }
+}
 
 async function call<T>(path: string, init: RequestInit, key: string): Promise<T> {
   let response: Response;
@@ -38,11 +45,14 @@ async function call<T>(path: string, init: RequestInit, key: string): Promise<T>
       signal: AbortSignal.timeout(TIMEOUT_MS)
     });
   } catch (error) {
-    throw new AxonautError(`Axonaut ${init.method ?? "GET"} ${path} injoignable : ${String(error)}`);
+    throw new AxonautError(`Axonaut ${init.method ?? "GET"} ${path} injoignable : ${String(error)}`, "AXONAUT_INJOIGNABLE");
   }
   const text = await response.text();
   if (!response.ok) {
-    throw new AxonautError(`Axonaut ${init.method ?? "GET"} ${path} → ${response.status} ${text.slice(0, 1000)}`);
+    throw new AxonautError(
+      `Axonaut ${init.method ?? "GET"} ${path} → ${response.status} ${text.slice(0, 1000)}`,
+      response.status === 401 || response.status === 403 ? "CLE_REFUSEE" : "AXONAUT_REFUS"
+    );
   }
   try {
     return JSON.parse(text) as T;
@@ -73,8 +83,8 @@ export function parisNow() {
  * Lève une AxonautError si la clé manque ou si Axonaut refuse une étape.
  */
 export async function pushLeadToAxonaut(lead: Lead): Promise<AxonautResult> {
-  const key = process.env.AXONAUT_API_KEY;
-  if (!key) throw new AxonautError("AXONAUT_API_KEY absente des variables d'environnement.");
+  const key = process.env.AXONAUT_API_KEY?.trim();
+  if (!key) throw new AxonautError("AXONAUT_API_KEY absente des variables d'environnement.", "CLE_ABSENTE");
 
   const managerEmail = process.env.AXONAUT_MANAGER_EMAIL || "contact@procleanempire.com";
   const pipeName = process.env.AXONAUT_PIPE_NAME || "Cycle commercial";
@@ -151,4 +161,20 @@ export async function pushLeadToAxonaut(lead: Lead): Promise<AxonautResult> {
   if (!opportunity?.id) throw new AxonautError("Axonaut n'a pas renvoyé d'identifiant d'opportunité.");
 
   return { companyId, companyCreated, opportunityId: opportunity.id };
+}
+
+/**
+ * Diagnostic sans secret : la clé est-elle présente, et Axonaut l'accepte-t-il ?
+ * Utilisé par GET /api/quote/health.
+ */
+export async function checkAxonaut(): Promise<{ cle: "presente" | "absente"; axonaut: string }> {
+  const key = process.env.AXONAUT_API_KEY?.trim();
+  if (!key) return { cle: "absente", axonaut: "non testé" };
+  try {
+    await call<unknown>("/companies?search=diagnostic-site", { method: "GET" }, key);
+    return { cle: "presente", axonaut: "OK — clé acceptée" };
+  } catch (error) {
+    const code = error instanceof AxonautError ? error.code : "AXONAUT_REFUS";
+    return { cle: "presente", axonaut: code === "CLE_REFUSEE" ? "clé refusée (401/403)" : code };
+  }
 }

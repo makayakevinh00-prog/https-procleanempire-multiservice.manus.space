@@ -128,6 +128,8 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  // Si l'enregistrement automatique échoue : la demande complète, prête à envoyer par e-mail ou WhatsApp.
+  const [fallback, setFallback] = useState<{ text: string; code?: string } | null>(null);
 
   // Pré-sélection depuis l'URL : /contact?service=airbnb#devis
   useEffect(() => {
@@ -172,11 +174,26 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
     if (problem || !service) return;
 
     setSubmitting(true);
+    setFallback(null);
+    const readable: Record<string, string> = {};
+    for (const field of service.fields) {
+      if (details[field.key]) readable[field.label] = details[field.key];
+    }
+    const summary = [
+      `Demande de devis — ${service.label}`,
+      ...Object.entries(readable).map(([label, value]) => `${label} : ${value}`),
+      `Adresse : ${address || [postcode, city].filter(Boolean).join(" ")}`,
+      startDate ? `Date souhaitée : ${startDate}` : "",
+      "",
+      `Nom : ${contact.name}`,
+      contact.company ? `Entreprise : ${contact.company}` : "",
+      `Téléphone : ${contact.phone}`,
+      `E-mail : ${contact.email}`,
+      contact.comments ? `Message : ${contact.comments}` : ""
+    ]
+      .filter((line, index, all) => line !== "" || (index > 0 && all[index - 1] !== ""))
+      .join("\n");
     try {
-      const readable: Record<string, string> = {};
-      for (const field of service.fields) {
-        if (details[field.key]) readable[field.label] = details[field.key];
-      }
       const response = await fetch("/api/quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -195,12 +212,15 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
       });
       if (!response.ok) {
         const data = await response.json().catch(() => null);
+        if (response.status >= 500 || data?.fallback) setFallback({ text: summary, code: data?.code });
         throw new Error(
           data?.error ?? `Votre demande n'a pas pu être envoyée. Merci de nous appeler au ${siteConfig.phone}.`
         );
       }
       setDone(true);
     } catch (err) {
+      // Réseau coupé (fetch impossible) : on propose aussi l'envoi par e-mail / WhatsApp.
+      if (err instanceof TypeError) setFallback({ text: summary });
       setError(
         err instanceof Error && err.message
           ? err.message
@@ -369,9 +389,28 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
       ) : null}
 
       {error ? (
-        <p className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
-          {error}
-        </p>
+        <div className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+          <p>{error}</p>
+          {fallback && step === 3 ? (
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <a
+                href={`mailto:${siteConfig.email}?subject=${encodeURIComponent(`Demande de devis — ${contact.name}`)}&body=${encodeURIComponent(fallback.text)}`}
+                className="btn-pill"
+              >
+                Envoyer ma demande par e-mail
+              </a>
+              <a
+                href={`${siteConfig.whatsappHref}?text=${encodeURIComponent(fallback.text)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-pill-ghost text-ink"
+              >
+                Envoyer par WhatsApp
+              </a>
+            </div>
+          ) : null}
+          {fallback?.code ? <p className="mt-2 text-xs text-red-800">Code : {fallback.code}</p> : null}
+        </div>
       ) : null}
 
       {step > 1 ? (
@@ -380,11 +419,12 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
             ← Retour
           </button>
           {step === 2 ? (
-            <button type="button" onClick={next} className="btn-pill">
+            // Clés distinctes : sans elles, React réutilise le bouton et le clic sur « Continuer » soumettait le formulaire.
+            <button key="continuer" type="button" onClick={next} className="btn-pill">
               Continuer
             </button>
           ) : (
-            <button type="submit" disabled={submitting} className="btn-pill disabled:opacity-60">
+            <button key="envoyer" type="submit" disabled={submitting} className="btn-pill disabled:opacity-60">
               {submitting ? "Envoi…" : "Recevoir mon devis sous 24h"}
             </button>
           )}

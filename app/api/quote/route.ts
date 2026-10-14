@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { siteConfig } from "@/lib/site";
-import { pushLeadToAxonaut } from "@/lib/server/axonaut";
+import { AxonautError, pushLeadToAxonaut } from "@/lib/server/axonaut";
 
 export const dynamic = "force-dynamic";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const FAILURE_MESSAGE = `Votre demande n'a pas pu être enregistrée. Merci de nous appeler au ${siteConfig.phone}, nous vous répondons tout de suite.`;
+const FAILURE_MESSAGE = `L'envoi automatique n'a pas fonctionné. Envoyez-nous votre demande en un clic ci-dessous (e-mail ou WhatsApp), ou appelez-nous au ${siteConfig.phone}.`;
 
 function sanitize(value: unknown, maxLength = 500): string {
   if (typeof value !== "string") return "";
@@ -98,11 +98,13 @@ export async function POST(request: NextRequest) {
     console.log("[devis] Enregistrée dans Axonaut", JSON.stringify({ email: data.email, ...result }));
     return NextResponse.json({ ok: true });
   } catch (error) {
+    const code = error instanceof AxonautError ? error.code : "ERREUR_INTERNE";
     console.error(
-      "[devis] ÉCHEC Axonaut — demande à ressaisir à la main",
+      `[devis] ÉCHEC Axonaut (${code}) — demande à ressaisir à la main`,
       String(error),
       JSON.stringify({ ...data, details })
     );
-    return NextResponse.json({ error: FAILURE_MESSAGE }, { status: 502 });
+    // fallback : le formulaire propose alors d'envoyer la demande par e-mail ou WhatsApp.
+    return NextResponse.json({ error: FAILURE_MESSAGE, code, fallback: true }, { status: 502 });
   }
 }
