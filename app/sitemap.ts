@@ -30,7 +30,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/apres-chantier",
     "/remise-en-etat",
     "/zones-intervention",
-    "/menage-airbnb"
+    "/menage-airbnb",
+    "/rendez-vous"
   ];
 
   const staticEntries = staticRoutes.map((path) => ({
