@@ -17,6 +17,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     "@context": "https://schema.org",
     "@type": "ProfessionalService",
     name: siteConfig.name,
+    url: siteConfig.url,
+    logo: `${siteConfig.url}/media/logo/proclean-empire-logo.png`,
+    image: `${siteConfig.url}/media/photos/hero-showcase.jpg`,
+    openingHours: "Mo-Su 08:00-18:00",
+    sameAs: [
+      "https://www.youtube.com/@ProCleanEmpire",
+      "https://www.linkedin.com/company/procelan-empire",
+      "https://www.instagram.com/proclean_empire/",
+      "https://www.facebook.com/people/Proclean-Empire/61575993812750/",
+      "https://www.tiktok.com/@procleanempire"
+    ],
+    makesOffer: [
+      "Ménage Airbnb",
+      "Nettoyage de bureaux et commerces",
+      "Conciergerie d'entreprise",
+      "Remise en état"
+    ].map((name) => ({ "@type": "Offer", itemOffered: { "@type": "Service", name } })),
     areaServed: siteConfig.region,
     telephone: siteConfig.phone,
     email: siteConfig.email,

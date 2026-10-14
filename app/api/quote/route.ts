@@ -1,33 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { siteConfig } from "@/lib/site";
+import { pushLeadToAxonaut } from "@/lib/server/axonaut";
 
 export const dynamic = "force-dynamic";
-
-type QuotePayload = {
-  name: string;
-  company: string;
-  phone: string;
-  email: string;
-  city: string;
-  address?: string;
-  localType: string;
-  surface: string;
-  frequency: string;
-  startDate?: string;
-  comments?: string;
-};
-
-const requiredFields: Array<keyof QuotePayload> = [
-  "name",
-  "company",
-  "phone",
-  "email",
-  "city",
-  "localType",
-  "surface",
-  "frequency"
-];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -44,33 +20,42 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Corps de requête invalide." }, { status: 400 });
   }
 
-  const data: QuotePayload = {
+  const data = {
+    service: sanitize(body.service, 120),
     name: sanitize(body.name, 120),
     company: sanitize(body.company, 120),
     phone: sanitize(body.phone, 40),
     email: sanitize(body.email, 200),
+    address: sanitize(body.address, 250),
+    postcode: sanitize(body.postcode, 10),
     city: sanitize(body.city, 120),
-    address: sanitize(body.address, 200),
-    localType: sanitize(body.localType, 120),
-    surface: sanitize(body.surface, 20),
-    frequency: sanitize(body.frequency, 120),
     startDate: sanitize(body.startDate, 40),
-    comments: sanitize(body.comments, 2000)
+    comments: sanitize(body.comments, 2000),
+    sourceUrl: sanitize(body.sourceUrl, 300),
+    consent: body.consent === true
   };
 
-  for (const field of requiredFields) {
-    if (!data[field]) {
-      return NextResponse.json({ error: `Champ manquant : ${field}` }, { status: 400 });
+  const details: Array<[string, string]> = [];
+  if (body.details && typeof body.details === "object") {
+    for (const [key, value] of Object.entries(body.details as Record<string, unknown>).slice(0, 15)) {
+      const cleanValue = sanitize(value, 300);
+      if (cleanValue) details.push([sanitize(key, 80), cleanValue]);
     }
   }
 
+  const missing = (["service", "name", "phone", "email", "city"] as const).find((field) => !data[field]);
+  if (missing) {
+    return NextResponse.json({ error: `Champ manquant : ${missing}` }, { status: 400 });
+  }
   if (!EMAIL_RE.test(data.email)) {
-    return NextResponse.json({ error: "Adresse email invalide." }, { status: 400 });
+    return NextResponse.json({ error: "Adresse e-mail invalide." }, { status: 400 });
+  }
+  if (!data.consent) {
+    return NextResponse.json({ error: "Merci d'accepter d'être recontacté." }, { status: 400 });
   }
 
   const gmailUser = process.env.GMAIL_USER;
   const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
-
   if (!gmailUser || !gmailAppPassword) {
     console.error("GMAIL_USER / GMAIL_APP_PASSWORD non configurés.");
     return NextResponse.json(
@@ -79,36 +64,58 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const summaryLines = [
+    `Prestation : ${data.service}`,
+    ...details.map(([key, value]) => `${key} : ${value}`),
+    `Adresse : ${data.address || "-"}`,
+    `Ville : ${[data.postcode, data.city].filter(Boolean).join(" ")}`,
+    data.startDate ? `Date souhaitée : ${data.startDate}` : null,
+    "",
+    `Nom : ${data.name}`,
+    data.company ? `Entreprise : ${data.company}` : null,
+    `Téléphone : ${data.phone}`,
+    `E-mail : ${data.email}`,
+    data.comments ? `Message : ${data.comments}` : null,
+    "",
+    `Consentement de contact : oui`,
+    `Source : site web (${data.sourceUrl || siteConfig.url})`
+  ].filter((line): line is string => line !== null);
+
+  // 1. CRM Axonaut (n'empêche jamais l'envoi de l'e-mail en cas d'erreur).
+  let crmLine = "Axonaut : non connecté (clé AXONAUT_API_KEY absente).";
+  try {
+    const result = await pushLeadToAxonaut({
+      service: data.service,
+      name: data.name,
+      company: data.company,
+      phone: data.phone,
+      email: data.email,
+      street: data.address.split(",")[0] ?? "",
+      postcode: data.postcode,
+      city: data.city,
+      summary: summaryLines.join("\n")
+    });
+    if (result) {
+      crmLine = `Axonaut : fiche ${result.companyId} + opportunité ${result.opportunityId ?? "?"} créées.`;
+    }
+  } catch (error) {
+    console.error("Erreur Axonaut:", error);
+    crmLine = "Axonaut : ÉCHEC de création — à saisir à la main.";
+  }
+
   const transporter = nodemailer.createTransport({
     service: "gmail",
-    auth: {
-      user: gmailUser,
-      pass: gmailAppPassword
-    }
+    auth: { user: gmailUser, pass: gmailAppPassword }
   });
 
-  const summaryLines = [
-    `Nom : ${data.name}`,
-    `Entreprise : ${data.company}`,
-    `Téléphone : ${data.phone}`,
-    `Email : ${data.email}`,
-    `Ville : ${data.city}`,
-    data.address ? `Adresse : ${data.address}` : null,
-    `Type de prestation / locaux : ${data.localType}`,
-    `Surface : ${data.surface} m²`,
-    `Fréquence souhaitée : ${data.frequency}`,
-    data.startDate ? `Date souhaitée : ${data.startDate}` : null,
-    data.comments ? `Commentaires : ${data.comments}` : null
-  ].filter(Boolean);
-
+  // 2. Notification à ProClean Empire (lue par le Manager Commercial).
   try {
     await transporter.sendMail({
       from: `"Formulaire ProClean Empire" <${gmailUser}>`,
       to: gmailUser,
       replyTo: data.email,
-      // Tag lu par le Manager Commercial de la PROCLEAN MACHINE (traitement automatique du devis).
-      subject: `[DEVIS SITE] ${data.localType} — ${data.company} (${data.city})`,
-      text: summaryLines.join("\n")
+      subject: `[DEVIS SITE] ${data.service} — ${data.company || data.name} (${data.city})`,
+      text: [...summaryLines, crmLine].join("\n")
     });
   } catch (error) {
     console.error("Erreur d'envoi email devis:", error);
@@ -118,23 +125,23 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // 3. Accusé de réception au client.
   try {
     await transporter.sendMail({
       from: `"${siteConfig.name}" <${gmailUser}>`,
       to: data.email,
       replyTo: gmailUser,
-      subject: `Confirmation de votre demande de devis — ${siteConfig.name}`,
+      subject: `Votre demande de devis — ${siteConfig.name}`,
       text: [
         `Bonjour ${data.name},`,
         "",
-        `Nous avons bien reçu votre demande de devis pour ${data.company}.`,
-        `Un interlocuteur dédié revient vers vous sous 24h pour affiner votre besoin et vous proposer une solution adaptée.`,
+        `Nous avons bien reçu votre demande de devis (${data.service}, ${data.city}).`,
+        "Nous revenons vers vous sous 24h avec une proposition adaptée.",
         "",
-        "Récapitulatif de votre demande :",
-        `- Type de prestation : ${data.localType}`,
-        `- Ville : ${data.city}`,
-        `- Surface : ${data.surface} m²`,
-        `- Fréquence souhaitée : ${data.frequency}`,
+        "Récapitulatif :",
+        ...details.map(([key, value]) => `- ${key} : ${value}`),
+        "",
+        `Besoin d'un échange plus rapide ? Réservez un créneau : ${siteConfig.bookingUrl}`,
         "",
         "Cordialement,",
         `L'équipe ${siteConfig.name}`,

@@ -42,22 +42,25 @@ export default function ContactPage() {
 
   const quickActions = [
     {
-      href: "#rdv",
-      label: "Prendre RDV",
-      text: online ? "Choisissez un créneau en ligne." : "4 types de rendez-vous au choix.",
-      primary: true
-    },
-    {
       href: "#devis",
-      label: "Demander un devis",
-      text: "Réponse sous 24h par e-mail.",
-      primary: false
+      label: "Je veux un devis",
+      text: "Réponse sous 24h.",
+      primary: true,
+      external: false
     },
     {
-      href: siteConfig.phoneHref,
-      label: `Appeler le ${siteConfig.phone}`,
-      text: "Lundi à vendredi, 8h – 19h.",
-      primary: false
+      href: siteConfig.bookingUrl,
+      label: "Je veux parler à quelqu'un",
+      text: "Appel découverte de 20 min, en ligne.",
+      primary: false,
+      external: online
+    },
+    {
+      href: siteConfig.whatsappHref,
+      label: "Je préfère WhatsApp",
+      text: `Réponse ${siteConfig.hours}.`,
+      primary: false,
+      external: true
     }
   ];
 
@@ -72,8 +75,8 @@ export default function ContactPage() {
             </p>
             <h1 className="display-xl text-ink">Parlons de votre projet.</h1>
             <p className="mt-6 max-w-2xl text-xl text-slate-600">
-              Trois façons de démarrer. Choisissez celle qui vous convient, on s&apos;occupe du
-              reste.
+              Choisissez ce qui vous convient. Nous intervenons à Pontoise, dans le
+              Val-d&apos;Oise et partout en Île-de-France.
             </p>
           </Reveal>
           <div className="mt-12 grid gap-4 md:grid-cols-3">
@@ -81,6 +84,7 @@ export default function ContactPage() {
               <Reveal key={action.label} delay={0.08 * index} y={20}>
                 <a
                   href={action.href}
+                  {...(action.external ? { target: "_blank", rel: "noreferrer" } : {})}
                   className={`group flex h-full flex-col justify-between rounded-[28px] p-7 transition hover:-translate-y-1 ${
                     action.primary
                       ? "bg-[#1d6fe0] text-white shadow-[0_20px_40px_-20px_rgba(29,111,224,0.8)]"
@@ -105,11 +109,11 @@ export default function ContactPage() {
             ))}
           </div>
           <p className="mt-6 text-sm text-slate-500">
-            Plutôt WhatsApp ?{" "}
-            <a href={siteConfig.whatsappHref} className="font-semibold text-[#1d6fe0]" target="_blank" rel="noreferrer">
-              Écrivez-nous
+            Par téléphone :{" "}
+            <a href={siteConfig.phoneHref} className="font-semibold text-[#1d6fe0]">
+              {siteConfig.phone}
             </a>{" "}
-            · {siteConfig.email}
+            · {siteConfig.email} · {siteConfig.hours}
           </p>
         </div>
       </section>

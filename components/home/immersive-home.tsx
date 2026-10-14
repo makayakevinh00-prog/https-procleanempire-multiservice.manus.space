@@ -47,38 +47,52 @@ function Hero() {
         >
           Pontoise · Val-d&apos;Oise · Île-de-France
         </motion.p>
-        <motion.h1
+        <motion.p
           initial={reduce ? false : { opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           className="display-xl max-w-5xl"
+          aria-hidden
         >
           Le propre,
           <br />
           version premium.
-        </motion.h1>
-        <motion.p
+        </motion.p>
+        <motion.div
           initial={reduce ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.45 }}
-          className="mt-6 max-w-2xl text-lg text-white/85 md:text-xl"
+          className="mt-6 max-w-3xl"
         >
-          Ménage Airbnb, nettoyage des bureaux &amp; commerces et conciergerie d&apos;entreprise.
-          Une seule équipe, un seul niveau d&apos;exigence.
-        </motion.p>
+          <h1 className="text-xl font-semibold text-white md:text-2xl">
+            Ménage Airbnb, nettoyage professionnel et conciergerie d&apos;entreprise à Pontoise.
+          </h1>
+          <p className="mt-3 text-lg text-white/85">
+            Des espaces prêts à accueillir vos voyageurs, vos équipes et vos clients — avec un
+            interlocuteur unique.
+          </p>
+        </motion.div>
         <motion.div
           initial={reduce ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
           className="mt-10 flex flex-col gap-3 sm:flex-row"
         >
-          <Link href={siteConfig.bookingUrl} className="btn-pill">
-            Prendre RDV
+          <Link href="/contact#devis" className="btn-pill">
+            Recevoir mon devis sous 24h
           </Link>
-          <Link href="#menage-airbnb" className="btn-pill-ghost text-white">
-            Découvrir nos services
+          <Link href="#prestations" className="btn-pill-ghost text-white">
+            Voir les prestations
           </Link>
         </motion.div>
+        <motion.p
+          initial={reduce ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.75 }}
+          className="mt-5 text-sm text-white/75"
+        >
+          Sans engagement · Intervention à Pontoise et en Île-de-France
+        </motion.p>
       </motion.div>
 
       <div className="absolute inset-x-0 bottom-8 z-10 flex justify-center" aria-hidden>
@@ -127,7 +141,7 @@ function AirbnbFeature() {
   ];
 
   return (
-    <section id="menage-airbnb" ref={ref} className="scroll-mt-16 overflow-hidden bg-mist">
+    <section id="prestations" ref={ref} className="scroll-mt-16 overflow-hidden bg-mist">
       <div className="mx-auto grid max-w-[1400px] items-center gap-16 px-5 py-28 md:px-8 md:py-36 lg:grid-cols-2">
         <div>
           <Reveal>
@@ -151,11 +165,11 @@ function AirbnbFeature() {
           </ul>
           <Reveal delay={0.3}>
             <div className="mt-12 flex flex-col gap-3 sm:flex-row">
-              <Link href="/contact#devis" className="btn-pill">
-                Demander un devis Airbnb
+              <Link href="/menage-airbnb#devis" className="btn-pill">
+                Demander un devis pour mon Airbnb
               </Link>
-              <Link href={siteConfig.bookingUrl} className="btn-pill-ghost text-ink">
-                Prendre RDV
+              <Link href="/menage-airbnb" className="btn-pill-ghost text-ink">
+                Découvrir le ménage Airbnb
               </Link>
             </div>
           </Reveal>
@@ -199,14 +213,10 @@ function AirbnbFeature() {
 
 /* ---------- 4. Bureaux & commerces + Conciergerie d'entreprise ---------- */
 const conciergerieItems = [
-  { title: "Nettoyage quotidien", text: "Bureaux, sanitaires, cuisines et espaces d'accueil, avant votre arrivée." },
-  { title: "Entretien des équipements", text: "Postes de travail, électroménager, vitrines, sols et mobilier." },
-  { title: "Véhicules de société", text: "Voitures, utilitaires et même avions : nettoyage intérieur et extérieur sur site." },
-  { title: "Décoration des fêtes", text: "Halloween, Noël, Saint-Valentin, Pâques : installée puis retirée." },
-  { title: "Consommables & réassort", text: "Papier, savon, café, produits d'entretien : jamais en rupture." },
-  { title: "Plantes", text: "Arrosage, entretien et remplacement des plantes de vos locaux." },
-  { title: "Accueil & petits services", text: "Réception des livraisons, préparation des salles, petites interventions." },
-  { title: "Gestion de l'espace de travail", text: "Un interlocuteur unique qui veille à ce que tout soit prêt, chaque jour." }
+  { title: "Entretien", text: "Nettoyage quotidien, équipements, véhicules de société." },
+  { title: "Accueil", text: "Livraisons, salles de réunion, petits services." },
+  { title: "Logistique", text: "Consommables, réassort et plantes." },
+  { title: "Services ponctuels", text: "Décoration des fêtes, remise en état." }
 ];
 
 function ServicesTiles() {
@@ -274,13 +284,13 @@ function ServicesTiles() {
               </ul>
               <div className="mt-10 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href="/contact#devis"
+                  href="/conciergerie-entreprise"
                   className="inline-flex justify-center rounded-full bg-white px-6 py-3 font-semibold text-[#0b1f4d] transition hover:bg-white/90"
                 >
-                  Demander un devis conciergerie
+                  Voir tous les services
                 </Link>
-                <Link href={siteConfig.bookingUrl} className="btn-pill-ghost justify-center text-white">
-                  Prendre RDV
+                <Link href="/conciergerie-entreprise#devis" className="btn-pill-ghost justify-center text-white">
+                  Demander un devis conciergerie
                 </Link>
               </div>
             </div>
@@ -330,6 +340,62 @@ function DetailingStrip() {
   );
 }
 
+/* ---------- 5 bis. Comment ça se passe + FAQ ---------- */
+const homeFaq = [
+  { question: "Combien coûte une prestation ?", answer: "Le prix dépend de la surface, de la fréquence et de la prestation. Vous recevez un devis clair sous 24h, sans engagement." },
+  { question: "Fournissez-vous les produits et le matériel ?", answer: "Oui, nous venons avec nos produits et notre matériel professionnels." },
+  { question: "Intervenez-vous le week-end ?", answer: "Oui. Les ménages Airbnb suivent vos réservations, et les locaux professionnels peuvent être entretenus tôt le matin, le soir ou le week-end." },
+  { question: "Comment gérez-vous les clés et les accès ?", answer: "Boîte à clés, badge, digicode ou remise en main propre : nous nous adaptons à votre organisation." },
+  { question: "Quelles zones couvrez-vous ?", answer: "Pontoise, Cergy, Saint-Ouen-l'Aumône et le Val-d'Oise, Paris et l'Île-de-France." },
+  { question: "Recevez-vous une facture professionnelle ?", answer: "Oui, avec TVA, et une facture mensuelle unique pour les contrats réguliers." }
+];
+
+function HowItWorks() {
+  const steps = [
+    { title: "Vous décrivez votre besoin", text: "Logement ou locaux, surface, fréquence : deux minutes en ligne." },
+    { title: "Nous confirmons le prix", text: "Devis clair sous 24h, visite sur place si nécessaire." },
+    { title: "Nous intervenons", text: "Selon le planning convenu, et nous contrôlons le résultat." }
+  ];
+  return (
+    <section className="bg-mist">
+      <div className="mx-auto max-w-[1200px] px-5 py-28 md:px-8 md:py-36">
+        <Reveal>
+          <h2 className="display-lg text-ink">Comment ça se passe ?</h2>
+        </Reveal>
+        <ol className="mt-14 grid gap-6 md:grid-cols-3">
+          {steps.map((step, index) => (
+            <Reveal key={step.title} delay={0.08 * index} y={20}>
+              <li className="h-full rounded-[28px] bg-white p-8 shadow-soft">
+                <span className="font-display text-6xl font-semibold text-[#1d6fe0]">{index + 1}</span>
+                <h3 className="mt-4 text-xl font-semibold text-ink">{step.title}</h3>
+                <p className="mt-2 text-slate-600">{step.text}</p>
+              </li>
+            </Reveal>
+          ))}
+        </ol>
+        <div className="mx-auto mt-24 max-w-[900px]">
+          <Reveal>
+            <h2 className="display-lg text-ink">Questions fréquentes</h2>
+          </Reveal>
+          <div className="mt-10 divide-y divide-slate-200 border-y border-slate-200">
+            {homeFaq.map((item) => (
+              <details key={item.question} className="group py-5">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-semibold text-ink">
+                  {item.question}
+                  <span aria-hidden className="text-2xl text-[#1d6fe0] transition group-open:rotate-45">
+                    +
+                  </span>
+                </summary>
+                <p className="mt-3 text-slate-600">{item.answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ---------- 6. Appel final ---------- */
 function FinalCta() {
   return (
@@ -342,7 +408,10 @@ function FinalCta() {
             Île-de-France.
           </p>
           <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
-            <Link href={siteConfig.bookingUrl} className="btn-pill">
+            <Link href="/contact#devis" className="btn-pill">
+              Recevoir mon devis sous 24h
+            </Link>
+            <Link href={siteConfig.bookingUrl} className="btn-pill-ghost text-ink">
               Prendre RDV
             </Link>
             <a href={siteConfig.phoneHref} className="btn-pill-ghost text-ink">
@@ -365,6 +434,7 @@ export function ImmersiveHome() {
       <DetailingStrip />
       <PartnersMarquee />
       <ReviewsPremiumSection />
+      <HowItWorks />
       <FinalCta />
     </>
   );

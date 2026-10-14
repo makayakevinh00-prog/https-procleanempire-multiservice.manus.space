@@ -8,10 +8,10 @@ const realSocialLinks = socialLinks.filter((social) => !social.href.startsWith("
 
 export function Footer() {
   const services = [
-    { label: "Ménage Airbnb", href: "/#menage-airbnb" },
+    { label: "Ménage Airbnb", href: "/menage-airbnb" },
     { label: "Nettoyage de bureaux", href: "/nettoyage-bureaux" },
     { label: "Nettoyage de commerces", href: "/nettoyage-commerces" },
-    { label: "Conciergerie d'entreprise", href: "/#conciergerie-entreprise" },
+    { label: "Conciergerie d'entreprise", href: "/conciergerie-entreprise" },
     { label: "Remise en état / fin de chantier", href: "/remise-en-etat" }
   ];
 

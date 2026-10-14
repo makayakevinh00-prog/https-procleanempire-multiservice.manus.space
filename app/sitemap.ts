@@ -7,6 +7,8 @@ export const dynamic = "force-static";
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes = [
     "",
+    "/menage-airbnb",
+    "/conciergerie-entreprise",
     "/a-propos",
     "/realisations",
     "/galerie",

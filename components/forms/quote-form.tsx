@@ -1,379 +1,465 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
+import { AddressAutocomplete } from "@/components/forms/address-autocomplete";
+import { siteConfig } from "@/lib/site";
 
-type FormValues = {
-  name: string;
-  company: string;
-  phone: string;
-  email: string;
-  city: string;
-  address: string;
-  localType: string;
-  surface: string;
-  frequency: string;
-  startDate: string;
-  comments: string;
-  photosCount: number;
+/* ---------- Questions adaptées à chaque prestation ---------- */
+type Field = {
+  key: string;
+  label: string;
+  type: "select" | "number" | "text" | "multi";
+  options?: string[];
+  required?: boolean;
 };
 
-const initialValues: FormValues = {
-  name: "",
-  company: "",
-  phone: "",
-  email: "",
-  city: "",
-  address: "",
-  localType: "",
-  surface: "",
-  frequency: "",
-  startDate: "",
-  comments: "",
-  photosCount: 0
-};
+type ServiceDef = { id: string; label: string; hint: string; fields: Field[] };
 
-type RequiredStringField =
-  | "name"
-  | "company"
-  | "phone"
-  | "email"
-  | "city"
-  | "localType"
-  | "surface"
-  | "frequency";
+const frequencyPro = ["Quotidien", "2 à 3 fois par semaine", "1 fois par semaine", "Ponctuel"];
 
-const requiredFields: RequiredStringField[] = [
-  "name",
-  "company",
-  "phone",
-  "email",
-  "city",
-  "localType",
-  "surface",
-  "frequency"
+export const quoteServices: ServiceDef[] = [
+  {
+    id: "airbnb",
+    label: "Ménage Airbnb",
+    hint: "Location courte durée, conciergerie",
+    fields: [
+      { key: "logement", label: "Type de logement", type: "select", options: ["Studio", "T1", "T2", "T3", "T4 et plus", "Maison"], required: true },
+      { key: "surface", label: "Surface (m²)", type: "number" },
+      { key: "couchages", label: "Nombre de couchages", type: "number" },
+      { key: "linge", label: "Linge de lit et serviettes", type: "select", options: ["Je fournis le linge", "À gérer par ProClean Empire", "À discuter"] },
+      { key: "frequence", label: "Fréquence", type: "select", options: ["À chaque départ de voyageur", "Plusieurs fois par semaine", "Ponctuel"], required: true }
+    ]
+  },
+  {
+    id: "bureaux",
+    label: "Bureaux",
+    hint: "Entretien régulier de vos locaux",
+    fields: [
+      { key: "surface", label: "Surface (m²)", type: "number", required: true },
+      { key: "frequence", label: "Fréquence", type: "select", options: frequencyPro, required: true },
+      { key: "sanitaires", label: "Nombre de sanitaires", type: "number" },
+      { key: "vitrerie", label: "Vitrerie à inclure", type: "select", options: ["Oui", "Non", "À discuter"] },
+      { key: "horaires", label: "Horaires d'intervention", type: "select", options: ["Tôt le matin", "En journée", "En soirée", "Le week-end"] }
+    ]
+  },
+  {
+    id: "commerce",
+    label: "Commerce",
+    hint: "Boutique, agence, showroom",
+    fields: [
+      { key: "surface", label: "Surface (m²)", type: "number", required: true },
+      { key: "frequence", label: "Fréquence", type: "select", options: frequencyPro, required: true },
+      { key: "vitrine", label: "Vitrine à nettoyer", type: "select", options: ["Oui", "Non"] },
+      { key: "horaires", label: "Horaires d'intervention", type: "select", options: ["Avant l'ouverture", "Après la fermeture", "Le week-end"] }
+    ]
+  },
+  {
+    id: "conciergerie",
+    label: "Conciergerie d'entreprise",
+    hint: "Gestion complète de vos espaces",
+    fields: [
+      {
+        key: "besoins",
+        label: "Ce dont vous avez besoin",
+        type: "multi",
+        options: [
+          "Nettoyage quotidien",
+          "Entretien des équipements",
+          "Véhicules de société",
+          "Décoration des fêtes",
+          "Consommables & réassort",
+          "Plantes",
+          "Accueil & petits services"
+        ],
+        required: true
+      },
+      { key: "surface", label: "Surface des locaux (m²)", type: "number" },
+      { key: "effectif", label: "Nombre de personnes sur place", type: "number" }
+    ]
+  },
+  {
+    id: "remise",
+    label: "Remise en état",
+    hint: "Fin de chantier, départ de locataire",
+    fields: [
+      { key: "type", label: "Situation", type: "select", options: ["Fin de chantier", "Départ de locataire", "Grand nettoyage", "Autre"], required: true },
+      { key: "surface", label: "Surface (m²)", type: "number", required: true }
+    ]
+  },
+  {
+    id: "copropriete",
+    label: "Copropriété",
+    hint: "Halls et parties communes",
+    fields: [
+      { key: "batiments", label: "Nombre de bâtiments", type: "number", required: true },
+      { key: "parties", label: "Parties communes", type: "text" },
+      { key: "passages", label: "Passages par semaine", type: "select", options: ["1", "2", "3", "5 et plus"], required: true }
+    ]
+  },
+  {
+    id: "vehicules",
+    label: "Véhicules de société",
+    hint: "Voitures, utilitaires, avions",
+    fields: [
+      { key: "vehicule", label: "Type de véhicule", type: "select", options: ["Voiture", "Utilitaire", "Flotte (plusieurs véhicules)", "Avion"], required: true },
+      { key: "nombre", label: "Nombre de véhicules", type: "number" },
+      { key: "prestation", label: "Prestation", type: "select", options: ["Intérieur", "Extérieur", "Intérieur + extérieur"], required: true }
+    ]
+  }
 ];
 
-export function QuoteForm() {
-  const [values, setValues] = useState<FormValues>(initialValues);
-  const [submitted, setSubmitted] = useState(false);
+const inputClass =
+  "mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 focus:border-[#1d6fe0] focus:outline-none focus:ring-1 focus:ring-[#1d6fe0]";
+
+type Contact = { name: string; company: string; phone: string; email: string; comments: string };
+
+export function QuoteForm({ defaultService }: { defaultService?: string }) {
+  const [step, setStep] = useState(defaultService ? 2 : 1);
+  const [serviceId, setServiceId] = useState(defaultService ?? "");
+  const [details, setDetails] = useState<Record<string, string>>({});
+  const [address, setAddress] = useState("");
+  const [postcode, setPostcode] = useState("");
+  const [city, setCity] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [contact, setContact] = useState<Contact>({ name: "", company: "", phone: "", email: "", comments: "" });
+  const [consent, setConsent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [attempted, setAttempted] = useState(false);
-  const [step, setStep] = useState(1);
+  const [done, setDone] = useState(false);
 
-  const missingFields = useMemo(
-    () => requiredFields.filter((key) => !values[key].trim()),
-    [values]
-  );
+  // Pré-sélection depuis l'URL : /contact?service=airbnb#devis
+  useEffect(() => {
+    if (defaultService) return;
+    const fromUrl = new URLSearchParams(window.location.search).get("service");
+    if (fromUrl && quoteServices.some((service) => service.id === fromUrl)) {
+      setServiceId(fromUrl);
+      setStep(2);
+    }
+  }, [defaultService]);
 
-  const progression = useMemo(() => Math.round((step / 4) * 100), [step]);
-  const indicativeEstimate = useMemo(() => {
-    const surface = Number(values.surface) || 0;
-    const base = surface * 1.8;
-    const frequencyFactor =
-      values.frequency.toLowerCase().includes("quotid") || values.frequency.includes("5")
-        ? 4
-        : values.frequency.toLowerCase().includes("hebdo") || values.frequency.includes("1")
-          ? 1
-          : 2;
-    const localTypeBonus =
-      values.localType.toLowerCase().includes("restaurant") ||
-      values.localType.toLowerCase().includes("hotel")
-        ? 1.25
-        : 1;
-    const estimate = Math.round(base * frequencyFactor * localTypeBonus);
-    return estimate > 0 ? estimate : null;
-  }, [values.surface, values.frequency, values.localType]);
+  const service = quoteServices.find((item) => item.id === serviceId);
 
-  function updateField<K extends keyof FormValues>(field: K, value: FormValues[K]) {
-    setValues((current) => ({ ...current, [field]: value }));
+  function validateStep2() {
+    if (!service) return "Choisissez une prestation.";
+    for (const field of service.fields) {
+      if (field.required && !details[field.key]?.trim()) return `Merci de renseigner : ${field.label}.`;
+    }
+    if (!city.trim()) return "Merci d'indiquer l'adresse ou la ville de l'intervention.";
+    return null;
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setAttempted(true);
-    setSubmitError(null);
+  function validateStep3() {
+    if (!contact.name.trim()) return "Merci d'indiquer votre nom.";
+    if (!/^[\d\s+().-]{8,}$/.test(contact.phone.trim())) return "Merci d'indiquer un numéro de téléphone valide.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim())) return "Merci d'indiquer une adresse e-mail valide.";
+    if (!consent) return "Merci d'accepter d'être recontacté pour recevoir votre devis.";
+    return null;
+  }
 
-    if (missingFields.length > 0) {
-      return;
-    }
+  function next() {
+    const problem = validateStep2();
+    setError(problem);
+    if (!problem) setStep(3);
+  }
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (step !== 3) return next();
+    const problem = validateStep3();
+    setError(problem);
+    if (problem || !service) return;
 
     setSubmitting(true);
     try {
+      const readable: Record<string, string> = {};
+      for (const field of service.fields) {
+        if (details[field.key]) readable[field.label] = details[field.key];
+      }
       const response = await fetch("/api/quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values)
+        body: JSON.stringify({
+          service: service.label,
+          details: readable,
+          address,
+          postcode,
+          city,
+          startDate,
+          ...contact,
+          consent,
+          sourceUrl: window.location.href
+        })
       });
-
       if (!response.ok) {
         const data = await response.json().catch(() => null);
         throw new Error(data?.error ?? "Échec de l'envoi.");
       }
-
-      setSubmitted(true);
-    } catch (error) {
-      setSubmitError(
-        error instanceof Error
-          ? error.message
-          : "Échec de l'envoi. Merci de réessayer ou de nous appeler directement."
+      setDone(true);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Échec de l'envoi. Merci de réessayer ou de nous appeler."
       );
     } finally {
       setSubmitting(false);
     }
   }
 
-  function nextStep() {
-    setAttempted(true);
-    if (step === 1) {
-      const step1Fields: RequiredStringField[] = ["localType", "surface", "frequency", "city"];
-      const invalid = step1Fields.some((field) => !values[field].trim());
-      if (invalid) {
-        return;
-      }
-    }
-    if (step === 2) {
-      const step2Fields: RequiredStringField[] = ["name", "company", "phone", "email"];
-      const invalid = step2Fields.some((field) => !values[field].trim());
-      if (invalid) {
-        return;
-      }
-    }
-    setAttempted(false);
-    setStep((current) => Math.min(current + 1, 4));
-  }
-
-  function previousStep() {
-    setAttempted(false);
-    setStep((current) => Math.max(current - 1, 1));
+  if (done) {
+    return (
+      <div className="rounded-[28px] bg-white p-8 text-center shadow-soft md:p-12" role="status">
+        <p className="text-4xl" aria-hidden>
+          ✓
+        </p>
+        <h3 className="mt-3 font-display text-3xl font-semibold tracking-tight text-ink">
+          Demande bien reçue.
+        </h3>
+        <p className="mx-auto mt-3 max-w-md text-slate-600">
+          Un e-mail de confirmation vient de vous être envoyé. Nous revenons vers vous sous 24h
+          avec votre devis.
+        </p>
+        <a href={siteConfig.phoneHref} className="btn-pill-ghost mt-8 text-ink">
+          Une urgence ? {siteConfig.phone}
+        </a>
+      </div>
+    );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card p-6 md:p-8" noValidate>
-      <div>
-        <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-500">
-          <span>Progression</span>
-          <span>{progression}%</span>
-        </div>
-        <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200">
-          <div
-            className="h-full rounded-full bg-[#14213d] transition-all duration-300"
-            style={{ width: `${progression}%` }}
-          />
-        </div>
-      </div>
+    <form onSubmit={submit} noValidate className="rounded-[28px] bg-white p-6 shadow-soft md:p-10">
+      {/* Progression */}
+      <ol className="mb-8 flex gap-2 text-xs font-semibold uppercase tracking-wide" aria-label="Étapes">
+        {["Prestation", "Détails", "Vos coordonnées"].map((label, index) => (
+          <li key={label} className="flex-1">
+            <span
+              className={`block h-1.5 rounded-full ${index + 1 <= step ? "bg-[#1d6fe0]" : "bg-slate-200"}`}
+            />
+            <span className={`mt-2 block ${index + 1 === step ? "text-[#1d6fe0]" : "text-slate-400"}`}>
+              {index + 1}. {label}
+            </span>
+          </li>
+        ))}
+      </ol>
 
       {step === 1 ? (
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <SelectField
-            label="Type de prestation"
-            value={values.localType}
-            onChange={(value) => updateField("localType", value)}
-            options={serviceOptions}
-            required
-          />
-          <InputField
-            label="Surface (m²)"
-            value={values.surface}
-            onChange={(value) => updateField("surface", value)}
-            required
-          />
-          <InputField
-            label="Fréquence souhaitée"
-            value={values.frequency}
-            onChange={(value) => updateField("frequency", value)}
-            required
-          />
-          <InputField
-            label="Ville"
-            value={values.city}
-            onChange={(value) => updateField("city", value)}
-            required
-          />
-          <InputField
-            label="Adresse"
-            value={values.address}
-            onChange={(value) => updateField("address", value)}
-          />
-          <InputField
-            label="Date souhaitée"
-            type="date"
-            value={values.startDate}
-            onChange={(value) => updateField("startDate", value)}
-          />
-        </div>
+        <fieldset>
+          <legend className="font-display text-2xl font-semibold tracking-tight text-ink">
+            Quelle prestation vous intéresse ?
+          </legend>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            {quoteServices.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  setServiceId(item.id);
+                  setDetails({});
+                  setError(null);
+                  setStep(2);
+                }}
+                className={`rounded-2xl border p-5 text-left transition hover:border-[#1d6fe0] hover:bg-[#f5f9ff] ${
+                  item.id === serviceId ? "border-[#1d6fe0] bg-[#f5f9ff]" : "border-slate-200"
+                }`}
+              >
+                <span className="block font-semibold text-ink">{item.label}</span>
+                <span className="mt-1 block text-sm text-slate-500">{item.hint}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
       ) : null}
 
-      {step === 2 ? (
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <InputField
-            label="Nom"
-            value={values.name}
-            onChange={(value) => updateField("name", value)}
-            required
-          />
-          <InputField
-            label="Entreprise"
-            value={values.company}
-            onChange={(value) => updateField("company", value)}
-            required
-          />
-          <InputField
-            label="Téléphone"
-            value={values.phone}
-            onChange={(value) => updateField("phone", value)}
-            required
-          />
-          <InputField
-            label="Email"
-            type="email"
-            value={values.email}
-            onChange={(value) => updateField("email", value)}
-            required
-          />
+      {step === 2 && service ? (
+        <div>
+          <div className="flex items-center justify-between gap-4">
+            <h3 className="font-display text-2xl font-semibold tracking-tight text-ink">{service.label}</h3>
+            <button type="button" onClick={() => setStep(1)} className="text-sm font-semibold text-[#1d6fe0]">
+              Changer
+            </button>
+          </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            {service.fields.map((field) => (
+              <DetailField
+                key={field.key}
+                field={field}
+                value={details[field.key] ?? ""}
+                onChange={(value) => setDetails((current) => ({ ...current, [field.key]: value }))}
+              />
+            ))}
+          </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-[2fr_1fr]">
+            <AddressAutocomplete
+              value={address}
+              onChange={(value) => {
+                setAddress(value);
+                setCity("");
+                setPostcode("");
+              }}
+              onSelect={(selection) => {
+                setCity(selection.city);
+                setPostcode(selection.postcode);
+              }}
+              required
+            />
+            <label className="text-sm font-medium text-slate-700">
+              Ville <span aria-hidden="true">*</span>
+              <input
+                type="text"
+                value={postcode ? `${postcode} ${city}` : city}
+                onChange={(event) => {
+                  setCity(event.target.value);
+                  setPostcode("");
+                }}
+                autoComplete="address-level2"
+                placeholder="Remplie automatiquement"
+                className={inputClass}
+              />
+            </label>
+          </div>
+          <label className="mt-4 block text-sm font-medium text-slate-700 md:w-1/2">
+            Date souhaitée
+            <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} className={inputClass} />
+          </label>
         </div>
       ) : null}
 
       {step === 3 ? (
-        <div className="mt-6 space-y-4">
-          <label className="block text-sm font-medium text-slate-700">
-            Upload de photos (facultatif mais recommandé)
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={(event) => updateField("photosCount", event.target.files?.length ?? 0)}
-              className="mt-1 block w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
-            />
-          </label>
-          <p className="text-xs text-slate-500">
-            Photos sélectionnées: {values.photosCount}
-          </p>
-          <label className="block text-sm font-medium text-slate-700">
-            Commentaires complémentaires
+        <div>
+          <h3 className="font-display text-2xl font-semibold tracking-tight text-ink">Où vous envoyer le devis ?</h3>
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ContactField label="Nom et prénom" required autoComplete="name" value={contact.name} onChange={(v) => setContact({ ...contact, name: v })} />
+            <ContactField label="Entreprise / conciergerie" autoComplete="organization" value={contact.company} onChange={(v) => setContact({ ...contact, company: v })} />
+            <ContactField label="Téléphone" required type="tel" autoComplete="tel" value={contact.phone} onChange={(v) => setContact({ ...contact, phone: v })} />
+            <ContactField label="E-mail" required type="email" autoComplete="email" value={contact.email} onChange={(v) => setContact({ ...contact, email: v })} />
+          </div>
+          <label className="mt-4 block text-sm font-medium text-slate-700">
+            Message (accès, contraintes, questions…)
             <textarea
-              rows={4}
-              value={values.comments}
-              onChange={(event) => updateField("comments", event.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 focus:border-[#14213d] focus:outline-none focus:ring-1 focus:ring-[#14213d]"
+              rows={3}
+              value={contact.comments}
+              onChange={(event) => setContact({ ...contact, comments: event.target.value })}
+              className={inputClass}
             />
+          </label>
+          <label className="mt-5 flex items-start gap-3 text-sm text-slate-600">
+            <input
+              type="checkbox"
+              checked={consent}
+              onChange={(event) => setConsent(event.target.checked)}
+              className="mt-0.5 h-5 w-5 shrink-0 rounded border-slate-300 accent-[#1d6fe0]"
+            />
+            <span>
+              J&apos;accepte que ProClean Empire me recontacte pour établir ce devis. Mes données
+              ne servent qu&apos;à cette demande (
+              <Link href="/politique-confidentialite" className="font-semibold text-[#1d6fe0] underline">
+                politique de confidentialité
+              </Link>
+              ).
+            </span>
           </label>
         </div>
       ) : null}
 
-      {step === 4 ? (
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-          <h3 className="text-lg font-semibold text-[#14213d]">Récapitulatif de votre demande</h3>
-          <ul className="mt-3 space-y-1 text-sm text-slate-700">
-            <li>Type de locaux: {values.localType || "-"}</li>
-            <li>Surface: {values.surface || "-"} m²</li>
-            <li>Fréquence: {values.frequency || "-"}</li>
-            <li>Ville: {values.city || "-"}</li>
-            <li>Entreprise: {values.company || "-"}</li>
-            <li>Contact: {values.name || "-"} · {values.phone || "-"} · {values.email || "-"}</li>
-          </ul>
-          <p className="mt-4 rounded-xl border border-[#14213d]/20 bg-white p-3 text-sm text-slate-700">
-            Estimation indicative mensuelle:{" "}
-            <span className="font-semibold text-[#14213d]">
-              {indicativeEstimate ? `~ ${indicativeEstimate} EUR` : "À définir après visite"}
-            </span>
-          </p>
-          <p className="mt-2 text-xs text-slate-500">
-            Cette estimation est non contractuelle et sera affinée après visite du site.
-          </p>
-        </div>
+      {error ? (
+        <p className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+          {error}
+        </p>
       ) : null}
 
-      {attempted && missingFields.length > 0 ? (
-        <p className="mt-4 text-sm font-medium text-red-700" role="alert">
-          Merci de compléter les champs obligatoires pour recevoir votre estimation.
-        </p>
-      ) : null}
-      {submitError ? (
-        <p className="mt-4 text-sm font-medium text-red-700" role="alert">
-          {submitError}
-        </p>
-      ) : null}
-      {submitted ? (
-        <p className="mt-4 text-sm font-medium text-green-700">
-          Demande envoyée. Un interlocuteur dédié revient vers vous pour la suite.
-        </p>
-      ) : null}
-      <div className="mt-6 flex flex-wrap gap-3">
-        {step > 1 && !submitted ? (
-          <button type="button" onClick={previousStep} className="btn-secondary">
-            Étape précédente
+      {step > 1 ? (
+        <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <button type="button" onClick={() => { setError(null); setStep(step - 1); }} className="text-sm font-semibold text-slate-500">
+            ← Retour
           </button>
-        ) : null}
-        {!submitted && (step < 4 ? (
-          <button type="button" onClick={nextStep} className="btn-primary">
-            Continuer
-          </button>
-        ) : (
-          <button type="submit" className="btn-primary" disabled={submitting}>
-            {submitting ? "Envoi en cours..." : "Envoyer ma demande"}
-          </button>
-        ))}
-      </div>
+          {step === 2 ? (
+            <button type="button" onClick={next} className="btn-pill">
+              Continuer
+            </button>
+          ) : (
+            <button type="submit" disabled={submitting} className="btn-pill disabled:opacity-60">
+              {submitting ? "Envoi…" : "Recevoir mon devis sous 24h"}
+            </button>
+          )}
+        </div>
+      ) : null}
     </form>
   );
 }
 
-const serviceOptions = [
-  "Ménage Airbnb / location courte durée",
-  "Nettoyage de bureaux",
-  "Nettoyage de commerce",
-  "Conciergerie d'entreprise",
-  "Remise en état / fin de chantier",
-  "Nettoyage de véhicules de société",
-  "Autre"
-];
-
-function SelectField({
-  label,
-  value,
-  onChange,
-  options,
-  required = false
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: string[];
-  required?: boolean;
-}) {
+function DetailField({ field, value, onChange }: { field: Field; value: string; onChange: (value: string) => void }) {
+  const label = (
+    <>
+      {field.label} {field.required ? <span aria-hidden="true">*</span> : null}
+    </>
+  );
+  if (field.type === "multi") {
+    const selected = value ? value.split(", ") : [];
+    return (
+      <fieldset className="md:col-span-2">
+        <legend className="text-sm font-medium text-slate-700">{label}</legend>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {field.options?.map((option) => {
+            const on = selected.includes(option);
+            return (
+              <button
+                key={option}
+                type="button"
+                aria-pressed={on}
+                onClick={() =>
+                  onChange((on ? selected.filter((item) => item !== option) : [...selected, option]).join(", "))
+                }
+                className={`rounded-full border px-4 py-2 text-sm transition ${
+                  on ? "border-[#1d6fe0] bg-[#1d6fe0] text-white" : "border-slate-300 text-slate-700 hover:border-[#1d6fe0]"
+                }`}
+              >
+                {option}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+    );
+  }
   return (
     <label className="text-sm font-medium text-slate-700">
-      {label} {required ? <span aria-hidden="true">*</span> : null}
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        required={required}
-        className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-[#14213d] focus:outline-none focus:ring-1 focus:ring-[#14213d]"
-      >
-        <option value="">Choisir…</option>
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
+      {label}
+      {field.type === "select" ? (
+        <select value={value} onChange={(event) => onChange(event.target.value)} className={inputClass}>
+          <option value="">Choisir…</option>
+          {field.options?.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <input
+          type={field.type === "number" ? "number" : "text"}
+          inputMode={field.type === "number" ? "numeric" : undefined}
+          min={field.type === "number" ? 0 : undefined}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className={inputClass}
+        />
+      )}
     </label>
   );
 }
 
-function InputField({
+function ContactField({
   label,
   value,
   onChange,
   type = "text",
-  required = false
+  required = false,
+  autoComplete
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   type?: string;
   required?: boolean;
+  autoComplete?: string;
 }) {
   return (
     <label className="text-sm font-medium text-slate-700">
@@ -381,9 +467,9 @@ function InputField({
       <input
         type={type}
         value={value}
+        autoComplete={autoComplete}
         onChange={(event) => onChange(event.target.value)}
-        required={required}
-        className="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 focus:border-[#14213d] focus:outline-none focus:ring-1 focus:ring-[#14213d]"
+        className={inputClass}
       />
     </label>
   );
