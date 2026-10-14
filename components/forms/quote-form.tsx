@@ -120,6 +120,7 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
   const [details, setDetails] = useState<Record<string, string>>({});
   const [address, setAddress] = useState("");
   const [postcode, setPostcode] = useState("");
+  const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
   const [startDate, setStartDate] = useState("");
   const [contact, setContact] = useState<Contact>({ name: "", company: "", phone: "", email: "", comments: "" });
@@ -183,6 +184,7 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
           service: service.label,
           details: readable,
           address,
+          street,
           postcode,
           city,
           startDate,
@@ -193,12 +195,16 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
       });
       if (!response.ok) {
         const data = await response.json().catch(() => null);
-        throw new Error(data?.error ?? "Échec de l'envoi.");
+        throw new Error(
+          data?.error ?? `Votre demande n'a pas pu être envoyée. Merci de nous appeler au ${siteConfig.phone}.`
+        );
       }
       setDone(true);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Échec de l'envoi. Merci de réessayer ou de nous appeler."
+        err instanceof Error && err.message
+          ? err.message
+          : `Votre demande n'a pas pu être envoyée. Merci de nous appeler au ${siteConfig.phone}.`
       );
     } finally {
       setSubmitting(false);
@@ -215,8 +221,8 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
           Demande bien reçue.
         </h3>
         <p className="mx-auto mt-3 max-w-md text-slate-600">
-          Un e-mail de confirmation vient de vous être envoyé. Nous revenons vers vous sous 24h
-          avec votre devis.
+          Elle est enregistrée chez nous. Nous revenons vers vous sous 24h avec votre devis, par
+          téléphone ou par e-mail.
         </p>
         <a href={siteConfig.phoneHref} className="btn-pill-ghost mt-8 text-ink">
           Une urgence ? {siteConfig.phone}
@@ -292,10 +298,12 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
               value={address}
               onChange={(value) => {
                 setAddress(value);
+                setStreet("");
                 setCity("");
                 setPostcode("");
               }}
               onSelect={(selection) => {
+                setStreet(selection.street);
                 setCity(selection.city);
                 setPostcode(selection.postcode);
               }}

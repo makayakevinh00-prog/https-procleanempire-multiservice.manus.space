@@ -160,7 +160,7 @@ export default function ContactPage() {
           <Reveal>
             <h2 className="display-lg text-ink">Demander un devis.</h2>
             <p className="mt-4 max-w-2xl text-lg text-slate-600">
-              Quelques informations suffisent. Vous recevez une confirmation immédiate, puis notre
+              Quelques informations suffisent. Vous voyez une confirmation à l&apos;écran, puis recevez notre
               proposition sous 24h.
             </p>
           </Reveal>
