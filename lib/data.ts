@@ -276,6 +276,6 @@ export const navLinks = [
   { label: "Nos services", href: "/services" },
   { label: "FAQ", href: "/faq" },
   { label: "Blog", href: "/blog" },
-  { label: "Devis", href: "/devis" },
+  { label: "Rendez-vous", href: "/rendez-vous" },
   { label: "Contact", href: "/contact" }
 ];
