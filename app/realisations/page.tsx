@@ -6,7 +6,7 @@ import { RealisationsVideos } from "@/components/phase2/realisations-videos";
 import { InteractiveProcessTimeline } from "@/components/phase2/interactive-process-timeline";
 
 export const metadata = buildMetadata({
-  title: "Réalisations",
+  title: "Réalisations de nettoyage à Pontoise et en Île-de-France",
   description:
     "Études de cas ProClean Empire avec avant/après, problématique, solution, résultat et témoignages clients.",
   path: "/realisations"

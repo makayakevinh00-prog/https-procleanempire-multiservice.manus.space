@@ -272,3 +272,16 @@ export const navLinks = [
   { label: "Conciergerie d'entreprise", href: "/conciergerie-entreprise" },
   { label: "Contact", href: "/contact" }
 ];
+
+/** Services qui ont leur propre page à la racine (/slug) : canonique et plan du site pointent vers elle. */
+export const STANDALONE_PAGES = new Set([
+  "nettoyage-automobile",
+  "nettoyage-bureaux",
+  "nettoyage-commerces",
+  "nettoyage-restaurants",
+  "nettoyage-hotels",
+  "nettoyage-vitrerie",
+  "apres-chantier",
+  "remise-en-etat"
+]);
+

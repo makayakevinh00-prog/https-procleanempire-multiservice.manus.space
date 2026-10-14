@@ -7,7 +7,7 @@ import { SectorsSection } from "@/components/sections/sectors-section";
 import { CtaBand } from "@/components/sections/cta-band";
 
 export const metadata = buildMetadata({
-  title: "Nos prestations de propreté pour entreprises",
+  title: "Nos services de nettoyage à Pontoise et en Île-de-France",
   description:
     "Découvrez nos prestations de propreté pour bureaux, commerces, hôtels, restaurants, vitrerie et interventions spécialisées.",
   path: "/services"

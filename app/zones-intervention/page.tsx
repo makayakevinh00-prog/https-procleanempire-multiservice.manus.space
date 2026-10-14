@@ -7,7 +7,7 @@ import { zonesPageContent } from "@/lib/content/zones";
 import { localPages } from "@/lib/content/local-pages";
 
 export const metadata = buildMetadata({
-  title: "Zones d'intervention",
+  title: "Zones d'intervention : Pontoise, Val-d'Oise, Paris et Île-de-France",
   description:
     "Découvrez les villes et départements d'Île-de-France où ProClean Empire intervient : Val-d'Oise, Hauts-de-Seine, Yvelines, Seine-Saint-Denis, Val-de-Marne, Essonne, Seine-et-Marne et Paris.",
   path: "/zones-intervention"

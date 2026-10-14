@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { buildMetadata } from "@/lib/site";
-import { services } from "@/lib/data";
+import { services, STANDALONE_PAGES } from "@/lib/data";
 import { PageHero } from "@/components/sections/page-hero";
 import { CtaBand } from "@/components/sections/cta-band";
 import { VisualPlaceholder } from "@/components/ui/visual-placeholder";
@@ -26,10 +26,11 @@ export async function generateMetadata({ params }: Params) {
     });
   }
 
+  // Ces services ont leur propre page : on la désigne comme canonique (évite le contenu dupliqué).
   return buildMetadata({
     title: service.title,
     description: service.shortDescription,
-    path: `/services/${service.slug}`
+    path: STANDALONE_PAGES.has(service.slug) ? `/${service.slug}` : `/services/${service.slug}`
   });
 }
 

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { navLinks } from "@/lib/data";
 import { siteConfig } from "@/lib/site";
@@ -27,9 +28,11 @@ export function Footer() {
     <footer className="border-t border-slate-200 bg-slate-950 text-slate-200">
       <div className="section grid gap-10 md:grid-cols-2 lg:grid-cols-6">
         <div className="space-y-4">
-          <img
+          <Image
             src="/media/logo/proclean-empire-logo.png"
-            alt="ProClean Empire"
+            alt="Logo ProClean Empire"
+            width={187}
+            height={344}
             className="h-24 w-auto"
           />
           <p className="text-sm leading-relaxed text-slate-300">

@@ -4,7 +4,7 @@ import { PageHero } from "@/components/sections/page-hero";
 import { FaqAdvanced } from "@/components/phase3/faq-advanced";
 
 export const metadata = buildMetadata({
-  title: "FAQ",
+  title: "Questions fréquentes sur nos services de nettoyage",
   description:
     "Retrouvez les réponses aux questions fréquentes sur nos prestations de propreté pour entreprises.",
   path: "/faq"

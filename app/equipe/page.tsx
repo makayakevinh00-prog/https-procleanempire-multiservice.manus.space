@@ -5,7 +5,7 @@ import { TeamPremiumSection } from "@/components/phase2/team-premium-section";
 import { InteractiveProcessTimeline } from "@/components/phase2/interactive-process-timeline";
 
 export const metadata = buildMetadata({
-  title: "Équipe",
+  title: "L'équipe ProClean Empire à Pontoise",
   description:
     "Découvrez le fondateur, les équipes terrain, les méthodes et le processus qualité de ProClean Empire.",
   path: "/equipe"

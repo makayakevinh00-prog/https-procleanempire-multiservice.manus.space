@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef } from "react";
 import Image from "next/image";
+
+import { useRef } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { Reveal } from "@/components/home/reveal";

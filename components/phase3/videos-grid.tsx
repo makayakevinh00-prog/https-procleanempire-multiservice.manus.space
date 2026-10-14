@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import { useMemo, useState } from "react";
 import { videosList, videosPageContent, type VideoEntry } from "@/lib/content/phase3";
 import { YoutubeVideoCard } from "@/components/ui/youtube-video-card";
@@ -75,11 +77,12 @@ export function VideosGrid() {
                   ) : video.youtubeUrl ? (
                     <YoutubeVideoCard youtubeUrl={video.youtubeUrl} title={video.title} />
                   ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src="/media/placeholders/video-thumbnail.jpg"
+                    <Image
+                      src="/media/photos/hero-showcase.jpg"
                       alt={`Miniature vidéo ${video.title}`}
-                      loading="lazy"
+                      width={1600}
+                      height={1600}
+                      sizes="(min-width: 768px) 33vw, 100vw"
                       className="aspect-video w-full object-cover"
                     />
                   )}

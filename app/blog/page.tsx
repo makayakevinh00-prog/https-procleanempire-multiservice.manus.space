@@ -4,7 +4,7 @@ import { PageHero } from "@/components/sections/page-hero";
 import { blogPageContent, blogPosts } from "@/lib/content/phase3";
 
 export const metadata = buildMetadata({
-  title: "Blog",
+  title: "Blog : conseils nettoyage, ménage Airbnb et entretien des locaux",
   description:
     "Blog ProClean Empire : actualités et expertise sur les prestations de propreté pour entreprises.",
   path: "/blog"
