@@ -36,8 +36,8 @@ export function ServiceLanding({
             <Link href="/devis" className="btn-primary">
               Demander un devis
             </Link>
-            <Link href="/contact" className="btn-secondary">
-              Être rappelé
+            <Link href="/rendez-vous" className="btn-secondary">
+              Planifier une visite technique
             </Link>
           </>
         }

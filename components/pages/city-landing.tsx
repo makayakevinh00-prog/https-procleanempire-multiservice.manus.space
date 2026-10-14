@@ -51,9 +51,9 @@ export function CityLanding({ slug }: { slug: string }) {
             <Link href="/devis" className="btn-primary">
               Devis gratuit sous 24 h
             </Link>
-            <a href={siteConfig.phoneHref} className="btn-secondary">
-              Appeler le {siteConfig.phone}
-            </a>
+            <Link href="/rendez-vous" className="btn-secondary">
+              Planifier une visite gratuite
+            </Link>
           </>
         }
       />
