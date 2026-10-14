@@ -73,7 +73,7 @@ export const videosList: VideoEntry[] = [
     id: "presentation-proclean-empire",
     title: "Présentation ProClean Empire",
     videoSrc: "/media/videos/proclean-presentation.mp4",
-    poster: "/media/photos/nettoyage-avion-cessna.jpeg",
+    poster: "/media/photos/nettoyage-avion-cessna.webp",
     description:
       "Présentation de notre approche, de nos standards qualité et de nos interventions sur le terrain.",
     category: "Présentation"
@@ -82,7 +82,7 @@ export const videosList: VideoEntry[] = [
     id: "demonstration-nettoyage-1",
     title: "Démonstration d'entretien - Intérieur automobile",
     videoSrc: "/media/videos/proclean-demonstration-1.mp4",
-    poster: "/media/photos/interieur-auto-apres.jpeg",
+    poster: "/media/photos/interieur-auto-apres.webp",
     description: "Intervention détaillage et remise en état d'un intérieur automobile.",
     category: "Demonstrations"
   },
@@ -90,7 +90,7 @@ export const videosList: VideoEntry[] = [
     id: "demonstration-nettoyage-2",
     title: "Démonstration d'entretien - Sièges et garnitures",
     videoSrc: "/media/videos/proclean-demonstration-2.mp4",
-    poster: "/media/photos/banquette-arriere-apres.jpeg",
+    poster: "/media/photos/banquette-arriere-apres.webp",
     description: "Traitement et remise en état des sièges et garnitures textiles/cuir.",
     category: "Demonstrations"
   }

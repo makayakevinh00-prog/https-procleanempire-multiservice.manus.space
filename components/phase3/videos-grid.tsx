@@ -78,7 +78,7 @@ export function VideosGrid() {
                     <YoutubeVideoCard youtubeUrl={video.youtubeUrl} title={video.title} />
                   ) : (
                     <Image
-                      src="/media/photos/hero-showcase.jpg"
+                      src="/media/photos/hero-showcase.webp"
                       alt={`Miniature vidéo ${video.title}`}
                       width={1600}
                       height={1600}

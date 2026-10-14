@@ -14,7 +14,7 @@ export default function ConciergerieEntreprisePage() {
       eyebrow="Conciergerie d'entreprise · Bureaux & commerces"
       title="Vos espaces de travail, entièrement pris en charge."
       lead="Un seul prestataire pour la propreté, l'entretien et la vie quotidienne de vos locaux. Vos équipes et vos clients trouvent un lieu impeccable chaque matin, vous n'y pensez plus."
-      image={{ src: "/media/photos/hero-showcase.jpg", alt: "Espace de bureaux haut de gamme entretenu par ProClean Empire" }}
+      image={{ src: "/media/photos/hero-showcase.webp", alt: "Espace de bureaux haut de gamme entretenu par ProClean Empire" }}
       serviceId="conciergerie"
       ctaLabel="Demander un devis conciergerie"
       intro={[

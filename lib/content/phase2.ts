@@ -76,105 +76,105 @@ export const galleryItems: GalleryItem[] = [
     id: "avion-cessna",
     category: "Aéronautique",
     title: "Entretien extérieur d'un Cessna",
-    image: "/media/photos/nettoyage-avion-cessna.jpeg",
+    image: "/media/photos/nettoyage-avion-cessna.webp",
     alt: "Technicien ProClean Empire intervenant sur l'empennage d'un avion Cessna en hangar"
   },
   {
     id: "cockpit-avion",
     category: "Aéronautique",
     title: "Detailing cockpit avion",
-    image: "/media/photos/cockpit-avion-detailing.jpeg",
+    image: "/media/photos/cockpit-avion-detailing.webp",
     alt: "Entretien minutieux du tableau de bord et des écrans d'un cockpit d'avion"
   },
   {
     id: "sieges-cuir-avion",
     category: "Aéronautique",
     title: "Rénovation cuir cabine avion",
-    image: "/media/photos/sieges-cuir-avion.jpeg",
+    image: "/media/photos/sieges-cuir-avion.webp",
     alt: "Sièges en cuir beige d'une cabine d'avion en cours de traitement"
   },
   {
     id: "interieur-auto",
     category: "Automobile",
     title: "Detailing intérieur complet",
-    image: "/media/photos/interieur-auto-apres.jpeg",
+    image: "/media/photos/interieur-auto-apres.webp",
     alt: "Intérieur de véhicule après detailing complet par ProClean Empire"
   },
   {
     id: "interieur-mercedes",
     category: "Automobile",
     title: "Entretien intérieur Mercedes",
-    image: "/media/photos/interieur-mercedes.jpeg",
+    image: "/media/photos/interieur-mercedes.webp",
     alt: "Habitacle Mercedes entretenu avec protection volant"
   },
   {
     id: "banquette-arriere",
     category: "Automobile",
     title: "Banquette arrière remise à neuf",
-    image: "/media/photos/banquette-arriere-apres.jpeg",
+    image: "/media/photos/banquette-arriere-apres.webp",
     alt: "Banquette arrière de véhicule remise en état après intervention"
   },
   {
     id: "traitement-tapis",
     category: "Automobile",
     title: "Traitement des tapis en profondeur",
-    image: "/media/photos/traitement-tapis.jpeg",
+    image: "/media/photos/traitement-tapis.webp",
     alt: "Application de produit professionnel sur tapis de véhicule avant brossage"
   },
   {
     id: "siege-avant-traitement",
     category: "Avant/Après",
     title: "Siège textile — avant traitement",
-    image: "/media/photos/siege-auto-avant.jpeg",
+    image: "/media/photos/siege-auto-avant.webp",
     alt: "Banquette de véhicule fortement encrassée avant intervention ProClean Empire"
   },
   {
     id: "siege-apres-traitement",
     category: "Avant/Après",
     title: "Siège textile — après traitement",
-    image: "/media/photos/interieur-mercedes-apres.jpeg",
+    image: "/media/photos/interieur-mercedes-apres.webp",
     alt: "Habitacle Mercedes entretenu après intervention ProClean Empire, volant protégé"
   },
   {
     id: "cuir-rouge-avant",
     category: "Avant/Après",
     title: "Cuir rouge — pendant le traitement",
-    image: "/media/photos/cuir-rouge-avant.jpeg",
+    image: "/media/photos/cuir-rouge-avant.webp",
     alt: "Siège en cuir rouge en cours de traitement et décontamination"
   },
   {
     id: "cuir-rouge-apres",
     category: "Avant/Après",
     title: "Cuir rouge — résultat final",
-    image: "/media/photos/cuir-rouge-apres.jpeg",
+    image: "/media/photos/cuir-rouge-apres.webp",
     alt: "Siège en cuir rouge rénové et brillant après traitement ProClean Empire"
   },
   {
     id: "canape-velours",
     category: "Avant/Après",
     title: "Canapé velours ravivé",
-    image: "/media/photos/canape-velours-apres.jpeg",
+    image: "/media/photos/canape-velours-apres.webp",
     alt: "Canapé en velours vert restauré en profondeur à domicile"
   },
   {
     id: "airbnb-table-accueil",
     category: "Airbnb",
     title: "Préparation logement Airbnb — table d'accueil",
-    image: "/media/photos/airbnb-table-accueil.jpeg",
+    image: "/media/photos/airbnb-table-accueil.webp",
     alt: "Table d'accueil préparée dans un logement Airbnb entretenu par ProClean Empire"
   },
   {
     id: "airbnb-entree-logement",
     category: "Airbnb",
     title: "Préparation logement Airbnb — entrée",
-    image: "/media/photos/airbnb-entree-logement.jpeg",
+    image: "/media/photos/airbnb-entree-logement.webp",
     alt: "Entrée et coin cuisine d'un logement Airbnb entretenu par ProClean Empire"
   },
   {
     id: "airbnb-salon-table-basse",
     category: "Airbnb",
     title: "Préparation logement Airbnb — salon",
-    image: "/media/photos/airbnb-salon-table-basse.jpeg",
+    image: "/media/photos/airbnb-salon-table-basse.webp",
     alt: "Salon et table basse d'un logement Airbnb entretenu par ProClean Empire"
   }
 ];
@@ -187,7 +187,7 @@ export const teamPageContent = {
   founderBlock: {
     title: "Le fondateur",
     text: "Derrière ProClean Empire, il y a une ambition : offrir un service d'entretien professionnel où la qualité, la rigueur et l'exigence de service sont une priorité. Fondée par Kevinh Makaya, ProClean Empire accompagne les professionnels et les particuliers avec des prestations d'entretien et de detailing automobile haut de gamme, adaptées à chaque besoin.",
-    photo: "/media/photos/fondateur-proclean-empire.jpeg"
+    photo: "/media/photos/fondateur-proclean-empire.webp"
   },
   teamsBlock: {
     title: "Les équipes terrain",
@@ -205,7 +205,7 @@ export const teamPageContent = {
   toolsBlock: {
     title: "Matériel et protocoles qualité",
     text: "Matériel professionnel (injection-extraction, vapeur, brosses techniques) et produits adaptés à chaque surface : textiles, cuirs, plastiques, vitrages et équipements sensibles. Chaque intervention se termine par un contrôle qualité systématique.",
-    photo: "/media/photos/traitement-tapis.jpeg"
+    photo: "/media/photos/traitement-tapis.webp"
   }
 };
 

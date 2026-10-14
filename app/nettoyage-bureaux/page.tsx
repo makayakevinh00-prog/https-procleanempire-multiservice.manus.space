@@ -14,7 +14,7 @@ export default function OfficeCleaningPage() {
       eyebrow="Bureaux · Commerces · Halls d'immeuble"
       title="Des locaux impeccables, sans y penser."
       lead="Bureaux, boutiques, cabinets et parties communes : nous entretenons vos locaux à la fréquence et aux horaires qui conviennent à votre activité, pour que vos équipes et vos clients entrent dans un lieu net, chaque jour."
-      image={{ src: "/media/photos/hero-showcase.jpg", alt: "Espace de bureaux haut de gamme entretenu par ProClean Empire" }}
+      image={{ src: "/media/photos/hero-showcase.webp", alt: "Espace de bureaux haut de gamme entretenu par ProClean Empire" }}
       serviceId="bureaux"
       ctaLabel="Demander un devis pour mes locaux"
       intro={[

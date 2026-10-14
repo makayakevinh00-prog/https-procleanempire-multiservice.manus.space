@@ -14,7 +14,7 @@ export default function MenageAirbnbPage() {
       eyebrow="Ménage Airbnb · Location courte durée"
       title="Un logement prêt pour chaque voyageur."
       lead="Pour les conciergeries et les propriétaires : nous préparons votre logement entre le départ et l'arrivée, le jour que vous fixez, avec le même niveau d'exigence à chaque passage."
-      image={{ src: "/media/photos/airbnb-salon-table-basse.jpeg", alt: "Salon d'un logement Airbnb préparé pour l'arrivée des voyageurs" }}
+      image={{ src: "/media/photos/airbnb-salon-table-basse.webp", alt: "Salon d'un logement Airbnb préparé pour l'arrivée des voyageurs" }}
       serviceId="airbnb"
       ctaLabel="Demander un devis pour mon Airbnb"
       intro={[

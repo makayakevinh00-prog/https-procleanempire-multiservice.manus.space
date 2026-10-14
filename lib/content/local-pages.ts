@@ -22,7 +22,7 @@ export const localPages: LocalPage[] = [
       eyebrow: "Pontoise · Val-d'Oise (95)",
       title: "Votre équipe de nettoyage, à Pontoise.",
       lead: "ProClean Empire est installée à Pontoise. Logements en location courte durée, bureaux, boutiques du centre-ville ou parties communes : nous sommes à quelques minutes de chez vous.",
-      image: { src: "/media/photos/airbnb-entree-logement.jpeg", alt: "Entrée d'un logement préparé pour des voyageurs à Pontoise" },
+      image: { src: "/media/photos/airbnb-entree-logement.webp", alt: "Entrée d'un logement préparé pour des voyageurs à Pontoise" },
       serviceId: "airbnb",
       ctaLabel: "Demander un devis à Pontoise",
       intro: [
@@ -66,7 +66,7 @@ export const localPages: LocalPage[] = [
       eyebrow: "Cergy · Agglomération de Cergy-Pontoise",
       title: "Des locaux nets à Cergy, à vos horaires.",
       lead: "Entreprises, commerces et propriétaires de Cergy : nous entretenons vos espaces de travail et préparons vos logements en location courte durée, depuis notre base voisine de Pontoise.",
-      image: { src: "/media/photos/hero-showcase.jpg", alt: "Bureaux modernes entretenus par ProClean Empire à Cergy" },
+      image: { src: "/media/photos/hero-showcase.webp", alt: "Bureaux modernes entretenus par ProClean Empire à Cergy" },
       serviceId: "bureaux",
       ctaLabel: "Demander un devis à Cergy",
       intro: [
@@ -110,7 +110,7 @@ export const localPages: LocalPage[] = [
       eyebrow: "Paris · Tous arrondissements",
       title: "Ménage Airbnb à Paris, réglé sur vos réservations.",
       lead: "À Paris, les arrivées s'enchaînent. Nous préparons vos appartements entre deux voyageurs, aux dates de votre calendrier, et entretenons aussi bureaux et boutiques.",
-      image: { src: "/media/photos/airbnb-salon-table-basse.jpeg", alt: "Salon d'un appartement parisien en location courte durée prêt à accueillir" },
+      image: { src: "/media/photos/airbnb-salon-table-basse.webp", alt: "Salon d'un appartement parisien en location courte durée prêt à accueillir" },
       serviceId: "airbnb",
       ctaLabel: "Demander un devis à Paris",
       intro: [
@@ -154,7 +154,7 @@ export const localPages: LocalPage[] = [
       eyebrow: "Saint-Ouen-sur-Seine · Seine-Saint-Denis (93)",
       title: "Saint-Ouen, logement après logement.",
       lead: "Nous préparons régulièrement des logements en location courte durée en Seine-Saint-Denis. Propriétaires, conciergeries et entreprises de Saint-Ouen : profitez d'une équipe qui connaît le secteur.",
-      image: { src: "/media/photos/airbnb-table-accueil.jpeg", alt: "Table d'accueil préparée dans un logement de location courte durée à Saint-Ouen" },
+      image: { src: "/media/photos/airbnb-table-accueil.webp", alt: "Table d'accueil préparée dans un logement de location courte durée à Saint-Ouen" },
       serviceId: "airbnb",
       ctaLabel: "Demander un devis à Saint-Ouen",
       intro: [

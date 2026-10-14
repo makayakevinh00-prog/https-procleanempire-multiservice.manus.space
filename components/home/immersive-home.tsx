@@ -25,7 +25,7 @@ function Hero() {
         <video
           className="h-full w-full object-cover"
           src="/media/videos/proclean-demonstration-2.mp4"
-          poster="/media/photos/hero-showcase.jpg"
+          poster="/media/photos/hero-showcase.webp"
           autoPlay
           muted
           loop
@@ -177,7 +177,7 @@ function AirbnbFeature() {
         <div className="relative grid h-[560px] grid-cols-2 gap-4 md:h-[680px]">
           <motion.div style={{ y: yA }} className="relative h-[85%] overflow-hidden rounded-[28px]">
             <Image
-              src="/media/photos/airbnb-salon-table-basse.jpeg"
+              src="/media/photos/airbnb-salon-table-basse.webp"
               alt="Salon d'un logement Airbnb nettoyé et préparé pour l'arrivée des voyageurs"
               fill
               sizes="(min-width: 1024px) 25vw, 50vw"
@@ -187,7 +187,7 @@ function AirbnbFeature() {
           <motion.div style={{ y: yB }} className="flex flex-col gap-4 pt-16">
             <div className="relative h-1/2 overflow-hidden rounded-[28px]">
               <Image
-                src="/media/photos/airbnb-entree-logement.jpeg"
+                src="/media/photos/airbnb-entree-logement.webp"
                 alt="Entrée lumineuse d'un appartement Airbnb après le ménage"
                 fill
                 sizes="(min-width: 1024px) 25vw, 50vw"
@@ -196,7 +196,7 @@ function AirbnbFeature() {
             </div>
             <div className="relative h-1/2 overflow-hidden rounded-[28px]">
               <Image
-                src="/media/photos/canape-velours-apres.jpeg"
+                src="/media/photos/canape-velours-apres.webp"
                 alt="Canapé en velours propre dans un logement de location courte durée"
                 fill
                 sizes="(min-width: 1024px) 25vw, 50vw"
@@ -238,7 +238,7 @@ function ServicesTiles() {
               className="group relative block h-full min-h-[520px] overflow-hidden rounded-[32px] bg-ink"
             >
               <Image
-                src="/media/photos/hero-showcase.jpg"
+                src="/media/photos/hero-showcase.webp"
                 alt="Espace de bureaux haut de gamme entretenu par ProClean Empire"
                 fill
                 sizes="(min-width: 1024px) 40vw, 100vw"
@@ -303,10 +303,10 @@ function ServicesTiles() {
 /* ---------- 5. Galerie (fond sombre) ---------- */
 function DetailingStrip() {
   const shots = [
-    { src: "/media/photos/airbnb-table-accueil.jpeg", alt: "Table d'accueil préparée dans un logement Airbnb" },
-    { src: "/media/photos/canape-velours-apres.jpeg", alt: "Canapé en velours après nettoyage" },
-    { src: "/media/photos/traitement-tapis.jpeg", alt: "Traitement d'un tapis professionnel" },
-    { src: "/media/photos/interieur-auto-apres.jpeg", alt: "Véhicule de société après nettoyage intérieur" }
+    { src: "/media/photos/airbnb-table-accueil.webp", alt: "Table d'accueil préparée dans un logement Airbnb" },
+    { src: "/media/photos/canape-velours-apres.webp", alt: "Canapé en velours après nettoyage" },
+    { src: "/media/photos/traitement-tapis.webp", alt: "Traitement d'un tapis professionnel" },
+    { src: "/media/photos/interieur-auto-apres.webp", alt: "Véhicule de société après nettoyage intérieur" }
   ];
   return (
     <section className="bg-ink text-white">

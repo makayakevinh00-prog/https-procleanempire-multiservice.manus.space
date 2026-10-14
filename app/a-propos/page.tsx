@@ -48,7 +48,7 @@ export default function AboutPage() {
             </ul>
           </article>
           <Image
-            src="/media/photos/hero-showcase.jpg"
+            src="/media/photos/hero-showcase.webp"
             alt="Univers ProClean Empire : bureaux, automobile et aviation"
             width={1600}
             height={1600}
