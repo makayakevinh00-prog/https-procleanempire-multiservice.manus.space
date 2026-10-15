@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import { Header, HeaderSpacer } from "@/components/layout/header";
 import { BookingButton } from "@/components/layout/booking-button";
 import { Footer } from "@/components/layout/footer";
 import { siteConfig } from "@/lib/site";
 import { defaultLocale, getDictionary, ogLocale } from "@/lib/i18n";
+
+const googleSiteVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
+// Statistiques de visites Vercel (gratuites) : actives seulement si NEXT_PUBLIC_VERCEL_ANALYTICS=1
+// ET « Web Analytics » activé dans le projet Vercel (sinon le script n'existe pas).
+const vercelAnalyticsEnabled = process.env.NEXT_PUBLIC_VERCEL_ANALYTICS === "1";
 
 export const metadata: Metadata = {
   title: "ProClean Empire | Ménage Airbnb, nettoyage de bureaux et conciergerie à Pontoise",
@@ -16,7 +22,10 @@ export const metadata: Metadata = {
     locale: ogLocale[defaultLocale],
     type: "website",
     images: [{ url: "/media/photos/hero-showcase.jpg", width: 1600, height: 1600, alt: "ProClean Empire" }]
-  }
+  },
+  // Google Search Console : code de validation (méthode « balise HTML ») à mettre dans Vercel,
+  // variable NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION (aucun secret). Sans variable : rien n'est ajouté.
+  ...(googleSiteVerification ? { verification: { google: googleSiteVerification } } : {})
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -68,6 +77,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main id="main-content">{children}</main>
         <Footer />
         <BookingButton />
+        {vercelAnalyticsEnabled ? <Analytics /> : null}
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
