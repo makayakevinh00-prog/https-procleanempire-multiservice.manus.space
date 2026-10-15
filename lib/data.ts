@@ -1,3 +1,4 @@
+import { getNavLinks } from "@/lib/i18n";
 export type Service = {
   slug: string;
   title: string;
@@ -265,13 +266,7 @@ export const services: Service[] = [
   }
 ];
 
-export const navLinks = [
-  { label: "Accueil", href: "/" },
-  { label: "Ménage Airbnb", href: "/menage-airbnb" },
-  { label: "Bureaux & commerces", href: "/nettoyage-bureaux" },
-  { label: "Conciergerie d'entreprise", href: "/conciergerie-entreprise" },
-  { label: "Contact", href: "/contact" }
-];
+export const navLinks = getNavLinks("fr");
 
 /** Services qui ont leur propre page à la racine (/slug) : canonique et plan du site pointent vers elle. */
 export const STANDALONE_PAGES = new Set([

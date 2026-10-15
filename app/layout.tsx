@@ -4,6 +4,7 @@ import { Header, HeaderSpacer } from "@/components/layout/header";
 import { BookingButton } from "@/components/layout/booking-button";
 import { Footer } from "@/components/layout/footer";
 import { siteConfig } from "@/lib/site";
+import { defaultLocale, getDictionary, ogLocale } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   title: "ProClean Empire | Ménage Airbnb, nettoyage de bureaux et conciergerie à Pontoise",
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   openGraph: {
     siteName: siteConfig.name,
-    locale: "fr_FR",
+    locale: ogLocale[defaultLocale],
     type: "website",
     images: [{ url: "/media/photos/hero-showcase.jpg", width: 1600, height: 1600, alt: "ProClean Empire" }]
   }
@@ -54,13 +55,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <html lang="fr">
+    <html lang={defaultLocale}>
       <body>
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:shadow"
         >
-          Aller au contenu
+          {getDictionary(defaultLocale).nav.skipToContent}
         </a>
         <Header />
         <HeaderSpacer />
