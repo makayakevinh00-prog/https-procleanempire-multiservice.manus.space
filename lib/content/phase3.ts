@@ -154,9 +154,20 @@ export type BlogPost = {
   excerpt: string;
   category: BlogCategory;
   date: string;
+  /** Lien vers l'article complet, s'il existe. */
+  href?: string;
 };
 
 export const blogPosts: BlogPost[] = [
+  {
+    id: "decoration-noel-bureaux-commerces-val-doise",
+    title: "Décorer ses bureaux et sa boutique pour Noël dans le Val-d'Oise",
+    category: "Conciergerie d'entreprise",
+    excerpt:
+      "Vitrine, accueil, open space : comment préparer une décoration de Noël réussie pour vos locaux à Cergy, Pontoise ou Roissy, quand la commander et comment la faire installer sans perturber votre activité.",
+    date: "19 octobre 2026",
+    href: "/blog/decoration-noel-bureaux-commerces-val-doise"
+  },
   {
     id: "offre-nouvelle-annee-2026",
     title: "Offre exclusive 2026 : bien démarrer l'année avec des espaces conformes à vos standards",

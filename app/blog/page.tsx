@@ -46,9 +46,22 @@ export default function BlogPage() {
                   <p className="text-xs font-semibold uppercase tracking-wide text-[#1d6fe0]">
                     {post.category}
                   </p>
-                  <h3 className="mt-2 text-base font-semibold text-[#14213d]">{post.title}</h3>
+                  <h3 className="mt-2 text-base font-semibold text-[#14213d]">
+                    {post.href ? (
+                      <Link href={post.href} className="hover:underline">
+                        {post.title}
+                      </Link>
+                    ) : (
+                      post.title
+                    )}
+                  </h3>
                   <p className="mt-2 text-sm text-slate-600">{post.excerpt}</p>
                   <p className="mt-3 text-xs text-slate-500">{post.date}</p>
+                  {post.href ? (
+                    <Link href={post.href} className="mt-3 inline-block text-sm font-semibold text-[#1d6fe0] hover:underline">
+                      Lire l&apos;article
+                    </Link>
+                  ) : null}
                 </article>
               ))}
             </div>

@@ -18,6 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/services",
     "/faq",
     "/blog",
+    "/blog/decoration-noel-bureaux-commerces-val-doise",
     "/devis",
     "/contact",
     "/mentions-legales",
