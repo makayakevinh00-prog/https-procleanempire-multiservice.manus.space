@@ -1,8 +1,9 @@
+import Link from "next/link";
 import { PremiumService } from "@/components/pages/premium-service";
 import { buildMetadata, siteConfig } from "@/lib/site";
 
 export const metadata = buildMetadata({
-  title: "Ménage Airbnb à Pontoise, Cergy et en Île-de-France pour conciergeries et propriétaires",
+  title: "Ménage Airbnb dans le Val-d'Oise (95) – Pontoise, Cergy, Paris",
   description:
     "Ménage Airbnb entre deux voyageurs à Pontoise, Cergy, Paris et en Île-de-France : passage entre 11h et 14h le jour que vous fixez, checklist complète, linge en option. Devis sous 24h.",
   path: "/menage-airbnb"
@@ -12,7 +13,7 @@ export default function MenageAirbnbPage() {
   return (
     <PremiumService
       eyebrow="Ménage Airbnb · Location courte durée"
-      title="Un logement prêt pour chaque voyageur."
+      title="Ménage Airbnb dans le Val-d'Oise (95) : un logement prêt pour chaque voyageur."
       lead="Pour les conciergeries et les propriétaires : nous préparons votre logement entre le départ et l'arrivée, le jour que vous fixez, avec le même niveau d'exigence à chaque passage."
       image={{ src: "/media/photos/airbnb-salon-table-basse.webp", alt: "Salon d'un logement Airbnb préparé pour l'arrivée des voyageurs" }}
       serviceId="airbnb"
@@ -32,6 +33,16 @@ export default function MenageAirbnbPage() {
             { title: "Pièces de vie", text: "Sols aspirés et lavés, surfaces dépoussiérées, coussins et déco remis en place." },
             { title: "Petits consommables", text: "Papier toilette, savon, sacs poubelle : contrôle et réassort si vous le souhaitez." },
             { title: "Contrôle final", text: "Tour complet du logement avant de partir pour un accueil sans mauvaise surprise." }
+          ]
+        },
+        {
+          heading: "Nos villes dans le Val-d'Oise (95) et au-delà.",
+          items: [
+            { title: "Pontoise", text: "Notre siège : les créneaux de ménage entre deux voyageurs y sont les plus faciles à caler." },
+            { title: "Cergy et Osny", text: "Studios étudiants, appartements meublés et maisons de l'agglomération de Cergy-Pontoise." },
+            { title: "Saint-Ouen-l'Aumône", text: "Logements en location courte durée de l'autre côté de l'Oise, à quelques minutes de notre base." },
+            { title: "Goussainville et l'est du 95", text: "Logements proches de l'aéroport de Roissy, très demandés par les voyageurs de passage." },
+            { title: "Paris et Saint-Ouen", text: "Ménage de fin de séjour à Paris (17e, 18e, 20e) et à Saint-Ouen-sur-Seine : voir notre page Paris." }
           ]
         },
         {
@@ -55,13 +66,34 @@ export default function MenageAirbnbPage() {
         { question: "Quelles villes couvrez-vous ?", answer: "Pontoise, Cergy et le Val-d'Oise, Paris et l'Île-de-France. Demandez-nous pour votre adresse exacte." },
         { question: "Comment est facturé le ménage ?", answer: "Au passage, avec une facture mensuelle pour les conciergeries et propriétaires réguliers." }
       ]}
+      aside={
+        <section className="bg-white">
+          <div className="mx-auto max-w-[1200px] px-5 pb-20 md:px-8 md:pb-28">
+            <h2 className="text-2xl font-bold text-ink">Ménage Airbnb près de chez vous</h2>
+            <ul className="mt-5 flex flex-wrap gap-3">
+              {[
+                { href: "/nettoyage-pontoise", label: "Pontoise" },
+                { href: "/nettoyage-cergy", label: "Cergy" },
+                { href: "/menage-airbnb-paris", label: "Ménage fin de séjour à Paris" },
+                { href: "/nettoyage-saint-ouen", label: "Saint-Ouen-sur-Seine" }
+              ].map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="btn-pill-ghost text-ink">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      }
       schema={{
         "@context": "https://schema.org",
         "@type": "Service",
         serviceType: "Ménage Airbnb / location courte durée",
         name: "Ménage Airbnb",
         provider: { "@type": "LocalBusiness", name: siteConfig.name, telephone: siteConfig.phone, url: siteConfig.url },
-        areaServed: ["Pontoise", "Cergy", "Val-d'Oise", "Paris", "Île-de-France"],
+        areaServed: ["Pontoise", "Cergy", "Osny", "Saint-Ouen-l'Aumône", "Goussainville", "Val-d'Oise", "Paris", "Saint-Ouen-sur-Seine", "Île-de-France"],
         url: `${siteConfig.url}/menage-airbnb`
       }}
     />

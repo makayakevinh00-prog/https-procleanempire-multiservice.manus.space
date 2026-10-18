@@ -77,7 +77,7 @@ export function Footer() {
             {localPages.map((page) => (
               <li key={page.slug}>
                 <Link href={`/${page.slug}`} className="text-slate-300 transition hover:text-white">
-                  {page.city}
+                  {page.label ?? page.city}
                 </Link>
               </li>
             ))}

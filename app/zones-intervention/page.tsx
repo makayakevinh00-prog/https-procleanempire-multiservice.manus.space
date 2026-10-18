@@ -40,7 +40,7 @@ export default function ZonesInterventionPage() {
           {localPages.map((page) => (
             <li key={page.slug}>
               <Link href={`/${page.slug}`} className="btn-pill-ghost text-ink">
-                {page.city}
+                {page.label ?? page.city}
               </Link>
             </li>
           ))}

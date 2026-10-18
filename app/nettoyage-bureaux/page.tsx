@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PremiumService } from "@/components/pages/premium-service";
 import { buildMetadata, siteConfig } from "@/lib/site";
 
@@ -56,6 +57,25 @@ export default function OfficeCleaningPage() {
         { question: "Quelles villes couvrez-vous ?", answer: "Pontoise, Cergy et le Val-d'Oise, Paris, Saint-Ouen et toute l'Île-de-France." },
         { question: "Pouvez-vous aussi gérer la décoration ou les plantes ?", answer: "Oui, c'est notre service de conciergerie d'entreprise, sur mesure." }
       ]}
+      aside={
+        <section className="bg-white">
+          <div className="mx-auto max-w-[1200px] px-5 pb-20 md:px-8 md:pb-28">
+            <h2 className="text-2xl font-bold text-ink">Nettoyage de bureaux près de chez vous</h2>
+            <ul className="mt-5 flex flex-wrap gap-3">
+              {[
+                { href: "/nettoyage-bureaux-pontoise", label: "Nettoyage de bureaux à Pontoise" },
+                { href: "/entreprise-de-nettoyage-cergy", label: "Entreprise de nettoyage à Cergy" }
+              ].map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="btn-pill-ghost text-ink">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      }
       schema={{
         "@context": "https://schema.org",
         "@type": "Service",
