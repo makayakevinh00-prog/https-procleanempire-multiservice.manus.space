@@ -2,17 +2,29 @@ import Link from "next/link";
 import { buildMetadata } from "@/lib/site";
 import { PageHero } from "@/components/sections/page-hero";
 import { FaqAdvanced } from "@/components/phase3/faq-advanced";
+import { faqs } from "@/lib/data";
 
 export const metadata = buildMetadata({
-  title: "Questions fréquentes sur nos services de nettoyage",
+  title: "FAQ nettoyage à Pontoise et dans le Val-d'Oise",
   description:
-    "Retrouvez les réponses aux questions fréquentes sur nos prestations de propreté pour entreprises.",
+    "Devis, horaires, produits, contrats, zones d'intervention : les réponses aux questions fréquentes sur nos prestations de nettoyage à Pontoise, Cergy et en Île-de-France.",
   path: "/faq"
 });
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: { "@type": "Answer", text: item.answer }
+  }))
+};
 
 export default function FaqPage() {
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <PageHero
         title="FAQ"
         description="Toutes les informations utiles pour cadrer votre projet de prestations de propreté."
