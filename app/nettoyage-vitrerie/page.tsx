@@ -4,7 +4,7 @@ import { ServiceLanding } from "@/components/pages/service-landing";
 export const metadata = buildMetadata({
   title: "Nettoyage de vitres et vitrines à Pontoise et en Île-de-France",
   description:
-    "Entretien des surfaces vitrées intérieures et extérieures pour bureaux, commerces et établissements professionnels.",
+    "Nettoyage de vitres et vitrines à Pontoise, Cergy et Paris : surfaces vitrées intérieures et extérieures de bureaux, commerces et immeubles, en passage régulier ou ponctuel. Devis sous 24 h.",
   path: "/nettoyage-vitrerie"
 });
 

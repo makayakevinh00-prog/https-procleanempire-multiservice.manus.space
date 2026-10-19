@@ -4,7 +4,7 @@ import { ServiceLanding } from "@/components/pages/service-landing";
 export const metadata = buildMetadata({
   title: "Nettoyage automobile et avion (detailing) à Pontoise et en Île-de-France",
   description:
-    "Prise en charge organisée du detailing intérieur et extérieur pour flottes d'entreprise et véhicules de particuliers exigeants.",
+    "Nettoyage automobile et avion (detailing) à Pontoise et en Île-de-France : intérieur et extérieur des véhicules de société, flottes et particuliers, sur votre parking ou à domicile. Devis sous 24 h.",
   path: "/nettoyage-automobile"
 });
 

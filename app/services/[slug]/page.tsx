@@ -29,8 +29,8 @@ export async function generateMetadata({ params }: Params) {
 
   // Ces services ont leur propre page : on la désigne comme canonique (évite le contenu dupliqué).
   return buildMetadata({
-    title: service.title,
-    description: service.shortDescription,
+    title: `${service.title} à Pontoise et en Île-de-France`,
+    description: `${service.shortDescription} ProClean Empire, entreprise de nettoyage à Pontoise (Val-d'Oise), intervient aussi à Paris. Devis sous 24 h.`,
     path: STANDALONE_PAGES.has(service.slug) ? `/${service.slug}` : `/services/${service.slug}`
   });
 }

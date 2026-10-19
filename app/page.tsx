@@ -2,9 +2,9 @@ import { ImmersiveHome } from "@/components/home/immersive-home";
 import { buildMetadata } from "@/lib/site";
 
 export const metadata = buildMetadata({
-  title: "Ménage Airbnb, nettoyage de bureaux et conciergerie d'entreprise à Pontoise",
+  title: "Entreprise de nettoyage à Pontoise, Val-d'Oise et Paris",
   description:
-    "ProClean Empire : ménage Airbnb pour conciergeries et propriétaires, nettoyage de bureaux et commerces, conciergerie d'entreprise et detailing auto & avion à Pontoise et en Île-de-France.",
+    "ProClean Empire, entreprise de nettoyage à Pontoise : nettoyage de bureaux, commerces, ménage Airbnb et remise en état dans le Val-d'Oise et à Paris. Devis sous 24h.",
   path: "/"
 });
 

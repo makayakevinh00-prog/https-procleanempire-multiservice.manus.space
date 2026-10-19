@@ -8,7 +8,7 @@ import { InteractiveProcessTimeline } from "@/components/phase2/interactive-proc
 export const metadata = buildMetadata({
   title: "Réalisations de nettoyage à Pontoise et en Île-de-France",
   description:
-    "Études de cas ProClean Empire avec avant/après, problématique, solution, résultat et témoignages clients.",
+    "Réalisations de ProClean Empire à Pontoise et en Île-de-France : besoin du client, intervention réalisée et résultat, pour le nettoyage de bureaux, commerces et logements.",
   path: "/realisations"
 });
 

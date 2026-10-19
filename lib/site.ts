@@ -20,6 +20,18 @@ export const siteConfig = {
   promise:
     "Demandes reçues 7j/7. Réponse sous 24 h pendant les horaires de traitement (7j/7, 8h–18h). Interventions possibles tôt le matin, en soirée et le week-end selon la prestation et le planning.",
   googleReviewsUrl: "https://g.page/r/CXuyftubiMPuEAE/review",
+  // Note Google affichée sur le site : à mettre à jour ici uniquement (relevé du 19/10/2026 : 5,0/5, 33 avis).
+  googleRating: { value: "5,0", count: 33 },
+  // Profils officiels (JSON-LD sameAs).
+  sameAs: [
+    "https://g.page/r/CXuyftubiMPuEAE",
+    "https://www.facebook.com/people/Proclean-Empire/61575993812750/",
+    "https://www.instagram.com/proclean_empire/",
+    "https://www.linkedin.com/company/procelan-empire",
+    "https://fr.trustpilot.com/review/procleanempire.com",
+    "https://www.youtube.com/@ProCleanEmpire",
+    "https://www.tiktok.com/@procleanempire"
+  ],
   responseDelay: "Réactivité opérationnelle sur Pontoise et l'Île-de-France"
 };
 

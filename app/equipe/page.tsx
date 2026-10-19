@@ -5,9 +5,9 @@ import { TeamPremiumSection } from "@/components/phase2/team-premium-section";
 import { InteractiveProcessTimeline } from "@/components/phase2/interactive-process-timeline";
 
 export const metadata = buildMetadata({
-  title: "L'équipe ProClean Empire à Pontoise",
+  title: "L'équipe de nettoyage ProClean Empire à Pontoise",
   description:
-    "Découvrez le fondateur, les équipes terrain, les méthodes et le processus qualité de ProClean Empire.",
+    "Rencontrez l'équipe de ProClean Empire, entreprise de nettoyage à Pontoise : fondateur, méthodes de travail et contrôle qualité des interventions en Val-d'Oise et à Paris.",
   path: "/equipe"
 });
 

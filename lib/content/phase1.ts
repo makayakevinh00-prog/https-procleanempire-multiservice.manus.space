@@ -1,3 +1,4 @@
+import { siteConfig } from "@/lib/site";
 export type AnimatedStat = {
   label: string;
   value?: number;
@@ -63,7 +64,7 @@ export const presentationVideo = {
 export const premiumReviewsData = {
   sectionTitle: "Avis clients",
   sectionDescription:
-    "Note de 5,0/5 sur Google (30 avis) - découvrez les retours de nos clients.",
+    `Note de ${siteConfig.googleRating.value}/5 sur Google (${siteConfig.googleRating.count} avis) - découvrez les retours de nos clients.`,
   textReviews: [
     {
       id: "ilhame-kamil",

@@ -3,8 +3,9 @@ import { PageHero } from "@/components/sections/page-hero";
 import { legalInfo } from "@/lib/content/legal";
 
 export const metadata = buildMetadata({
-  title: "Mentions légales",
-  description: "Informations légales de ProClean Empire.",
+  title: "Mentions légales de ProClean Empire (Pontoise)",
+  description:
+    "Mentions légales de ProClean Empire, entreprise de nettoyage à Pontoise (Val-d'Oise) : éditeur du site, siège social, hébergeur et propriété intellectuelle.",
   path: "/mentions-legales"
 });
 

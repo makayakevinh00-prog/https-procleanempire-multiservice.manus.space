@@ -2,9 +2,9 @@ import { buildMetadata } from "@/lib/site";
 import { ServiceLanding } from "@/components/pages/service-landing";
 
 export const metadata = buildMetadata({
-  title: "Nettoyage de restaurants à Pontoise et en Île-de-France",
+  title: "Nettoyage de restaurants à Pontoise et Paris",
   description:
-    "Prestation pour restaurants avec protocoles adaptés aux exigences d'hygiène, de conformité et de service.",
+    "Nettoyage de restaurants à Pontoise, Cergy et Paris : salle, cuisine, sanitaires et sols, avant le service ou après la fermeture, dans le respect des règles d'hygiène. Devis sous 24 h.",
   path: "/nettoyage-restaurants"
 });
 
