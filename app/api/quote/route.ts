@@ -29,7 +29,8 @@ function sanitize(value: unknown, maxLength = 500): string {
 }
 
 /**
- * Demande de devis du site → Axonaut (fiche client + opportunité « Cycle commercial / Proposition »).
+ * Demande de devis du site → Axonaut (fiche client + opportunité « Cycle commercial / Proposition »)
+ * tant que AXONAUT_API_KEY est renseignée ; sinon transmission directe par le visiteur (e-mail / WhatsApp).
  * Succès renvoyé au client uniquement si Axonaut a tout accepté. Chaque demande est aussi écrite
  * en entier dans les logs Vercel ([devis] …) pour ne jamais la perdre.
  */
@@ -129,6 +130,14 @@ export async function POST(request: NextRequest) {
 
   // Trace complète de la demande, quoi qu'il arrive ensuite (logs Vercel).
   console.log("[devis] Nouvelle demande reçue", JSON.stringify({ receivedAt: new Date().toISOString(), ...data, details }));
+
+  // Bascule Axonaut → Qonto (règle §14 du 19/10/2026) : sans clé Axonaut, la demande n'est envoyée
+  // à aucun logiciel. Le visiteur la transmet lui-même en un clic (e-mail pré-rempli vers
+  // contact@procleanempire.com, ou WhatsApp) : aucun service payant ni clé secrète.
+  if (!process.env.AXONAUT_API_KEY) {
+    console.log("[devis] Transmission directe par le visiteur (e-mail / WhatsApp)", JSON.stringify({ email: data.email }));
+    return NextResponse.json({ ok: true, handoff: true });
+  }
 
   try {
     const result = await pushLeadToAxonaut({

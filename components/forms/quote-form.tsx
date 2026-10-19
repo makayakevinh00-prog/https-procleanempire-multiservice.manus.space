@@ -32,6 +32,7 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
   const [startedAt] = useState(() => Date.now());
   // Si l'enregistrement automatique échoue : la demande complète, prête à envoyer par e-mail ou WhatsApp.
   const [fallback, setFallback] = useState<{ text: string; code?: string } | null>(null);
+  const [handoff, setHandoff] = useState<string | null>(null);
 
   // Pré-sélection depuis l'URL : /contact?service=airbnb#devis
   useEffect(() => {
@@ -122,6 +123,12 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
           data?.error ?? `Votre demande n'a pas pu être envoyée. Merci de nous appeler au ${siteConfig.phone}.`
         );
       }
+      const data = await response.json().catch(() => null);
+      if (data?.handoff) {
+        // Pas de logiciel branché : le visiteur envoie lui-même la demande pré-remplie.
+        setHandoff(summary);
+        return;
+      }
       setDone(true);
     } catch (err) {
       // Réseau coupé (fetch impossible) : on propose aussi l'envoi par e-mail / WhatsApp.
@@ -134,6 +141,47 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (handoff) {
+    return (
+      <div className="rounded-[28px] bg-white p-8 text-center shadow-soft md:p-12" role="status">
+        <h3 className="font-display text-3xl font-semibold tracking-tight text-ink">
+          Dernière étape : envoyez votre demande.
+        </h3>
+        <p className="mx-auto mt-3 max-w-md text-slate-600">
+          Votre demande est prête. Choisissez comment nous l&apos;envoyer : elle s&apos;ouvre déjà
+          remplie, il suffit d&apos;appuyer sur « Envoyer ».
+        </p>
+        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <a
+            href={`mailto:${siteConfig.email}?subject=${encodeURIComponent(`Demande de devis — ${contact.name}`)}&body=${encodeURIComponent(handoff)}`}
+            className="btn-pill"
+          >
+            Envoyer par e-mail
+          </a>
+          <a
+            href={`${siteConfig.whatsappHref}?text=${encodeURIComponent(handoff)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-pill-ghost text-ink"
+          >
+            Envoyer par WhatsApp
+          </a>
+        </div>
+        <details className="mx-auto mt-8 max-w-md text-left text-sm text-slate-600">
+          <summary className="cursor-pointer font-semibold text-ink">Voir le récapitulatif</summary>
+          <pre className="mt-3 whitespace-pre-wrap rounded-xl bg-mist p-4 font-sans">{handoff}</pre>
+        </details>
+        <p className="mt-6 text-sm text-slate-600">
+          Ou appelez-nous :{" "}
+          <a href={siteConfig.phoneHref} className="font-semibold text-[#1d6fe0]">
+            {siteConfig.phone}
+          </a>{" "}
+          · {siteConfig.email}
+        </p>
+      </div>
+    );
   }
 
   if (done) {

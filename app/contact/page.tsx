@@ -9,7 +9,7 @@ export const metadata = buildMetadata({
   path: "/contact"
 });
 
-// Types de rendez-vous configurés dans Axonaut (Pages de réservation).
+// Types de rendez-vous : demande par WhatsApp (message pré-rempli) ou par téléphone.
 const appointmentTypes = [
   {
     title: "Appel découverte",
@@ -38,8 +38,6 @@ const appointmentTypes = [
 ];
 
 export default function ContactPage() {
-  const online = Boolean(siteConfig.axonautBookingUrl);
-
   const quickActions = [
     {
       href: "#devis",
@@ -49,11 +47,11 @@ export default function ContactPage() {
       external: false
     },
     {
-      href: siteConfig.bookingUrl,
+      href: siteConfig.phoneHref,
       label: "Je veux parler à quelqu'un",
-      text: "Appel découverte de 20 min, en ligne.",
+      text: `Appelez-nous au ${siteConfig.phone}.`,
       primary: false,
-      external: online
+      external: false
     },
     {
       href: siteConfig.whatsappHref,
@@ -124,9 +122,8 @@ export default function ContactPage() {
           <Reveal>
             <h2 className="display-lg text-ink">Prendre rendez-vous.</h2>
             <p className="mt-4 max-w-2xl text-lg text-slate-600">
-              {online
-                ? "Choisissez le type de rendez-vous, puis votre créneau dans notre agenda en ligne."
-                : "Choisissez le type de rendez-vous : appelez-nous et nous fixons le créneau ensemble."}
+              Choisissez le type de rendez-vous : écrivez-nous sur WhatsApp ou appelez-nous, et
+              nous fixons le créneau ensemble.
             </p>
           </Reveal>
           <div className="mt-12 grid gap-4 md:grid-cols-2">
@@ -140,13 +137,22 @@ export default function ContactPage() {
                     {type.title}
                   </h3>
                   <p className="mt-3 flex-1 text-slate-600">{type.text}</p>
-                  <a
-                    href={online ? siteConfig.axonautBookingUrl : siteConfig.phoneHref}
-                    {...(online ? { target: "_blank", rel: "noreferrer" } : {})}
-                    className="btn-pill mt-6 self-start"
-                  >
-                    {online ? "Choisir un créneau" : `Réserver au ${siteConfig.phone}`}
-                  </a>
+                  <div className="mt-6 flex flex-wrap items-center gap-3">
+                    <a
+                      href={`${siteConfig.whatsappHref}?text=${encodeURIComponent(
+                        `Bonjour, je souhaite prendre rendez-vous : ${type.title} (${type.duration}).`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-pill"
+                      aria-label={`Demander un rendez-vous « ${type.title} » sur WhatsApp`}
+                    >
+                      Demander un créneau
+                    </a>
+                    <a href={siteConfig.phoneHref} className="text-sm font-semibold text-[#1d6fe0]">
+                      ou {siteConfig.phone}
+                    </a>
+                  </div>
                 </article>
               </Reveal>
             ))}

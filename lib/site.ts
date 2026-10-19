@@ -1,8 +1,7 @@
 import { Metadata } from "next";
 
-// Lien public de la page de réservation Axonaut (fourni par Kevinh le 14/10/2026).
-const axonautBookingUrl: string =
-  "https://axonaut.com/public/booking/cc8f49/pageShow/procleanempire-7962cc";
+// Page de réservation Axonaut retirée le 19/10/2026 (bascule Axonaut → Qonto, règle §14) :
+// les boutons « Prendre RDV » mènent aux types de rendez-vous de /contact (WhatsApp ou téléphone).
 
 export const siteConfig = {
   name: "ProClean Empire",
@@ -13,9 +12,8 @@ export const siteConfig = {
   city: "Pontoise",
   region: "Île-de-France",
   addressLine: "3 rue Stéphane Charbonnier, 95300 Pontoise",
-  axonautBookingUrl,
-  // Tous les boutons « Prendre RDV » : page Axonaut si renseignée, sinon types de RDV de /contact.
-  bookingUrl: axonautBookingUrl || "/contact#rdv",
+  // Tous les boutons « Prendre RDV ».
+  bookingUrl: "/contact#rdv",
   whatsappHref: "https://wa.me/33617212230",
   hours: "7j/7 de 8h à 18h",
   // Phrase unique (audit P0-4) : horaires de réponse, délai de devis, horaires d'intervention.

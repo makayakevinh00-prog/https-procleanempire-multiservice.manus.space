@@ -20,7 +20,7 @@ const sections: { title: string; paragraphs: string[] }[] = [
     title: "Données collectées",
     paragraphs: [
       "Via le formulaire de devis : nom, société (facultatif), téléphone, e-mail, adresse et ville de l'intervention, prestation demandée et ses caractéristiques (surface, fréquence, etc.), date souhaitée, message libre, ainsi que l'origine de votre visite (moteur de recherche, réseau social, accès direct) et la page d'envoi.",
-      "Via la prise de rendez-vous en ligne : les informations que vous saisissez sur la page de réservation Axonaut."
+      "Via une demande de rendez-vous par WhatsApp, par e-mail ou par téléphone : les informations que vous nous communiquez à cette occasion."
     ]
   },
   {
@@ -48,7 +48,7 @@ const sections: { title: string; paragraphs: string[] }[] = [
   {
     title: "Qui accède à vos données",
     paragraphs: [
-      "Uniquement les personnes de ProClean Empire chargées du suivi commercial et de la planification, ainsi que nos sous-traitants techniques, dans la limite de leur mission : Axonaut (logiciel de gestion commerciale où est enregistrée votre demande), Vercel (hébergement du site et, le cas échéant, statistiques anonymes) et l'Institut national de l'information géographique (IGN), qui reçoit le texte de l'adresse saisie pour proposer des suggestions d'adresse.",
+      "Uniquement les personnes de ProClean Empire chargées du suivi commercial et de la planification, ainsi que nos sous-traitants techniques, dans la limite de leur mission : nos outils de messagerie (Microsoft 365 pour les e-mails, WhatsApp si vous choisissez ce canal), nos logiciels de gestion commerciale et de facturation (Qonto, et Axonaut jusqu'à la fin de son utilisation), Vercel (hébergement du site et, le cas échéant, statistiques anonymes) et l'Institut national de l'information géographique (IGN), qui reçoit le texte de l'adresse saisie pour proposer des suggestions d'adresse.",
       "Vos données ne sont jamais vendues ni louées."
     ]
   },
