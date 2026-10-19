@@ -157,7 +157,7 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
         </p>
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <a
-            href={`mailto:${siteConfig.email}?subject=${encodeURIComponent(`Demande de devis — ${contact.name}`)}&body=${encodeURIComponent(handoff)}`}
+            href={`mailto:${siteConfig.email}?subject=${encodeURIComponent(`[DEVIS SITE] ${service?.label ?? "Demande de devis"} — ${contact.name} — ${city}`)}&body=${encodeURIComponent(handoff)}`}
             className="btn-pill"
           >
             Envoyer par e-mail
@@ -368,7 +368,7 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
           {fallback && step === 3 ? (
             <div className="mt-3 flex flex-col gap-2 sm:flex-row">
               <a
-                href={`mailto:${siteConfig.email}?subject=${encodeURIComponent(`Demande de devis — ${contact.name}`)}&body=${encodeURIComponent(fallback.text)}`}
+                href={`mailto:${siteConfig.email}?subject=${encodeURIComponent(`[DEVIS SITE] ${service?.label ?? "Demande de devis"} — ${contact.name} — ${city}`)}&body=${encodeURIComponent(fallback.text)}`}
                 className="btn-pill"
               >
                 Envoyer ma demande par e-mail

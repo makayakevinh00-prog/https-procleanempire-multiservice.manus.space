@@ -73,3 +73,12 @@ Créer la page Microsoft Bookings (incluse dans Microsoft 365, les RDV tombent d
 
 Date réaliste : **à partir du jeudi 29 octobre 2026**, après une facturation mensuelle du 28/10 réussie dans Qonto et les exports faits (compter 1 à 2 semaines au total).
 À vérifier par Kevinh : Axonaut → Paramètres → Abonnement : formule **mensuelle ou annuelle** et **préavis** de résiliation.
+
+## 5. Réponse automatique par l'agent commercial (demande de Kevinh, 19/10/2026)
+
+Toutes les demandes arrivent par e-mail dans la boîte contact@procleanempire.com, avec le **même objet** quel que soit le chemin :
+`[DEVIS SITE] <prestation> — <nom> — <ville>`.
+- Envoi automatique (Resend configuré) : expéditeur `devis@procleanempire.com` (ou `onboarding@resend.dev`), **Reply-To = e-mail du client** ; corps « Libellé : valeur » (prestation, détails, adresse, ville, date, nom, entreprise, téléphone, e-mail, message, page d'origine, origine, référence).
+- Sans configuration ou en secours : le visiteur envoie lui-même l'e-mail pré-rempli depuis sa propre adresse (même objet `[DEVIS SITE] …`).
+
+Le Manager Commercial (passage horaire) repère ces e-mails par l'objet `[DEVIS SITE]`, répond au client (adresse du Reply-To ou de la ligne « E-mail ») avec le devis à la grille, et classe le mail (§13). L'accusé « Demande bien reçue » du site part tout de suite ; la réponse du Commercial est le devis.
