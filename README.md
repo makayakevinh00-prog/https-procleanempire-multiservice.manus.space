@@ -86,3 +86,9 @@ Composants:
 
 - `lib/content/legal.ts`
 - Utilise dans `app/mentions-legales/page.tsx` et `components/layout/footer.tsx`
+
+## Mesure du trafic (à faire par Kevinh, gratuit)
+
+1. **Google Search Console** : ajouter la propriété `https://www.procleanempire.com`, méthode « Balise HTML » ; copier uniquement le code `content="…"` dans Vercel → Settings → Environment Variables → `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` (Production), redéployer, puis cliquer « Valider ». Ensuite : Sitemaps → `sitemap.xml`.
+2. **Statistiques Vercel** : Vercel → projet → Analytics → « Enable Web Analytics », puis variable `NEXT_PUBLIC_VERCEL_ANALYTICS=1` (Production) et redéployer.
+3. Fiche Google Business : vérifier que le lien du site est `https://www.procleanempire.com`.

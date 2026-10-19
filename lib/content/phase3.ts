@@ -22,7 +22,9 @@ export type BlogCategory =
   | "Hygiène"
   | "Entreprise"
   | "Google Business"
-  | "SEO local";
+  | "SEO local"
+  | "Ménage Airbnb"
+  | "Conciergerie d'entreprise";
 
 export const videosPageContent = {
   title: "Vidéos ProClean Empire",
@@ -73,7 +75,7 @@ export const videosList: VideoEntry[] = [
     id: "presentation-proclean-empire",
     title: "Présentation ProClean Empire",
     videoSrc: "/media/videos/proclean-presentation.mp4",
-    poster: "/media/photos/nettoyage-avion-cessna.jpeg",
+    poster: "/media/photos/nettoyage-avion-cessna.webp",
     description:
       "Présentation de notre approche, de nos standards qualité et de nos interventions sur le terrain.",
     category: "Présentation"
@@ -82,7 +84,7 @@ export const videosList: VideoEntry[] = [
     id: "demonstration-nettoyage-1",
     title: "Démonstration d'entretien - Intérieur automobile",
     videoSrc: "/media/videos/proclean-demonstration-1.mp4",
-    poster: "/media/photos/interieur-auto-apres.jpeg",
+    poster: "/media/photos/interieur-auto-apres.webp",
     description: "Intervention détaillage et remise en état d'un intérieur automobile.",
     category: "Demonstrations"
   },
@@ -90,7 +92,7 @@ export const videosList: VideoEntry[] = [
     id: "demonstration-nettoyage-2",
     title: "Démonstration d'entretien - Sièges et garnitures",
     videoSrc: "/media/videos/proclean-demonstration-2.mp4",
-    poster: "/media/photos/banquette-arriere-apres.jpeg",
+    poster: "/media/photos/banquette-arriere-apres.webp",
     description: "Traitement et remise en état des sièges et garnitures textiles/cuir.",
     category: "Demonstrations"
   }
@@ -133,19 +135,17 @@ export const realisationsSectors = [
 export const blogPageContent = {
   title: "Blog ProClean Empire",
   description:
-    "Structure éditoriale prête pour publier régulièrement des contenus utiles au SEO local et à la conversion B2B.",
+    "Conseils pratiques, nouveautés et coulisses de ProClean Empire : ménage Airbnb, entretien des bureaux et des commerces, conciergerie d'entreprise.",
   categories: [
+    "Ménage Airbnb",
     "Entretien bureaux",
-    "Restaurants",
-    "Hôtels",
+    "Conciergerie d'entreprise",
     "Conseils",
     "Hygiène",
-    "Entreprise",
-    "Google Business",
-    "SEO local"
+    "Entreprise"
   ] as BlogCategory[],
   placeholder:
-    "[A REMPLIR PAR VOUS] Ajoutez vos articles réels (titre, extrait, catégorie, slug) pour éviter toute page fine."
+    "Nos premiers articles arrivent bientôt."
 };
 
 export type BlogPost = {
@@ -154,9 +154,38 @@ export type BlogPost = {
   excerpt: string;
   category: BlogCategory;
   date: string;
+  /** Lien vers l'article complet, s'il existe. */
+  href?: string;
 };
 
 export const blogPosts: BlogPost[] = [
+  {
+    id: "nettoyage-bureaux-cergy-pontoise-frequence",
+    title: "Nettoyage de bureaux à Cergy-Pontoise : quelle fréquence choisir ?",
+    category: "Entretien bureaux",
+    excerpt:
+      "Un passage par semaine ou chaque jour ? Les repères pour choisir le bon rythme d'entretien de vos bureaux et commerces à Cergy, Pontoise et dans le Val-d'Oise.",
+    date: "19 octobre 2026",
+    href: "/blog/nettoyage-bureaux-cergy-pontoise-frequence"
+  },
+  {
+    id: "menage-airbnb-val-doise-entre-deux-voyageurs",
+    title: "Ménage Airbnb dans le Val-d'Oise : préparer son logement entre deux voyageurs",
+    category: "Ménage Airbnb",
+    excerpt:
+      "Check-out, linge, consommables et rotations rapides : les étapes d'un ménage de fin de séjour réussi pour les hôtes et conciergeries de Pontoise, Cergy et du Val-d'Oise.",
+    date: "19 octobre 2026",
+    href: "/blog/menage-airbnb-val-doise-entre-deux-voyageurs"
+  },
+  {
+    id: "decoration-noel-bureaux-commerces-val-doise",
+    title: "Décorer ses bureaux et sa boutique pour Noël dans le Val-d'Oise",
+    category: "Conciergerie d'entreprise",
+    excerpt:
+      "Vitrine, accueil, open space : comment préparer une décoration de Noël réussie pour vos locaux à Cergy, Pontoise ou Roissy, quand la commander et comment la faire installer sans perturber votre activité.",
+    date: "19 octobre 2026",
+    href: "/blog/decoration-noel-bureaux-commerces-val-doise"
+  },
   {
     id: "offre-nouvelle-annee-2026",
     title: "Offre exclusive 2026 : bien démarrer l'année avec des espaces conformes à vos standards",

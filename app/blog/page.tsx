@@ -4,7 +4,7 @@ import { PageHero } from "@/components/sections/page-hero";
 import { blogPageContent, blogPosts } from "@/lib/content/phase3";
 
 export const metadata = buildMetadata({
-  title: "Blog",
+  title: "Blog : conseils nettoyage, ménage Airbnb et entretien des locaux",
   description:
     "Blog ProClean Empire : actualités et expertise sur les prestations de propreté pour entreprises.",
   path: "/blog"
@@ -28,7 +28,7 @@ export default function BlogPage() {
       />
       <section className="section pt-0">
         <div className="card p-6 md:p-8">
-          <h2 className="text-xl font-semibold text-[#14213d]">Catégories éditoriales prévues</h2>
+          <h2 className="text-xl font-semibold text-[#14213d]">Nos thèmes</h2>
           <div className="mt-4 flex flex-wrap gap-2">
             {blogPageContent.categories.map((category) => (
               <span
@@ -46,9 +46,22 @@ export default function BlogPage() {
                   <p className="text-xs font-semibold uppercase tracking-wide text-[#1d6fe0]">
                     {post.category}
                   </p>
-                  <h3 className="mt-2 text-base font-semibold text-[#14213d]">{post.title}</h3>
+                  <h3 className="mt-2 text-base font-semibold text-[#14213d]">
+                    {post.href ? (
+                      <Link href={post.href} className="hover:underline">
+                        {post.title}
+                      </Link>
+                    ) : (
+                      post.title
+                    )}
+                  </h3>
                   <p className="mt-2 text-sm text-slate-600">{post.excerpt}</p>
                   <p className="mt-3 text-xs text-slate-500">{post.date}</p>
+                  {post.href ? (
+                    <Link href={post.href} className="mt-3 inline-block text-sm font-semibold text-[#1d6fe0] hover:underline">
+                      Lire l&apos;article
+                    </Link>
+                  ) : null}
                 </article>
               ))}
             </div>

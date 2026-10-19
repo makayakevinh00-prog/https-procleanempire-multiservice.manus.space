@@ -4,7 +4,7 @@ import { PageHero } from "@/components/sections/page-hero";
 import { GalleryFilterGrid } from "@/components/phase2/gallery-filter-grid";
 
 export const metadata = buildMetadata({
-  title: "Galerie",
+  title: "Galerie photos de nos interventions de nettoyage",
   description:
     "Galerie ProClean Empire avec filtres par catégories : bureaux, restaurants, hôtels, vitrerie, après chantier, avant/après, équipe.",
   path: "/galerie"

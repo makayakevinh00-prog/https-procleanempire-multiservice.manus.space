@@ -5,7 +5,7 @@ import { VideosGrid } from "@/components/phase3/videos-grid";
 import { SocialNetworksSection } from "@/components/phase3/social-networks-section";
 
 export const metadata = buildMetadata({
-  title: "Videos",
+  title: "Vidéos de nos interventions de nettoyage",
   description:
     "Videos ProClean Empire: presentation, demonstrations, conseils et interventions sur le terrain.",
   path: "/videos"

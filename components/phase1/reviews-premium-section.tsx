@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { premiumReviewsData } from "@/lib/content/phase1";
+import { siteConfig } from "@/lib/site";
 
 type CarouselSlide =
   | { kind: "text"; id: string; name: string; company?: string; role?: string; rating: number; text: string }
@@ -10,7 +11,7 @@ type CarouselSlide =
 
 function Rating({ value }: { value: number }) {
   return (
-    <div className="flex items-center gap-1 text-[#1d6fe0]" aria-label={`${value} sur 5`}>
+    <div className="flex items-center gap-1 text-[#1d6fe0]" role="img" aria-label={`Note : ${value} sur 5`}>
       {Array.from({ length: 5 }).map((_, index) => (
         <span key={index} aria-hidden>
           {index < value ? "★" : "☆"}
@@ -57,6 +58,16 @@ export function ReviewsPremiumSection() {
         <p className="mt-4 max-w-3xl text-lg leading-relaxed text-slate-700">
           {premiumReviewsData.sectionDescription}
         </p>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <a
+            href={siteConfig.googleReviewsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-pill"
+          >
+            Laisser un avis
+          </a>
+        </div>
 
         {slides.length === 0 ? (
           <div className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
@@ -111,17 +122,23 @@ export function ReviewsPremiumSection() {
             </AnimatePresence>
 
             {slides.length > 1 && (
-              <div className="flex items-center justify-center gap-2 pb-5">
+              <div className="flex items-center justify-center gap-1 pb-5">
                 {slides.map((slide, index) => (
                   <button
                     key={slide.id}
                     type="button"
                     aria-label={`Avis ${index + 1}`}
+                    aria-current={index === activeIndex ? "true" : undefined}
                     onClick={() => setActiveIndex(index)}
-                    className={`h-2 rounded-full transition-all ${
-                      index === activeIndex ? "w-6 bg-[#14213d]" : "w-2 bg-slate-300"
-                    }`}
-                  />
+                    className="flex h-6 min-w-6 items-center justify-center"
+                  >
+                    <span
+                      aria-hidden
+                      className={`block h-2 rounded-full transition-all ${
+                        index === activeIndex ? "w-6 bg-[#14213d]" : "w-2 bg-slate-400"
+                      }`}
+                    />
+                  </button>
                 ))}
               </div>
             )}

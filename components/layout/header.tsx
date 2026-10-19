@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { navLinks } from "@/lib/data";
 import { siteConfig } from "@/lib/site";
+import { getDictionary } from "@/lib/i18n";
+
+const t = getDictionary("fr");
 
 export function Header() {
   const pathname = usePathname();
@@ -36,11 +40,11 @@ export function Header() {
       }`}
     >
       <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-5 md:px-8">
-        <Link href="/" className="flex items-center gap-2.5" aria-label="ProClean Empire — accueil">
+        <Link href="/" className="flex items-center gap-2.5" aria-label={t.nav.homeLabel}>
           <span className={`rounded-md ${overHero ? "bg-white/90 p-1" : ""}`}>
             <Image
               src="/media/logo/proclean-empire-logo.png"
-              alt="Logo ProClean Empire"
+              alt={t.common.logoAlt}
               width={187}
               height={344}
               priority
@@ -52,7 +56,7 @@ export function Header() {
           </span>
         </Link>
 
-        <nav aria-label="Navigation principale" className="hidden items-center gap-7 xl:flex">
+        <nav aria-label={t.nav.mainLabel} className="hidden items-center gap-7 xl:flex">
           {navLinks.map((link) => {
             const active = pathname === link.href;
             return (
@@ -74,14 +78,14 @@ export function Header() {
             href={siteConfig.bookingUrl}
             className="hidden rounded-full bg-[#1d6fe0] px-4 py-1.5 text-[13px] font-semibold text-white transition hover:bg-[#1559bd] sm:inline-flex"
           >
-            Prendre RDV
+            {t.cta.booking}
           </Link>
           <button
             type="button"
             onClick={() => setMenuOpen((open) => !open)}
             aria-expanded={menuOpen}
             aria-controls="menu-mobile"
-            aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+            aria-label={menuOpen ? t.nav.closeMenu : t.nav.openMenu}
             className="inline-flex h-10 w-10 items-center justify-center rounded-full xl:hidden"
           >
             <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -99,7 +103,7 @@ export function Header() {
         {menuOpen && (
           <motion.nav
             id="menu-mobile"
-            aria-label="Navigation mobile"
+            aria-label={t.nav.mobileLabel}
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "100dvh" }}
             exit={{ opacity: 0, height: 0 }}
@@ -125,7 +129,7 @@ export function Header() {
             </ul>
             <div className="px-6 pt-6">
               <Link href={siteConfig.bookingUrl} className="btn-pill w-full">
-                Prendre RDV
+                {t.cta.booking}
               </Link>
             </div>
           </motion.nav>

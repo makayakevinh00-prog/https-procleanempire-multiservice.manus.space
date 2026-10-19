@@ -1,10 +1,11 @@
+import Image from "next/image";
 import Link from "next/link";
 import { buildMetadata } from "@/lib/site";
 import { PageHero } from "@/components/sections/page-hero";
 import { CtaBand } from "@/components/sections/cta-band";
 
 export const metadata = buildMetadata({
-  title: "À propos",
+  title: "À propos de ProClean Empire, entreprise de nettoyage à Pontoise",
   description:
     "Découvrez l'approche ProClean Empire: interlocuteur unique, suivi personnalisé et réactivité pour les entreprises d'Île-de-France.",
   path: "/a-propos"
@@ -46,9 +47,12 @@ export default function AboutPage() {
               <li>✓ Pilotage clair pour les dirigeants et services généraux</li>
             </ul>
           </article>
-          <img
-            src="/media/photos/hero-showcase.jpg"
-            alt="ProClean Empire"
+          <Image
+            src="/media/photos/hero-showcase.webp"
+            alt="Univers ProClean Empire : bureaux, automobile et aviation"
+            width={1600}
+            height={1600}
+            sizes="(min-width: 1024px) 50vw, 100vw"
             className="aspect-video w-full rounded-2xl border border-slate-200 object-cover"
           />
         </div>

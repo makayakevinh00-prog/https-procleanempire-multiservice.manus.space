@@ -4,7 +4,7 @@ import { PageHero } from "@/components/sections/page-hero";
 import { QuoteForm } from "@/components/forms/quote-form";
 
 export const metadata = buildMetadata({
-  title: "Demande de devis",
+  title: "Demande de devis nettoyage — Pontoise et Île-de-France",
   description:
     "Demandez un devis pour vos prestations de propreté : bureaux, commerces, hôtels ou restaurants en Île-de-France.",
   path: "/devis"

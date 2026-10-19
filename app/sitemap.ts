@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
-import { services } from "@/lib/data";
+import { services, STANDALONE_PAGES } from "@/lib/data";
 import { siteConfig } from "@/lib/site";
+import { localPages } from "@/lib/content/local-pages";
 
 export const dynamic = "force-static";
 
@@ -17,6 +18,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/services",
     "/faq",
     "/blog",
+    "/blog/decoration-noel-bureaux-commerces-val-doise",
+    "/blog/menage-airbnb-val-doise-entre-deux-voyageurs",
+    "/blog/nettoyage-bureaux-cergy-pontoise-frequence",
     "/devis",
     "/contact",
     "/mentions-legales",
@@ -29,17 +33,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/nettoyage-vitrerie",
     "/apres-chantier",
     "/remise-en-etat",
-    "/zones-intervention"
+    "/zones-intervention",
+    ...localPages.map((page) => `/${page.slug}`)
   ];
 
   const staticEntries = staticRoutes.map((path) => ({
     url: `${siteConfig.url}${path}`,
     lastModified: new Date(),
     changeFrequency: "weekly" as const,
-    priority: path === "" ? 1 : 0.8
+    priority: path === "" ? 1 : path === "/menage-airbnb" ? 0.95 : 0.8
   }));
 
-  const serviceEntries = services.map((service) => ({
+  const serviceEntries = services.filter((service) => !STANDALONE_PAGES.has(service.slug)).map((service) => ({
     url: `${siteConfig.url}/services/${service.slug}`,
     lastModified: new Date(),
     changeFrequency: "weekly" as const,

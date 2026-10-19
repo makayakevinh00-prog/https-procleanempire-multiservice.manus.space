@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { teamPageContent } from "@/lib/content/phase2";
 import { YoutubeVideoCard } from "@/components/ui/youtube-video-card";
@@ -21,10 +22,12 @@ export function TeamPremiumSection() {
               {teamPageContent.founderBlock.text}
             </p>
             <div className="mt-4 mx-auto w-full max-w-[280px] overflow-hidden rounded-xl">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={teamPageContent.founderBlock.photo}
-                alt="Fondateur de ProClean Empire"
+                alt="Kevinh Makaya Mateve, fondateur de ProClean Empire"
+                width={900}
+                height={1600}
+                sizes="(min-width: 768px) 33vw, 100vw"
                 className="aspect-[3/4] w-full object-cover object-[50%_12%]"
               />
             </div>
@@ -59,10 +62,12 @@ export function TeamPremiumSection() {
             <h2 className="text-xl font-semibold text-[#14213d]">{teamPageContent.toolsBlock.title}</h2>
             <p className="mt-3 text-sm leading-relaxed text-slate-700">{teamPageContent.toolsBlock.text}</p>
             <div className="mt-4 overflow-hidden rounded-xl">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={teamPageContent.toolsBlock.photo}
-                alt="Matériel et protocoles qualité ProClean Empire"
+                alt="Traitement d'un tapis avec le matériel professionnel ProClean Empire"
+                width={1200}
+                height={1600}
+                sizes="(min-width: 768px) 33vw, 100vw"
                 className="aspect-video w-full object-cover"
               />
             </div>

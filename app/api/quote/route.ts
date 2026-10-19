@@ -1,17 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import nodemailer from "nodemailer";
 import { siteConfig } from "@/lib/site";
-import { pushLeadToAxonaut } from "@/lib/server/axonaut";
+import { AxonautError, pushLeadToAxonaut } from "@/lib/server/axonaut";
 
 export const dynamic = "force-dynamic";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const FAILURE_MESSAGE = `L'envoi automatique n'a pas fonctionné. Envoyez-nous votre demande en un clic ci-dessous (e-mail ou WhatsApp), ou appelez-nous au ${siteConfig.phone}.`;
 
 function sanitize(value: unknown, maxLength = 500): string {
   if (typeof value !== "string") return "";
   return value.replace(/[\r\n]+/g, " ").trim().slice(0, maxLength);
 }
 
+/**
+ * Demande de devis du site → Axonaut (fiche client + opportunité « Cycle commercial / Proposition »).
+ * Succès renvoyé au client uniquement si Axonaut a tout accepté. Chaque demande est aussi écrite
+ * en entier dans les logs Vercel ([devis] …) pour ne jamais la perdre.
+ */
 export async function POST(request: NextRequest) {
   let body: Record<string, unknown>;
   try {
@@ -27,6 +32,7 @@ export async function POST(request: NextRequest) {
     phone: sanitize(body.phone, 40),
     email: sanitize(body.email, 200),
     address: sanitize(body.address, 250),
+    street: sanitize(body.street, 200),
     postcode: sanitize(body.postcode, 10),
     city: sanitize(body.city, 120),
     startDate: sanitize(body.startDate, 40),
@@ -54,17 +60,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Merci d'accepter d'être recontacté." }, { status: 400 });
   }
 
-  const gmailUser = process.env.GMAIL_USER;
-  const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
-  if (!gmailUser || !gmailAppPassword) {
-    console.error("GMAIL_USER / GMAIL_APP_PASSWORD non configurés.");
-    return NextResponse.json(
-      { error: "Envoi indisponible pour le moment. Merci de nous contacter par téléphone." },
-      { status: 500 }
-    );
-  }
-
-  const summaryLines = [
+  const detail = [
     `Prestation : ${data.service}`,
     ...details.map(([key, value]) => `${key} : ${value}`),
     `Adresse : ${data.address || "-"}`,
@@ -77,12 +73,15 @@ export async function POST(request: NextRequest) {
     `E-mail : ${data.email}`,
     data.comments ? `Message : ${data.comments}` : null,
     "",
-    `Consentement de contact : oui`,
+    "Consentement de contact : oui",
     `Source : site web (${data.sourceUrl || siteConfig.url})`
-  ].filter((line): line is string => line !== null);
+  ]
+    .filter((line): line is string => line !== null)
+    .join("\n");
 
-  // 1. CRM Axonaut (n'empêche jamais l'envoi de l'e-mail en cas d'erreur).
-  let crmLine = "Axonaut : non connecté (clé AXONAUT_API_KEY absente).";
+  // Trace complète de la demande, quoi qu'il arrive ensuite (logs Vercel).
+  console.log("[devis] Nouvelle demande reçue", JSON.stringify({ receivedAt: new Date().toISOString(), ...data, details }));
+
   try {
     const result = await pushLeadToAxonaut({
       service: data.service,
@@ -90,67 +89,22 @@ export async function POST(request: NextRequest) {
       company: data.company,
       phone: data.phone,
       email: data.email,
-      street: data.address.split(",")[0] ?? "",
+      // Rue choisie dans les suggestions ; sinon l'adresse telle que saisie.
+      street: data.street || data.address,
       postcode: data.postcode,
       city: data.city,
-      summary: summaryLines.join("\n")
+      detail
     });
-    if (result) {
-      crmLine = `Axonaut : fiche ${result.companyId} + opportunité ${result.opportunityId ?? "?"} créées.`;
-    }
+    console.log("[devis] Enregistrée dans Axonaut", JSON.stringify({ email: data.email, ...result }));
+    return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error("Erreur Axonaut:", error);
-    crmLine = "Axonaut : ÉCHEC de création — à saisir à la main.";
-  }
-
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: { user: gmailUser, pass: gmailAppPassword }
-  });
-
-  // 2. Notification à ProClean Empire (lue par le Manager Commercial).
-  try {
-    await transporter.sendMail({
-      from: `"Formulaire ProClean Empire" <${gmailUser}>`,
-      to: gmailUser,
-      replyTo: data.email,
-      subject: `[DEVIS SITE] ${data.service} — ${data.company || data.name} (${data.city})`,
-      text: [...summaryLines, crmLine].join("\n")
-    });
-  } catch (error) {
-    console.error("Erreur d'envoi email devis:", error);
-    return NextResponse.json(
-      { error: "Échec de l'envoi. Merci de réessayer ou de nous appeler directement." },
-      { status: 500 }
+    const code = error instanceof AxonautError ? error.code : "ERREUR_INTERNE";
+    console.error(
+      `[devis] ÉCHEC Axonaut (${code}) — demande à ressaisir à la main`,
+      String(error),
+      JSON.stringify({ ...data, details })
     );
+    // fallback : le formulaire propose alors d'envoyer la demande par e-mail ou WhatsApp.
+    return NextResponse.json({ error: FAILURE_MESSAGE, code, fallback: true }, { status: 502 });
   }
-
-  // 3. Accusé de réception au client.
-  try {
-    await transporter.sendMail({
-      from: `"${siteConfig.name}" <${gmailUser}>`,
-      to: data.email,
-      replyTo: gmailUser,
-      subject: `Votre demande de devis — ${siteConfig.name}`,
-      text: [
-        `Bonjour ${data.name},`,
-        "",
-        `Nous avons bien reçu votre demande de devis (${data.service}, ${data.city}).`,
-        "Nous revenons vers vous sous 24h avec une proposition adaptée.",
-        "",
-        "Récapitulatif :",
-        ...details.map(([key, value]) => `- ${key} : ${value}`),
-        "",
-        `Besoin d'un échange plus rapide ? Réservez un créneau : ${siteConfig.bookingUrl}`,
-        "",
-        "Cordialement,",
-        `L'équipe ${siteConfig.name}`,
-        `${siteConfig.phone} · ${siteConfig.email}`
-      ].join("\n")
-    });
-  } catch (error) {
-    console.error("Erreur d'envoi email de confirmation client:", error);
-  }
-
-  return NextResponse.json({ ok: true });
 }

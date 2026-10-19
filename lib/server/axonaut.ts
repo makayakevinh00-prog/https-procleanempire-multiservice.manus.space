@@ -1,9 +1,15 @@
 /**
  * Envoi d'une demande du site vers le CRM Axonaut (côté serveur uniquement).
  * La clé reste dans la variable d'environnement Vercel AXONAUT_API_KEY : jamais dans le navigateur.
- * Si la clé est absente ou si Axonaut répond en erreur, la demande part quand même par e-mail.
+ *
+ * Variables :
+ * - AXONAUT_API_KEY (obligatoire)
+ * - AXONAUT_MANAGER_EMAIL (défaut contact@procleanempire.com — e-mail d'un utilisateur Axonaut)
+ * - AXONAUT_PIPE_NAME (défaut « Cycle commercial »)
+ * - AXONAUT_PIPE_STEP (défaut « Proposition »)
  */
-const BASE = "https://axonaut.com/api/v2";
+const BASE = process.env.AXONAUT_API_BASE || "https://axonaut.com/api/v2";
+const TIMEOUT_MS = 10_000;
 
 export type Lead = {
   service: string;
@@ -14,42 +20,93 @@ export type Lead = {
   street: string;
   postcode: string;
   city: string;
-  summary: string;
+  /** Détail complet de la demande (service, champs du formulaire, message). */
+  detail: string;
 };
 
-async function call<T>(path: string, init: RequestInit, key: string): Promise<T> {
-  const response = await fetch(`${BASE}${path}`, {
-    ...init,
-    headers: { userApiKey: key, "Content-Type": "application/json", Accept: "application/json", ...init.headers },
-    cache: "no-store"
-  });
-  if (!response.ok) {
-    throw new Error(`Axonaut ${init.method ?? "GET"} ${path} → ${response.status} ${await response.text()}`);
+export type AxonautResult = { companyId: number; companyCreated: boolean; opportunityId: number };
+
+/** Codes courts affichés au visiteur (et dans les logs) pour diagnostiquer sans exposer de secret. */
+export type AxonautErrorCode = "CLE_ABSENTE" | "CLE_REFUSEE" | "AXONAUT_INJOIGNABLE" | "AXONAUT_REFUS";
+
+export class AxonautError extends Error {
+  constructor(message: string, public code: AxonautErrorCode = "AXONAUT_REFUS") {
+    super(message);
   }
-  return (await response.json()) as T;
+}
+
+async function call<T>(path: string, init: RequestInit, key: string): Promise<T> {
+  let response: Response;
+  try {
+    response = await fetch(`${BASE}${path}`, {
+      ...init,
+      headers: { userApiKey: key, "Content-Type": "application/json", Accept: "application/json" },
+      cache: "no-store",
+      signal: AbortSignal.timeout(TIMEOUT_MS)
+    });
+  } catch (error) {
+    throw new AxonautError(`Axonaut ${init.method ?? "GET"} ${path} injoignable : ${String(error)}`, "AXONAUT_INJOIGNABLE");
+  }
+  const text = await response.text();
+  if (!response.ok) {
+    throw new AxonautError(
+      `Axonaut ${init.method ?? "GET"} ${path} → ${response.status} ${text.slice(0, 1000)}`,
+      response.status === 401 || response.status === 403 ? "CLE_REFUSEE" : "AXONAUT_REFUS"
+    );
+  }
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new AxonautError(`Axonaut ${init.method ?? "GET"} ${path} → réponse illisible : ${text.slice(0, 300)}`);
+  }
 }
 
 type Company = { id: number; name: string };
 
-export async function pushLeadToAxonaut(lead: Lead): Promise<{ companyId: number; opportunityId?: number } | null> {
-  const key = process.env.AXONAUT_API_KEY;
-  if (!key) return null;
+function normalize(value: string) {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
 
-  const managerEmail = process.env.AXONAUT_MANAGER_EMAIL ?? "contact@procleanempire.com";
-  const pipeName = process.env.AXONAUT_PIPE_NAME ?? "Cycle commercial";
-  const pipeStep = process.env.AXONAUT_PIPE_STEP ?? "Proposition";
+/** Date et heure de Paris, ex. « 15/10/2026 14:32 ». */
+export function parisNow() {
+  return new Intl.DateTimeFormat("fr-FR", {
+    timeZone: "Europe/Paris",
+    dateStyle: "short",
+    timeStyle: "short"
+  }).format(new Date());
+}
+
+/**
+ * 1. Retrouve la fiche client (même nom d'entreprise, ou même nom de personne pour un particulier)
+ *    ou la crée avec le contact (nom, e-mail, téléphone) et l'adresse.
+ * 2. Crée l'opportunité dans le pipeline, avec tout le détail de la demande.
+ * Lève une AxonautError si la clé manque ou si Axonaut refuse une étape.
+ */
+export async function pushLeadToAxonaut(lead: Lead): Promise<AxonautResult> {
+  const key = process.env.AXONAUT_API_KEY?.trim();
+  if (!key) throw new AxonautError("AXONAUT_API_KEY absente des variables d'environnement.", "CLE_ABSENTE");
+
+  const managerEmail = process.env.AXONAUT_MANAGER_EMAIL || "contact@procleanempire.com";
+  const pipeName = process.env.AXONAUT_PIPE_NAME || "Cycle commercial";
+  const pipeStep = process.env.AXONAUT_PIPE_STEP || "Proposition";
   const companyName = (lead.company || lead.name).slice(0, 255);
-  const [firstname, ...rest] = lead.name.split(" ");
+  const parts = lead.name.trim().split(/\s+/);
+  const firstname = parts.length > 1 ? parts[0] : "";
+  const lastname = parts.length > 1 ? parts.slice(1).join(" ") : lead.name;
+  const stamp = parisNow();
 
-  // Anti-doublon : réutilise la fiche existante portant exactement le même nom.
+  // Recherche d'une fiche existante (une erreur de recherche ne bloque pas : on crée la fiche).
   let companyId: number | undefined;
   try {
     const found = await call<Company[]>(`/companies?search=${encodeURIComponent(companyName)}`, { method: "GET" }, key);
-    companyId = found.find((item) => item.name.trim().toLowerCase() === companyName.trim().toLowerCase())?.id;
-  } catch {
-    companyId = undefined;
+    if (Array.isArray(found)) {
+      companyId = found.find((item) => normalize(item.name ?? "") === normalize(companyName))?.id;
+    }
+  } catch (error) {
+    console.warn("[devis] Recherche Axonaut impossible, création d'une nouvelle fiche :", error);
   }
 
+  let companyCreated = false;
   if (!companyId) {
     const created = await call<Company>(
       "/companies",
@@ -58,24 +115,22 @@ export async function pushLeadToAxonaut(lead: Lead): Promise<{ companyId: number
         body: JSON.stringify({
           name: companyName,
           is_prospect: true,
+          isB2C: !lead.company,
           address_street: lead.street,
           address_zip_code: lead.postcode,
           address_city: lead.city,
           address_country: "France",
-          comments: `Prospect venu du site web (formulaire de devis).`,
+          comments: `Demande site — ${stamp}`,
           employees: [
-            {
-              firstname: rest.length ? firstname : "",
-              lastname: rest.length ? rest.join(" ") : lead.name,
-              email: lead.email,
-              cellphoneNumber: lead.phone
-            }
+            { firstname, lastname, email: lead.email, cellphoneNumber: lead.phone }
           ]
         })
       },
       key
     );
+    if (!created?.id) throw new AxonautError("Axonaut n'a pas renvoyé d'identifiant de fiche client.");
     companyId = created.id;
+    companyCreated = true;
   }
 
   const opportunity = await call<{ id: number }>(
@@ -83,19 +138,43 @@ export async function pushLeadToAxonaut(lead: Lead): Promise<{ companyId: number
     {
       method: "POST",
       body: JSON.stringify({
-        name: `Site web — ${lead.service} — ${companyName} (${lead.city})`.slice(0, 255),
+        name: `Demande site — ${lead.service} — ${companyName} (${lead.city})`.slice(0, 255),
         company_id: companyId,
         amount: 0,
         probability: 10,
         pipe_name: pipeName,
         pipe_step_name: pipeStep,
         business_manager_email: managerEmail,
-        comments: `[DEVIS SITE] À traiter par le Manager Commercial.\n${lead.summary}`,
-        employees: [{ employee_email: lead.email, employee_cellphone: lead.phone }]
+        comments: [`Demande site — ${stamp}`, "", lead.detail].join("\n"),
+        employees: [
+          {
+            employee_firstname: firstname,
+            employee_lastname: lastname,
+            employee_email: lead.email,
+            employee_cellphone: lead.phone
+          }
+        ]
       })
     },
     key
   );
+  if (!opportunity?.id) throw new AxonautError("Axonaut n'a pas renvoyé d'identifiant d'opportunité.");
 
-  return { companyId, opportunityId: opportunity.id };
+  return { companyId, companyCreated, opportunityId: opportunity.id };
+}
+
+/**
+ * Diagnostic sans secret : la clé est-elle présente, et Axonaut l'accepte-t-il ?
+ * Utilisé par GET /api/quote/health.
+ */
+export async function checkAxonaut(): Promise<{ cle: "presente" | "absente"; axonaut: string }> {
+  const key = process.env.AXONAUT_API_KEY?.trim();
+  if (!key) return { cle: "absente", axonaut: "non testé" };
+  try {
+    await call<unknown>("/companies?search=diagnostic-site", { method: "GET" }, key);
+    return { cle: "presente", axonaut: "OK — clé acceptée" };
+  } catch (error) {
+    const code = error instanceof AxonautError ? error.code : "AXONAUT_REFUS";
+    return { cle: "presente", axonaut: code === "CLE_REFUSEE" ? "clé refusée (401/403)" : code };
+  }
 }

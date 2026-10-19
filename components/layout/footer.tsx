@@ -1,8 +1,10 @@
+import Image from "next/image";
 import Link from "next/link";
 import { navLinks } from "@/lib/data";
 import { siteConfig } from "@/lib/site";
 import { legalInfo } from "@/lib/content/legal";
 import { socialLinks } from "@/lib/content/phase3";
+import { localPages } from "@/lib/content/local-pages";
 
 const realSocialLinks = socialLinks.filter((social) => !social.href.startsWith("["));
 
@@ -18,16 +20,19 @@ export function Footer() {
   const actions = [
     { label: "Prendre RDV", href: siteConfig.bookingUrl },
     { label: "Demander un devis", href: "/contact#devis" },
-    { label: "Nous appeler", href: siteConfig.phoneHref }
+    { label: "Nous appeler", href: siteConfig.phoneHref },
+    { label: "Laisser un avis Google", href: siteConfig.googleReviewsUrl }
   ];
 
   return (
     <footer className="border-t border-slate-200 bg-slate-950 text-slate-200">
       <div className="section grid gap-10 md:grid-cols-2 lg:grid-cols-6">
         <div className="space-y-4">
-          <img
+          <Image
             src="/media/logo/proclean-empire-logo.png"
-            alt="ProClean Empire"
+            alt="Logo ProClean Empire"
+            width={187}
+            height={344}
             className="h-24 w-auto"
           />
           <p className="text-sm leading-relaxed text-slate-300">
@@ -68,7 +73,15 @@ export function Footer() {
           <h3 className="mb-3 mt-6 text-sm font-semibold uppercase tracking-wide text-slate-300">
             Zones
           </h3>
-          <p className="text-sm text-slate-300">Pontoise · Val d&apos;Oise · Île-de-France</p>
+          <ul className="space-y-1 text-sm">
+            {localPages.map((page) => (
+              <li key={page.slug}>
+                <Link href={`/${page.slug}`} className="text-slate-300 transition hover:text-white">
+                  {page.label ?? page.city}
+                </Link>
+              </li>
+            ))}
+          </ul>
           <Link href="/zones-intervention" className="mt-1 inline-block text-sm text-slate-300 underline transition hover:text-white">
             Voir toutes les zones
           </Link>
@@ -137,7 +150,14 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-slate-800 px-6 py-6 text-center text-xs text-slate-400 md:px-8">
-        © {new Date().getFullYear()} ProClean Empire. Tous droits réservés.
+        <p>© {new Date().getFullYear()} ProClean Empire. Tous droits réservés.</p>
+        <p className="mt-2">
+          Propriétaire ?{" "}
+          <Link href="/proprietaires" className="underline transition hover:text-white">
+            Nous pouvons aussi gérer votre bien
+          </Link>
+          .
+        </p>
       </div>
     </footer>
   );
