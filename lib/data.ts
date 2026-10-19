@@ -1,3 +1,4 @@
+import { STANDALONE_PAGES } from "./standalone-pages";
 import { getNavLinks } from "@/lib/i18n";
 export type Service = {
   slug: string;
@@ -57,6 +58,11 @@ export const methodSteps = [
 ];
 
 export const faqs = [
+  {
+    question: "Sous quel délai répondez-vous ?",
+    answer:
+      "Demandes reçues 7j/7. Réponse sous 24 h pendant les horaires de traitement (7j/7, 8h–18h). Interventions possibles tôt le matin, en soirée et le week-end selon la prestation et le planning."
+  },
   {
     question: "En combien de temps pouvez-vous démarrer une prestation ?",
     answer:
@@ -269,14 +275,10 @@ export const services: Service[] = [
 export const navLinks = getNavLinks("fr");
 
 /** Services qui ont leur propre page à la racine (/slug) : canonique et plan du site pointent vers elle. */
-export const STANDALONE_PAGES = new Set([
-  "nettoyage-automobile",
-  "nettoyage-bureaux",
-  "nettoyage-commerces",
-  "nettoyage-restaurants",
-  "nettoyage-hotels",
-  "nettoyage-vitrerie",
-  "apres-chantier",
-  "remise-en-etat"
-]);
+/** Lien vers la page principale d'une prestation (évite deux URL concurrentes). */
+export function serviceHref(slug: string) {
+  return STANDALONE_PAGES.has(slug) ? `/${slug}` : `/services/${slug}`;
+}
+
+export { STANDALONE_PAGES } from "./standalone-pages";
 

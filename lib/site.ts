@@ -12,12 +12,15 @@ export const siteConfig = {
   email: "contact@procleanempire.com",
   city: "Pontoise",
   region: "Île-de-France",
-  addressLine: "3 rue Stéphane Charbonnier, 95800 Pontoise",
+  addressLine: "3 rue Stéphane Charbonnier, 95300 Pontoise",
   axonautBookingUrl,
   // Tous les boutons « Prendre RDV » : page Axonaut si renseignée, sinon types de RDV de /contact.
   bookingUrl: axonautBookingUrl || "/contact#rdv",
   whatsappHref: "https://wa.me/33617212230",
   hours: "7j/7 de 8h à 18h",
+  // Phrase unique (audit P0-4) : horaires de réponse, délai de devis, horaires d'intervention.
+  promise:
+    "Demandes reçues 7j/7. Réponse sous 24 h pendant les horaires de traitement (7j/7, 8h–18h). Interventions possibles tôt le matin, en soirée et le week-end selon la prestation et le planning.",
   googleReviewsUrl: "https://g.page/r/CXuyftubiMPuEAE/review",
   responseDelay: "Réactivité opérationnelle sur Pontoise et l'Île-de-France"
 };

@@ -5,7 +5,7 @@ import { buildMetadata, siteConfig } from "@/lib/site";
 export const metadata = buildMetadata({
   title: "Ménage Airbnb dans le Val-d'Oise (95) – Pontoise, Cergy, Paris",
   description:
-    "Ménage Airbnb entre deux voyageurs à Pontoise, Cergy, Paris et en Île-de-France : passage entre 11h et 14h le jour que vous fixez, checklist complète, linge en option. Devis sous 24h.",
+    "Ménage Airbnb entre deux voyageurs à Pontoise, Cergy, Paris et en Île-de-France : passage entre 11h et 14h le jour que vous fixez, checklist complète, linge en option. Devis sous 24 h.",
   path: "/menage-airbnb"
 });
 
@@ -56,7 +56,7 @@ export default function MenageAirbnbPage() {
       ]}
       steps={[
         { title: "Vous décrivez le logement", text: "Type, surface, couchages, linge et fréquence : deux minutes avec le formulaire." },
-        { title: "Nous confirmons le prix", text: "Devis clair sous 24h, avant toute intervention." },
+        { title: "Nous confirmons le prix", text: "Devis clair sous 24 h, avant toute intervention." },
         { title: "Nous intervenons", text: "Aux dates de vos réservations, entre 11h et 14h, et nous contrôlons le résultat." }
       ]}
       faq={[

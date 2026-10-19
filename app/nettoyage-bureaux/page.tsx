@@ -5,7 +5,7 @@ import { buildMetadata, siteConfig } from "@/lib/site";
 export const metadata = buildMetadata({
   title: "Nettoyage de bureaux et commerces à Pontoise, Cergy et en Île-de-France",
   description:
-    "Nettoyage de bureaux, commerces, boutiques et halls d'immeuble à Pontoise, Cergy et en Île-de-France : passages réguliers à vos horaires, produits professionnels, un interlocuteur unique. Devis sous 24h.",
+    "Nettoyage de bureaux, commerces, boutiques et halls d'immeuble à Pontoise, Cergy et en Île-de-France : passages réguliers à vos horaires, produits professionnels, un interlocuteur unique. Devis sous 24 h.",
   path: "/nettoyage-bureaux"
 });
 

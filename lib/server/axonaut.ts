@@ -24,7 +24,13 @@ export type Lead = {
   detail: string;
 };
 
-export type AxonautResult = { companyId: number; companyCreated: boolean; opportunityId: number };
+export type AxonautResult = {
+  companyId: number;
+  companyCreated: boolean;
+  opportunityId: number;
+  /** true si une opportunité identique (même demande) existait déjà depuis moins de 48 h. */
+  duplicateAvoided: boolean;
+};
 
 /** Codes courts affichés au visiteur (et dans les logs) pour diagnostiquer sans exposer de secret. */
 export type AxonautErrorCode = "CLE_ABSENTE" | "CLE_REFUSEE" | "AXONAUT_INJOIGNABLE" | "AXONAUT_REFUS";
@@ -133,12 +139,37 @@ export async function pushLeadToAxonaut(lead: Lead): Promise<AxonautResult> {
     companyCreated = true;
   }
 
+  const opportunityName = `Demande site — ${lead.service} — ${companyName} (${lead.city})`.slice(0, 255);
+
+  // Anti-doublon : même demande renvoyée (double clic, nouvel essai) → on garde l'opportunité existante.
+  if (!companyCreated) {
+    try {
+      const existing = await call<Array<{ id: number; name: string; is_archived?: boolean; creation_date?: string }>>(
+        `/companies/${companyId}/opportunities`,
+        { method: "GET" },
+        key
+      );
+      const recentLimit = Date.now() - 48 * 3600_000;
+      const same = Array.isArray(existing)
+        ? existing.find(
+            (item) =>
+              item.name === opportunityName &&
+              !item.is_archived &&
+              (!item.creation_date || new Date(item.creation_date).getTime() >= recentLimit)
+          )
+        : undefined;
+      if (same) return { companyId, companyCreated, opportunityId: same.id, duplicateAvoided: true };
+    } catch (error) {
+      console.warn("[devis] Lecture des opportunités existantes impossible :", error);
+    }
+  }
+
   const opportunity = await call<{ id: number }>(
     "/opportunities",
     {
       method: "POST",
       body: JSON.stringify({
-        name: `Demande site — ${lead.service} — ${companyName} (${lead.city})`.slice(0, 255),
+        name: opportunityName,
         company_id: companyId,
         amount: 0,
         probability: 10,
@@ -160,7 +191,7 @@ export async function pushLeadToAxonaut(lead: Lead): Promise<AxonautResult> {
   );
   if (!opportunity?.id) throw new AxonautError("Axonaut n'a pas renvoyé d'identifiant d'opportunité.");
 
-  return { companyId, companyCreated, opportunityId: opportunity.id };
+  return { companyId, companyCreated, opportunityId: opportunity.id, duplicateAvoided: false };
 }
 
 /**

@@ -44,7 +44,7 @@ export default function ContactPage() {
     {
       href: "#devis",
       label: "Je veux un devis",
-      text: "Réponse sous 24h.",
+      text: "Réponse sous 24 h.",
       primary: true,
       external: false
     },
@@ -58,7 +58,7 @@ export default function ContactPage() {
     {
       href: siteConfig.whatsappHref,
       label: "Je préfère WhatsApp",
-      text: `Réponse ${siteConfig.hours}.`,
+      text: "Réponse pendant les horaires de traitement (7j/7, 8h–18h).",
       primary: false,
       external: true
     }
@@ -160,8 +160,7 @@ export default function ContactPage() {
           <Reveal>
             <h2 className="display-lg text-ink">Demander un devis.</h2>
             <p className="mt-4 max-w-2xl text-lg text-slate-600">
-              Quelques informations suffisent. Vous voyez une confirmation à l&apos;écran, puis recevez notre
-              proposition sous 24h.
+              Quelques informations suffisent. {siteConfig.promise}
             </p>
           </Reveal>
           <div className="mt-10">

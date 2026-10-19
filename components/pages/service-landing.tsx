@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { services } from "@/lib/data";
 import { siteConfig } from "@/lib/site";
 import { PageHero } from "@/components/sections/page-hero";
-import { VisualPlaceholder } from "@/components/ui/visual-placeholder";
+import { ServiceVisual } from "@/components/ui/service-visual";
 
 export function ServiceLanding({
   slug,
@@ -29,12 +29,12 @@ export function ServiceLanding({
         ]}
         actions={
           <>
-            <Link href="/devis" className="btn-primary">
-              Demander un devis
-            </Link>
-            <Link href="/contact" className="btn-secondary">
-              Être rappelé
-            </Link>
+            <Link href="/contact#devis" className="btn-primary">
+                Demander un devis
+              </Link>
+            <a href={siteConfig.bookingUrl} className="btn-secondary">
+                Être rappelé
+              </a>
           </>
         }
       />
@@ -53,15 +53,15 @@ export function ServiceLanding({
               ))}
             </ul>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Link href="/devis" className="btn-primary">
-                Recevoir une estimation
+              <Link href="/contact#devis" className="btn-primary">
+                Demander un devis
               </Link>
-              <Link href={`/services/${slug}`} className="btn-secondary">
-                Découvrir la prestation
-              </Link>
+              <a href={siteConfig.bookingUrl} className="btn-secondary">
+                Être rappelé
+              </a>
             </div>
           </article>
-          <VisualPlaceholder label={`PHOTO ${service.title.toUpperCase()}`} ratio="tall" />
+          <ServiceVisual slug={service.slug} />
         </div>
       </section>
       <script

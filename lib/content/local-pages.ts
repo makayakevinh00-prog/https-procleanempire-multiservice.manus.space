@@ -24,7 +24,7 @@ export const localPages: LocalPage[] = [
     postalCode: "95300",
     metaTitle: "Ménage Airbnb et nettoyage de bureaux à Pontoise (95)",
     metaDescription:
-      "Entreprise de nettoyage basée à Pontoise : ménage Airbnb entre deux voyageurs, nettoyage de bureaux et commerces, conciergerie d'entreprise. Intervention rapide dans tout Pontoise. Devis sous 24h.",
+      "Entreprise de nettoyage basée à Pontoise : ménage Airbnb entre deux voyageurs, nettoyage de bureaux et commerces, conciergerie d'entreprise. Intervention rapide dans tout Pontoise. Devis sous 24 h.",
     props: {
       eyebrow: "Pontoise · Val-d'Oise (95)",
       title: "Votre équipe de nettoyage, à Pontoise.",
@@ -52,7 +52,7 @@ export const localPages: LocalPage[] = [
       ],
       steps: [
         { title: "Vous nous écrivez", text: "Le formulaire prend deux minutes ; vous pouvez aussi nous appeler." },
-        { title: "Devis sous 24h", text: "Un prix clair, avant toute intervention." },
+        { title: "Devis sous 24 h", text: "Un prix clair, avant toute intervention." },
         { title: "Nous intervenons", text: "Rapidement, puisque nous sommes sur place." }
       ],
       faq: [
@@ -68,7 +68,7 @@ export const localPages: LocalPage[] = [
     postalCode: "95000",
     metaTitle: "Nettoyage de bureaux et ménage Airbnb à Cergy (95)",
     metaDescription:
-      "Nettoyage de bureaux, commerces et ménage Airbnb à Cergy et dans l'agglomération de Cergy-Pontoise : passages réguliers ou ponctuels, produits professionnels, devis sous 24h.",
+      "Nettoyage de bureaux, commerces et ménage Airbnb à Cergy et dans l'agglomération de Cergy-Pontoise : passages réguliers ou ponctuels, produits professionnels, devis sous 24 h.",
     props: {
       eyebrow: "Cergy · Agglomération de Cergy-Pontoise",
       title: "Des locaux nets à Cergy, à vos horaires.",
@@ -96,7 +96,7 @@ export const localPages: LocalPage[] = [
       ],
       steps: [
         { title: "Vous décrivez votre besoin", text: "Locaux ou logement, surface et fréquence." },
-        { title: "Nous vous répondons", text: "Un devis sous 24h, sans engagement." },
+        { title: "Nous vous répondons", text: "Un devis sous 24 h, sans engagement." },
         { title: "Nous démarrons", text: "Aux jours convenus, avec un contrôle régulier." }
       ],
       faq: [
@@ -112,7 +112,7 @@ export const localPages: LocalPage[] = [
     postalCode: "75000",
     metaTitle: "Ménage Airbnb et nettoyage de locaux à Paris",
     metaDescription:
-      "Ménage Airbnb à Paris pour conciergeries et propriétaires : préparation du logement entre deux voyageurs, le jour fixé par vos réservations. Nettoyage de bureaux et boutiques parisiennes. Devis sous 24h.",
+      "Ménage Airbnb à Paris pour conciergeries et propriétaires : préparation du logement entre deux voyageurs, le jour fixé par vos réservations. Nettoyage de bureaux et boutiques parisiennes. Devis sous 24 h.",
     props: {
       eyebrow: "Paris · Tous arrondissements",
       title: "Ménage Airbnb à Paris, réglé sur vos réservations.",
@@ -140,7 +140,7 @@ export const localPages: LocalPage[] = [
       ],
       steps: [
         { title: "Vous partagez votre calendrier", text: "Dates de départ et d'arrivée, accès au logement." },
-        { title: "Nous confirmons", text: "Prix clair sous 24h, avant le premier passage." },
+        { title: "Nous confirmons", text: "Prix clair sous 24 h, avant le premier passage." },
         { title: "Nous préparons", text: "Le logement est prêt avant l'arrivée du voyageur suivant." }
       ],
       faq: [
@@ -156,7 +156,7 @@ export const localPages: LocalPage[] = [
     postalCode: "93400",
     metaTitle: "Ménage Airbnb et nettoyage à Saint-Ouen (93)",
     metaDescription:
-      "Ménage Airbnb et nettoyage de locaux à Saint-Ouen-sur-Seine (93) : logements préparés entre deux voyageurs, bureaux et commerces entretenus. Équipe habituée au secteur. Devis sous 24h.",
+      "Ménage Airbnb et nettoyage de locaux à Saint-Ouen-sur-Seine (93) : logements préparés entre deux voyageurs, bureaux et commerces entretenus. Équipe habituée au secteur. Devis sous 24 h.",
     props: {
       eyebrow: "Saint-Ouen-sur-Seine · Seine-Saint-Denis (93)",
       title: "Saint-Ouen, logement après logement.",
@@ -184,7 +184,7 @@ export const localPages: LocalPage[] = [
       ],
       steps: [
         { title: "Vous nous contactez", text: "Adresse, type de logement ou de local, fréquence." },
-        { title: "Nous vous répondons", text: "Devis sous 24h, sans engagement." },
+        { title: "Nous vous répondons", text: "Devis sous 24 h, sans engagement." },
         { title: "Nous intervenons", text: "Aux dates convenues, avec la même checklist à chaque fois." }
       ],
       faq: [
@@ -203,7 +203,7 @@ export const localPages: LocalPage[] = [
     serviceType: "Nettoyage de bureaux et de locaux professionnels",
     metaTitle: "Nettoyage de bureaux à Pontoise (95300) – Devis gratuit",
     metaDescription:
-      "Nettoyage de bureaux à Pontoise (95300) par une entreprise installée à Pontoise : passages tôt le matin ou le soir, sanitaires, espace pause, vitres intérieures. Devis gratuit sous 24h.",
+      "Nettoyage de bureaux à Pontoise (95300) par une entreprise installée à Pontoise : passages tôt le matin ou le soir, sanitaires, espace pause, vitres intérieures. Devis gratuit sous 24 h.",
     related: [
       { href: "/nettoyage-bureaux", label: "Bureaux & commerces" },
       { href: "/entreprise-de-nettoyage-cergy", label: "Entreprise de nettoyage à Cergy" },
@@ -220,7 +220,7 @@ export const localPages: LocalPage[] = [
       intro: [
         { title: "Une équipe de Pontoise", text: "Nous ne venons pas de l'autre bout de l'Île-de-France : notre base est à Pontoise, donc les horaires sont tenus et les urgences traitées vite." },
         { title: "Avant 8h ou après 18h", text: "Les passages se font quand vos bureaux sont vides : vos équipes arrivent dans des locaux propres, sans bruit d'aspirateur en pleine réunion." },
-        { title: "Un devis gratuit sous 24h", text: "Vous décrivez la surface et la fréquence, nous revenons vers vous avec une proposition claire, avant tout engagement." }
+        { title: "Un devis gratuit sous 24 h", text: "Vous décrivez la surface et la fréquence, nous revenons vers vous avec une proposition claire, avant tout engagement." }
       ],
       blocks: [
         {
@@ -263,7 +263,7 @@ export const localPages: LocalPage[] = [
         { question: "Quelle fréquence choisir pour des bureaux ?", answer: "Pour une petite équipe, un passage par semaine suffit souvent ; au-delà, ou avec de l'accueil du public, plusieurs passages par semaine sont recommandés. Nous vous conseillons lors du devis." },
         { question: "Faut-il être présent pendant le nettoyage ?", answer: "Non. Une clé, un badge ou un code d'accès suffit ; les modalités sont convenues avec vous et restent confidentielles." },
         { question: "Fournissez-vous les produits et le matériel ?", answer: "Oui, produits professionnels et matériel sont apportés par nos soins. Nous pouvons aussi assurer le réassort du papier et du savon." },
-        { question: "Le devis est-il vraiment gratuit ?", answer: "Oui, le devis est gratuit et sans engagement, envoyé sous 24h après votre demande." }
+        { question: "Le devis est-il vraiment gratuit ?", answer: "Oui, le devis est gratuit et sans engagement, envoyé sous 24 h après votre demande." }
       ]
     }
   },
@@ -276,7 +276,7 @@ export const localPages: LocalPage[] = [
     serviceType: "Nettoyage de bureaux, commerces et parties communes",
     metaTitle: "Entreprise de nettoyage à Cergy (95000) – Bureaux & commerces",
     metaDescription:
-      "Entreprise de nettoyage à Cergy (95000) : entretien de bureaux, commerces et parties communes à Cergy-Préfecture, Saint-Christophe, Cergy-le-Haut et Port-Cergy. Passages à vos horaires, devis gratuit sous 24h.",
+      "Entreprise de nettoyage à Cergy (95000) : entretien de bureaux, commerces et parties communes à Cergy-Préfecture, Saint-Christophe, Cergy-le-Haut et Port-Cergy. Passages à vos horaires, devis gratuit sous 24 h.",
     related: [
       { href: "/nettoyage-bureaux", label: "Bureaux & commerces" },
       { href: "/nettoyage-bureaux-pontoise", label: "Nettoyage de bureaux à Pontoise" },
@@ -319,7 +319,7 @@ export const localPages: LocalPage[] = [
       ],
       steps: [
         { title: "Votre demande", text: "Adresse à Cergy, type de locaux, surface et fréquence souhaitée : deux minutes avec le formulaire." },
-        { title: "Votre devis", text: "Gratuit, sous 24h, après une visite si vos locaux sont grands ou sur plusieurs niveaux." },
+        { title: "Votre devis", text: "Gratuit, sous 24 h, après une visite si vos locaux sont grands ou sur plusieurs niveaux." },
         { title: "Votre planning", text: "Jours et horaires fixes, même intervenant, et une facture mensuelle." }
       ],
       faq: [
@@ -340,7 +340,7 @@ export const localPages: LocalPage[] = [
     serviceType: "Ménage Airbnb / location courte durée",
     metaTitle: "Ménage fin de séjour Airbnb à Paris – check-out entre deux voyageurs",
     metaDescription:
-      "Ménage de fin de séjour Airbnb à Paris : check-out entre deux voyageurs le jour de vos réservations, passage entre 11h et 14h, linge en option, Paris Nord (17e, 18e, 20e) et Saint-Ouen. Devis gratuit sous 24h.",
+      "Ménage de fin de séjour Airbnb à Paris : check-out entre deux voyageurs le jour de vos réservations, passage entre 11h et 14h, linge en option, Paris Nord (17e, 18e, 20e) et Saint-Ouen. Devis gratuit sous 24 h.",
     related: [
       { href: "/menage-airbnb", label: "Ménage Airbnb" },
       { href: "/nettoyage-saint-ouen", label: "Saint-Ouen-sur-Seine" },
@@ -390,7 +390,7 @@ export const localPages: LocalPage[] = [
       ],
       steps: [
         { title: "Vous décrivez le logement", text: "Arrondissement, surface, couchages, linge et accès : deux minutes avec le formulaire." },
-        { title: "Devis gratuit sous 24h", text: "Un prix clair par ménage, avant le premier passage." },
+        { title: "Devis gratuit sous 24 h", text: "Un prix clair par ménage, avant le premier passage." },
         { title: "Check-out à chaque départ", text: "Nous intervenons aux dates de vos réservations et vous confirmons quand le logement est prêt." }
       ],
       faq: [

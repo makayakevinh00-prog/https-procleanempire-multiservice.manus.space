@@ -5,109 +5,8 @@ import Link from "next/link";
 import { AddressAutocomplete } from "@/components/forms/address-autocomplete";
 import { siteConfig } from "@/lib/site";
 
-/* ---------- Questions adaptées à chaque prestation ---------- */
-type Field = {
-  key: string;
-  label: string;
-  type: "select" | "number" | "text" | "multi";
-  options?: string[];
-  required?: boolean;
-};
-
-type ServiceDef = { id: string; label: string; hint: string; fields: Field[] };
-
-const frequencyPro = ["Quotidien", "2 à 3 fois par semaine", "1 fois par semaine", "Ponctuel"];
-
-export const quoteServices: ServiceDef[] = [
-  {
-    id: "airbnb",
-    label: "Ménage Airbnb",
-    hint: "Location courte durée, conciergerie",
-    fields: [
-      { key: "logement", label: "Type de logement", type: "select", options: ["Studio", "T1", "T2", "T3", "T4 et plus", "Maison"], required: true },
-      { key: "surface", label: "Surface (m²)", type: "number" },
-      { key: "couchages", label: "Nombre de couchages", type: "number" },
-      { key: "linge", label: "Linge de lit et serviettes", type: "select", options: ["Je fournis le linge", "À gérer par ProClean Empire", "À discuter"] },
-      { key: "frequence", label: "Fréquence", type: "select", options: ["À chaque départ de voyageur", "Plusieurs fois par semaine", "Ponctuel"], required: true }
-    ]
-  },
-  {
-    id: "bureaux",
-    label: "Bureaux",
-    hint: "Entretien régulier de vos locaux",
-    fields: [
-      { key: "surface", label: "Surface (m²)", type: "number", required: true },
-      { key: "frequence", label: "Fréquence", type: "select", options: frequencyPro, required: true },
-      { key: "sanitaires", label: "Nombre de sanitaires", type: "number" },
-      { key: "vitrerie", label: "Vitrerie à inclure", type: "select", options: ["Oui", "Non", "À discuter"] },
-      { key: "horaires", label: "Horaires d'intervention", type: "select", options: ["Tôt le matin", "En journée", "En soirée", "Le week-end"] }
-    ]
-  },
-  {
-    id: "commerce",
-    label: "Commerce",
-    hint: "Boutique, agence, showroom",
-    fields: [
-      { key: "surface", label: "Surface (m²)", type: "number", required: true },
-      { key: "frequence", label: "Fréquence", type: "select", options: frequencyPro, required: true },
-      { key: "vitrine", label: "Vitrine à nettoyer", type: "select", options: ["Oui", "Non"] },
-      { key: "horaires", label: "Horaires d'intervention", type: "select", options: ["Avant l'ouverture", "Après la fermeture", "Le week-end"] }
-    ]
-  },
-  {
-    id: "conciergerie",
-    label: "Conciergerie d'entreprise",
-    hint: "Gestion complète de vos espaces",
-    fields: [
-      {
-        key: "besoins",
-        label: "Ce dont vous avez besoin",
-        type: "multi",
-        options: [
-          "Nettoyage quotidien",
-          "Entretien des équipements",
-          "Véhicules de société",
-          "Décoration des fêtes",
-          "Consommables & réassort",
-          "Plantes",
-          "Accueil & petits services"
-        ],
-        required: true
-      },
-      { key: "surface", label: "Surface des locaux (m²)", type: "number" },
-      { key: "effectif", label: "Nombre de personnes sur place", type: "number" }
-    ]
-  },
-  {
-    id: "remise",
-    label: "Remise en état",
-    hint: "Fin de chantier, départ de locataire",
-    fields: [
-      { key: "type", label: "Situation", type: "select", options: ["Fin de chantier", "Départ de locataire", "Grand nettoyage", "Autre"], required: true },
-      { key: "surface", label: "Surface (m²)", type: "number", required: true }
-    ]
-  },
-  {
-    id: "copropriete",
-    label: "Copropriété",
-    hint: "Halls et parties communes",
-    fields: [
-      { key: "batiments", label: "Nombre de bâtiments", type: "number", required: true },
-      { key: "parties", label: "Parties communes", type: "text" },
-      { key: "passages", label: "Passages par semaine", type: "select", options: ["1", "2", "3", "5 et plus"], required: true }
-    ]
-  },
-  {
-    id: "vehicules",
-    label: "Véhicules de société",
-    hint: "Voitures, utilitaires, avions",
-    fields: [
-      { key: "vehicule", label: "Type de véhicule", type: "select", options: ["Voiture", "Utilitaire", "Flotte (plusieurs véhicules)", "Avion"], required: true },
-      { key: "nombre", label: "Nombre de véhicules", type: "number" },
-      { key: "prestation", label: "Prestation", type: "select", options: ["Intérieur", "Extérieur", "Intérieur + extérieur"], required: true }
-    ]
-  }
-];
+import { quoteServices, type QuoteField as Field } from "@/lib/quote-services";
+import { readLeadSource } from "@/lib/lead-source";
 
 const inputClass =
   "mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 focus:border-[#1d6fe0] focus:outline-none focus:ring-1 focus:ring-[#1d6fe0]";
@@ -128,6 +27,9 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  // Anti-spam : champ piège invisible + temps minimal de remplissage (vérifiés côté serveur).
+  const [trap, setTrap] = useState("");
+  const [startedAt] = useState(() => Date.now());
   // Si l'enregistrement automatique échoue : la demande complète, prête à envoyer par e-mail ou WhatsApp.
   const [fallback, setFallback] = useState<{ text: string; code?: string } | null>(null);
 
@@ -207,7 +109,10 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
           startDate,
           ...contact,
           consent,
-          sourceUrl: window.location.href
+          sourceUrl: window.location.href,
+          ...readLeadSource(),
+          website: trap,
+          elapsedMs: Date.now() - startedAt
         })
       });
       if (!response.ok) {
@@ -241,8 +146,8 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
           Demande bien reçue.
         </h3>
         <p className="mx-auto mt-3 max-w-md text-slate-600">
-          Elle est enregistrée chez nous. Nous revenons vers vous sous 24h avec votre devis, par
-          téléphone ou par e-mail.
+          Elle est enregistrée chez nous. Nous revenons vers vous sous 24 h pendant les horaires
+          de traitement (7j/7, 8h–18h), par téléphone ou par e-mail.
         </p>
         <a href={siteConfig.phoneHref} className="btn-pill-ghost mt-8 text-ink">
           Une urgence ? {siteConfig.phone}
@@ -252,7 +157,20 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
   }
 
   return (
-    <form onSubmit={submit} noValidate className="rounded-[28px] bg-white p-6 shadow-soft md:p-10">
+    <form onSubmit={submit} noValidate className="relative rounded-[28px] bg-white p-6 shadow-soft md:p-10">
+      <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
+        <label>
+          Site web (ne pas remplir)
+          <input
+            type="text"
+            name="website"
+            tabIndex={-1}
+            autoComplete="off"
+            value={trap}
+            onChange={(event) => setTrap(event.target.value)}
+          />
+        </label>
+      </div>
       {/* Progression */}
       <ol className="mb-8 flex gap-2 text-xs font-semibold uppercase tracking-wide" aria-label="Étapes">
         {["Prestation", "Détails", "Vos coordonnées"].map((label, index) => (
@@ -413,6 +331,8 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
         </div>
       ) : null}
 
+      <p className="mt-6 text-xs leading-relaxed text-slate-500">{siteConfig.promise}</p>
+
       {step > 1 ? (
         <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
           <button type="button" onClick={() => { setError(null); setStep(step - 1); }} className="text-sm font-semibold text-slate-500">
@@ -425,7 +345,7 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
             </button>
           ) : (
             <button key="envoyer" type="submit" disabled={submitting} className="btn-pill disabled:opacity-60">
-              {submitting ? "Envoi…" : "Recevoir mon devis sous 24h"}
+              {submitting ? "Envoi…" : "Recevoir mon devis sous 24 h"}
             </button>
           )}
         </div>

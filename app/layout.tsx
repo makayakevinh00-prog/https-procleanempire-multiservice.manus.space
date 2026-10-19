@@ -3,6 +3,7 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { Header, HeaderSpacer } from "@/components/layout/header";
 import { BookingButton } from "@/components/layout/booking-button";
+import { SourceTracker } from "@/components/layout/source-tracker";
 import { Footer } from "@/components/layout/footer";
 import { siteConfig } from "@/lib/site";
 import { defaultLocale, getDictionary, ogLocale } from "@/lib/i18n";
@@ -56,7 +57,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     email: siteConfig.email,
     address: {
       "@type": "PostalAddress",
-      streetAddress: siteConfig.addressLine,
+      streetAddress: "3 rue Stéphane Charbonnier",
+      postalCode: "95300",
       addressLocality: siteConfig.city,
       addressRegion: siteConfig.region,
       addressCountry: "FR"
@@ -77,6 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main id="main-content">{children}</main>
         <Footer />
         <BookingButton />
+        <SourceTracker />
         {vercelAnalyticsEnabled ? <Analytics /> : null}
         <script
           type="application/ld+json"

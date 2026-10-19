@@ -80,7 +80,7 @@ function Hero() {
           className="mt-10 flex flex-col gap-3 sm:flex-row"
         >
           <Link href="/contact#devis" className="btn-pill">
-            Recevoir mon devis sous 24h
+            Recevoir mon devis sous 24 h
           </Link>
           <Link href="#prestations" className="btn-pill-ghost text-white">
             Voir les prestations
@@ -341,7 +341,8 @@ function DetailingStrip() {
 
 /* ---------- 5 bis. Comment ça se passe + FAQ ---------- */
 const homeFaq = [
-  { question: "Combien coûte une prestation ?", answer: "Le prix dépend de la surface, de la fréquence et de la prestation. Vous recevez un devis clair sous 24h, sans engagement." },
+  { question: "Sous quel délai répondez-vous ?", answer: siteConfig.promise },
+  { question: "Combien coûte une prestation ?", answer: "Le prix dépend de la surface, de la fréquence et de la prestation. Vous recevez un devis clair sous 24 h, sans engagement." },
   { question: "Fournissez-vous les produits et le matériel ?", answer: "Oui, nous venons avec nos produits et notre matériel professionnels." },
   { question: "Intervenez-vous le week-end ?", answer: "Oui. Les ménages Airbnb suivent vos réservations, et les locaux professionnels peuvent être entretenus tôt le matin, le soir ou le week-end." },
   { question: "Comment gérez-vous les clés et les accès ?", answer: "Boîte à clés, badge, digicode ou remise en main propre : nous nous adaptons à votre organisation." },
@@ -352,7 +353,7 @@ const homeFaq = [
 function HowItWorks() {
   const steps = [
     { title: "Vous décrivez votre besoin", text: "Logement ou locaux, surface, fréquence : deux minutes en ligne." },
-    { title: "Nous confirmons le prix", text: "Devis clair sous 24h, visite sur place si nécessaire." },
+    { title: "Nous confirmons le prix", text: "Devis clair sous 24 h, visite sur place si nécessaire." },
     { title: "Nous intervenons", text: "Selon le planning convenu, et nous contrôlons le résultat." }
   ];
   return (
@@ -406,7 +407,7 @@ function FinalCta() {
           </p>
           <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
             <Link href="/contact#devis" className="btn-pill">
-              Recevoir mon devis sous 24h
+              Recevoir mon devis sous 24 h
             </Link>
             <Link href={siteConfig.bookingUrl} className="btn-pill-ghost text-ink">
               Prendre RDV

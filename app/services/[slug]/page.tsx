@@ -1,17 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { buildMetadata } from "@/lib/site";
+import { buildMetadata, siteConfig } from "@/lib/site";
 import { services, STANDALONE_PAGES } from "@/lib/data";
 import { PageHero } from "@/components/sections/page-hero";
 import { CtaBand } from "@/components/sections/cta-band";
-import { VisualPlaceholder } from "@/components/ui/visual-placeholder";
+import { ServiceVisual } from "@/components/ui/service-visual";
 
 type Params = {
   params: Promise<{ slug: string }>;
 };
 
 export async function generateStaticParams() {
-  return services.map((service) => ({ slug: service.slug }));
+  // Les prestations ayant leur propre page sont redirigées (next.config.ts) : pas de page en double.
+  return services.filter((service) => !STANDALONE_PAGES.has(service.slug)).map((service) => ({ slug: service.slug }));
 }
 
 export async function generateMetadata({ params }: Params) {
@@ -54,12 +55,12 @@ export default async function ServiceDetailPage({ params }: Params) {
         ]}
         actions={
           <>
-            <Link href="/devis" className="btn-primary">
-              Recevoir une estimation
-            </Link>
-            <Link href="/contact" className="btn-secondary">
-              Être rappelé
-            </Link>
+            <Link href="/contact#devis" className="btn-primary">
+                Demander un devis
+              </Link>
+            <a href={siteConfig.bookingUrl} className="btn-secondary">
+                Être rappelé
+              </a>
           </>
         }
       />
@@ -83,15 +84,15 @@ export default async function ServiceDetailPage({ params }: Params) {
             <h3 className="mt-8 text-lg font-semibold text-slate-900">Secteurs concernés</h3>
             <p className="mt-2 text-sm text-slate-600">{service.sectors.join(" · ")}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/devis" className="btn-primary">
+              <Link href="/contact#devis" className="btn-primary">
                 Demander un devis
               </Link>
-              <Link href="/contact" className="btn-secondary">
-                Planifier une visite
-              </Link>
+              <a href={siteConfig.bookingUrl} className="btn-secondary">
+                Être rappelé
+              </a>
             </div>
           </article>
-          <VisualPlaceholder label={`PHOTO ${service.title.toUpperCase()}`} ratio="tall" />
+          <ServiceVisual slug={service.slug} />
         </div>
       </section>
       <CtaBand />
