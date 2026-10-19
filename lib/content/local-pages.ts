@@ -14,6 +14,12 @@ export type LocalPage = {
   serviceType?: string;
   /** Pages liées affichées en bas de page (maillage interne). */
   related?: { href: string; label: string }[];
+  /** Texte long propre à la page (SEO), affiché après le contenu principal. Liens : [libellé](/chemin). */
+  article?: { heading: string; paragraphs: string[] }[];
+  /** Liste de quartiers / arrondissements / communes desservis, avec un élément mis en avant. */
+  districts?: { heading: string; intro: string; highlight?: string; list: string[] };
+  /** Affiche la bannière « Ils nous font confiance ». */
+  showPartners?: boolean;
   props: Omit<PremiumServiceProps, "schema">;
 };
 
@@ -24,7 +30,7 @@ export const localPages: LocalPage[] = [
     postalCode: "95300",
     metaTitle: "Ménage Airbnb et nettoyage de bureaux à Pontoise (95)",
     metaDescription:
-      "Entreprise de nettoyage basée à Pontoise : ménage Airbnb entre deux voyageurs, nettoyage de bureaux et commerces, conciergerie d'entreprise. Intervention rapide dans tout Pontoise. Devis sous 24h.",
+      "Entreprise de nettoyage basée à Pontoise : ménage Airbnb entre deux voyageurs, nettoyage de bureaux et commerces, conciergerie d'entreprise. Intervention rapide dans tout Pontoise. Devis sous 24 h.",
     props: {
       eyebrow: "Pontoise · Val-d'Oise (95)",
       title: "Votre équipe de nettoyage, à Pontoise.",
@@ -52,7 +58,7 @@ export const localPages: LocalPage[] = [
       ],
       steps: [
         { title: "Vous nous écrivez", text: "Le formulaire prend deux minutes ; vous pouvez aussi nous appeler." },
-        { title: "Devis sous 24h", text: "Un prix clair, avant toute intervention." },
+        { title: "Devis sous 24 h", text: "Un prix clair, avant toute intervention." },
         { title: "Nous intervenons", text: "Rapidement, puisque nous sommes sur place." }
       ],
       faq: [
@@ -68,7 +74,7 @@ export const localPages: LocalPage[] = [
     postalCode: "95000",
     metaTitle: "Nettoyage de bureaux et ménage Airbnb à Cergy (95)",
     metaDescription:
-      "Nettoyage de bureaux, commerces et ménage Airbnb à Cergy et dans l'agglomération de Cergy-Pontoise : passages réguliers ou ponctuels, produits professionnels, devis sous 24h.",
+      "Nettoyage de bureaux, commerces et ménage Airbnb à Cergy et dans l'agglomération de Cergy-Pontoise : passages réguliers ou ponctuels, produits professionnels, devis sous 24 h.",
     props: {
       eyebrow: "Cergy · Agglomération de Cergy-Pontoise",
       title: "Des locaux nets à Cergy, à vos horaires.",
@@ -96,7 +102,7 @@ export const localPages: LocalPage[] = [
       ],
       steps: [
         { title: "Vous décrivez votre besoin", text: "Locaux ou logement, surface et fréquence." },
-        { title: "Nous vous répondons", text: "Un devis sous 24h, sans engagement." },
+        { title: "Nous vous répondons", text: "Un devis sous 24 h, sans engagement." },
         { title: "Nous démarrons", text: "Aux jours convenus, avec un contrôle régulier." }
       ],
       faq: [
@@ -110,43 +116,86 @@ export const localPages: LocalPage[] = [
     slug: "nettoyage-paris",
     city: "Paris",
     postalCode: "75000",
-    metaTitle: "Ménage Airbnb et nettoyage de locaux à Paris",
+    label: "Entreprise de nettoyage à Paris",
+    metaTitle: "Entreprise de nettoyage à Paris : bureaux, commerces, Airbnb",
     metaDescription:
-      "Ménage Airbnb à Paris pour conciergeries et propriétaires : préparation du logement entre deux voyageurs, le jour fixé par vos réservations. Nettoyage de bureaux et boutiques parisiennes. Devis sous 24h.",
+      "Entreprise de nettoyage à Paris : entretien de bureaux et de commerces, ménage Airbnb, remise en état et vitrerie dans les 20 arrondissements. Interventions tôt le matin ou le soir. Devis sous 24 h.",
+    serviceName: "Entreprise de nettoyage à Paris",
+    serviceType: "Nettoyage de bureaux, nettoyage de commerces, ménage Airbnb, remise en état, vitrerie",
+    showPartners: true,
+    related: [
+      { href: "/menage-airbnb-paris", label: "Ménage fin de séjour Airbnb à Paris" },
+      { href: "/nettoyage-bureaux", label: "Nettoyage de bureaux" },
+      { href: "/nettoyage-commerces", label: "Nettoyage de commerces" },
+      { href: "/remise-en-etat", label: "Remise en état" },
+      { href: "/nettoyage-vitrerie", label: "Vitres et vitrines" },
+      { href: "/entreprise-de-nettoyage-paris-16", label: "Paris 16e" },
+      { href: "/entreprise-de-nettoyage-seine-saint-denis", label: "Seine-Saint-Denis (93)" },
+      { href: "/nettoyage-saint-ouen", label: "Saint-Ouen (93)" }
+    ],
     props: {
-      eyebrow: "Paris · Tous arrondissements",
-      title: "Ménage Airbnb à Paris, réglé sur vos réservations.",
-      lead: "À Paris, les arrivées s'enchaînent. Nous préparons vos appartements entre deux voyageurs, aux dates de votre calendrier, et entretenons aussi bureaux et boutiques.",
-      image: { src: "/media/photos/airbnb-salon-table-basse.webp", alt: "Salon d'un appartement parisien en location courte durée prêt à accueillir" },
-      serviceId: "airbnb",
+      eyebrow: "Paris · 20 arrondissements",
+      title: "Entreprise de nettoyage à Paris",
+      lead: "Bureaux, boutiques, cabinets, showrooms et appartements en location courte durée : nous entretenons vos espaces parisiens à vos horaires, avec un seul interlocuteur et un devis clair avant toute intervention.",
+      image: { src: "/media/photos/airbnb-salon-table-basse.webp", alt: "Salon d'appartement nettoyé et préparé par ProClean Empire" },
+      serviceId: "bureaux",
       ctaLabel: "Demander un devis à Paris",
       intro: [
-        { title: "Rotations rapides", text: "Passage entre 11h et 14h, entre le départ et l'arrivée." },
-        { title: "Conciergeries", text: "Plusieurs appartements ? Un planning commun et une facture mensuelle." },
-        { title: "Petits espaces", text: "Studios et deux-pièces parisiens : chaque mètre carré est soigné." }
+        { title: "Avant l'ouverture, après la fermeture", text: "Nous passons tôt le matin ou en soirée pour que vos équipes et vos clients trouvent des lieux nets, sans croiser le chariot de ménage." },
+        { title: "Un contrat qui suit votre activité", text: "Un passage par semaine, plusieurs passages ou un entretien quotidien : la fréquence s'ajuste à votre surface et à votre fréquentation." },
+        { title: "Un interlocuteur, une facture", text: "Plusieurs sites ou plusieurs logements à Paris ? Un planning commun et une facture mensuelle unique." }
       ],
       blocks: [
         {
-          heading: "Nos interventions à Paris.",
+          heading: "Nos prestations de nettoyage à Paris.",
           items: [
-            { title: "Ménage entre voyageurs", text: "Lits, salle de bain, cuisine, sols et contrôle final à chaque passage." },
-            { title: "Linge et consommables", text: "Changement du linge et réassort sur demande." },
-            { title: "Signalement des imprévus", text: "Casse ou oubli : vous êtes prévenu immédiatement." },
-            { title: "Bureaux", text: "Petits bureaux, showrooms et cabinets entretenus à vos horaires." },
-            { title: "Boutiques", text: "Surface de vente prête avant l'arrivée des clients." },
-            { title: "Grand nettoyage", text: "Remise en état avant une mise en location ou après travaux." }
+            { title: "Nettoyage de bureaux", text: "Postes de travail, salles de réunion, sanitaires, espace pause et sols : un entretien régulier qui garde vos locaux présentables pour vos collaborateurs comme pour vos visiteurs." },
+            { title: "Nettoyage de commerces", text: "Boutiques, agences, instituts et showrooms : surface de vente, comptoir, cabines et vitrine intérieure prêts avant l'arrivée des premiers clients." },
+            { title: "Ménage Airbnb", text: "Préparation du logement entre deux voyageurs, le jour fixé par vos réservations. Tout le détail est sur notre page ménage de fin de séjour à Paris." },
+            { title: "Remise en état", text: "Grand nettoyage après travaux, avant une mise en location, à la fin d'un bail ou avant l'emménagement d'une équipe dans de nouveaux bureaux." },
+            { title: "Vitrerie", text: "Vitres intérieures, cloisons vitrées et vitrines de boutique, pour une façade qui donne envie d'entrer." },
+            { title: "Parties communes", text: "Halls d'entrée, escaliers et paliers d'immeubles parisiens, entretenus à jour fixe pour les résidents et les visiteurs." }
           ]
         }
       ],
       steps: [
-        { title: "Vous partagez votre calendrier", text: "Dates de départ et d'arrivée, accès au logement." },
-        { title: "Nous confirmons", text: "Prix clair sous 24h, avant le premier passage." },
-        { title: "Nous préparons", text: "Le logement est prêt avant l'arrivée du voyageur suivant." }
+        { title: "Vous décrivez vos locaux", text: "Type d'espace, surface, arrondissement, fréquence souhaitée et contraintes d'accès." },
+        { title: "Nous chiffrons", text: "Un devis clair sous 24 h, et une visite si la surface ou la prestation le demande." },
+        { title: "Nous démarrons", text: "Aux jours et horaires convenus, avec la même check-list à chaque passage." }
       ],
       faq: [
-        { question: "Couvrez-vous tous les arrondissements ?", answer: "Oui, nous intervenons dans tout Paris." },
-        { question: "Comment récupérez-vous les clés ?", answer: "Boîte à clés, digicode, gardien ou remise en main propre : nous nous adaptons." },
-        { question: "Intervenez-vous le week-end ?", answer: "Oui, le ménage suit vos réservations, quel que soit le jour." }
+        { question: "Dans quels arrondissements intervenez-vous ?", answer: "Dans les 20 arrondissements de Paris, du 1er au 20e, ainsi qu'en proche banlieue (Saint-Ouen, Clichy, Saint-Denis, Boulogne-Billancourt, Neuilly-sur-Seine)." },
+        { question: "Pouvez-vous nettoyer nos bureaux en dehors des heures de travail ?", answer: "Oui. Nous intervenons tôt le matin ou en soirée, selon vos horaires d'ouverture et le planning convenu ensemble." },
+        { question: "Quelle fréquence de passage choisir pour des bureaux à Paris ?", answer: "Pour une petite équipe, un passage par semaine suffit souvent ; dès que vous recevez du public ou que l'équipe grandit, deux à cinq passages par semaine sont plus adaptés. Nous vous conseillons lors du devis." },
+        { question: "Faut-il fournir les produits et le matériel ?", answer: "Non. Nous venons avec nos produits et notre matériel professionnels. Si vous avez des produits imposés, nous les utilisons." },
+        { question: "Proposez-vous aussi le ménage Airbnb à Paris ?", answer: "Oui, pour les conciergeries et les propriétaires : préparation complète du logement entre deux voyageurs, le jour fixé par vos réservations. Tous les détails sont sur notre page ménage de fin de séjour Airbnb à Paris." }
+      ]
+    },
+    article: [
+      {
+        heading: "Pourquoi confier le nettoyage de vos locaux parisiens à ProClean Empire ?",
+        paragraphs: [
+          "À Paris, les locaux sont souvent compacts, très fréquentés et ouverts tard. Un bureau de dix personnes dans le 9e, une boutique dans le Marais ou un cabinet dans le 16e n'ont pas les mêmes besoins, mais tous attendent la même chose : arriver le matin dans un espace propre, sans avoir à y penser. C'est notre métier.",
+          "Nous définissons avec vous une check-list adaptée à vos locaux : ce qui est fait à chaque passage (poubelles, sanitaires, cuisine, sols, points de contact), ce qui est fait chaque semaine (dépoussiérage en hauteur, vitres intérieures, électroménager) et ce qui est fait ponctuellement. Vous savez exactement ce que vous payez.",
+          "Les contraintes parisiennes font partie du travail : badges et digicodes, gardiens, ascenseurs étroits, stationnement limité, horaires de copropriété. Nous les prenons en compte dès le devis pour que les passages se déroulent sans surprise."
+        ]
+      },
+      {
+        heading: "Bureaux, commerces et logements : une seule entreprise de nettoyage",
+        paragraphs: [
+          "Beaucoup de nos clients parisiens nous confient plusieurs types d'espaces : les bureaux de leur société, une boutique, et parfois des appartements en location courte durée. Regrouper ces prestations chez un même prestataire simplifie le suivi : un seul contact, un planning commun et une facture mensuelle.",
+          "Pour les logements meublés et la location courte durée, nous travaillons pour des conciergeries et des propriétaires qui nous confient leurs logements à Paris et en Seine-Saint-Denis. Le ménage suit vos réservations, quel que soit le jour de la semaine : la méthode complète est décrite sur la page [ménage de fin de séjour Airbnb à Paris](/menage-airbnb-paris).",
+          "Pour un déménagement, la fin d'un bail ou la livraison de travaux, notre [remise en état](/remise-en-etat) prépare les locaux en une intervention : dépoussiérage complet, traces de chantier, sanitaires, cuisine, sols et [vitres](/nettoyage-vitrerie)."
+        ]
+      }
+    ],
+    districts: {
+      heading: "Nous intervenons dans tous les arrondissements",
+      intro: "Bureaux, commerces et logements : nos équipes se déplacent dans tout Paris et en proche banlieue.",
+      highlight: "Paris 16e — Passy, Auteuil, Chaillot, Porte Dauphine : bureaux, cabinets, boutiques et appartements entretenus à vos horaires.",
+      list: [
+        "Paris 1er", "Paris 2e", "Paris 3e", "Paris 4e", "Paris 5e", "Paris 6e", "Paris 7e", "Paris 8e", "Paris 9e", "Paris 10e",
+        "Paris 11e", "Paris 12e", "Paris 13e", "Paris 14e", "Paris 15e", "Paris 16e", "Paris 17e", "Paris 18e", "Paris 19e", "Paris 20e"
       ]
     }
   },
@@ -156,7 +205,7 @@ export const localPages: LocalPage[] = [
     postalCode: "93400",
     metaTitle: "Ménage Airbnb et nettoyage à Saint-Ouen (93)",
     metaDescription:
-      "Ménage Airbnb et nettoyage de locaux à Saint-Ouen-sur-Seine (93) : logements préparés entre deux voyageurs, bureaux et commerces entretenus. Équipe habituée au secteur. Devis sous 24h.",
+      "Ménage Airbnb et nettoyage de locaux à Saint-Ouen-sur-Seine (93) : logements préparés entre deux voyageurs, bureaux et commerces entretenus. Équipe habituée au secteur. Devis sous 24 h.",
     props: {
       eyebrow: "Saint-Ouen-sur-Seine · Seine-Saint-Denis (93)",
       title: "Saint-Ouen, logement après logement.",
@@ -184,7 +233,7 @@ export const localPages: LocalPage[] = [
       ],
       steps: [
         { title: "Vous nous contactez", text: "Adresse, type de logement ou de local, fréquence." },
-        { title: "Nous vous répondons", text: "Devis sous 24h, sans engagement." },
+        { title: "Nous vous répondons", text: "Devis sous 24 h, sans engagement." },
         { title: "Nous intervenons", text: "Aux dates convenues, avec la même checklist à chaque fois." }
       ],
       faq: [
@@ -203,7 +252,7 @@ export const localPages: LocalPage[] = [
     serviceType: "Nettoyage de bureaux et de locaux professionnels",
     metaTitle: "Nettoyage de bureaux à Pontoise (95300) – Devis gratuit",
     metaDescription:
-      "Nettoyage de bureaux à Pontoise (95300) par une entreprise installée à Pontoise : passages tôt le matin ou le soir, sanitaires, espace pause, vitres intérieures. Devis gratuit sous 24h.",
+      "Nettoyage de bureaux à Pontoise (95300) par une entreprise installée à Pontoise : passages tôt le matin ou le soir, sanitaires, espace pause, vitres intérieures. Devis gratuit sous 24 h.",
     related: [
       { href: "/nettoyage-bureaux", label: "Bureaux & commerces" },
       { href: "/entreprise-de-nettoyage-cergy", label: "Entreprise de nettoyage à Cergy" },
@@ -220,7 +269,7 @@ export const localPages: LocalPage[] = [
       intro: [
         { title: "Une équipe de Pontoise", text: "Nous ne venons pas de l'autre bout de l'Île-de-France : notre base est à Pontoise, donc les horaires sont tenus et les urgences traitées vite." },
         { title: "Avant 8h ou après 18h", text: "Les passages se font quand vos bureaux sont vides : vos équipes arrivent dans des locaux propres, sans bruit d'aspirateur en pleine réunion." },
-        { title: "Un devis gratuit sous 24h", text: "Vous décrivez la surface et la fréquence, nous revenons vers vous avec une proposition claire, avant tout engagement." }
+        { title: "Un devis gratuit sous 24 h", text: "Vous décrivez la surface et la fréquence, nous revenons vers vous avec une proposition claire, avant tout engagement." }
       ],
       blocks: [
         {
@@ -263,7 +312,7 @@ export const localPages: LocalPage[] = [
         { question: "Quelle fréquence choisir pour des bureaux ?", answer: "Pour une petite équipe, un passage par semaine suffit souvent ; au-delà, ou avec de l'accueil du public, plusieurs passages par semaine sont recommandés. Nous vous conseillons lors du devis." },
         { question: "Faut-il être présent pendant le nettoyage ?", answer: "Non. Une clé, un badge ou un code d'accès suffit ; les modalités sont convenues avec vous et restent confidentielles." },
         { question: "Fournissez-vous les produits et le matériel ?", answer: "Oui, produits professionnels et matériel sont apportés par nos soins. Nous pouvons aussi assurer le réassort du papier et du savon." },
-        { question: "Le devis est-il vraiment gratuit ?", answer: "Oui, le devis est gratuit et sans engagement, envoyé sous 24h après votre demande." }
+        { question: "Le devis est-il vraiment gratuit ?", answer: "Oui, le devis est gratuit et sans engagement, envoyé sous 24 h après votre demande." }
       ]
     }
   },
@@ -276,7 +325,7 @@ export const localPages: LocalPage[] = [
     serviceType: "Nettoyage de bureaux, commerces et parties communes",
     metaTitle: "Entreprise de nettoyage à Cergy (95000) – Bureaux & commerces",
     metaDescription:
-      "Entreprise de nettoyage à Cergy (95000) : entretien de bureaux, commerces et parties communes à Cergy-Préfecture, Saint-Christophe, Cergy-le-Haut et Port-Cergy. Passages à vos horaires, devis gratuit sous 24h.",
+      "Entreprise de nettoyage à Cergy (95000) : entretien de bureaux, commerces et parties communes à Cergy-Préfecture, Saint-Christophe, Cergy-le-Haut et Port-Cergy. Passages à vos horaires, devis gratuit sous 24 h.",
     related: [
       { href: "/nettoyage-bureaux", label: "Bureaux & commerces" },
       { href: "/nettoyage-bureaux-pontoise", label: "Nettoyage de bureaux à Pontoise" },
@@ -319,7 +368,7 @@ export const localPages: LocalPage[] = [
       ],
       steps: [
         { title: "Votre demande", text: "Adresse à Cergy, type de locaux, surface et fréquence souhaitée : deux minutes avec le formulaire." },
-        { title: "Votre devis", text: "Gratuit, sous 24h, après une visite si vos locaux sont grands ou sur plusieurs niveaux." },
+        { title: "Votre devis", text: "Gratuit, sous 24 h, après une visite si vos locaux sont grands ou sur plusieurs niveaux." },
         { title: "Votre planning", text: "Jours et horaires fixes, même intervenant, et une facture mensuelle." }
       ],
       faq: [
@@ -340,7 +389,7 @@ export const localPages: LocalPage[] = [
     serviceType: "Ménage Airbnb / location courte durée",
     metaTitle: "Ménage fin de séjour Airbnb à Paris – check-out entre deux voyageurs",
     metaDescription:
-      "Ménage de fin de séjour Airbnb à Paris : check-out entre deux voyageurs le jour de vos réservations, passage entre 11h et 14h, linge en option, Paris Nord (17e, 18e, 20e) et Saint-Ouen. Devis gratuit sous 24h.",
+      "Ménage de fin de séjour Airbnb à Paris : check-out entre deux voyageurs le jour de vos réservations, passage entre 11h et 14h, linge en option, Paris Nord (17e, 18e, 20e) et Saint-Ouen. Devis gratuit sous 24 h.",
     related: [
       { href: "/menage-airbnb", label: "Ménage Airbnb" },
       { href: "/nettoyage-saint-ouen", label: "Saint-Ouen-sur-Seine" },
@@ -390,7 +439,7 @@ export const localPages: LocalPage[] = [
       ],
       steps: [
         { title: "Vous décrivez le logement", text: "Arrondissement, surface, couchages, linge et accès : deux minutes avec le formulaire." },
-        { title: "Devis gratuit sous 24h", text: "Un prix clair par ménage, avant le premier passage." },
+        { title: "Devis gratuit sous 24 h", text: "Un prix clair par ménage, avant le premier passage." },
         { title: "Check-out à chaque départ", text: "Nous intervenons aux dates de vos réservations et vous confirmons quand le logement est prêt." }
       ],
       faq: [
@@ -399,6 +448,216 @@ export const localPages: LocalPage[] = [
         { question: "Quels arrondissements couvrez-vous ?", answer: "Tout Paris, avec des passages très réguliers dans les 17e, 18e et 20e arrondissements, ainsi qu'à Saint-Ouen-sur-Seine et dans les communes voisines." },
         { question: "Pouvez-vous gérer le linge ?", answer: "Oui, en option : changement des draps et des serviettes à chaque départ, avec votre linge ou un linge que nous organisons avec vous." },
         { question: "Travaillez-vous avec les conciergeries ?", answer: "Oui, nous préparons des logements pour des conciergeries et des propriétaires, avec un planning commun et une facture mensuelle." }
+      ]
+    }
+  },
+  {
+    slug: "entreprise-de-nettoyage-paris-16",
+    city: "Paris 16e",
+    postalCode: "75016",
+    label: "Entreprise de nettoyage Paris 16e",
+    metaTitle: "Entreprise de nettoyage Paris 16e : bureaux, cabinets, appartements",
+    metaDescription:
+      "Entreprise de nettoyage dans le 16e arrondissement de Paris (Passy, Auteuil, Chaillot) : entretien de bureaux, cabinets, boutiques, halls d'immeuble et appartements meublés. Devis sous 24 h.",
+    serviceName: "Entreprise de nettoyage à Paris 16e",
+    serviceType: "Nettoyage de bureaux, cabinets, commerces, parties communes et appartements meublés",
+    related: [
+      { href: "/nettoyage-paris", label: "Entreprise de nettoyage à Paris" },
+      { href: "/menage-airbnb-paris", label: "Ménage Airbnb à Paris" },
+      { href: "/nettoyage-bureaux", label: "Nettoyage de bureaux" },
+      { href: "/nettoyage-vitrerie", label: "Vitres et vitrines" }
+    ],
+    props: {
+      eyebrow: "Paris 16e · Passy · Auteuil · Chaillot",
+      title: "Entreprise de nettoyage dans le 16e arrondissement",
+      lead: "Cabinets, sièges sociaux, boutiques de quartier, immeubles haussmanniens et appartements meublés : dans le 16e, la propreté fait partie de l'image. Nous l'entretenons avec discrétion, à vos horaires.",
+      image: { src: "/media/photos/airbnb-entree-logement.webp", alt: "Entrée d'appartement nettoyée par ProClean Empire" },
+      serviceId: "bureaux",
+      ctaLabel: "Demander un devis dans le 16e",
+      intro: [
+        { title: "Discrétion", text: "Interventions hors des heures de rendez-vous et de réception, pour que vos clients ne voient que le résultat." },
+        { title: "Matériaux délicats", text: "Parquets, marbre, boiseries et vitrages anciens traités avec les produits adaptés." },
+        { title: "Un seul contact", text: "Le même interlocuteur pour le devis, le planning et les ajustements." }
+      ],
+      blocks: [
+        {
+          heading: "Ce que nous entretenons dans le 16e.",
+          items: [
+            { title: "Cabinets et professions libérales", text: "Salle d'attente, bureaux, sanitaires et points de contact nettoyés avant l'arrivée des patients ou des clients." },
+            { title: "Bureaux et sièges", text: "Plateaux, salles de réunion et espaces d'accueil entretenus tôt le matin ou en soirée." },
+            { title: "Boutiques", text: "Commerces de la rue de Passy, de l'avenue Victor-Hugo ou d'Auteuil prêts avant l'ouverture." },
+            { title: "Halls d'immeuble", text: "Halls, escaliers, miroirs et paliers entretenus à jour fixe pour les copropriétés et les syndics." },
+            { title: "Appartements meublés", text: "Préparation entre deux occupants et remise en état avant une nouvelle location." },
+            { title: "Vitres et miroirs", text: "Vitres intérieures, portes vitrées et miroirs de hall sans traces." }
+          ]
+        }
+      ],
+      steps: [
+        { title: "Vous nous écrivez", text: "Adresse, type de local, surface, horaires d'accès et fréquence souhaitée." },
+        { title: "Nous chiffrons", text: "Devis clair sous 24 h, visite sur place si nécessaire." },
+        { title: "Nous assurons le suivi", text: "Même check-list à chaque passage, ajustée avec vous au fil des semaines." }
+      ],
+      faq: [
+        { question: "Intervenez-vous dans tout le 16e ?", answer: "Oui : Passy, Auteuil, la Muette, Chaillot, Porte Dauphine, Trocadéro et Point-du-Jour, ainsi qu'à Boulogne-Billancourt et Neuilly-sur-Seine." },
+        { question: "Pouvez-vous intervenir avant l'ouverture d'un cabinet ?", answer: "Oui, nous passons tôt le matin ou après la dernière consultation, selon le planning convenu." },
+        { question: "Entretenez-vous les parties communes d'immeubles ?", answer: "Oui, halls, escaliers et paliers, à jour et heure fixes, pour les copropriétés comme pour les syndics." },
+        { question: "Vos produits conviennent-ils aux parquets et au marbre ?", answer: "Oui, nous adaptons produits et méthodes à chaque surface. Si vous avez des consignes ou des produits imposés, nous les suivons." }
+      ]
+    },
+    article: [
+      {
+        heading: "Nettoyer dans le 16e : des locaux qui reçoivent",
+        paragraphs: [
+          "Le 16e arrondissement compte beaucoup de cabinets médicaux et d'avocats, de sièges de sociétés, d'ambassades et de boutiques de quartier. Ce sont des lieux qui reçoivent : un hall terne ou une salle d'attente négligée se remarque tout de suite. Notre travail consiste à rendre ces espaces impeccables sans que personne ne nous voie.",
+          "Les immeubles anciens demandent des gestes précis : parquets cirés ou vitrifiés, sols en marbre, boiseries, moulures et grandes fenêtres. Nous choisissons les produits et le matériel en fonction de chaque surface, et nous notons dans la check-list de votre site ce qu'il faut éviter.",
+          "Pour les propriétaires d'appartements meublés du quartier, nous préparons le logement entre deux occupants ou avant une mise en location, et nous pouvons réaliser une [remise en état](/remise-en-etat) complète après travaux. Pour la location courte durée, voir notre page [ménage Airbnb à Paris](/menage-airbnb-paris)."
+        ]
+      }
+    ],
+    districts: {
+      heading: "Quartiers desservis",
+      intro: "Nous intervenons dans tout le 16e arrondissement et dans les communes limitrophes.",
+      list: ["Passy", "Auteuil", "La Muette", "Chaillot", "Trocadéro", "Porte Dauphine", "Point-du-Jour", "Victor-Hugo", "Boulogne-Billancourt", "Neuilly-sur-Seine"]
+    }
+  },
+  {
+    slug: "entreprise-de-nettoyage-seine-saint-denis",
+    city: "Seine-Saint-Denis",
+    postalCode: "93000",
+    label: "Entreprise de nettoyage Seine-Saint-Denis",
+    metaTitle: "Entreprise de nettoyage en Seine-Saint-Denis (93) : bureaux, commerces, Airbnb",
+    metaDescription:
+      "Entreprise de nettoyage en Seine-Saint-Denis (93) : bureaux, entrepôts, commerces, parties communes et ménage Airbnb à Saint-Ouen, Saint-Denis, Aubervilliers, Montreuil et Pantin. Devis sous 24 h.",
+    serviceName: "Entreprise de nettoyage en Seine-Saint-Denis",
+    serviceType: "Nettoyage de bureaux, locaux d'activité, commerces, parties communes et ménage Airbnb",
+    related: [
+      { href: "/nettoyage-saint-ouen", label: "Saint-Ouen-sur-Seine" },
+      { href: "/nettoyage-paris", label: "Entreprise de nettoyage à Paris" },
+      { href: "/menage-airbnb", label: "Ménage Airbnb" },
+      { href: "/remise-en-etat", label: "Remise en état" }
+    ],
+    props: {
+      eyebrow: "Seine-Saint-Denis · 93",
+      title: "Entreprise de nettoyage en Seine-Saint-Denis",
+      lead: "Bureaux de zones d'activité, commerces, locaux mixtes, halls d'immeuble et logements en location courte durée : nous intervenons déjà régulièrement dans le 93, avec des créneaux faciles à caler.",
+      image: { src: "/media/photos/hero-showcase.webp", alt: "Intervention de nettoyage professionnel par ProClean Empire" },
+      serviceId: "bureaux",
+      ctaLabel: "Demander un devis dans le 93",
+      intro: [
+        { title: "Déjà sur place", text: "Des passages réguliers à Saint-Ouen et dans les communes voisines, donc des créneaux disponibles rapidement." },
+        { title: "Locaux variés", text: "Bureaux, ateliers, showrooms, entrepôts légers et commerces : chaque site a sa check-list." },
+        { title: "Location courte durée", text: "Ménage entre deux voyageurs pour les conciergeries et propriétaires du département." }
+      ],
+      blocks: [
+        {
+          heading: "Nos prestations dans le 93.",
+          items: [
+            { title: "Bureaux et sièges", text: "Entretien régulier des bureaux des zones d'activité de Saint-Denis Pleyel, Saint-Ouen, Pantin ou Montreuil." },
+            { title: "Locaux d'activité", text: "Showrooms, ateliers et zones de stockage légères : sols, sanitaires, vestiaires et espaces de pause." },
+            { title: "Commerces", text: "Boutiques et restaurants prêts à l'ouverture, avec un passage tôt le matin ou après la fermeture." },
+            { title: "Parties communes", text: "Halls, escaliers, ascenseurs et local poubelles d'immeubles résidentiels ou de bureaux." },
+            { title: "Ménage Airbnb", text: "Préparation complète du logement entre deux séjours, le jour fixé par vos réservations." },
+            { title: "Remise en état", text: "Grand nettoyage après travaux, avant une première location ou une livraison de locaux." }
+          ]
+        }
+      ],
+      steps: [
+        { title: "Vous décrivez le site", text: "Commune, type de local, surface, fréquence et accès." },
+        { title: "Nous vous répondons", text: "Un devis sous 24 h, sans engagement." },
+        { title: "Nous démarrons", text: "Aux jours convenus, avec un contrôle régulier du résultat." }
+      ],
+      faq: [
+        { question: "Dans quelles communes du 93 intervenez-vous ?", answer: "Saint-Ouen-sur-Seine, Saint-Denis, Aubervilliers, Pantin, Montreuil, Bagnolet, Les Lilas, Épinay-sur-Seine, L'Île-Saint-Denis et les communes voisines." },
+        { question: "Nettoyez-vous des locaux mixtes bureaux et atelier ?", answer: "Oui, nous adaptons la check-list à chaque zone : bureaux, sanitaires, vestiaires, espace de pause et zones d'activité." },
+        { question: "Proposez-vous le ménage Airbnb à Saint-Denis ou Aubervilliers ?", answer: "Oui, pour les conciergeries et les propriétaires, avec un planning commun si vous gérez plusieurs logements." },
+        { question: "Pouvez-vous intervenir le week-end ?", answer: "Oui selon la prestation : le ménage de location courte durée suit toujours vos réservations, et les locaux professionnels peuvent être entretenus en dehors de vos heures d'ouverture." }
+      ]
+    },
+    article: [
+      {
+        heading: "Le nettoyage professionnel en Seine-Saint-Denis",
+        paragraphs: [
+          "La Seine-Saint-Denis accueille à la fois de grands quartiers de bureaux, des zones d'activité, des commerces de centre-ville et un nombre croissant de logements en location courte durée, notamment autour des gares et du Stade de France. Ces locaux n'ont pas les mêmes contraintes : nous construisons une check-list propre à chaque site plutôt qu'une prestation standard.",
+          "Pour les entreprises, nous assurons l'entretien de bureaux et de locaux d'activité à la fréquence choisie, avec des horaires décalés pour ne pas gêner vos équipes. Pour les copropriétés et les gestionnaires, nous entretenons les parties communes à jour fixe. Pour la location courte durée, notre [ménage Airbnb](/menage-airbnb) prépare chaque logement entre deux voyageurs.",
+          "Nous intervenons déjà régulièrement à [Saint-Ouen-sur-Seine](/nettoyage-saint-ouen) et dans les communes voisines, ce qui permet de proposer des créneaux rapidement. Pour vos locaux parisiens, voir aussi notre page [entreprise de nettoyage à Paris](/nettoyage-paris)."
+        ]
+      }
+    ],
+    districts: {
+      heading: "Communes desservies dans le 93",
+      intro: "Nos interventions couvrent l'ouest et le sud du département, au plus près de Paris.",
+      list: ["Saint-Ouen-sur-Seine", "Saint-Denis", "Aubervilliers", "Pantin", "Montreuil", "Bagnolet", "Les Lilas", "Épinay-sur-Seine", "L'Île-Saint-Denis", "La Plaine Saint-Denis"]
+    }
+  },
+  {
+    slug: "lavage-auto-domicile-cergy-pontoise",
+    city: "Cergy-Pontoise",
+    postalCode: "95000",
+    label: "Lavage auto à Cergy-Pontoise",
+    serviceName: "Lavage auto à domicile à Cergy-Pontoise",
+    serviceType: "Nettoyage automobile à domicile et en entreprise (detailing)",
+    metaTitle: "Lavage auto à domicile à Cergy-Pontoise – intérieur et extérieur",
+    metaDescription:
+      "Lavage et nettoyage de voiture à domicile ou sur le parking de votre entreprise à Cergy, Pontoise, Osny, Éragny, Saint-Ouen-l'Aumône et Herblay : intérieur, extérieur ou complet. Devis gratuit sous 24 h.",
+    related: [
+      { href: "/nettoyage-automobile", label: "Nettoyage auto & avion" },
+      { href: "/conciergerie-entreprise", label: "Conciergerie d'entreprise" },
+      { href: "/entreprise-de-nettoyage-cergy", label: "Entreprise de nettoyage à Cergy" },
+      { href: "/nettoyage-pontoise", label: "Tous nos services à Pontoise" }
+    ],
+    props: {
+      eyebrow: "Lavage auto à domicile · Cergy-Pontoise (95)",
+      title: "Votre voiture nettoyée, là où elle est garée.",
+      lead: "Devant chez vous, dans votre résidence ou sur le parking de votre entreprise : nous venons nettoyer votre voiture à Cergy, Pontoise et dans les communes voisines. Vous ne perdez ni votre samedi ni votre pause déjeuner dans une station de lavage.",
+      image: { src: "/media/photos/interieur-auto-apres.webp", alt: "Intérieur de voiture nettoyé à domicile par ProClean Empire à Cergy-Pontoise" },
+      serviceId: "vehicules",
+      ctaLabel: "Demander un devis pour ma voiture",
+      intro: [
+        { title: "On vient à vous", text: "À votre domicile ou sur votre lieu de travail, dans toute l'agglomération de Cergy-Pontoise : la voiture ne bouge pas." },
+        { title: "Trois formules", text: "Intérieur, extérieur ou complet : vous choisissez selon l'état du véhicule et l'occasion (vente, retour de vacances, entretien régulier)." },
+        { title: "Particuliers et entreprises", text: "Votre voiture personnelle, les véhicules de société ou ceux de vos salariés pendant leur journée de travail." }
+      ],
+      blocks: [
+        {
+          heading: "Ce que nous nettoyons.",
+          items: [
+            { title: "Habitacle", text: "Aspiration des sièges, tapis, moquettes et coffre, y compris sous les sièges et dans les rangements." },
+            { title: "Plastiques et tableau de bord", text: "Tableau de bord, console, contre-portes et volant dépoussiérés et nettoyés avec un produit adapté à chaque matière." },
+            { title: "Vitres", text: "Vitres et rétroviseurs nettoyés à l'intérieur et à l'extérieur, pour une visibilité nette sans traces." },
+            { title: "Sièges et tissus", text: "Taches et salissures des sièges en tissu traitées ; cuir nettoyé avec un produit dédié." },
+            { title: "Carrosserie", text: "Lavage extérieur de la carrosserie, des jantes et des bas de caisse, puis séchage soigné." },
+            { title: "Finitions", text: "Seuils de portes, poignées et détails contrôlés avant de vous rendre les clés." }
+          ]
+        },
+        {
+          heading: "Où nous intervenons.",
+          items: [
+            { title: "Cergy et Pontoise", text: "Cergy-Préfecture, Saint-Christophe, Cergy-le-Haut, Port-Cergy, centre de Pontoise et quartiers résidentiels : notre base est à Pontoise." },
+            { title: "Osny, Éragny et Vauréal", text: "Maisons, résidences et parkings d'entreprises, à quelques minutes de notre base." },
+            { title: "Saint-Ouen-l'Aumône et Herblay", text: "Zones d'activités et parkings de bureaux : idéal pour faire nettoyer les véhicules de l'équipe pendant la journée." },
+            { title: "Plus loin en Île-de-France", text: "Pour une flotte ou plusieurs véhicules au même endroit, nous nous déplaçons ailleurs en Île-de-France sur devis." }
+          ]
+        },
+        {
+          heading: "Pour les entreprises.",
+          items: [
+            { title: "Véhicules de société", text: "Voitures de service, commerciaux et utilitaires légers nettoyés sur votre parking, sans immobiliser vos équipes." },
+            { title: "Un avantage pour vos salariés", text: "Le nettoyage des voitures de vos collaborateurs pendant qu'ils travaillent, en complément de notre conciergerie d'entreprise." },
+            { title: "Un seul prestataire", text: "Le même interlocuteur que pour l'entretien de vos bureaux, avec une facture professionnelle." }
+          ]
+        }
+      ],
+      steps: [
+        { title: "Votre demande", text: "Modèle du véhicule, formule souhaitée, adresse et disponibilités : deux minutes avec le formulaire." },
+        { title: "Votre devis", text: "Gratuit, sous 24 h, avec le créneau proposé." },
+        { title: "Le nettoyage", text: "Nous venons à l'adresse convenue avec notre matériel et nos produits professionnels." }
+      ],
+      faq: [
+        { question: "Faut-il être présent pendant le nettoyage ?", answer: "Pas forcément : il suffit que la voiture soit accessible et que les clés nous soient confiées au début de l'intervention selon ce qui est convenu avec vous." },
+        { question: "De quoi avez-vous besoin sur place ?", answer: "Nous venons avec notre matériel et nos produits. Les conditions d'accès (stationnement, point d'eau, prise électrique) sont vérifiées avec vous au moment du devis." },
+        { question: "Nettoyez-vous les SUV, monospaces et utilitaires ?", answer: "Oui. Les grands véhicules et les véhicules très sales font l'objet d'un devis adapté." },
+        { question: "Pouvez-vous nettoyer plusieurs véhicules d'une entreprise ?", answer: "Oui, sur votre parking, en une ou plusieurs fois, avec une facture unique." },
+        { question: "Le devis est-il gratuit ?", answer: "Oui, gratuit et sans engagement, envoyé sous 24 h après votre demande." }
       ]
     }
   }

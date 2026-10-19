@@ -1,3 +1,4 @@
+import { siteConfig } from "@/lib/site";
 export type AnimatedStat = {
   label: string;
   value?: number;
@@ -39,7 +40,7 @@ export const conversionHeroContent = {
   stats: [
     {
       label: "Réponse à toute demande de devis",
-      fallback: "Sous 24h"
+      fallback: "Sous 24 h"
     },
     {
       label: "Zone d'intervention",
@@ -63,7 +64,7 @@ export const presentationVideo = {
 export const premiumReviewsData = {
   sectionTitle: "Avis clients",
   sectionDescription:
-    "Note de 5,0/5 sur Google (30 avis) - découvrez les retours de nos clients.",
+    `Note de ${siteConfig.googleRating.value}/5 sur Google (${siteConfig.googleRating.count} avis) - découvrez les retours de nos clients.`,
   textReviews: [
     {
       id: "ilhame-kamil",
@@ -176,14 +177,14 @@ export const phase1Contact = {
   title: "Contact ProClean Empire",
   description:
     "Décrivez votre besoin afin que nous puissions vous proposer une solution adaptée à votre activité.",
-  address: "3 rue Stéphane Charbonnier, 95800 Pontoise",
+  address: "3 rue Stéphane Charbonnier, 95300 Pontoise",
   zone: "Pontoise et Île-de-France",
   phone: "06 17 21 22 30",
   phoneHref: "tel:+33617212230",
   email: "contact@procleanempire.com",
   hours: "7j/7 de 8h à 18h",
   mapsEmbedUrl:
-    "https://www.google.com/maps?q=3+rue+Stephane+Charbonnier,+95800+Pontoise&output=embed",
+    "https://www.google.com/maps?q=3+rue+Stephane+Charbonnier,+95300+Pontoise&output=embed",
   directContactCta: {
     label: "Planifier une visite technique",
     href: "/contact"

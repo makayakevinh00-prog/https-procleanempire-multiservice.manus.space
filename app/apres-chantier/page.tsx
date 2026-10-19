@@ -4,7 +4,7 @@ import { ServiceLanding } from "@/components/pages/service-landing";
 export const metadata = buildMetadata({
   title: "Nettoyage après travaux à Pontoise et en Île-de-France",
   description:
-    "Intervention après chantier pour remettre les locaux en état avant reprise d'activité.",
+    "Nettoyage après travaux à Pontoise, Cergy et Paris : poussières de chantier, traces de peinture et de plâtre, sols et vitres, pour reprendre l'activité dans des locaux propres. Devis sous 24 h.",
   path: "/apres-chantier"
 });
 

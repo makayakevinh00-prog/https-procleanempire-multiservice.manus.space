@@ -4,7 +4,7 @@ import { ServiceLanding } from "@/components/pages/service-landing";
 export const metadata = buildMetadata({
   title: "Nettoyage de commerces et boutiques à Pontoise, Cergy et en Île-de-France",
   description:
-    "Prestations d'entretien pour commerces et points de vente afin de renforcer l'expérience client.",
+    "Nettoyage de commerces et boutiques à Pontoise, Cergy, Paris et en Île-de-France : surface de vente, vitrine et sanitaires prêts avant l'ouverture. Passages réguliers ou ponctuels. Devis sous 24 h.",
   path: "/nettoyage-commerces"
 });
 

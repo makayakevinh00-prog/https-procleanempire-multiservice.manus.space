@@ -5,9 +5,9 @@ import { VideosGrid } from "@/components/phase3/videos-grid";
 import { SocialNetworksSection } from "@/components/phase3/social-networks-section";
 
 export const metadata = buildMetadata({
-  title: "Vidéos de nos interventions de nettoyage",
+  title: "Vidéos de nettoyage : nos interventions à Pontoise et en Île-de-France",
   description:
-    "Videos ProClean Empire: presentation, demonstrations, conseils et interventions sur le terrain.",
+    "Vidéos de ProClean Empire, entreprise de nettoyage à Pontoise : présentation, démonstrations et interventions sur le terrain dans le Val-d'Oise et en Île-de-France.",
   path: "/videos"
 });
 

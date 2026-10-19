@@ -20,7 +20,7 @@ export const en: Dictionary = {
   },
   cta: {
     booking: "Book now",
-    bookingLong: "Book an appointment online with ProClean Empire",
+    bookingLong: "Book an appointment with ProClean Empire",
     call: "Call",
     whatsapp: "WhatsApp",
     quote: "Request a quote",

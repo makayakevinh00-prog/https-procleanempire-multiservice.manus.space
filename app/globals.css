@@ -80,3 +80,12 @@ a {
 .display-lg {
   @apply font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl md:text-6xl;
 }
+
+/* Mobile : la barre « Appeler · WhatsApp · Prendre RDV » est fixée en bas.
+   Les défilements automatiques (focus d'un champ, ancre, scrollIntoView) s'arrêtent au-dessus
+   d'elle, pour qu'elle ne masque jamais un bouton ou un champ (WCAG 2.4.11). */
+@media (max-width: 767px) {
+  html {
+    scroll-padding-bottom: 5.5rem;
+  }
+}

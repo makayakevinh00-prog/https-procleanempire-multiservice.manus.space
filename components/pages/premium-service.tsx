@@ -22,10 +22,11 @@ export type PremiumServiceProps = {
 
 /** Gabarit commun des pages services (style immersif, fin de page = devis contextualisé). */
 export function PremiumService(props: PremiumServiceProps) {
+  const faq = [...props.faq, { question: "Sous quel délai répondez-vous ?", answer: siteConfig.promise }];
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: props.faq.map((item) => ({
+    mainEntity: faq.map((item) => ({
       "@type": "Question",
       name: item.question,
       acceptedAnswer: { "@type": "Answer", text: item.answer }
@@ -114,7 +115,7 @@ export function PremiumService(props: PremiumServiceProps) {
             <h2 className="display-lg text-ink">Questions fréquentes</h2>
           </Reveal>
           <div className="mt-10 divide-y divide-slate-200 border-y border-slate-200">
-            {props.faq.map((item) => (
+            {faq.map((item) => (
               <details key={item.question} className="group py-5">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-semibold text-ink">
                   {item.question}
@@ -135,7 +136,7 @@ export function PremiumService(props: PremiumServiceProps) {
           <Reveal>
             <h2 className="display-lg text-ink">{props.ctaLabel}</h2>
             <p className="mt-4 max-w-2xl text-lg text-slate-600">
-              Réponse sous 24h. Vous préférez en parler ?{" "}
+              {siteConfig.promise} Vous préférez en parler ?{" "}
               <a href={siteConfig.bookingUrl} className="font-semibold text-[#1d6fe0]">
                 Réservez un appel de 20 min
               </a>{" "}

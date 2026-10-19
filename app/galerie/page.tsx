@@ -4,9 +4,9 @@ import { PageHero } from "@/components/sections/page-hero";
 import { GalleryFilterGrid } from "@/components/phase2/gallery-filter-grid";
 
 export const metadata = buildMetadata({
-  title: "Galerie photos de nos interventions de nettoyage",
+  title: "Photos de nos chantiers de nettoyage à Pontoise et en Île-de-France",
   description:
-    "Galerie ProClean Empire avec filtres par catégories : bureaux, restaurants, hôtels, vitrerie, après chantier, avant/après, équipe.",
+    "Photos des interventions de ProClean Empire, entreprise de nettoyage à Pontoise : bureaux, restaurants, hôtels, vitrerie, après chantier et avant/après en Île-de-France.",
   path: "/galerie"
 });
 

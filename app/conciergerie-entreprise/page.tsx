@@ -48,7 +48,7 @@ export default function ConciergerieEntreprisePage() {
       ]}
       steps={[
         { title: "Vous nous décrivez vos locaux", text: "Surface, effectif et services souhaités, en deux minutes." },
-        { title: "Nous vous proposons un contrat", text: "Une visite si besoin, puis une proposition claire sous 24h." },
+        { title: "Nous vous proposons un contrat", text: "Une visite si besoin, puis une proposition claire sous 24 h." },
         { title: "Nous gérons au quotidien", text: "Planning convenu, contrôles réguliers et un interlocuteur qui ajuste dès que vos besoins évoluent." }
       ]}
       faq={[

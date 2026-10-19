@@ -9,7 +9,7 @@ export const metadata = buildMetadata({
   path: "/contact"
 });
 
-// Types de rendez-vous configurés dans Axonaut (Pages de réservation).
+// Types de rendez-vous : demande par WhatsApp (message pré-rempli) ou par téléphone.
 const appointmentTypes = [
   {
     title: "Appel découverte",
@@ -38,27 +38,25 @@ const appointmentTypes = [
 ];
 
 export default function ContactPage() {
-  const online = Boolean(siteConfig.axonautBookingUrl);
-
   const quickActions = [
     {
       href: "#devis",
       label: "Je veux un devis",
-      text: "Réponse sous 24h.",
+      text: "Réponse sous 24 h.",
       primary: true,
       external: false
     },
     {
-      href: siteConfig.bookingUrl,
+      href: siteConfig.phoneHref,
       label: "Je veux parler à quelqu'un",
-      text: "Appel découverte de 20 min, en ligne.",
+      text: `Appelez-nous au ${siteConfig.phone}.`,
       primary: false,
-      external: online
+      external: false
     },
     {
       href: siteConfig.whatsappHref,
       label: "Je préfère WhatsApp",
-      text: `Réponse ${siteConfig.hours}.`,
+      text: "Réponse pendant les horaires de traitement (7j/7, 8h–18h).",
       primary: false,
       external: true
     }
@@ -124,10 +122,15 @@ export default function ContactPage() {
           <Reveal>
             <h2 className="display-lg text-ink">Prendre rendez-vous.</h2>
             <p className="mt-4 max-w-2xl text-lg text-slate-600">
-              {online
-                ? "Choisissez le type de rendez-vous, puis votre créneau dans notre agenda en ligne."
-                : "Choisissez le type de rendez-vous : appelez-nous et nous fixons le créneau ensemble."}
+              {siteConfig.onlineBookingUrl
+                ? "Réservez directement un créneau en ligne, ou écrivez-nous sur WhatsApp et nous fixons le créneau ensemble."
+                : "Choisissez le type de rendez-vous : écrivez-nous sur WhatsApp ou appelez-nous, et nous fixons le créneau ensemble."}
             </p>
+            {siteConfig.onlineBookingUrl ? (
+              <a href={siteConfig.onlineBookingUrl} target="_blank" rel="noopener noreferrer" className="btn-pill mt-8 inline-flex">
+                Réserver un créneau en ligne
+              </a>
+            ) : null}
           </Reveal>
           <div className="mt-12 grid gap-4 md:grid-cols-2">
             {appointmentTypes.map((type, index) => (
@@ -140,13 +143,22 @@ export default function ContactPage() {
                     {type.title}
                   </h3>
                   <p className="mt-3 flex-1 text-slate-600">{type.text}</p>
-                  <a
-                    href={online ? siteConfig.axonautBookingUrl : siteConfig.phoneHref}
-                    {...(online ? { target: "_blank", rel: "noreferrer" } : {})}
-                    className="btn-pill mt-6 self-start"
-                  >
-                    {online ? "Choisir un créneau" : `Réserver au ${siteConfig.phone}`}
-                  </a>
+                  <div className="mt-6 flex flex-wrap items-center gap-3">
+                    <a
+                      href={`${siteConfig.whatsappHref}?text=${encodeURIComponent(
+                        `Bonjour, je souhaite prendre rendez-vous : ${type.title} (${type.duration}).`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-pill"
+                      aria-label={`Demander un rendez-vous « ${type.title} » sur WhatsApp`}
+                    >
+                      Demander un créneau
+                    </a>
+                    <a href={siteConfig.phoneHref} className="text-sm font-semibold text-[#1d6fe0]">
+                      ou {siteConfig.phone}
+                    </a>
+                  </div>
                 </article>
               </Reveal>
             ))}
@@ -160,8 +172,7 @@ export default function ContactPage() {
           <Reveal>
             <h2 className="display-lg text-ink">Demander un devis.</h2>
             <p className="mt-4 max-w-2xl text-lg text-slate-600">
-              Quelques informations suffisent. Vous voyez une confirmation à l&apos;écran, puis recevez notre
-              proposition sous 24h.
+              Quelques informations suffisent. {siteConfig.promise}
             </p>
           </Reveal>
           <div className="mt-10">

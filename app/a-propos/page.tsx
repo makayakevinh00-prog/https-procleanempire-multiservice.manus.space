@@ -7,7 +7,7 @@ import { CtaBand } from "@/components/sections/cta-band";
 export const metadata = buildMetadata({
   title: "À propos de ProClean Empire, entreprise de nettoyage à Pontoise",
   description:
-    "Découvrez l'approche ProClean Empire: interlocuteur unique, suivi personnalisé et réactivité pour les entreprises d'Île-de-France.",
+    "ProClean Empire, entreprise de nettoyage installée à Pontoise : interlocuteur unique, suivi personnalisé et réactivité pour les entreprises et propriétaires du Val-d'Oise et de Paris.",
   path: "/a-propos"
 });
 

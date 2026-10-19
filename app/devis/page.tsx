@@ -4,9 +4,9 @@ import { PageHero } from "@/components/sections/page-hero";
 import { QuoteForm } from "@/components/forms/quote-form";
 
 export const metadata = buildMetadata({
-  title: "Demande de devis nettoyage — Pontoise et Île-de-France",
+  title: "Devis de nettoyage gratuit à Pontoise, Val-d'Oise et Paris",
   description:
-    "Demandez un devis pour vos prestations de propreté : bureaux, commerces, hôtels ou restaurants en Île-de-France.",
+    "Devis gratuit sous 24 h pour le nettoyage de bureaux, commerces, ménage Airbnb, remise en état ou detailing à Pontoise, dans le Val-d'Oise et à Paris.",
   path: "/devis"
 });
 

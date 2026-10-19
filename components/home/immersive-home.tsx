@@ -66,11 +66,11 @@ function Hero() {
           className="mt-6 max-w-3xl"
         >
           <h1 className="text-xl font-semibold text-white md:text-2xl">
-            Ménage Airbnb, nettoyage professionnel et conciergerie d&apos;entreprise à Pontoise.
+            Entreprise de nettoyage à Pontoise et en Île-de-France
           </h1>
           <p className="mt-3 text-lg text-white/85">
-            Des espaces prêts à accueillir vos voyageurs, vos équipes et vos clients — avec un
-            interlocuteur unique.
+            Bureaux, commerces, ménage Airbnb et conciergerie d&apos;entreprise : des espaces prêts à
+            accueillir vos équipes, vos clients et vos voyageurs — avec un interlocuteur unique.
           </p>
         </motion.div>
         <motion.div
@@ -80,7 +80,7 @@ function Hero() {
           className="mt-10 flex flex-col gap-3 sm:flex-row"
         >
           <Link href="/contact#devis" className="btn-pill">
-            Recevoir mon devis sous 24h
+            Recevoir mon devis sous 24 h
           </Link>
           <Link href="#prestations" className="btn-pill-ghost text-white">
             Voir les prestations
@@ -121,6 +121,57 @@ function Statement() {
             <span className="text-[#1d6fe0]">C&apos;est notre métier, depuis Pontoise.</span>
           </p>
         </Reveal>
+      </div>
+    </section>
+  );
+}
+
+
+/* ---------- 2 bis. Texte de référencement : entreprise de nettoyage ---------- */
+function CleaningCompanyText() {
+  const linkClass = "font-semibold text-[#1d6fe0] underline-offset-4 hover:underline";
+  return (
+    <section className="bg-mist" aria-labelledby="entreprise-nettoyage">
+      <div className="mx-auto max-w-[900px] px-5 py-20 md:px-8 md:py-28">
+        <Reveal>
+          <h2 id="entreprise-nettoyage" className="display-lg text-ink">
+            Votre entreprise de nettoyage dans le Val-d&apos;Oise et à Paris
+          </h2>
+        </Reveal>
+        <div className="mt-8 space-y-5 text-lg leading-relaxed text-slate-700">
+          <p>
+            ProClean Empire est une entreprise de nettoyage installée à Pontoise, au cœur du
+            Val-d&apos;Oise. Nous entretenons les bureaux, les commerces, les halls d&apos;immeuble
+            et les logements en location courte durée, avec un interlocuteur unique du devis
+            jusqu&apos;au suivi des passages. Notre siège est à Pontoise : c&apos;est là que nous
+            sommes le plus réactifs, et c&apos;est de là que nous rayonnons sur toute
+            l&apos;Île-de-France.
+          </p>
+          <p>
+            Pour les professionnels, nous assurons le{" "}
+            <Link href="/nettoyage-bureaux" className={linkClass}>nettoyage de bureaux et de commerces</Link>{" "}
+            à la fréquence de votre choix : un passage par semaine, plusieurs passages ou un
+            entretien quotidien, tôt le matin ou après la fermeture pour ne pas gêner vos équipes.
+            Nous réalisons aussi la remise en état de locaux après travaux, avant une mise en
+            location ou à la fin d&apos;un bail, ainsi que l&apos;entretien des vitres et vitrines.
+          </p>
+          <p>
+            Pour les conciergeries et les propriétaires, notre{" "}
+            <Link href="/menage-airbnb" className={linkClass}>ménage Airbnb</Link> prépare le
+            logement entre deux voyageurs, le jour fixé par vos réservations : lits, salle de bain,
+            cuisine, sols, linge et contrôle final avant l&apos;arrivée suivante.
+          </p>
+          <p>
+            Nous intervenons à{" "}
+            <Link href="/nettoyage-pontoise" className={linkClass}>Pontoise</Link>, à{" "}
+            <Link href="/entreprise-de-nettoyage-cergy" className={linkClass}>Cergy</Link> et dans
+            toute l&apos;agglomération (Osny, Saint-Ouen-l&apos;Aumône, Éragny, Herblay), en
+            Seine-Saint-Denis et à{" "}
+            <Link href="/nettoyage-paris" className={linkClass}>Paris</Link>, dans tous les
+            arrondissements. Chaque demande reçoit un devis clair sous 24 heures, sans engagement,
+            avant toute intervention. Vous savez ce qui sera fait, quand et à quel prix.
+          </p>
+        </div>
       </div>
     </section>
   );
@@ -341,7 +392,8 @@ function DetailingStrip() {
 
 /* ---------- 5 bis. Comment ça se passe + FAQ ---------- */
 const homeFaq = [
-  { question: "Combien coûte une prestation ?", answer: "Le prix dépend de la surface, de la fréquence et de la prestation. Vous recevez un devis clair sous 24h, sans engagement." },
+  { question: "Sous quel délai répondez-vous ?", answer: siteConfig.promise },
+  { question: "Combien coûte une prestation ?", answer: "Le prix dépend de la surface, de la fréquence et de la prestation. Vous recevez un devis clair sous 24 h, sans engagement." },
   { question: "Fournissez-vous les produits et le matériel ?", answer: "Oui, nous venons avec nos produits et notre matériel professionnels." },
   { question: "Intervenez-vous le week-end ?", answer: "Oui. Les ménages Airbnb suivent vos réservations, et les locaux professionnels peuvent être entretenus tôt le matin, le soir ou le week-end." },
   { question: "Comment gérez-vous les clés et les accès ?", answer: "Boîte à clés, badge, digicode ou remise en main propre : nous nous adaptons à votre organisation." },
@@ -352,7 +404,7 @@ const homeFaq = [
 function HowItWorks() {
   const steps = [
     { title: "Vous décrivez votre besoin", text: "Logement ou locaux, surface, fréquence : deux minutes en ligne." },
-    { title: "Nous confirmons le prix", text: "Devis clair sous 24h, visite sur place si nécessaire." },
+    { title: "Nous confirmons le prix", text: "Devis clair sous 24 h, visite sur place si nécessaire." },
     { title: "Nous intervenons", text: "Selon le planning convenu, et nous contrôlons le résultat." }
   ];
   return (
@@ -406,7 +458,7 @@ function FinalCta() {
           </p>
           <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
             <Link href="/contact#devis" className="btn-pill">
-              Recevoir mon devis sous 24h
+              Recevoir mon devis sous 24 h
             </Link>
             <Link href={siteConfig.bookingUrl} className="btn-pill-ghost text-ink">
               Prendre RDV
@@ -426,6 +478,7 @@ export function ImmersiveHome() {
     <>
       <Hero />
       <Statement />
+      <CleaningCompanyText />
       <AirbnbFeature />
       <ServicesTiles />
       <DetailingStrip />

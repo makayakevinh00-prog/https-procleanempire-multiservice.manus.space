@@ -3,6 +3,7 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { Header, HeaderSpacer } from "@/components/layout/header";
 import { BookingButton } from "@/components/layout/booking-button";
+import { SourceTracker } from "@/components/layout/source-tracker";
 import { Footer } from "@/components/layout/footer";
 import { siteConfig } from "@/lib/site";
 import { defaultLocale, getDictionary, ogLocale } from "@/lib/i18n";
@@ -13,9 +14,9 @@ const googleSiteVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
 const vercelAnalyticsEnabled = process.env.NEXT_PUBLIC_VERCEL_ANALYTICS === "1";
 
 export const metadata: Metadata = {
-  title: "ProClean Empire | Ménage Airbnb, nettoyage de bureaux et conciergerie à Pontoise",
+  title: "Entreprise de nettoyage à Pontoise, Val-d'Oise et Paris | ProClean Empire",
   description:
-    "Ménage Airbnb, nettoyage de bureaux et commerces, conciergerie d'entreprise et detailing auto & avion à Pontoise, dans le Val-d'Oise et en Île-de-France.",
+    "ProClean Empire, entreprise de nettoyage à Pontoise : nettoyage de bureaux, commerces, ménage Airbnb et remise en état dans le Val-d'Oise et à Paris. Devis sous 24h.",
   metadataBase: new URL(siteConfig.url),
   openGraph: {
     siteName: siteConfig.name,
@@ -38,25 +39,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     logo: `${siteConfig.url}/media/logo/proclean-empire-logo.png`,
     image: `${siteConfig.url}/media/photos/hero-showcase.jpg`,
     openingHours: "Mo-Su 08:00-18:00",
-    sameAs: [
-      "https://www.youtube.com/@ProCleanEmpire",
-      "https://www.linkedin.com/company/procelan-empire",
-      "https://www.instagram.com/proclean_empire/",
-      "https://www.facebook.com/people/Proclean-Empire/61575993812750/",
-      "https://www.tiktok.com/@procleanempire"
-    ],
+    sameAs: siteConfig.sameAs,
     makesOffer: [
       "Ménage Airbnb",
       "Nettoyage de bureaux et commerces",
       "Conciergerie d'entreprise",
       "Remise en état"
     ].map((name) => ({ "@type": "Offer", itemOffered: { "@type": "Service", name } })),
-    areaServed: ["Pontoise", "Cergy", "Val-d'Oise", "Paris", "Saint-Ouen-sur-Seine", "Île-de-France"].map((name) => ({ "@type": "Place", name })),
-    telephone: siteConfig.phone,
+    areaServed: ["Pontoise", "Cergy", "Val-d'Oise", "Paris", "Seine-Saint-Denis", "Saint-Ouen-sur-Seine", "Île-de-France"].map((name) => ({ "@type": "Place", name })),
+    telephone: siteConfig.phoneHref.replace("tel:", ""),
     email: siteConfig.email,
     address: {
       "@type": "PostalAddress",
-      streetAddress: siteConfig.addressLine,
+      streetAddress: "3 rue Stéphane Charbonnier",
+      postalCode: "95300",
       addressLocality: siteConfig.city,
       addressRegion: siteConfig.region,
       addressCountry: "FR"
@@ -77,6 +73,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main id="main-content">{children}</main>
         <Footer />
         <BookingButton />
+        <SourceTracker />
         {vercelAnalyticsEnabled ? <Analytics /> : null}
         <script
           type="application/ld+json"

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Service } from "@/lib/data";
+import { Service, serviceHref } from "@/lib/data";
 
 export function ServiceCard({ service }: { service: Service }) {
   return (
@@ -17,7 +17,7 @@ export function ServiceCard({ service }: { service: Service }) {
         ))}
       </ul>
       <Link
-        href={`/services/${service.slug}`}
+        href={serviceHref(service.slug)}
         className="mt-6 inline-flex items-center text-sm font-semibold text-brand-700 hover:text-brand-900"
       >
         Découvrir la prestation →

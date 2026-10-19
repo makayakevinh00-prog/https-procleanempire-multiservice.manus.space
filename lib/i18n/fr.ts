@@ -15,7 +15,7 @@ export const fr = {
   },
   cta: {
     booking: "Prendre RDV",
-    bookingLong: "Prendre rendez-vous en ligne avec ProClean Empire",
+    bookingLong: "Prendre rendez-vous avec ProClean Empire",
     call: "Appeler",
     whatsapp: "WhatsApp",
     quote: "Demander un devis",
