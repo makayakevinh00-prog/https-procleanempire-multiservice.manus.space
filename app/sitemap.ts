@@ -19,6 +19,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/faq",
     "/blog",
     "/blog/decoration-noel-bureaux-commerces-val-doise",
+    "/blog/menage-airbnb-val-doise-entre-deux-voyageurs",
     "/devis",
     "/contact",
     "/mentions-legales",

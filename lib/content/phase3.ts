@@ -160,6 +160,15 @@ export type BlogPost = {
 
 export const blogPosts: BlogPost[] = [
   {
+    id: "menage-airbnb-val-doise-entre-deux-voyageurs",
+    title: "Ménage Airbnb dans le Val-d'Oise : préparer son logement entre deux voyageurs",
+    category: "Ménage Airbnb",
+    excerpt:
+      "Check-out, linge, consommables et rotations rapides : les étapes d'un ménage de fin de séjour réussi pour les hôtes et conciergeries de Pontoise, Cergy et du Val-d'Oise.",
+    date: "19 octobre 2026",
+    href: "/blog/menage-airbnb-val-doise-entre-deux-voyageurs"
+  },
+  {
     id: "decoration-noel-bureaux-commerces-val-doise",
     title: "Décorer ses bureaux et sa boutique pour Noël dans le Val-d'Oise",
     category: "Conciergerie d'entreprise",
