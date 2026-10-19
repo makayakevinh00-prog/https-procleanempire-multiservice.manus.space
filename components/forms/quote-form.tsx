@@ -33,6 +33,7 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
   // Si l'enregistrement automatique échoue : la demande complète, prête à envoyer par e-mail ou WhatsApp.
   const [fallback, setFallback] = useState<{ text: string; code?: string } | null>(null);
   const [handoff, setHandoff] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<{ reference?: string; acknowledgement?: boolean }>({});
 
   // Pré-sélection depuis l'URL : /contact?service=airbnb#devis
   useEffect(() => {
@@ -129,6 +130,7 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
         setHandoff(summary);
         return;
       }
+      setReceipt({ reference: data?.reference, acknowledgement: data?.acknowledgement });
       setDone(true);
     } catch (err) {
       // Réseau coupé (fetch impossible) : on propose aussi l'envoi par e-mail / WhatsApp.
@@ -197,6 +199,12 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
           Elle est enregistrée chez nous. Nous revenons vers vous sous 24 h pendant les horaires
           de traitement (7j/7, 8h–18h), par téléphone ou par e-mail.
         </p>
+        {receipt.acknowledgement ? (
+          <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">Un e-mail de confirmation vient de vous être envoyé.</p>
+        ) : null}
+        {receipt.reference ? (
+          <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">Référence : {receipt.reference}</p>
+        ) : null}
         <a href={siteConfig.phoneHref} className="btn-pill-ghost mt-8 text-ink">
           Une urgence ? {siteConfig.phone}
         </a>

@@ -1,7 +1,10 @@
 import { Metadata } from "next";
 
-// Page de réservation Axonaut retirée le 19/10/2026 (bascule Axonaut → Qonto, règle §14) :
-// les boutons « Prendre RDV » mènent aux types de rendez-vous de /contact (WhatsApp ou téléphone).
+// PRISE DE RENDEZ-VOUS — un seul réglage à changer : la variable Vercel NEXT_PUBLIC_BOOKING_URL
+// (lien public Microsoft Bookings ou Cal.com, ex. https://outlook.office.com/book/ProCleanEmpire@procleanempire.com/).
+// Sans variable : les boutons « Prendre RDV » mènent aux types de rendez-vous de /contact (WhatsApp ou téléphone).
+// (Page de réservation Axonaut retirée le 19/10/2026 — bascule Axonaut → Qonto.)
+const onlineBookingUrl: string = process.env.NEXT_PUBLIC_BOOKING_URL?.trim() || "";
 
 export const siteConfig = {
   name: "ProClean Empire",
@@ -12,8 +15,9 @@ export const siteConfig = {
   city: "Pontoise",
   region: "Île-de-France",
   addressLine: "3 rue Stéphane Charbonnier, 95300 Pontoise",
+  onlineBookingUrl,
   // Tous les boutons « Prendre RDV ».
-  bookingUrl: "/contact#rdv",
+  bookingUrl: onlineBookingUrl || "/contact#rdv",
   whatsappHref: "https://wa.me/33617212230",
   hours: "7j/7 de 8h à 18h",
   // Phrase unique (audit P0-4) : horaires de réponse, délai de devis, horaires d'intervention.

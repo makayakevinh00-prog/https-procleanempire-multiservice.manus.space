@@ -16,7 +16,6 @@ export function classifySource(utmSource: string | null, referrer: string): stri
   if (/bing|duckduckgo|qwant|ecosia|yahoo/.test(value)) return "Autre moteur de recherche";
   if (/linkedin/.test(value)) return "LinkedIn";
   if (/tiktok/.test(value)) return "TikTok";
-  if (/axonaut/.test(value)) return "Axonaut";
   if (!utmSource && !referrer) return "Accès direct";
   return utmSource ? `Campagne : ${utmSource}` : `Autre site : ${referrer.replace(/^https?:\/\//, "").split("/")[0]}`;
 }

@@ -48,7 +48,7 @@ const sections: { title: string; paragraphs: string[] }[] = [
   {
     title: "Qui accède à vos données",
     paragraphs: [
-      "Uniquement les personnes de ProClean Empire chargées du suivi commercial et de la planification, ainsi que nos sous-traitants techniques, dans la limite de leur mission : nos outils de messagerie (Microsoft 365 pour les e-mails, WhatsApp si vous choisissez ce canal), nos logiciels de gestion commerciale et de facturation (Qonto, et Axonaut jusqu'à la fin de son utilisation), Vercel (hébergement du site et, le cas échéant, statistiques anonymes) et l'Institut national de l'information géographique (IGN), qui reçoit le texte de l'adresse saisie pour proposer des suggestions d'adresse.",
+      "Uniquement les personnes de ProClean Empire chargées du suivi commercial et de la planification, ainsi que nos sous-traitants techniques, dans la limite de leur mission : nos outils de messagerie (Microsoft 365 pour les e-mails, WhatsApp si vous choisissez ce canal), notre logiciel de facturation (Qonto), Resend (envoi des e-mails liés à votre demande), Upstash (base de données où votre demande est enregistrée), Vercel (hébergement du site et, le cas échéant, statistiques anonymes) et l'Institut national de l'information géographique (IGN), qui reçoit le texte de l'adresse saisie pour proposer des suggestions d'adresse.",
       "Vos données ne sont jamais vendues ni louées."
     ]
   },

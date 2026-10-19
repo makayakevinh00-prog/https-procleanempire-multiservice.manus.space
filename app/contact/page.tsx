@@ -122,9 +122,15 @@ export default function ContactPage() {
           <Reveal>
             <h2 className="display-lg text-ink">Prendre rendez-vous.</h2>
             <p className="mt-4 max-w-2xl text-lg text-slate-600">
-              Choisissez le type de rendez-vous : écrivez-nous sur WhatsApp ou appelez-nous, et
-              nous fixons le créneau ensemble.
+              {siteConfig.onlineBookingUrl
+                ? "Réservez directement un créneau en ligne, ou écrivez-nous sur WhatsApp et nous fixons le créneau ensemble."
+                : "Choisissez le type de rendez-vous : écrivez-nous sur WhatsApp ou appelez-nous, et nous fixons le créneau ensemble."}
             </p>
+            {siteConfig.onlineBookingUrl ? (
+              <a href={siteConfig.onlineBookingUrl} target="_blank" rel="noopener noreferrer" className="btn-pill mt-8 inline-flex">
+                Réserver un créneau en ligne
+              </a>
+            ) : null}
           </Reveal>
           <div className="mt-12 grid gap-4 md:grid-cols-2">
             {appointmentTypes.map((type, index) => (

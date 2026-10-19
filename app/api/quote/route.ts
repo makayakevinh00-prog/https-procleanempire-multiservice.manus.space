@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { siteConfig } from "@/lib/site";
-import { AxonautError, pushLeadToAxonaut } from "@/lib/server/axonaut";
+import { randomUUID } from "node:crypto";
+import { deliverLead, deliveryConfigured, isDuplicate, type Lead } from "@/lib/server/lead-delivery";
 import { quoteServices } from "@/lib/quote-services";
 
 export const dynamic = "force-dynamic";
@@ -29,10 +30,10 @@ function sanitize(value: unknown, maxLength = 500): string {
 }
 
 /**
- * Demande de devis du site → Axonaut (fiche client + opportunité « Cycle commercial / Proposition »)
- * tant que AXONAUT_API_KEY est renseignée ; sinon transmission directe par le visiteur (e-mail / WhatsApp).
- * Succès renvoyé au client uniquement si Axonaut a tout accepté. Chaque demande est aussi écrite
- * en entier dans les logs Vercel ([devis] …) pour ne jamais la perdre.
+ * Demande de devis du site → sauvegarde (base Redis Upstash) + e-mail à contact@procleanempire.com
+ * + accusé de réception au client (Resend). Voir lib/server/lead-delivery.ts pour les variables Vercel.
+ * Sans configuration : transmission directe par le visiteur (e-mail pré-rempli / WhatsApp).
+ * Chaque demande est aussi écrite en entier dans les logs Vercel ([devis] …) pour ne jamais la perdre.
  */
 export async function POST(request: NextRequest) {
   const ip = (request.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || "inconnue";
@@ -106,62 +107,50 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Merci d'accepter d'être recontacté." }, { status: 400 });
   }
 
-  const detail = [
-    `Prestation : ${data.service}`,
-    ...details.map(([key, value]) => `${key} : ${value}`),
-    `Adresse : ${data.address || "-"}`,
-    `Ville : ${[data.postcode, data.city].filter(Boolean).join(" ")}`,
-    data.startDate ? `Date souhaitée : ${data.startDate}` : null,
-    "",
-    `Nom : ${data.name}`,
-    data.company ? `Entreprise : ${data.company}` : null,
-    `Téléphone : ${data.phone}`,
-    `E-mail : ${data.email}`,
-    data.comments ? `Message : ${data.comments}` : null,
-    "",
-    "Consentement de contact : oui",
-    `Origine du prospect : ${data.source}`,
-    data.landingPage ? `Première page vue : ${data.landingPage}` : null,
-    data.referrer ? `Site précédent : ${data.referrer}` : null,
-    `Formulaire envoyé depuis : ${data.sourceUrl || siteConfig.url}`
-  ]
-    .filter((line): line is string => line !== null)
-    .join("\n");
+  const lead: Lead = {
+    id: `D${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${randomUUID().slice(0, 6).toUpperCase()}`,
+    receivedAt: new Date().toISOString(),
+    service: data.service,
+    name: data.name,
+    company: data.company,
+    phone: data.phone,
+    email: data.email,
+    address: data.address || data.street,
+    postcode: data.postcode,
+    city: data.city,
+    startDate: data.startDate,
+    comments: data.comments,
+    details,
+    source: data.source,
+    landingPage: data.landingPage,
+    referrer: data.referrer,
+    sourceUrl: data.sourceUrl || siteConfig.url
+  };
 
   // Trace complète de la demande, quoi qu'il arrive ensuite (logs Vercel).
-  console.log("[devis] Nouvelle demande reçue", JSON.stringify({ receivedAt: new Date().toISOString(), ...data, details }));
+  console.log("[devis] Nouvelle demande reçue", JSON.stringify(lead));
 
-  // Bascule Axonaut → Qonto (règle §14 du 19/10/2026) : sans clé Axonaut, la demande n'est envoyée
-  // à aucun logiciel. Le visiteur la transmet lui-même en un clic (e-mail pré-rempli vers
-  // contact@procleanempire.com, ou WhatsApp) : aucun service payant ni clé secrète.
-  if (!process.env.AXONAUT_API_KEY) {
-    console.log("[devis] Transmission directe par le visiteur (e-mail / WhatsApp)", JSON.stringify({ email: data.email }));
+  const config = deliveryConfigured();
+  if (!config.storage && !config.email) {
+    // Rien de configuré sur Vercel : le visiteur transmet sa demande en un clic (e-mail pré-rempli ou WhatsApp).
+    console.log("[devis] Transmission directe par le visiteur (e-mail / WhatsApp)", JSON.stringify({ id: lead.id }));
     return NextResponse.json({ ok: true, handoff: true });
   }
 
   try {
-    const result = await pushLeadToAxonaut({
-      service: data.service,
-      name: data.name,
-      company: data.company,
-      phone: data.phone,
-      email: data.email,
-      // Rue choisie dans les suggestions ; sinon l'adresse telle que saisie.
-      street: data.street || data.address,
-      postcode: data.postcode,
-      city: data.city,
-      detail
-    });
-    console.log("[devis] Enregistrée dans Axonaut", JSON.stringify({ email: data.email, ...result }));
-    return NextResponse.json({ ok: true });
+    if (await isDuplicate(lead)) {
+      console.log("[devis] Doublon ignoré (même e-mail et même prestation < 10 min)", JSON.stringify({ email: lead.email }));
+      return NextResponse.json({ ok: true, duplicate: true });
+    }
   } catch (error) {
-    const code = error instanceof AxonautError ? error.code : "ERREUR_INTERNE";
-    console.error(
-      `[devis] ÉCHEC Axonaut (${code}) — demande à ressaisir à la main`,
-      String(error),
-      JSON.stringify({ ...data, details })
-    );
-    // fallback : le formulaire propose alors d'envoyer la demande par e-mail ou WhatsApp.
-    return NextResponse.json({ error: FAILURE_MESSAGE, code, fallback: true }, { status: 502 });
+    console.warn("[devis] Contrôle des doublons impossible", String(error));
   }
+
+  const report = await deliverLead(lead);
+  console.log("[devis] Livraison", JSON.stringify({ id: lead.id, ...report }));
+  if (report.stored || report.internalEmail) {
+    return NextResponse.json({ ok: true, reference: lead.id, acknowledgement: report.clientEmail === true });
+  }
+  console.error("[devis] ÉCHEC de livraison — demande à ressaisir à la main depuis ce log", JSON.stringify(lead));
+  return NextResponse.json({ error: FAILURE_MESSAGE, code: "ENVOI_IMPOSSIBLE", fallback: true }, { status: 502 });
 }
