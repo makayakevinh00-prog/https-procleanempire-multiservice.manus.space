@@ -160,6 +160,15 @@ export type BlogPost = {
 
 export const blogPosts: BlogPost[] = [
   {
+    id: "nettoyage-bureaux-cergy-pontoise-frequence",
+    title: "Nettoyage de bureaux à Cergy-Pontoise : quelle fréquence choisir ?",
+    category: "Entretien bureaux",
+    excerpt:
+      "Un passage par semaine ou chaque jour ? Les repères pour choisir le bon rythme d'entretien de vos bureaux et commerces à Cergy, Pontoise et dans le Val-d'Oise.",
+    date: "19 octobre 2026",
+    href: "/blog/nettoyage-bureaux-cergy-pontoise-frequence"
+  },
+  {
     id: "menage-airbnb-val-doise-entre-deux-voyageurs",
     title: "Ménage Airbnb dans le Val-d'Oise : préparer son logement entre deux voyageurs",
     category: "Ménage Airbnb",
