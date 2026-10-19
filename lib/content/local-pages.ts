@@ -401,6 +401,78 @@ export const localPages: LocalPage[] = [
         { question: "Travaillez-vous avec les conciergeries ?", answer: "Oui, nous préparons des logements pour des conciergeries et des propriétaires, avec un planning commun et une facture mensuelle." }
       ]
     }
+  },
+  {
+    slug: "lavage-auto-domicile-cergy-pontoise",
+    city: "Cergy-Pontoise",
+    postalCode: "95000",
+    label: "Lavage auto à Cergy-Pontoise",
+    serviceName: "Lavage auto à domicile à Cergy-Pontoise",
+    serviceType: "Nettoyage automobile à domicile et en entreprise (detailing)",
+    metaTitle: "Lavage auto à domicile à Cergy-Pontoise – intérieur et extérieur",
+    metaDescription:
+      "Lavage et nettoyage de voiture à domicile ou sur le parking de votre entreprise à Cergy, Pontoise, Osny, Éragny, Saint-Ouen-l'Aumône et Herblay : intérieur, extérieur ou complet. Devis gratuit sous 24 h.",
+    related: [
+      { href: "/nettoyage-automobile", label: "Nettoyage auto & avion" },
+      { href: "/conciergerie-entreprise", label: "Conciergerie d'entreprise" },
+      { href: "/entreprise-de-nettoyage-cergy", label: "Entreprise de nettoyage à Cergy" },
+      { href: "/nettoyage-pontoise", label: "Tous nos services à Pontoise" }
+    ],
+    props: {
+      eyebrow: "Lavage auto à domicile · Cergy-Pontoise (95)",
+      title: "Votre voiture nettoyée, là où elle est garée.",
+      lead: "Devant chez vous, dans votre résidence ou sur le parking de votre entreprise : nous venons nettoyer votre voiture à Cergy, Pontoise et dans les communes voisines. Vous ne perdez ni votre samedi ni votre pause déjeuner dans une station de lavage.",
+      image: { src: "/media/photos/interieur-auto-apres.webp", alt: "Intérieur de voiture nettoyé à domicile par ProClean Empire à Cergy-Pontoise" },
+      serviceId: "vehicules",
+      ctaLabel: "Demander un devis pour ma voiture",
+      intro: [
+        { title: "On vient à vous", text: "À votre domicile ou sur votre lieu de travail, dans toute l'agglomération de Cergy-Pontoise : la voiture ne bouge pas." },
+        { title: "Trois formules", text: "Intérieur, extérieur ou complet : vous choisissez selon l'état du véhicule et l'occasion (vente, retour de vacances, entretien régulier)." },
+        { title: "Particuliers et entreprises", text: "Votre voiture personnelle, les véhicules de société ou ceux de vos salariés pendant leur journée de travail." }
+      ],
+      blocks: [
+        {
+          heading: "Ce que nous nettoyons.",
+          items: [
+            { title: "Habitacle", text: "Aspiration des sièges, tapis, moquettes et coffre, y compris sous les sièges et dans les rangements." },
+            { title: "Plastiques et tableau de bord", text: "Tableau de bord, console, contre-portes et volant dépoussiérés et nettoyés avec un produit adapté à chaque matière." },
+            { title: "Vitres", text: "Vitres et rétroviseurs nettoyés à l'intérieur et à l'extérieur, pour une visibilité nette sans traces." },
+            { title: "Sièges et tissus", text: "Taches et salissures des sièges en tissu traitées ; cuir nettoyé avec un produit dédié." },
+            { title: "Carrosserie", text: "Lavage extérieur de la carrosserie, des jantes et des bas de caisse, puis séchage soigné." },
+            { title: "Finitions", text: "Seuils de portes, poignées et détails contrôlés avant de vous rendre les clés." }
+          ]
+        },
+        {
+          heading: "Où nous intervenons.",
+          items: [
+            { title: "Cergy et Pontoise", text: "Cergy-Préfecture, Saint-Christophe, Cergy-le-Haut, Port-Cergy, centre de Pontoise et quartiers résidentiels : notre base est à Pontoise." },
+            { title: "Osny, Éragny et Vauréal", text: "Maisons, résidences et parkings d'entreprises, à quelques minutes de notre base." },
+            { title: "Saint-Ouen-l'Aumône et Herblay", text: "Zones d'activités et parkings de bureaux : idéal pour faire nettoyer les véhicules de l'équipe pendant la journée." },
+            { title: "Plus loin en Île-de-France", text: "Pour une flotte ou plusieurs véhicules au même endroit, nous nous déplaçons ailleurs en Île-de-France sur devis." }
+          ]
+        },
+        {
+          heading: "Pour les entreprises.",
+          items: [
+            { title: "Véhicules de société", text: "Voitures de service, commerciaux et utilitaires légers nettoyés sur votre parking, sans immobiliser vos équipes." },
+            { title: "Un avantage pour vos salariés", text: "Le nettoyage des voitures de vos collaborateurs pendant qu'ils travaillent, en complément de notre conciergerie d'entreprise." },
+            { title: "Un seul prestataire", text: "Le même interlocuteur que pour l'entretien de vos bureaux, avec une facture professionnelle." }
+          ]
+        }
+      ],
+      steps: [
+        { title: "Votre demande", text: "Modèle du véhicule, formule souhaitée, adresse et disponibilités : deux minutes avec le formulaire." },
+        { title: "Votre devis", text: "Gratuit, sous 24 h, avec le créneau proposé." },
+        { title: "Le nettoyage", text: "Nous venons à l'adresse convenue avec notre matériel et nos produits professionnels." }
+      ],
+      faq: [
+        { question: "Faut-il être présent pendant le nettoyage ?", answer: "Pas forcément : il suffit que la voiture soit accessible et que les clés nous soient confiées au début de l'intervention selon ce qui est convenu avec vous." },
+        { question: "De quoi avez-vous besoin sur place ?", answer: "Nous venons avec notre matériel et nos produits. Les conditions d'accès (stationnement, point d'eau, prise électrique) sont vérifiées avec vous au moment du devis." },
+        { question: "Nettoyez-vous les SUV, monospaces et utilitaires ?", answer: "Oui. Les grands véhicules et les véhicules très sales font l'objet d'un devis adapté." },
+        { question: "Pouvez-vous nettoyer plusieurs véhicules d'une entreprise ?", answer: "Oui, sur votre parking, en une ou plusieurs fois, avec une facture unique." },
+        { question: "Le devis est-il gratuit ?", answer: "Oui, gratuit et sans engagement, envoyé sous 24 h après votre demande." }
+      ]
+    }
   }
 ];
 
