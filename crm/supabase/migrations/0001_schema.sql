@@ -522,7 +522,7 @@ end $$;
 do $$
 declare t text;
 begin
-  foreach t in array array['app_settings','counters','audit_log','clients','interactions','contracts',
+  foreach t in array array['app_settings','clients','interactions','contracts',
                            'quotes','quote_lines','invoices','invoice_lines','reminders','payments']
   loop
     execute format('alter table %I enable row level security', t);
@@ -530,8 +530,8 @@ begin
   end loop;
 end $$;
 -- counters/audit_log : lecture seule pour le patron, écriture via fonctions security definer
-drop policy counters_owner on counters;
-drop policy audit_log_owner on audit_log;
+alter table counters enable row level security;
+alter table audit_log enable row level security;
 create policy counters_read on counters for select to authenticated using (is_owner());
 create policy audit_log_read on audit_log for select to authenticated using (is_owner());
 
