@@ -66,6 +66,8 @@ create or replace function next_counter(p_key text) returns int
 language plpgsql security definer set search_path = public as $$
 declare v int;
 begin
+  -- Fonction exposée par l'API : jamais utilisable par un tiers (sinon trous dans la numérotation)
+  if auth.uid() is not null and not is_owner() then raise exception 'ACCES_REFUSE'; end if;
   insert into counters(key, value) values (p_key, 1)
   on conflict (key) do update set value = counters.value + 1
   returning value into v;
@@ -311,10 +313,12 @@ create index payments_status_idx on payments (match_status, received_at desc);
 -- ───────────────────────── RPC métier (atomiques) ─────────────────────────
 
 create or replace function log_audit(p_action text, p_entity text, p_entity_id uuid, p_details jsonb default '{}')
-returns void language sql security definer set search_path = public as $$
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is not null and not is_owner() then raise exception 'ACCES_REFUSE'; end if;
   insert into audit_log(user_id, action, entity, entity_id, details)
-  values (auth.uid(), p_action, p_entity, p_entity_id, coalesce(p_details, '{}'::jsonb))
-$$;
+  values (auth.uid(), p_action, p_entity, p_entity_id, coalesce(p_details, '{}'::jsonb));
+end $$;
 
 -- Règle 2 + 1 + 4 : seule porte vers l'émission d'une facture.
 create or replace function validate_invoice(p_invoice_id uuid, p_ack_large boolean default false, p_ack_reserved boolean default false)
@@ -530,3 +534,8 @@ drop policy counters_owner on counters;
 drop policy audit_log_owner on audit_log;
 create policy counters_read on counters for select to authenticated using (is_owner());
 create policy audit_log_read on audit_log for select to authenticated using (is_owner());
+
+-- Les fonctions security definer ne sont pas appelables par les visiteurs non connectés.
+revoke execute on function next_counter(text) from public, anon;
+revoke execute on function log_audit(text, text, uuid, jsonb) from public, anon;
+revoke execute on function is_owner() from public, anon;

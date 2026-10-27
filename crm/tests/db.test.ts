@@ -11,6 +11,7 @@ const SUPABASE_STUBS = `
   create function auth.uid() returns uuid language sql as $$ select '11111111-1111-1111-1111-111111111111'::uuid $$;
   create function auth.jwt() returns jsonb language sql as $$ select '{"email":"contact@procleanempire.com"}'::jsonb $$;
   create role authenticated;
+  create role anon;
 `;
 
 let db: PGlite;
