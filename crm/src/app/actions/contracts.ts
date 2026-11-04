@@ -23,7 +23,10 @@ function payload(fd: FormData, back: string) {
     per_visit_amount_ht: mode === "passage" ? numField(fd, "per_visit_amount_ht") : null,
     terms: str(fd, "terms"), start_date: start, end_date: end, status: str(fd, "status") ?? "en_cours",
     hours_per_visit: hours, visits_per_week: visits, site_address: str(fd, "site_address"), notes: str(fd, "notes"),
-    weekdays: weekdays.length ? weekdays : null, start_time: str(fd, "start_time"), assignee: str(fd, "assignee")
+    weekdays: weekdays.length ? weekdays : null, start_time: str(fd, "start_time"), assignee: str(fd, "assignee"),
+    // Formulaire avec liste Équipe / Sites : l'intervenant et le site sont des fiches (le nom est recopié par la base).
+    ...(fd.has("staff_id") ? { staff_id: str(fd, "staff_id"), assignee: str(fd, "staff_id") ? str(fd, "staff_name") ?? "équipe" : null } : {}),
+    ...(fd.has("site_id") ? { site_id: str(fd, "site_id") } : {})
   };
   if (row.status === "actif") {
     const { blocking } = contractIssues({ ...row, billing_mode: mode as "mensuel" | "passage" | "autre", weekdays: row.weekdays });

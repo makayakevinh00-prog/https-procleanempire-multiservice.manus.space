@@ -7,10 +7,12 @@ const FREQ = [
   [0.5, "1 semaine sur 2"], [1, "1×/sem"], [2, "2×/sem"], [3, "3×/sem"], [4, "4×/sem"], [5, "5×/sem"], [6, "6×/sem"], [7, "7×/sem"]
 ] as const;
 
-export function ContractForm({ action, clients, contract, defaultClient, submitLabel }: {
+export function ContractForm({ action, clients, contract, defaultClient, submitLabel, staff, sites }: {
   action: (fd: FormData) => void | Promise<void>;
   clients: { id: string; name: string; is_reserved: boolean }[];
-  contract?: Partial<Contract>;
+  contract?: Partial<Contract> & { staff_id?: string | null; site_id?: string | null };
+  staff?: { id: string; full_name: string }[];
+  sites?: { id: string; name: string; client_id: string }[];
   defaultClient?: string;
   submitLabel: string;
 }) {
@@ -63,8 +65,19 @@ export function ContractForm({ action, clients, contract, defaultClient, submitL
 
       <Field label="Date de début"><Input name="start_date" type="date" defaultValue={contract?.start_date ?? ""} /></Field>
       <Field label="Date de fin"><Input name="end_date" type="date" defaultValue={contract?.end_date ?? ""} /></Field>
-      <Field label="Intervenant / équipe" hint="Copié sur chaque passage du planning"><Input name="assignee" defaultValue={contract?.assignee ?? ""} /></Field>
-      <Field label="Adresse du site" className="sm:col-span-2"><Input name="site_address" defaultValue={contract?.site_address ?? ""} /></Field>
+      {staff ? (
+        <Field label="Intervenant habituel" hint="Proposé sur chaque mission générée. Ajoutez vos agents dans Équipe.">
+          <Select name="staff_id" defaultValue={contract?.staff_id ?? ""}><option value="">— Aucun (à affecter) —</option>{staff.map((s) => <option key={s.id} value={s.id}>{s.full_name}</option>)}</Select>
+        </Field>
+      ) : (
+        <Field label="Intervenant / équipe" hint="Copié sur chaque passage du planning"><Input name="assignee" defaultValue={contract?.assignee ?? ""} /></Field>
+      )}
+      {sites && (
+        <Field label="Site" hint="Lieu des missions (adresse, accès, check-list).">
+          <Select name="site_id" defaultValue={contract?.site_id ?? ""}><option value="">— Aucun —</option>{sites.filter((s) => !contract?.client_id || s.client_id === contract.client_id).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</Select>
+        </Field>
+      )}
+      <Field label="Adresse du site" hint={sites ? "Laisser vide pour utiliser l'adresse de la fiche site." : undefined} className="sm:col-span-2"><Input name="site_address" defaultValue={contract?.site_address ?? ""} /></Field>
       <Field label="Conditions particulières" className="sm:col-span-2"><Input name="terms" defaultValue={contract?.terms ?? ""} placeholder="Ex. 9 % des revenus + 155 € TTC / séjour" /></Field>
       <Field label="Notes" className="sm:col-span-2"><Textarea name="notes" defaultValue={contract?.notes ?? ""} /></Field>
       <div className="sm:col-span-2"><Button>{submitLabel}</Button></div>

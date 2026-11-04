@@ -13,13 +13,13 @@ const ITEMS: Item[] = [
   { href: "/", label: "Accueil", icon: Home, color: "text-sky-400" },
   { href: "/actions", label: "Actions à faire", icon: ListChecks, color: "text-amber-400" },
   { href: "/clients", label: "Clients", icon: Users, color: "text-violet-400", children: [{ href: "/demandes", label: "Demandes de devis" }] },
-  { href: "/contrats", label: "Sites", icon: MapPin, color: "text-rose-400" },
-  { href: "/planning", label: "Missions", icon: ClipboardList, color: "text-teal-400" },
+  { href: "/sites", label: "Sites", icon: MapPin, color: "text-rose-400", children: [{ href: "/contrats", label: "Contrats" }] },
+  { href: "/missions", label: "Missions", icon: ClipboardList, color: "text-teal-400", children: [{ href: "/missions/problemes", label: "Anomalies & réclamations" }, { href: "/planning", label: "Planning du mois" }] },
   { href: "/devis", label: "Devis", icon: FileText, color: "text-emerald-400" },
   { href: "/factures", label: "Factures", icon: Receipt, color: "text-orange-400", children: [{ href: "/facturation-auto", label: "Facturation automatique" }, { href: "/paiements", label: "Paiements" }] },
-  { href: "/recrutement", label: "Équipe", icon: UserCog, color: "text-indigo-300" },
+  { href: "/equipe", label: "Équipe", icon: UserCog, color: "text-indigo-300", children: [{ href: "/recrutement", label: "Recrutement" }] },
   { href: "/catalogue", label: "Catalogue", icon: Package, color: "text-cyan-300" },
-  { href: "/parametres", label: "Paramètres", icon: Settings, color: "text-slate-400", children: [{ href: "/journal", label: "Journal des automatisations" }, { href: "/compte", label: "Mon compte" }] }
+  { href: "/parametres", label: "Paramètres", icon: Settings, color: "text-slate-400", children: [{ href: "/journal", label: "Journal" }, { href: "/compte", label: "Mon compte" }] }
 ];
 
 function isActive(path: string, href: string) {

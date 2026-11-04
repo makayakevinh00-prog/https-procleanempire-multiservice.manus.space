@@ -14,7 +14,11 @@ export default async function ContractPage({ params }: { params: { id: string } 
   const supabase = createClient();
   const { data: k } = await supabase.from("contracts").select("*, clients(id, name, is_reserved)").eq("id", params.id).maybeSingle();
   if (!k) notFound();
-  const { data: clients } = await supabase.from("clients").select("id, name, is_reserved").order("name");
+  const [{ data: clients }, { data: staff }, { data: sites }] = await Promise.all([
+    supabase.from("clients").select("id, name, is_reserved").order("name"),
+    supabase.from("staff").select("id, full_name").eq("active", true).order("full_name"),
+    supabase.from("sites").select("id, name, client_id").order("name")
+  ]);
   const weekly = numOrNull(k.weekly_hours);
 
   return (
@@ -34,7 +38,7 @@ export default async function ContractPage({ params }: { params: { id: string } 
         <b>{weekly != null ? formatHours(weekly) : "à renseigner (heures par intervention × fréquence)"}</b>
       </CardContent></Card>
       <Card><CardContent>
-        <ContractForm action={updateContractAction.bind(null, k.id)} clients={clients ?? []} contract={k as unknown as Contract} submitLabel="Enregistrer" />
+        <ContractForm action={updateContractAction.bind(null, k.id)} clients={clients ?? []} contract={k as unknown as Contract} staff={staff ?? []} sites={sites ?? []} submitLabel="Enregistrer" />
       </CardContent></Card>
     </>
   );

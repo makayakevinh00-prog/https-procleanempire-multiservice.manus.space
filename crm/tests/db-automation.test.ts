@@ -24,6 +24,7 @@ beforeAll(async () => {
   await db.exec(read("supabase/migrations/0003_automation_reminders.sql"));
   await db.exec(read("supabase/migrations/0004_reliability.sql"));
   await db.exec(read("supabase/migrations/0005_draft_clients.sql"));
+  await db.exec(read("supabase/migrations/0006_sites_staff_missions.sql"));
   await db.exec(read("supabase/seed_services.sql"));
   secret = (await q("select automation_secret s from app_settings"))[0].s;
 });
