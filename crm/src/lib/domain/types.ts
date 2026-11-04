@@ -41,6 +41,10 @@ export interface Settings {
   quote_followup2_days: number;
   quote_expire_enabled: boolean;
   auto_planning_enabled: boolean;
+  /** Facturation depuis les seules missions validées (sinon : règle historique « réalisé / passé »). */
+  billing_requires_validation: boolean;
+  /** Jour de retard à partir duquel une action manuelle (appel, courrier) est exigée. */
+  reminder_manual_days: number;
 }
 
 export interface Client {

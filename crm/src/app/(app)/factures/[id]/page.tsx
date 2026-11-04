@@ -4,6 +4,7 @@ import { Download, Pencil } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getSettings, num } from "@/lib/data";
 import { isLargeAmount } from "@/lib/domain/billing";
+import { overdueSequence } from "@/lib/domain/reminders";
 import { PageHeader } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
@@ -131,6 +132,26 @@ export default async function InvoicePage({ params }: { params: { id: string } }
             </CardContent>
           </Card>
         </div>
+
+        {["envoye", "en_retard"].includes(i.status) && i.due_date && (() => {
+          const late = Math.max(daysBetween(i.due_date), 0);
+          const steps = overdueSequence(late, i.reminder_count, settings);
+          return (
+            <Card className="lg:col-span-3">
+              <CardHeader><CardTitle>Séquence en cas d&apos;impayé</CardTitle>
+                <span className="text-xs text-muted-foreground">{late > 0 ? `${late} jour(s) de retard` : "pas encore en retard"} · s&apos;arrête dès le paiement{c.is_reserved ? " · contact réservé : aucune relance automatique" : ""}</span></CardHeader>
+              <ol className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
+                {steps.map((st) => (
+                  <li key={st.key} className={`rounded-lg border border-l-[5px] p-3 text-sm ${st.kind === "manuel" ? "border-l-red-600" : st.kind === "alerte" ? "border-l-orange-500" : "border-l-blue-500"} ${st.state === "fait" ? "bg-emerald-50" : st.state === "du" ? "bg-amber-50" : ""}`}>
+                    <div className="text-xs font-semibold text-slate-500">J+{st.day} · {st.kind === "auto" ? "automatique" : st.kind === "alerte" ? "alerte" : "à faire vous-même"}</div>
+                    <div className="mt-0.5 font-medium text-slate-900">{st.label}</div>
+                    <div className="mt-1 text-xs">{st.state === "fait" ? "✓ fait" : st.state === "du" ? (st.kind === "auto" ? (c.is_reserved ? "à faire à la main (contact réservé)" : "prévue au prochain passage automatique") : "à traiter maintenant") : "à venir"}</div>
+                  </li>
+                ))}
+              </ol>
+            </Card>
+          );
+        })()}
 
         <Card className="lg:col-span-3">
           <CardHeader><CardTitle>Suivi des relances</CardTitle><span className="text-xs text-muted-foreground">{i.reminder_count} relance(s) · dernière : {formatDate(i.last_reminder_at)}</span></CardHeader>

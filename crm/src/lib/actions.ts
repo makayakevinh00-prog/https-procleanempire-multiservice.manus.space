@@ -29,10 +29,10 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
   const head = { count: "exact" as const, head: true };
   const followupCut = new Date(Date.now() - Number(settings.quote_followup_days) * 86_400_000).toISOString();
 
-  const [contracts, invoices, quotes, payments, requests, lateReq, toConfirm, unassigned, unbilledDone, noAnswer, noEmail, mailFail, unsent, claims, anomalies, toCheck] = await Promise.all([
+  const [contracts, invoices, quotes, payments, requests, lateReq, toConfirm, unassigned, unbilledDone, noAnswer, noEmail, mailFail, unsent, claims, anomalies, toCheck, toValidate] = await Promise.all([
     supabase.from("contracts").select("*").eq("status", "actif"),
     supabase.from("invoices").select("id, number, status, due_date, total_ht, clients(id, name, is_reserved)").neq("status", "annule").in("status", ["brouillon", "envoye", "en_retard"]),
-    supabase.from("quotes").select("id, number, total_ht, invoice_id, clients(name, is_reserved), invoices:invoice_id(status)").eq("status", "accepte"),
+    supabase.from("quotes").select("id, number, total_ht, invoice_id, contract_id, clients(name, is_reserved), invoices:invoice_id(status)").eq("status", "accepte"),
     supabase.from("payments").select("id", head).in("match_status", ["non_rapproche", "propose"]),
     supabase.from("quote_requests").select("id", head).eq("status", "nouvelle"),
     supabase.from("quote_requests").select("id", head).eq("status", "nouvelle").lt("received_at", new Date(Date.now() - 86_400_000).toISOString()),
@@ -45,9 +45,10 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
     supabase.from("invoices").select("id", head).not("billing_month", "is", null).is("sent_at", null).in("status", ["envoye", "en_retard"]),
     supabase.from("mission_issues").select("id", head).eq("status", "ouverte").eq("kind", "reclamation"),
     supabase.from("mission_issues").select("id", head).eq("status", "ouverte").eq("kind", "anomalie"),
-    supabase.from("interventions").select("id", head).eq("stage", "a_verifier")
+    supabase.from("interventions").select("id", head).eq("stage", "a_verifier"),
+    supabase.from("interventions").select("id", head).eq("stage", "terminee").is("invoice_id", null)
   ]);
-  for (const r of [contracts, invoices, quotes, payments, requests, lateReq, toConfirm, unassigned, unbilledDone, noAnswer, noEmail, mailFail, unsent, claims, anomalies, toCheck]) {
+  for (const r of [contracts, invoices, quotes, payments, requests, lateReq, toConfirm, unassigned, unbilledDone, noAnswer, noEmail, mailFail, unsent, claims, anomalies, toCheck, toValidate]) {
     if (r.error) throw new Error(r.error.message);
   }
 
@@ -70,7 +71,9 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
   }
   for (const i of late) {
     const days = i.due_date ? daysBetween(i.due_date) : 0;
-    if (days >= settings.unpaid_alert_days) out.push({ key: `late_${i.id}`, tone: i.clients.is_reserved ? "red" : "orange", label: `${i.clients.is_reserved ? "🔒 " : ""}${i.number} (${i.clients.name}) impayée depuis ${days} jours${i.clients.is_reserved ? " — aucune relance automatique" : ""}`, href: `/factures/${i.id}` });
+    const manual = days >= settings.reminder_manual_days;
+    if (days >= settings.unpaid_alert_days) out.push({ key: `late_${i.id}`, tone: i.clients.is_reserved || manual ? "red" : "orange",
+      label: `${i.clients.is_reserved ? "🔒 " : ""}${i.number} (${i.clients.name}) impayée depuis ${days} jours${manual ? " — action manuelle à faire (appel, courrier)" : ""}${i.clients.is_reserved ? " — aucune relance automatique" : ""}`, href: `/factures/${i.id}` });
   }
   for (const i of drafts) {
     const big = isLargeAmount(num(i.total_ht), settings);
@@ -90,6 +93,7 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
   add({ key: "pay", tone: "orange", count: payments.count ?? 0, label: "paiement(s) bancaire(s) à rapprocher", href: "/paiements", menu: "/factures" });
   add({ key: "anomalies", tone: "orange", count: anomalies.count ?? 0, label: "anomalie(s) signalée(s) sur des missions, à régler", href: "/missions/problemes", menu: "/missions" });
   add({ key: "to_check", tone: "orange", count: toCheck.count ?? 0, label: "mission(s) « à vérifier » avant validation", href: "/missions?vue=statut&etape=a_verifier", menu: "/missions" });
+  add({ key: "to_validate", tone: "orange", count: toValidate.count ?? 0, label: "mission(s) terminée(s) à valider pour pouvoir être facturée(s)", href: "/missions?vue=statut&etape=terminee", menu: "/missions" });
   add({ key: "to_confirm", tone: "orange", count: toConfirm.count ?? 0, label: "passage(s) passé(s) à confirmer (ils alimentent la facture du mois)", href: "/planning?filtre=a_confirmer", menu: "/missions" });
   add({ key: "unassigned", tone: "orange", count: unassigned.count ?? 0, label: "mission(s) des 7 prochains jours sans intervenant", href: "/missions?vue=semaine&agent=aucun", menu: "/missions" });
   add({ key: "unbilled", tone: "orange", count: unbilledDone.count ?? 0, label: "prestation(s) réalisée(s) d'un mois passé jamais facturée(s)", href: "/planning?filtre=non_facturees", menu: "/missions" });

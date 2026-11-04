@@ -11,7 +11,7 @@ import { StatusBadge } from "@/components/ui/badge";
 import { Table, Td, Th, Tr } from "@/components/ui/table";
 import { ClientName, ReservedBanner } from "@/components/crm/client-name";
 import { ConfirmAction } from "@/components/crm/confirm-action";
-import { convertQuoteAction, followupQuoteNowAction, sendQuoteEmailAction, setQuoteStatusAction } from "@/app/actions/quotes";
+import { convertQuoteAction, createContractFromQuoteAction, followupQuoteNowAction, sendQuoteEmailAction, setQuoteStatusAction } from "@/app/actions/quotes";
 import { Field, Input } from "@/components/ui/form";
 import { formatDate, formatEUR, cn } from "@/lib/utils";
 
@@ -102,9 +102,12 @@ export default async function QuotePage({ params }: { params: { id: string } }) 
                 <div className="rounded-md bg-muted p-3 text-xs">
                   <b>Prochaines étapes</b>
                   <ul className="mt-1 space-y-1">
-                    <li>1. <Link className="text-primary hover:underline" href={`/contrats/new?client=${c.id}`}>Créer le contrat récurrent</Link> (si la prestation est répétée)</li>
-                    <li>2. <Link className="text-primary hover:underline" href={`/planning?client=${c.id}`}>Planifier le premier passage</Link></li>
-                    <li>3. Convertir en facture (bouton ci-dessus)</li>
+                    <li>1. {q.contract_id ? <>Contrat créé : <Link className="text-primary hover:underline" href={`/contrats/${q.contract_id}`}>ouvrir le contrat</Link> (activez-le pour générer les missions)</>
+                      : <>Prestation répétée ? Créez le contrat (avec son site) : <ConfirmAction action={createContractFromQuoteAction.bind(null, q.id)} label="Créer le contrat depuis ce devis" variant="outline" size="sm"
+                          title="Créer le contrat depuis ce devis ?" description="Un contrat « en cours » et son site sont créés. Rien n'est envoyé ni facturé : vous complétez ensuite les jours de passage puis vous l'activez."
+                          confirmLabel="Créer le contrat" reservedName={reservedName} /></>}</li>
+                    <li>2. <Link className="text-primary hover:underline" href={`/planning?client=${c.id}`}>Planifier un passage ponctuel</Link></li>
+                    <li>3. Après les passages : valider les missions, puis convertir en facture ou laisser la facture du mois se préparer</li>
                   </ul>
                 </div>
               )}

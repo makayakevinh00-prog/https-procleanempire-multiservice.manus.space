@@ -36,7 +36,9 @@ export default async function SettingsPage() {
             <Field label="TVA par défaut (%)"><Input name="default_vat_rate" inputMode="decimal" defaultValue={s.default_vat_rate} /></Field>
             <Field label="Délai de paiement (jours)"><Input name="payment_terms_days" inputMode="numeric" defaultValue={s.payment_terms_days} /></Field>
             <Field label="Alerte montant (€ HT)" hint="Confirmation explicite au-dessus de ce montant"><Input name="large_amount_threshold_ht" inputMode="decimal" defaultValue={s.large_amount_threshold_ht} /></Field>
-            <Field label="Alerte impayés (jours de retard)"><Input name="unpaid_alert_days" inputMode="numeric" defaultValue={s.unpaid_alert_days} /></Field>
+            <Field label="Alerte impayés (jours de retard)" hint="Relances automatiques puis alerte à ce jour."><Input name="unpaid_alert_days" inputMode="numeric" defaultValue={s.unpaid_alert_days} /></Field>
+            <Field label="Action manuelle impayés (jours de retard)" hint="Au-delà : appel / courrier, à faire par vous."><Input name="reminder_manual_days" inputMode="numeric" defaultValue={s.reminder_manual_days} /></Field>
+            <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" name="billing_requires_validation" defaultChecked={s.billing_requires_validation} /> Facturer uniquement les missions <b>validées</b> (recommandé : rien n&apos;est facturé sans votre contrôle)</label>
           </CardContent>
         </Card>
 

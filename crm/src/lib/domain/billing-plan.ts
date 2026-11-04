@@ -28,6 +28,8 @@ export interface PlanIntervention {
   title: string;
   scheduled_date: string;
   status: "planifie" | "realise" | "annule";
+  /** Étape de la mission (12 étapes). Absente = ancien format : règle historique. */
+  stage?: string;
   billable: boolean;
   quantity: number;
   unit_price_ht: number | null;
@@ -40,6 +42,8 @@ export interface PlanSettings {
   auto_invoicing_enabled: boolean;
   auto_invoicing_start_month: string;
   count_planned_as_done: boolean;
+  /** Vrai : seules les missions « validée » / « facturable » sont facturées. Absent/faux : règle historique. */
+  billing_requires_validation?: boolean;
 }
 
 export interface PlannedInvoice {
@@ -70,6 +74,7 @@ export interface PlanInput {
   invoicedClientIds: string[];
 }
 
+const VALIDATED = new Set(["validee", "facturable"]);
 const num = (v: unknown) => (v === null || v === undefined ? 0 : Number(v));
 
 /**
@@ -102,12 +107,21 @@ export function planMonthlyInvoices(input: PlanInput): PlannedInvoice[] {
     }
 
     // 2. Interventions du planning
+    let pending = 0;
     const groups = new Map<string, { title: string; price: number; vat: number; qty: number; dates: string[] }>();
     for (const i of input.interventions) {
       if (i.client_id !== client.id || i.invoice_id || !i.billable || i.status === "annule") continue;
       if (i.scheduled_date < start || i.scheduled_date > end) continue;
-      const done = i.status === "realise" || (settings.count_planned_as_done && i.scheduled_date <= today);
-      if (!done) continue;
+      if (settings.billing_requires_validation && i.stage) {
+        if (!VALIDATED.has(i.stage)) {
+          // Terminée / à vérifier / passage passé non confirmé : jamais facturé tant qu'un humain ne l'a pas validé.
+          if (["terminee", "a_verifier"].includes(i.stage) || (i.status === "planifie" && i.scheduled_date <= today)) pending++;
+          continue;
+        }
+      } else {
+        const done = i.status === "realise" || (settings.count_planned_as_done && i.scheduled_date <= today);
+        if (!done) continue;
+      }
       if (i.unit_price_ht == null) {
         reasons.push(`intervention « ${i.title} » du ${shortDate(i.scheduled_date)} sans prix`);
         continue;
@@ -119,6 +133,7 @@ export function planMonthlyInvoices(input: PlanInput): PlannedInvoice[] {
       groups.set(key, g);
       interventionIds.push(i.id);
     }
+    if (pending) reasons.push(`${pending} mission(s) terminée(s) ou passée(s) pas encore validée(s) : elles ne sont pas dans cette facture`);
     for (const g of groups.values()) {
       const dates = [...g.dates].sort().map(shortDate).join(", ");
       lines.push({ description: `${g.title}\nPassages : ${dates}`, quantity: round2(g.qty), unit_price_ht: g.price, vat_rate: g.vat });

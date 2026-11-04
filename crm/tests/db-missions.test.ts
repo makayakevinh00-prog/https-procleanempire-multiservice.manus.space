@@ -24,6 +24,8 @@ beforeAll(async () => {
   `.replace(/0000000000k1/g, "0000000000a1"));
   await db.exec(read("supabase/migrations/0006_sites_staff_missions.sql"));
   await db.exec(read("supabase/migrations/0006_sites_staff_missions.sql")); // rejouable sans doublon
+  await db.exec(read("supabase/migrations/0007_process_links.sql"));
+  await db.exec(read("supabase/migrations/0007_process_links.sql"));
 });
 
 describe("reprise des données (migration compatible)", () => {
@@ -92,6 +94,19 @@ describe("contrat → site", () => {
     expect(k.site_id).toBe(orig.site_id);
     expect(k2.site_id).not.toBe(orig.site_id);
     expect((await q("select name, address from sites where id=$1", [k2.site_id]))[0]).toEqual({ name: "Entrepôt", address: "9 rue B" });
+  });
+});
+
+describe("réglages du processus (0007)", () => {
+  it("facturation depuis missions validées activée, action manuelle à J+30, lien devis → contrat", async () => {
+    const [s] = await q("select billing_requires_validation b, reminder_manual_days d, unpaid_alert_days a from app_settings");
+    expect(s).toEqual({ b: true, d: 30, a: 15 });
+    const [c] = await q("insert into clients(name) values ('Devis Client') returning id");
+    const [k] = await q("insert into contracts(client_id, label, billing_mode, start_date) values ($1,'Issu devis','mensuel','2026-12-01') returning id", [c.id]);
+    const [d] = await q("insert into quotes(client_id, contract_id) values ($1,$2) returning contract_id", [c.id, k.id]);
+    expect(d.contract_id).toBe(k.id);
+    await q("delete from contracts where id=$1", [k.id]);
+    expect((await q("select contract_id from quotes where client_id=$1", [c.id]))[0].contract_id).toBeNull();
   });
 });
 

@@ -12,6 +12,7 @@ import { isLargeAmount } from "@/lib/domain/billing";
 import { logEmail } from "@/lib/email-log";
 import { quoteFollowupEmail } from "@/lib/mail-templates";
 import { formatEUR, formatDate } from "@/lib/utils";
+import { contractIssues } from "@/lib/domain/contract-check";
 
 export async function createQuoteAction(fd: FormData) {
   const back = "/devis/new";
@@ -122,4 +123,29 @@ export async function followupQuoteNowAction(id: string, fd: FormData) {
   await supabase.from("interactions").insert({ client_id: q.client_id, kind: "devis", summary: `Relance n°${level} du devis ${q.number} (manuelle)` });
   revalidatePath("/devis");
   flash(back, "ok", `Relance envoyée à ${q.clients.email}.`);
+}
+
+/**
+ * Devis accepté → contrat (son site est créé par la base). Action volontaire du patron : jamais automatique.
+ * Le contrat reste « en cours » ; le message indique exactement ce qui manque pour l'activer.
+ */
+export async function createContractFromQuoteAction(id: string, fd: FormData) {
+  const back = `/devis/${id}`;
+  const supabase = createClient();
+  const { data: q } = await supabase.from("quotes").select("number, subject, status, client_id, contract_id, total_ht").eq("id", id).maybeSingle();
+  if (!q) flash(back, "error", "Devis introuvable.");
+  await requireReservedAck(q!.client_id, fd, back);
+  if (q!.status !== "accepte") flash(back, "error", "Seul un devis accepté peut devenir un contrat.");
+  if (q!.contract_id) flash(`/contrats/${q!.contract_id}`, "error", "Ce devis a déjà un contrat.");
+  const row = {
+    client_id: q!.client_id, label: q!.subject ?? `Prestation ${q!.number}`, billing_mode: "mensuel" as const,
+    status: "en_cours", terms: `Issu du devis ${q!.number} (${formatEUR(q!.total_ht)} HT)`, notes: `Créé depuis le devis ${q!.number}.`
+  };
+  const { data: k, error } = await supabase.from("contracts").insert(row).select("id").single();
+  if (error) flash(back, "error", dbMessage(error));
+  const { error: e2 } = await supabase.from("quotes").update({ contract_id: k!.id }).eq("id", id);
+  if (e2) flash(back, "error", dbMessage(e2));
+  const { blocking } = contractIssues({ ...row, weekdays: null, start_time: null, hours_per_visit: null, visits_per_week: null, monthly_amount_ht: null, per_visit_amount_ht: null, start_date: null, end_date: null, assignee: null, site_address: null, status: "actif" } as any);
+  revalidatePath("/devis"); revalidatePath("/contrats"); revalidatePath("/sites"); revalidatePath("/", "layout");
+  flash(`/contrats/${k!.id}`, "ok", `Contrat créé depuis ${q!.number}, avec son site. Pour l'activer et générer les missions, renseignez : ${blocking.length ? blocking.join(", ") : "rien de plus"}.`);
 }

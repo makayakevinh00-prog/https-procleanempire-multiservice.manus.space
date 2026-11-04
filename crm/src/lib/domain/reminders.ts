@@ -32,3 +32,33 @@ export function autoReminderDecision(
   }
   return { allowed: true };
 }
+
+export type SequenceStep = {
+  key: "relance1" | "relance2" | "alerte" | "manuel";
+  day: number;
+  label: string;
+  /** auto = envoyée par le CRM ; alerte = vous êtes prévenu ; manuel = vous seul agissez (appel, courrier). */
+  kind: "auto" | "alerte" | "manuel";
+  state: "fait" | "du" | "a_venir";
+};
+
+/**
+ * Séquence d'impayés d'une facture en retard : J+1 et J+7 relances automatiques (réglables),
+ * J+15 alerte au patron, J+30 action manuelle. S'arrête dès que la facture n'est plus en retard (payée, annulée).
+ */
+export function overdueSequence(
+  daysLate: number,
+  reminderCount: number,
+  s: Pick<Settings, "reminder_first_after_days" | "reminder_interval_days" | "reminder_max_count" | "unpaid_alert_days" | "reminder_manual_days">
+): SequenceStep[] {
+  const steps: SequenceStep[] = [];
+  const d1 = s.reminder_first_after_days;
+  for (let n = 1; n <= s.reminder_max_count; n++) {
+    const day = d1 + (n - 1) * s.reminder_interval_days;
+    steps.push({ key: n === 1 ? "relance1" : "relance2", day, kind: "auto", label: n === 1 ? "Première relance par e-mail" : `Relance n° ${n} par e-mail`,
+      state: reminderCount >= n ? "fait" : daysLate >= day ? "du" : "a_venir" });
+  }
+  steps.push({ key: "alerte", day: s.unpaid_alert_days, kind: "alerte", label: "Alerte : vous êtes prévenu", state: daysLate >= s.unpaid_alert_days ? "du" : "a_venir" });
+  steps.push({ key: "manuel", day: s.reminder_manual_days, kind: "manuel", label: "Action manuelle : appel, courrier recommandé", state: daysLate >= s.reminder_manual_days ? "du" : "a_venir" });
+  return steps.sort((a, b) => a.day - b.day);
+}
