@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/form";
 import type { Contract } from "@/lib/domain/types";
+import { WEEKDAYS } from "@/lib/domain/schedule";
 
 const FREQ = [
   [0.5, "1 semaine sur 2"], [1, "1×/sem"], [2, "2×/sem"], [3, "3×/sem"], [4, "4×/sem"], [5, "5×/sem"], [6, "6×/sem"], [7, "7×/sem"]
@@ -46,6 +47,18 @@ export function ContractForm({ action, clients, contract, defaultClient, submitL
           {FREQ.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </Select>
       </Field>
+
+      <fieldset className="sm:col-span-2">
+        <legend className="mb-1 block text-sm font-medium">Jours de passage <span className="font-normal text-muted-foreground">(sert à remplir le planning automatiquement)</span></legend>
+        <div className="flex flex-wrap items-center gap-2">
+          {WEEKDAYS.map(([n, label]) => (
+            <label key={n} className="flex cursor-pointer items-center gap-1.5 rounded-md border bg-card px-3 py-1.5 text-sm has-[:checked]:border-primary has-[:checked]:bg-blue-50">
+              <input type="checkbox" name="weekdays" value={n} defaultChecked={contract?.weekdays?.includes(n)} /> {label}
+            </label>
+          ))}
+          <Input name="start_time" type="time" defaultValue={contract?.start_time?.slice(0, 5) ?? ""} className="ml-2 w-32" aria-label="Heure de début" />
+        </div>
+      </fieldset>
 
       <Field label="Date de début"><Input name="start_date" type="date" defaultValue={contract?.start_date ?? ""} /></Field>
       <Field label="Date de fin"><Input name="end_date" type="date" defaultValue={contract?.end_date ?? ""} /></Field>

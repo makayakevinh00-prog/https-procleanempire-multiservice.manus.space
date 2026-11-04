@@ -2,15 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, Repeat, FileText, Receipt, UserPlus, Landmark, Settings, KeyRound, Menu } from "lucide-react";
+import { LayoutDashboard, Users, Repeat, FileText, Receipt, UserPlus, Landmark, Settings, KeyRound, Menu, CalendarDays, Package, Inbox, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ITEMS = [
   { href: "/", label: "Tableau de bord", icon: LayoutDashboard },
+  { href: "/demandes", label: "Demandes de devis", icon: Inbox },
   { href: "/clients", label: "Clients", icon: Users },
   { href: "/contrats", label: "Contrats", icon: Repeat },
+  { href: "/planning", label: "Planning", icon: CalendarDays },
   { href: "/devis", label: "Devis", icon: FileText },
   { href: "/factures", label: "Factures", icon: Receipt },
+  { href: "/facturation-auto", label: "Facturation auto", icon: Zap },
+  { href: "/catalogue", label: "Catalogue", icon: Package },
   { href: "/recrutement", label: "Recrutement", icon: UserPlus },
   { href: "/paiements", label: "Paiements", icon: Landmark },
   { href: "/parametres", label: "Paramètres", icon: Settings },

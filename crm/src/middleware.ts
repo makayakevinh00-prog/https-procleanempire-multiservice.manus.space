@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Les routes cron s'authentifient elles-mêmes (CRON_SECRET) ; tout le reste exige une session.
-const PUBLIC = ["/login", "/api/cron/", "/api/qonto/sync"];
+const PUBLIC = ["/login", "/api/cron/", "/api/qonto/sync", "/api/inbound/"];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });

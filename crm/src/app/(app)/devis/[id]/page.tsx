@@ -11,13 +11,14 @@ import { StatusBadge } from "@/components/ui/badge";
 import { Table, Td, Th, Tr } from "@/components/ui/table";
 import { ClientName, ReservedBanner } from "@/components/crm/client-name";
 import { ConfirmAction } from "@/components/crm/confirm-action";
-import { convertQuoteAction, setQuoteStatusAction } from "@/app/actions/quotes";
+import { convertQuoteAction, sendQuoteEmailAction, setQuoteStatusAction } from "@/app/actions/quotes";
+import { Field, Input } from "@/components/ui/form";
 import { formatDate, formatEUR, cn } from "@/lib/utils";
 
 export default async function QuotePage({ params }: { params: { id: string } }) {
   const supabase = createClient();
   const { data: q } = await supabase.from("quotes")
-    .select("*, clients(id, name, is_reserved, reserved_reason), quote_lines(*), invoices:invoice_id(id, number, status)").eq("id", params.id).maybeSingle();
+    .select("*, clients(id, name, email, is_reserved, reserved_reason), quote_lines(*), invoices:invoice_id(id, number, status)").eq("id", params.id).maybeSingle();
   if (!q) notFound();
   const settings = await getSettings(supabase);
   const c = q.clients;
@@ -73,8 +74,14 @@ export default async function QuotePage({ params }: { params: { id: string } }) 
           <Card>
             <CardHeader><CardTitle>Actions</CardTitle></CardHeader>
             <CardContent className="space-y-3">
+              {!alreadyInvoiced && q.status !== "refuse" && (
+                <ConfirmAction action={sendQuoteEmailAction.bind(null, q.id)} label="✉️ Envoyer par e-mail" className="w-full"
+                  title={`Envoyer le devis ${q.number} ?`} description="Le PDF est joint au message. Le devis passe en « envoyé »."
+                  confirmLabel="Envoyer" reservedName={reservedName} largeAmount={largeAmount}
+                  extra={<Field label="Destinataire"><Input name="to" type="email" required defaultValue={c.email ?? ""} placeholder="client@exemple.fr" /></Field>} />
+              )}
               <div className="flex flex-wrap gap-2">
-                {q.status === "brouillon" && statusBtn("envoye", "Marquer envoyé")}
+                {q.status === "brouillon" && statusBtn("envoye", "Marquer envoyé (sans e-mail)")}
                 {["brouillon", "envoye"].includes(q.status) && statusBtn("accepte", "Marquer accepté")}
                 {["brouillon", "envoye"].includes(q.status) && statusBtn("refuse", "Marquer refusé")}
               </div>

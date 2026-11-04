@@ -1,0 +1,62 @@
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { PageHeader, Empty } from "@/components/crm/page-header";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { createQuoteFromRequestAction, setRequestStatusAction } from "@/app/actions/requests";
+import { formatDate } from "@/lib/utils";
+
+export default async function RequestsPage({ searchParams }: { searchParams: { statut?: string } }) {
+  const statut = searchParams.statut ?? "nouvelle";
+  let q = createClient().from("quote_requests").select("*").order("received_at", { ascending: false }).limit(100);
+  if (statut !== "toutes") q = q.eq("status", statut);
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+
+  const tabs = [["nouvelle", "Nouvelles"], ["traitee", "Traitées"], ["ignoree", "Ignorées"], ["toutes", "Toutes"]];
+  return (
+    <>
+      <PageHeader title="Demandes de devis" subtitle="Les demandes envoyées depuis le formulaire de votre site arrivent ici. En un clic : fiche client + devis brouillon pré-rempli." />
+      <div className="mb-4 flex flex-wrap gap-2">
+        {tabs.map(([v, l]) => (
+          <Link key={v} href={`/demandes?statut=${v}`} className={`rounded-full border px-3 py-1 text-sm ${statut === v ? "bg-primary text-primary-foreground" : "bg-card hover:bg-muted"}`}>{l}</Link>
+        ))}
+      </div>
+      {!data?.length ? <Card><Empty>Aucune demande {statut === "nouvelle" ? "en attente" : ""}.</Empty></Card> : (
+        <div className="space-y-3">
+          {data.map((r: any) => (
+            <Card key={r.id} className={r.status === "nouvelle" ? "border-primary" : ""}>
+              <CardContent className="space-y-3">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <div className="font-semibold">{r.company ? `${r.company} — ${r.name}` : r.name}</div>
+                    <div className="text-sm text-muted-foreground">{formatDate(r.received_at)} · {r.service ?? "prestation non précisée"}{r.source ? ` · source : ${r.source}` : ""}</div>
+                  </div>
+                  <Badge tone={r.status === "nouvelle" ? "blue" : r.status === "traitee" ? "green" : "gray"}>{r.status === "nouvelle" ? "Nouvelle" : r.status === "traitee" ? "Traitée" : "Ignorée"}</Badge>
+                </div>
+                <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
+                  {r.phone && <a className="text-primary hover:underline" href={`tel:${r.phone}`}>📞 {r.phone}</a>}
+                  {r.email && <a className="text-primary hover:underline" href={`mailto:${r.email}`}>✉️ {r.email}</a>}
+                  {(r.address || r.city) && <span>📍 {[r.address, [r.postcode, r.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}</span>}
+                  {r.start_date && <span>🗓 début souhaité : {r.start_date}</span>}
+                </div>
+                {r.message && <p className="whitespace-pre-wrap rounded-md bg-muted p-3 text-sm">{r.message}</p>}
+                {Object.keys(r.details ?? {}).length > 0 && (
+                  <ul className="grid gap-x-6 text-xs text-muted-foreground sm:grid-cols-2">{Object.entries(r.details).map(([k, v]) => <li key={k}><b>{k} :</b> {String(v)}</li>)}</ul>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  {r.quote_id ? <Link href={`/devis/${r.quote_id}`} className="text-sm font-medium text-primary hover:underline">→ Voir le devis créé</Link> : (
+                    <form action={createQuoteFromRequestAction.bind(null, r.id)}><Button>Créer le client et le devis</Button></form>
+                  )}
+                  {r.status === "nouvelle" && <form action={setRequestStatusAction.bind(null, r.id, "ignoree")}><Button variant="ghost" size="sm">Ignorer</Button></form>}
+                  {r.status !== "nouvelle" && <form action={setRequestStatusAction.bind(null, r.id, "nouvelle")}><Button variant="ghost" size="sm">Remettre en « nouvelle »</Button></form>}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}

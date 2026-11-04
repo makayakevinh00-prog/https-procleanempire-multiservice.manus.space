@@ -10,6 +10,7 @@ import { Badge, StatusBadge } from "@/components/ui/badge";
 import { Table, Td, Tr } from "@/components/ui/table";
 import { ClientName } from "@/components/crm/client-name";
 import { daysBetween, formatDate, formatEUR, formatHours, round2 } from "@/lib/utils";
+import { parisToday } from "@/lib/domain/dates";
 import type { Contract } from "@/lib/domain/types";
 
 function Stat({ label, value, sub, href, tone }: { label: string; value: string; sub?: string; href?: string; tone?: string }) {
@@ -30,14 +31,18 @@ export default async function Dashboard() {
   await supabase.rpc("refresh_overdue");
   const settings = await getSettings(supabase);
 
-  const [contracts, invoices, quotes, payments, reserved] = await Promise.all([
+  const todayStr = parisToday();
+  const [contracts, invoices, quotes, payments, reserved, requests, toConfirm, unsent] = await Promise.all([
     supabase.from("contracts").select("*, clients(id, name, is_reserved)").eq("status", "actif"),
     supabase.from("invoices").select("id, number, status, due_date, issue_date, total_ht, total_ttc, paid_amount, reminder_count, last_reminder_at, clients(id, name, is_reserved)").neq("status", "annule"),
     supabase.from("quotes").select("id, number, status, subject, total_ht, invoice_id, clients(id, name, is_reserved), invoices:invoice_id(status)").eq("status", "accepte"),
     supabase.from("payments").select("id", { count: "exact", head: true }).in("match_status", ["non_rapproche", "propose"]),
-    supabase.from("clients").select("id, name").eq("is_reserved", true)
+    supabase.from("clients").select("id, name").eq("is_reserved", true),
+    supabase.from("quote_requests").select("id", { count: "exact", head: true }).eq("status", "nouvelle"),
+    supabase.from("interventions").select("id", { count: "exact", head: true }).eq("status", "planifie").lte("scheduled_date", todayStr).is("invoice_id", null),
+    supabase.from("invoices").select("id", { count: "exact", head: true }).not("billing_month", "is", null).is("sent_at", null).in("status", ["envoye", "en_retard"])
   ]);
-  for (const r of [contracts, invoices, quotes, payments, reserved]) if (r.error) throw new Error(r.error.message);
+  for (const r of [contracts, invoices, quotes, payments, reserved, requests, toConfirm, unsent]) if (r.error) throw new Error(r.error.message);
 
   const inv = (invoices.data ?? []) as any[];
   const drafts = inv.filter((i) => i.status === "brouillon");
@@ -60,6 +65,9 @@ export default async function Dashboard() {
 
   // Alertes patron
   const alerts: { tone: "red" | "orange"; text: React.ReactNode; href: string }[] = [];
+  if (requests.count) alerts.push({ tone: "orange", href: "/demandes", text: <><b>{requests.count}</b> nouvelle(s) demande(s) de devis du site à traiter.</> });
+  if (toConfirm.count) alerts.push({ tone: "orange", href: "/planning", text: <><b>{toConfirm.count}</b> intervention(s) passée(s) à confirmer dans le planning (elles alimentent la facture du mois).</> });
+  if (unsent.count) alerts.push({ tone: "orange", href: "/facturation-auto", text: <><b>{unsent.count}</b> facture(s) émise(s) automatiquement en attente d&apos;envoi.</> });
   for (const q of toInvoice) {
     if (q.clients.is_reserved) alerts.push({ tone: "red", href: `/devis/${q.id}`, text: <>🔒 <b>{q.number}</b> ({q.clients.name}) accepté, en attente de facturation — traitement patron uniquement.</> });
   }

@@ -3,7 +3,7 @@ import { getSettings } from "@/lib/data";
 import { PageHeader } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Field, Input } from "@/components/ui/form";
+import { Field, Input, Textarea } from "@/components/ui/form";
 import { saveSettingsAction } from "@/app/actions/settings";
 
 export default async function SettingsPage() {
@@ -23,6 +23,10 @@ export default async function SettingsPage() {
             <Field label="SIRET"><Input name="company_siret" defaultValue={s.company_siret ?? ""} /></Field>
             <Field label="N° TVA intracommunautaire"><Input name="company_vat_number" defaultValue={s.company_vat_number ?? ""} /></Field>
             <Field label="IBAN (pied de facture)"><Input name="company_iban" defaultValue={s.company_iban ?? ""} /></Field>
+            <Field label="Forme juridique"><Input name="company_legal_form" defaultValue={s.company_legal_form ?? ""} placeholder="SASU" /></Field>
+            <Field label="Capital"><Input name="company_capital" defaultValue={s.company_capital ?? ""} placeholder="1 000,00 €" /></Field>
+            <Field label="RCS"><Input name="company_rcs" defaultValue={s.company_rcs ?? ""} placeholder="RCS Pontoise 106 602 659" /></Field>
+            <Field label="Pied de page personnalisé (remplace la ligne automatique)" className="sm:col-span-2 lg:col-span-3"><Input name="company_footer" defaultValue={s.company_footer ?? ""} /></Field>
           </CardContent>
         </Card>
 
@@ -33,6 +37,32 @@ export default async function SettingsPage() {
             <Field label="Délai de paiement (jours)"><Input name="payment_terms_days" inputMode="numeric" defaultValue={s.payment_terms_days} /></Field>
             <Field label="Alerte montant (€ HT)" hint="Confirmation explicite au-dessus de ce montant"><Input name="large_amount_threshold_ht" inputMode="decimal" defaultValue={s.large_amount_threshold_ht} /></Field>
             <Field label="Alerte impayés (jours de retard)"><Input name="unpaid_alert_days" inputMode="numeric" defaultValue={s.unpaid_alert_days} /></Field>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle>Devis</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className={grid}>
+              <Field label="Validité par défaut (jours)"><Input name="quote_default_validity_days" inputMode="numeric" defaultValue={s.quote_default_validity_days} /></Field>
+              <Field label="Adresse de notification (récapitulatifs automatiques)"><Input name="notify_email" type="email" defaultValue={s.notify_email ?? ""} /></Field>
+            </div>
+            <Field label="Conditions affichées sur chaque devis"><Textarea name="quote_terms" defaultValue={s.quote_terms ?? ""} className="min-h-[70px]" /></Field>
+            <label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" name="quote_followup_enabled" defaultChecked={s.quote_followup_enabled} /> Relancer automatiquement les devis envoyés restés sans réponse</label>
+            <div className={grid}><Field label="… après (jours)"><Input name="quote_followup_days" inputMode="numeric" defaultValue={s.quote_followup_days} /></Field></div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle>Facturation mensuelle automatique</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <label className="flex items-start gap-2 text-sm font-medium"><input type="checkbox" name="auto_invoicing_enabled" defaultChecked={s.auto_invoicing_enabled} className="mt-1" />
+              <span>Activer la facturation mensuelle automatique<span className="block text-xs font-normal text-muted-foreground">Le dernier jour du mois, une facture est préparée pour chaque client (forfaits + passages du planning). Elle n&apos;est émise et envoyée que pour les clients cochés « envoi automatique », hors contacts réservés et montants au-dessus du seuil : les autres restent en brouillon pour votre validation. Détail et aperçu dans « Facturation auto ».</span></span></label>
+            <div className={grid}>
+              <Field label="Premier mois facturé automatiquement" hint="Format AAAA-MM"><Input name="auto_invoicing_start_month" defaultValue={s.auto_invoicing_start_month} placeholder="2026-11" /></Field>
+            </div>
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="count_planned_as_done" defaultChecked={s.count_planned_as_done} /> Facturer les passages « planifiés » dont la date est passée (sinon : seulement ceux marqués « réalisés »)</label>
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="month_end_send_next_day" defaultChecked={s.month_end_send_next_day} /> Envoyer le lendemain de l&apos;émission (laisse une journée pour relire et corriger)</label>
           </CardContent>
         </Card>
 

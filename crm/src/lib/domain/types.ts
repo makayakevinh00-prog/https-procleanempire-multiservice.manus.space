@@ -25,6 +25,19 @@ export interface Settings {
   salarie_paid_leave_pct: number;
   recruit_green_max_hours: number;
   recruit_orange_max_hours: number;
+  company_legal_form: string | null;
+  company_capital: string | null;
+  company_rcs: string | null;
+  company_footer: string | null;
+  quote_default_validity_days: number;
+  quote_terms: string | null;
+  notify_email: string | null;
+  auto_invoicing_enabled: boolean;
+  auto_invoicing_start_month: string;
+  count_planned_as_done: boolean;
+  month_end_send_next_day: boolean;
+  quote_followup_enabled: boolean;
+  quote_followup_days: number;
 }
 
 export interface Client {
@@ -41,6 +54,7 @@ export interface Client {
   notes: string | null;
   is_reserved: boolean;
   reserved_reason: string | null;
+  auto_send_invoices?: boolean;
 }
 
 export interface Contract {
@@ -59,6 +73,8 @@ export interface Contract {
   weekly_hours: number | null;
   site_address: string | null;
   notes: string | null;
+  weekdays?: number[] | null;
+  start_time?: string | null;
 }
 
 export interface Line {

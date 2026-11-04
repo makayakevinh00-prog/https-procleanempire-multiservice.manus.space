@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/form";
-import { LinesEditor } from "./lines-editor";
+import { LinesEditor, type ServiceOption } from "./lines-editor";
 import type { Line } from "@/lib/domain/types";
 
 interface Props {
@@ -15,10 +15,11 @@ interface Props {
   defaultClientId?: string;
   defaults?: { subject?: string | null; notes?: string | null; valid_until?: string | null; lines?: Line[] };
   defaultVat: number;
+  services?: ServiceOption[];
   submitLabel: string;
 }
 
-export function DocumentForm({ action, kind, clients, lockedClientId, defaultClientId, defaults, defaultVat, submitLabel }: Props) {
+export function DocumentForm({ action, kind, clients, lockedClientId, defaultClientId, defaults, defaultVat, services, submitLabel }: Props) {
   const [clientId, setClientId] = useState(lockedClientId ?? defaultClientId ?? "");
   const selected = clients.find((c) => c.id === clientId);
 
@@ -46,7 +47,7 @@ export function DocumentForm({ action, kind, clients, lockedClientId, defaultCli
         </label>
       )}
 
-      <LinesEditor initial={defaults?.lines} defaultVat={defaultVat} />
+      <LinesEditor initial={defaults?.lines} defaultVat={defaultVat} services={services} />
       <Field label="Notes (visibles sur le PDF)"><Textarea name="notes" defaultValue={defaults?.notes ?? ""} /></Field>
       <Button>{submitLabel}</Button>
     </form>

@@ -4,6 +4,12 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { checked, dbMessage, flash, str } from "@/lib/data";
 import { parseLines, requireReservedAck } from "@/lib/action-helpers";
+import { buildPdf } from "@/lib/pdf/load";
+import { sendMail } from "@/lib/mail";
+import { quoteEmail } from "@/lib/mail-templates";
+import { getSettings, num } from "@/lib/data";
+import { isLargeAmount } from "@/lib/domain/billing";
+import { formatEUR, formatDate } from "@/lib/utils";
 
 export async function createQuoteAction(fd: FormData) {
   const back = "/devis/new";
@@ -71,4 +77,26 @@ export async function convertQuoteAction(id: string, fd: FormData) {
   revalidatePath("/devis");
   revalidatePath("/factures");
   flash(`/factures/${data}`, "ok", "Facture brouillon créée — à relire puis valider manuellement.");
+}
+
+/** Envoie le devis (PDF joint) par e-mail puis le passe en « envoyé ». */
+export async function sendQuoteEmailAction(id: string, fd: FormData) {
+  const back = `/devis/${id}`;
+  const supabase = createClient();
+  const { data: q } = await supabase.from("quotes").select("*, clients(name, email, is_reserved)").eq("id", id).maybeSingle();
+  if (!q) flash("/devis", "error", "Devis introuvable.");
+  const settings = await getSettings(supabase);
+  if (q.clients.is_reserved && !checked(fd, "ack_reserved")) flash(back, "error", `Contact réservé (${q.clients.name}) : confirmation explicite du patron requise.`);
+  if (isLargeAmount(num(q.total_ht), settings) && !checked(fd, "ack_large")) flash(back, "error", `Montant ${formatEUR(q.total_ht)} HT au-dessus du seuil d'alerte : confirmation requise.`);
+  const to = str(fd, "to") ?? q.clients.email;
+  if (!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) flash(back, "error", "Adresse e-mail du destinataire manquante ou invalide.");
+  const pdf = await buildPdf("devis", id);
+  if (!pdf) flash(back, "error", "PDF introuvable.");
+  const mail = quoteEmail({ company: settings.company_name, phone: settings.company_phone, clientName: q.clients.name, number: q.number, subject: q.subject, totalTtc: formatEUR(q.total_ttc), validUntil: q.valid_until ? formatDate(q.valid_until) : null });
+  const res = await sendMail({ to: to!, subject: mail.subject, text: mail.text, html: mail.html, attachment: { filename: pdf!.filename, bytes: pdf!.bytes } });
+  if (!res.sent) flash(back, "error", `Le devis n'a PAS été envoyé : ${res.reason}.`);
+  await supabase.from("quotes").update({ status: q.status === "brouillon" ? "envoye" : q.status, sent_at: new Date().toISOString() }).eq("id", id);
+  await supabase.from("interactions").insert({ client_id: q.client_id, kind: "devis", summary: `Devis ${q.number} envoyé par e-mail à ${to}` });
+  revalidatePath("/devis");
+  flash(back, "ok", `Devis ${q.number} envoyé à ${to}.`);
 }

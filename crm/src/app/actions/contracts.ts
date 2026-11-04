@@ -12,6 +12,7 @@ function payload(fd: FormData, back: string) {
   const start = str(fd, "start_date");
   const end = str(fd, "end_date");
   if (start && end && end < start) flash(back, "error", "La date de fin précède la date de début.");
+  const weekdays = fd.getAll("weekdays").map(Number).filter((n) => n >= 1 && n <= 7).sort((a, b) => a - b);
   const hours = numField(fd, "hours_per_visit");
   const visits = numField(fd, "visits_per_week");
   if ((hours !== null && hours <= 0) || (visits !== null && visits <= 0)) flash(back, "error", "Heures et fréquence doivent être positives.");
@@ -20,7 +21,8 @@ function payload(fd: FormData, back: string) {
     monthly_amount_ht: mode === "mensuel" ? numField(fd, "monthly_amount_ht") : null,
     per_visit_amount_ht: mode === "passage" ? numField(fd, "per_visit_amount_ht") : null,
     terms: str(fd, "terms"), start_date: start, end_date: end, status: str(fd, "status") ?? "en_cours",
-    hours_per_visit: hours, visits_per_week: visits, site_address: str(fd, "site_address"), notes: str(fd, "notes")
+    hours_per_visit: hours, visits_per_week: visits, site_address: str(fd, "site_address"), notes: str(fd, "notes"),
+    weekdays: weekdays.length ? weekdays : null, start_time: str(fd, "start_time")
   };
 }
 
