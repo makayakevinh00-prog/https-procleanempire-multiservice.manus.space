@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, Repeat, FileText, Receipt, UserPlus, Landmark, Settings, Menu } from "lucide-react";
+import { LayoutDashboard, Users, Repeat, FileText, Receipt, UserPlus, Landmark, Settings, KeyRound, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ITEMS = [
@@ -13,7 +13,8 @@ const ITEMS = [
   { href: "/factures", label: "Factures", icon: Receipt },
   { href: "/recrutement", label: "Recrutement", icon: UserPlus },
   { href: "/paiements", label: "Paiements", icon: Landmark },
-  { href: "/parametres", label: "Paramètres", icon: Settings }
+  { href: "/parametres", label: "Paramètres", icon: Settings },
+  { href: "/compte", label: "Mon compte", icon: KeyRound }
 ];
 
 function Links({ onNavigate }: { onNavigate?: () => void }) {
