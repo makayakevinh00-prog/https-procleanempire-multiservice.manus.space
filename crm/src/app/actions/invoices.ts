@@ -7,6 +7,7 @@ import { parseLines, requireReservedAck } from "@/lib/action-helpers";
 import { buildPdf } from "@/lib/pdf/load";
 import { sendMail } from "@/lib/mail";
 import { formatEUR, formatDate } from "@/lib/utils";
+import { logEmail } from "@/lib/email-log";
 
 export async function createInvoiceAction(fd: FormData) {
   const back = "/factures/new";
@@ -81,6 +82,7 @@ export async function validateInvoiceAction(id: string, fd: FormData) {
     text: `Bonjour,\n\nVeuillez trouver ci-joint la facture ${inv.number} d'un montant de ${formatEUR(inv.total_ttc)} TTC, à régler avant le ${formatDate(inv.due_date)}.\n\nCordialement,\nProClean Empire\ncontact@procleanempire.com`,
     attachment: { filename: pdf!.filename, bytes: pdf!.bytes }
   });
+  await logEmail(supabase, { kind: "facture", to: client!.email!, subject: `Facture ${inv.number}`, ok: res.sent, error: res.sent ? undefined : res.reason, entity: "invoice", entityId: id });
   if (!res.sent) flash(back, "error", `Facture ${inv.number} validée, mais l'e-mail n'est PAS parti : ${res.reason}.`);
   await supabase.from("invoices").update({ sent_at: new Date().toISOString(), sent_to: client!.email }).eq("id", id);
   flash(back, "ok", `Facture ${inv.number} validée et envoyée à ${client!.email}.`);
@@ -120,6 +122,7 @@ export async function remindInvoiceAction(id: string, fd: FormData) {
       text: `Bonjour,\n\nSauf erreur de notre part, la facture ${inv!.number} (${formatEUR(inv!.total_ttc)} TTC, échéance ${formatDate(inv!.due_date)}) n'a pas encore été réglée. Merci de procéder au règlement ou de nous contacter si c'est déjà fait.\n\nCordialement,\nProClean Empire\ncontact@procleanempire.com`,
       attachment: pdf ? { filename: pdf.filename, bytes: pdf.bytes } : undefined
     });
+    await logEmail(supabase, { kind: "relance_facture", to: client.email, subject: `Relance — facture ${inv!.number}`, ok: res.sent, error: res.sent ? undefined : res.reason, entity: "invoice", entityId: id });
     if (!res.sent) await fail(res.reason);
   }
   revalidatePath("/factures");

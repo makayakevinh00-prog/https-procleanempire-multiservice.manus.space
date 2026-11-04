@@ -1,9 +1,11 @@
 import { planMonthlyInvoices, type PlannedInvoice } from "../domain/billing-plan";
-import { isLastDayOfMonth, monthLabel, monthOf, parisToday } from "../domain/dates";
+import { isLastDayOfMonth, monthLabel, monthOf, nextMonth, parisToday } from "../domain/dates";
+import { contractIssues } from "../domain/contract-check";
+import { contractVisits, type ScheduleContract } from "../domain/schedule";
+import { autoReminderDecision } from "../domain/reminders";
 import { renderPdf, pdfMoney, type PdfDoc } from "../pdf/document";
 import { invoiceDoc } from "../pdf/doc-mapper";
 import { digestEmail, invoiceEmail, quoteFollowupEmail, reminderEmail, type Mail } from "../mail-templates";
-import { autoReminderDecision } from "../domain/reminders";
 import type { MailInput, MailResult } from "../mail";
 
 /** Dépendances injectées : le vrai client Supabase/Resend en production, des faux dans les tests. */
@@ -33,8 +35,11 @@ export interface Report {
   generated: { client: string; number: string | null; totalHt: number; status: "validee" | "brouillon"; reasons: string[] }[];
   sent: { number: string; to: string }[];
   failed: { what: string; reason: string }[];
-  followups: { number: string; to: string }[];
+  followups: { number: string; to: string; level: number }[];
   reminders: { number: string; to: string; level: number }[];
+  planning: { created: number; incompleteContracts: string[] };
+  expiredQuotes: number;
+  alerts: { unassigned_next7: number; to_confirm: number; requests_late: number; overdue_15: number };
   pendingMail: number;
   digestSent: boolean | "non configuré" | "rien à signaler";
 }
@@ -46,17 +51,53 @@ export async function runDaily(deps: Deps, opts: RunOptions = {}): Promise<Repor
   const today = parisToday(deps.now ?? new Date());
   const month = opts.month ?? monthOf(today);
   const lastDay = isLastDayOfMonth(today);
-  const report: Report = { today, month, enabled: false, generated: [], sent: [], failed: [], followups: [], reminders: [], pendingMail: 0, digestSent: "rien à signaler" };
+  const report: Report = {
+    today, month, enabled: false, generated: [], sent: [], failed: [], followups: [], reminders: [],
+    planning: { created: 0, incompleteContracts: [] }, expiredQuotes: 0,
+    alerts: { unassigned_next7: 0, to_confirm: 0, requests_late: 0, overdue_15: 0 }, pendingMail: 0, digestSent: "rien à signaler"
+  };
   const call = async (name: string, args: Record<string, unknown>) => {
     const r = await deps.rpc(name, { p_secret: deps.secret, ...args });
     if (r.error) throw new Error(`${name} : ${r.error.message}`);
     return r.data;
+  };
+  /** Envoi + trace dans le journal des e-mails (la trace ne bloque jamais l'envoi). */
+  const send = async (kind: string, m: MailInput, entity?: string, entityId?: string): Promise<MailResult> => {
+    const res = await deps.sendMail(m);
+    if (!opts.dryRun) {
+      try {
+        await call("automation_log_email", { p_kind: kind, p_to: m.to, p_subject: m.subject, p_ok: res.sent, p_error: res.sent ? null : res.reason, p_entity: entity ?? null, p_entity_id: entityId ?? null });
+      } catch { /* journal indisponible : l'envoi reste valable */ }
+    }
+    return res;
   };
 
   const data = await call("automation_month_data", { p_month: month });
   const settings = data.settings;
   report.enabled = Boolean(settings.auto_invoicing_enabled);
   const company: string = settings.company_name;
+
+  // 0. Planning : passages du mois en cours et du mois suivant d'après les contrats (rejouable, sans doublon)
+  const contracts = (data.contracts ?? []) as (ScheduleContract & { client_id: string })[];
+  report.planning.incompleteContracts = (data.contracts ?? [])
+    .filter((k: any) => k.status === "actif" && !(k.weekdays?.length > 0))
+    .map((k: any) => k.label);
+  if (settings.auto_planning_enabled && !opts.dryRun) {
+    try {
+      for (const m of [monthOf(today), nextMonth(monthOf(today))]) {
+        const visits = contractVisits(contracts, m);
+        if (visits.length) report.planning.created += Number(await call("automation_insert_interventions", { p_rows: visits })) || 0;
+      }
+    } catch (e) {
+      report.failed.push({ what: "génération du planning", reason: (e as Error).message });
+    }
+  }
+
+  // 0 bis. Devis envoyés dont la validité est dépassée
+  if (!opts.dryRun) {
+    try { report.expiredQuotes = Number(await call("automation_expire_quotes", {})) || 0; }
+    catch (e) { report.failed.push({ what: "expiration des devis", reason: (e as Error).message }); }
+  }
 
   // 1. Génération (et validation des seules factures éligibles) le dernier jour du mois
   if (report.enabled && (lastDay || opts.forceGenerate)) {
@@ -110,7 +151,7 @@ export async function runDaily(deps: Deps, opts: RunOptions = {}): Promise<Repor
             company, phone: pending.settings.company_phone, number: inv.number, totalTtc: eur(inv.total_ttc),
             dueDate: fr(inv.due_date), period: inv.billing_month ? monthLabel(inv.billing_month) : null, iban: pending.settings.company_iban
           });
-          const res = await deps.sendMail({ to: client.email, subject: mail.subject, text: mail.text, html: mail.html, attachment: { filename: `${inv.number}.pdf`, bytes } });
+          const res = await send("facture", { to: client.email, subject: mail.subject, text: mail.text, html: mail.html, attachment: { filename: `${inv.number}.pdf`, bytes } }, "invoice", inv.id);
           if (res.sent) {
             await call("automation_mark_sent", { p_invoice_id: inv.id, p_to: client.email });
             report.sent.push({ number: inv.number, to: client.email });
@@ -124,15 +165,15 @@ export async function runDaily(deps: Deps, opts: RunOptions = {}): Promise<Repor
     }
   }
 
-  // 3. Relance des devis restés sans réponse
+  // 3. Relances de devis sans réponse (relance 1, puis relance 2 ; arrêt dès que le statut change)
   if (!opts.dryRun) {
     try {
       const quotes: any[] = await call("automation_quotes_to_follow", {});
       for (const q of quotes) {
         if (!deps.mailConfigured()) { report.failed.push({ what: "relances de devis", reason: "clé e-mail non configurée" }); break; }
-        const mail = quoteFollowupEmail({ company, phone: settings.company_phone, number: q.number, totalTtc: eur(q.total_ttc), validUntil: fr(q.valid_until) });
-        const res = await deps.sendMail({ to: q.email, subject: mail.subject, text: mail.text, html: mail.html });
-        if (res.sent) { await call("automation_quote_followup_done", { p_quote_id: q.id }); report.followups.push({ number: q.number, to: q.email }); }
+        const mail = quoteFollowupEmail({ company, phone: settings.company_phone, number: q.number, totalTtc: eur(q.total_ttc), validUntil: fr(q.valid_until), level: q.level });
+        const res = await send("relance_devis", { to: q.email, subject: mail.subject, text: mail.text, html: mail.html }, "quote", q.id);
+        if (res.sent) { await call("automation_quote_followup_done", { p_quote_id: q.id }); report.followups.push({ number: q.number, to: q.email, level: q.level }); }
         else report.failed.push({ what: `relance devis ${q.number}`, reason: res.reason });
       }
     } catch (e) {
@@ -157,7 +198,7 @@ export async function runDaily(deps: Deps, opts: RunOptions = {}): Promise<Repor
           let reminder: any;
           try { reminder = await call("automation_register_reminder", { p_invoice_id: inv.id }); } catch { continue; } // la base refuse : rien à faire
           const mail = reminderEmail({ company, phone: settings.company_phone, number: inv.number, totalTtc: eur(inv.total_ttc), dueDate: fr(inv.due_date) });
-          const res = await deps.sendMail({ to: client.email, subject: mail.subject, text: mail.text, html: mail.html });
+          const res = await send("relance_facture", { to: client.email, subject: mail.subject, text: mail.text, html: mail.html }, "invoice", inv.id);
           if (res.sent) report.reminders.push({ number: inv.number, to: client.email, level: reminder.level });
           else {
             await call("automation_undo_reminder", { p_reminder_id: reminder.id }); // pas de relance fantôme
@@ -170,7 +211,12 @@ export async function runDaily(deps: Deps, opts: RunOptions = {}): Promise<Repor
     }
   }
 
-  // 4. Récapitulatif au patron
+  // 4. Indicateurs d'exception
+  if (!opts.dryRun) {
+    try { report.alerts = { ...report.alerts, ...((await call("automation_alerts", {})) ?? {}) }; } catch { /* non bloquant */ }
+  }
+
+  // 5. Récapitulatif au patron
   const lines: string[] = [];
   const todo: string[] = [];
   for (const g of report.generated) {
@@ -179,16 +225,30 @@ export async function runDaily(deps: Deps, opts: RunOptions = {}): Promise<Repor
   }
   for (const s of report.sent) lines.push(`Facture ${s.number} envoyée à ${s.to}.`);
   for (const r of report.reminders) lines.push(`Relance n°${r.level} de la facture ${r.number} envoyée à ${r.to}.`);
-  for (const f of report.followups) lines.push(`Devis ${f.number} relancé (${f.to}).`);
+  for (const f of report.followups) lines.push(`Devis ${f.number} relancé (relance n°${f.level}, ${f.to}).`);
+  if (report.planning.created) lines.push(`${report.planning.created} passage(s) ajouté(s) au planning d'après les contrats.`);
+  if (report.expiredQuotes) lines.push(`${report.expiredQuotes} devis expiré(s) faute de réponse.`);
   for (const f of report.failed) todo.push(`${f.what} : ${f.reason}.`);
+  if (report.planning.incompleteContracts.length) todo.push(`${report.planning.incompleteContracts.length} contrat(s) actif(s) sans jours de passage, planning automatique impossible : ${report.planning.incompleteContracts.join(", ")}.`);
+  if (report.alerts.unassigned_next7) todo.push(`${report.alerts.unassigned_next7} passage(s) des 7 prochains jours sans intervenant.`);
+  if (report.alerts.to_confirm) todo.push(`${report.alerts.to_confirm} passage(s) passé(s) à confirmer dans le planning.`);
+  if (report.alerts.requests_late) todo.push(`${report.alerts.requests_late} demande(s) de devis sans traitement depuis plus de 24 h.`);
+  if (report.alerts.overdue_15) todo.push(`${report.alerts.overdue_15} facture(s) impayée(s) depuis plus de 15 jours de retard.`);
+
   if ((lines.length || todo.length) && !opts.dryRun) {
     const to = settings.notify_email || settings.company_email;
-    if (!to) report.digestSent = "non configuré";
-    else if (!deps.mailConfigured()) report.digestSent = "non configuré";
+    if (!to || !deps.mailConfigured()) report.digestSent = "non configuré";
     else {
       const mail = digestEmail({ company, day: fr(today), lines, todo });
-      report.digestSent = (await deps.sendMail({ to, subject: mail.subject, text: mail.text, html: mail.html })).sent;
+      report.digestSent = (await send("recapitulatif", { to, subject: mail.subject, text: mail.text, html: mail.html })).sent;
     }
+  }
+
+  // 6. Journal d'exécution (visible dans « Journal »)
+  if (!opts.dryRun) {
+    try {
+      await call("automation_log_run", { p_ok: report.failed.length === 0, p_report: report, p_errors: report.failed.map((f) => `${f.what} : ${f.reason}`) });
+    } catch { /* journal indisponible : sans effet sur le travail effectué */ }
   }
   return report;
 }

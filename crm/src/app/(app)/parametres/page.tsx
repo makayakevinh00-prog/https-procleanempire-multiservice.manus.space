@@ -49,7 +49,11 @@ export default async function SettingsPage() {
             </div>
             <Field label="Conditions affichées sur chaque devis"><Textarea name="quote_terms" defaultValue={s.quote_terms ?? ""} className="min-h-[70px]" /></Field>
             <label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" name="quote_followup_enabled" defaultChecked={s.quote_followup_enabled} /> Relancer automatiquement les devis envoyés restés sans réponse</label>
-            <div className={grid}><Field label="… après (jours)"><Input name="quote_followup_days" inputMode="numeric" defaultValue={s.quote_followup_days} /></Field></div>
+            <div className={grid}>
+              <Field label="1re relance après (jours)"><Input name="quote_followup_days" inputMode="numeric" defaultValue={s.quote_followup_days} /></Field>
+              <Field label="2e relance après (jours)"><Input name="quote_followup2_days" inputMode="numeric" defaultValue={s.quote_followup2_days} /></Field>
+            </div>
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="quote_expire_enabled" defaultChecked={s.quote_expire_enabled} /> Passer un devis en « expiré » quand sa validité est dépassée sans réponse</label>
           </CardContent>
         </Card>
 
@@ -61,6 +65,7 @@ export default async function SettingsPage() {
             <div className={grid}>
               <Field label="Premier mois facturé automatiquement" hint="Format AAAA-MM"><Input name="auto_invoicing_start_month" defaultValue={s.auto_invoicing_start_month} placeholder="2026-11" /></Field>
             </div>
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="auto_planning_enabled" defaultChecked={s.auto_planning_enabled} /> Créer automatiquement chaque jour le planning (mois en cours et suivant) d&apos;après les jours de passage des contrats</label>
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="count_planned_as_done" defaultChecked={s.count_planned_as_done} /> Facturer les passages « planifiés » dont la date est passée (sinon : seulement ceux marqués « réalisés »)</label>
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="month_end_send_next_day" defaultChecked={s.month_end_send_next_day} /> Envoyer le lendemain de l&apos;émission (laisse une journée pour relire et corriger)</label>
           </CardContent>

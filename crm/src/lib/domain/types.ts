@@ -38,6 +38,9 @@ export interface Settings {
   month_end_send_next_day: boolean;
   quote_followup_enabled: boolean;
   quote_followup_days: number;
+  quote_followup2_days: number;
+  quote_expire_enabled: boolean;
+  auto_planning_enabled: boolean;
 }
 
 export interface Client {
@@ -75,6 +78,7 @@ export interface Contract {
   notes: string | null;
   weekdays?: number[] | null;
   start_time?: string | null;
+  assignee?: string | null;
 }
 
 export interface Line {

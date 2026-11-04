@@ -15,14 +15,16 @@ export default async function InvoicesPage({ searchParams }: { searchParams: { s
   await supabase.rpc("refresh_overdue");
   const settings = await getSettings(supabase);
   let query = supabase.from("invoices").select("*, clients(id, name, is_reserved)").order("created_at", { ascending: false });
-  if (searchParams.statut) query = query.eq("status", searchParams.statut);
+  if (searchParams.statut === "a_envoyer") query = query.not("billing_month", "is", null).is("sent_at", null).in("status", ["envoye", "en_retard"]);
+  else if (searchParams.statut === "a_valider") query = query.eq("status", "brouillon");
+  else if (searchParams.statut) query = query.eq("status", searchParams.statut);
   const { data, error } = await query;
   if (error) throw new Error(error.message);
 
-  const tabs = [["", "Toutes"], ["brouillon", "Brouillons"], ["envoye", "Envoyées"], ["en_retard", "En retard"], ["paye", "Payées"], ["annule", "Annulées"]];
+  const tabs = [["", "Toutes"], ["a_valider", "À valider"], ["a_envoyer", "À envoyer"], ["envoye", "Émises"], ["en_retard", "En retard"], ["paye", "Payées"], ["annule", "Annulées"]];
   return (
     <>
-      <PageHeader title="Factures" subtitle="Toute facture reste en brouillon jusqu'à votre validation manuelle."
+      <PageHeader title="Factures" subtitle="Les factures créées à la main restent en brouillon jusqu'à votre validation ; les factures mensuelles automatiques suivent les règles de « Facturation auto »."
         actions={<Link href="/factures/new"><Button><Plus className="h-4 w-4" /> Nouvelle facture</Button></Link>} />
       <div className="mb-4 flex flex-wrap gap-2">
         {tabs.map(([v, l]) => (
@@ -48,6 +50,10 @@ export default async function InvoicesPage({ searchParams }: { searchParams: { s
                     <Td>{i.reminder_count > 0 ? `${i.reminder_count} · ${formatDate(i.last_reminder_at)}` : "—"}</Td>
                     <Td className="space-x-1">
                       <StatusBadge status={i.status} />
+                      {i.status === "brouillon" && i.billing_month && <Badge tone="blue">auto</Badge>}
+                      {["envoye", "en_retard"].includes(i.status) && !i.sent_at && <Badge tone="orange">non envoyée</Badge>}
+                      {i.sent_at && ["envoye", "en_retard"].includes(i.status) && <Badge tone="green">envoyée</Badge>}
+                      {i.reminder_count > 0 && i.status !== "paye" && <Badge tone="gray">relancée ×{i.reminder_count}</Badge>}
                       {i.status === "en_retard" && lateDays >= settings.unpaid_alert_days && <Badge tone="red">⚠ &gt; {settings.unpaid_alert_days} j</Badge>}
                     </Td>
                   </Tr>

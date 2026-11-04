@@ -22,6 +22,7 @@ beforeAll(async () => {
   await db.exec(read("supabase/seed.sql"));
   await db.exec(read("supabase/migrations/0002_automation.sql"));
   await db.exec(read("supabase/migrations/0003_automation_reminders.sql"));
+  await db.exec(read("supabase/migrations/0004_reliability.sql"));
   await db.exec(read("supabase/seed_services.sql"));
   secret = (await q("select automation_secret s from app_settings"))[0].s;
 });
@@ -132,8 +133,15 @@ describe("planning et demandes", () => {
     await q("update app_settings set quote_followup_enabled=true");
     const [r] = await q("select automation_quotes_to_follow($1) r", [secret]);
     expect(r.r.map((x: any) => x.id)).toContain(qq.id);
+    expect(r.r.find((x: any) => x.id === qq.id).level).toBe(1);
     await q("select automation_quote_followup_done($1,$2)", [secret, qq.id]);
+    // relance 1 faite : plus de relance avant le seuil de la relance 2 (12 jours)
     expect((await q("select automation_quotes_to_follow($1) r", [secret]))[0].r.map((x: any) => x.id)).not.toContain(qq.id);
+    await q("update quotes set sent_at = now() - interval '13 days' where id=$1", [qq.id]);
+    const [r2] = await q("select automation_quotes_to_follow($1) r", [secret]);
+    expect(r2.r.find((x: any) => x.id === qq.id).level).toBe(2);
+    await q("select automation_quote_followup_done($1,$2)", [secret, qq.id]);
+    expect((await q("select automation_quotes_to_follow($1) r", [secret]))[0].r.map((x: any) => x.id)).not.toContain(qq.id); // max 2 relances
   });
 });
 
@@ -165,5 +173,47 @@ describe("relances automatiques de factures", () => {
     await q("update invoices set due_date = current_date - 2 where id=$1", [a.id]);
     expect((await q("select automation_refresh_overdue($1) n", [secret]))[0].n).toBeGreaterThanOrEqual(1);
     expect((await q("select status from invoices where id=$1", [a.id]))[0].status).toBe("en_retard");
+  });
+});
+
+describe("fiabilisation (0004)", () => {
+  it("planning : insertion rejouable sans doublon, avec intervenant", async () => {
+    const c = await client("Plan9");
+    const [k] = await q("insert into contracts(client_id,label,assignee) values ($1,'Entretien','Agent A') returning id", [c]);
+    const rows = JSON.stringify([
+      { client_id: c, contract_id: k.id, title: "Entretien", scheduled_date: "2027-06-02", start_time: "08:00", duration_hours: 2, site_address: "x", billable: false, unit_price_ht: null, assignee: "Agent A", source_key: `contract:${k.id}:2027-06-02` },
+      { client_id: c, contract_id: k.id, title: "Entretien", scheduled_date: "2027-06-05", start_time: null, duration_hours: null, site_address: null, billable: true, unit_price_ht: 50, assignee: null, source_key: `contract:${k.id}:2027-06-05` }
+    ]);
+    expect((await q("select automation_insert_interventions($1,$2::jsonb) n", [secret, rows]))[0].n).toBe(2);
+    expect((await q("select automation_insert_interventions($1,$2::jsonb) n", [secret, rows]))[0].n).toBe(0);
+    expect((await q("select assignee from interventions where scheduled_date='2027-06-02' and client_id=$1", [c]))[0].assignee).toBe("Agent A");
+    await fails("select automation_insert_interventions($1,'[]'::jsonb)", ["x"], /ACCES_REFUSE/);
+  });
+  it("expiration : seul un devis envoyé dont la validité est dépassée", async () => {
+    const c = await client("Exp1");
+    const [a] = await q("insert into quotes(client_id,status,valid_until) values ($1,'envoye', current_date - 1) returning id", [c]);
+    const [b] = await q("insert into quotes(client_id,status,valid_until) values ($1,'envoye', current_date + 5) returning id", [c]);
+    const [d] = await q("insert into quotes(client_id,status,valid_until) values ($1,'accepte', current_date - 9) returning id", [c]);
+    await q("select automation_expire_quotes($1)", [secret]);
+    const st = async (id: string) => (await q("select status from quotes where id=$1", [id]))[0].status;
+    expect(await st(a.id)).toBe("expire");
+    expect(await st(b.id)).toBe("envoye");
+    expect(await st(d.id)).toBe("accepte");
+  });
+  it("journaux : exécutions et e-mails", async () => {
+    await q("select automation_log_run($1,true,'{\"a\":1}'::jsonb,array[]::text[])", [secret]);
+    await q("select automation_log_email($1,'facture','x@y.fr','Facture',false,'refusé','invoice',null)", [secret]);
+    expect((await q("select count(*)::int n from automation_runs"))[0].n).toBeGreaterThanOrEqual(1);
+    expect((await q("select ok, origin from email_log where to_email='x@y.fr'"))[0]).toEqual({ ok: false, origin: "auto" });
+  });
+  it("alertes d'exception calculées par la base", async () => {
+    const c = await client("Alert1");
+    await q("insert into interventions(client_id,title,scheduled_date) values ($1,'Sans agent', current_date + 2)", [c]);
+    const [a] = await q("select automation_alerts($1) r", [secret]);
+    expect(a.r.unassigned_next7).toBeGreaterThanOrEqual(1);
+  });
+  it("cadence de relance des impayés mise à J+1 / J+7", async () => {
+    const [s] = await q("select reminder_first_after_days f, reminder_interval_days i, reminder_max_count m from app_settings");
+    expect(s).toEqual({ f: 1, i: 6, m: 2 });
   });
 });

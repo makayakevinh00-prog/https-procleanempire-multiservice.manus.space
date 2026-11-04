@@ -35,6 +35,7 @@ export function ContractForm({ action, clients, contract, defaultClient, submitL
         <Select name="status" defaultValue={contract?.status ?? "en_cours"}>
           <option value="en_cours">En cours</option><option value="actif">Actif</option><option value="resilie">Résilié</option>
         </Select>
+        <p className="mt-1 text-xs text-muted-foreground">« Actif » exige : montant (ou prix par passage) et fréquence ou jours de passage.</p>
       </Field>
       <Field label="Montant HT / mois" hint="Si facturation mensuelle"><Input name="monthly_amount_ht" inputMode="decimal" defaultValue={contract?.monthly_amount_ht ?? ""} /></Field>
       <Field label="Montant HT / passage" hint="Si facturation au passage"><Input name="per_visit_amount_ht" inputMode="decimal" defaultValue={contract?.per_visit_amount_ht ?? ""} /></Field>
@@ -62,6 +63,7 @@ export function ContractForm({ action, clients, contract, defaultClient, submitL
 
       <Field label="Date de début"><Input name="start_date" type="date" defaultValue={contract?.start_date ?? ""} /></Field>
       <Field label="Date de fin"><Input name="end_date" type="date" defaultValue={contract?.end_date ?? ""} /></Field>
+      <Field label="Intervenant / équipe" hint="Copié sur chaque passage du planning"><Input name="assignee" defaultValue={contract?.assignee ?? ""} /></Field>
       <Field label="Adresse du site" className="sm:col-span-2"><Input name="site_address" defaultValue={contract?.site_address ?? ""} /></Field>
       <Field label="Conditions particulières" className="sm:col-span-2"><Input name="terms" defaultValue={contract?.terms ?? ""} placeholder="Ex. 9 % des revenus + 155 € TTC / séjour" /></Field>
       <Field label="Notes" className="sm:col-span-2"><Textarea name="notes" defaultValue={contract?.notes ?? ""} /></Field>

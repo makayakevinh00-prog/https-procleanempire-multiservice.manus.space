@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { dbMessage, flash, numField, str } from "@/lib/data";
+import { contractIssues } from "@/lib/domain/contract-check";
 
 function payload(fd: FormData, back: string) {
   const clientId = str(fd, "client_id");
@@ -16,14 +17,19 @@ function payload(fd: FormData, back: string) {
   const hours = numField(fd, "hours_per_visit");
   const visits = numField(fd, "visits_per_week");
   if ((hours !== null && hours <= 0) || (visits !== null && visits <= 0)) flash(back, "error", "Heures et fréquence doivent être positives.");
-  return {
+  const row = {
     client_id: clientId!, label: label!, billing_mode: mode,
     monthly_amount_ht: mode === "mensuel" ? numField(fd, "monthly_amount_ht") : null,
     per_visit_amount_ht: mode === "passage" ? numField(fd, "per_visit_amount_ht") : null,
     terms: str(fd, "terms"), start_date: start, end_date: end, status: str(fd, "status") ?? "en_cours",
     hours_per_visit: hours, visits_per_week: visits, site_address: str(fd, "site_address"), notes: str(fd, "notes"),
-    weekdays: weekdays.length ? weekdays : null, start_time: str(fd, "start_time")
+    weekdays: weekdays.length ? weekdays : null, start_time: str(fd, "start_time"), assignee: str(fd, "assignee")
   };
+  if (row.status === "actif") {
+    const { blocking } = contractIssues({ ...row, billing_mode: mode as "mensuel" | "passage" | "autre", weekdays: row.weekdays });
+    if (blocking.length) flash(back, "error", `Contrat actif impossible : renseignez ${blocking.join(", ")} (ou laissez-le « En cours »).`);
+  }
+  return row;
 }
 
 export async function createContractAction(fd: FormData) {

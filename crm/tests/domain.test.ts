@@ -80,3 +80,20 @@ describe("rapprochement bancaire", () => {
   it("ambiguïté → jamais automatique", () =>
     expect(matchPayment(pay(), [inv(), inv({ id: "i2" })])?.confidence).toBe("probable"));
 });
+
+import { contractIssues } from "@/lib/domain/contract-check";
+describe("complétude des contrats", () => {
+  const k = (o: any = {}) => ({ billing_mode: "mensuel", monthly_amount_ht: 470, per_visit_amount_ht: null, terms: null, weekdays: [1, 4], visits_per_week: 2, hours_per_visit: 2, site_address: "x", assignee: "A", start_date: "2026-07-14", ...o });
+  it("contrat complet : rien à signaler", () => expect(contractIssues(k())).toEqual({ blocking: [], warnings: [] }));
+  it("bloque l'activation sans montant ni fréquence", () => {
+    expect(contractIssues(k({ monthly_amount_ht: null })).blocking).toEqual(["montant mensuel"]);
+    expect(contractIssues(k({ billing_mode: "passage", per_visit_amount_ht: null })).blocking).toContain("prix par passage");
+    expect(contractIssues(k({ billing_mode: "autre", terms: " " })).blocking).toContain("conditions de facturation");
+    expect(contractIssues(k({ weekdays: [], visits_per_week: null })).blocking).toContain("fréquence ou jours de passage");
+  });
+  it("prévient (sans bloquer) pour planning et heures manquants", () => {
+    const i = contractIssues(k({ weekdays: null, hours_per_visit: null, site_address: "", assignee: null }));
+    expect(i.blocking).toEqual([]);
+    expect(i.warnings).toEqual(expect.arrayContaining(["jours de passage (planning automatique impossible)", "durée par passage", "adresse du site", "intervenant"]));
+  });
+});

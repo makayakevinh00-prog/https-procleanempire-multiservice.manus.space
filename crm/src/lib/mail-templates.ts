@@ -25,11 +25,14 @@ export function quoteEmail(a: { company: string; phone?: string | null; clientNa
   return { subject, ...body };
 }
 
-export function quoteFollowupEmail(a: { company: string; phone?: string | null; number: string; totalTtc: string; validUntil?: string | null }): Mail {
-  const subject = `Votre devis ${a.number} — ${a.company}`;
+export function quoteFollowupEmail(a: { company: string; phone?: string | null; number: string; totalTtc: string; validUntil?: string | null; level?: number }): Mail {
+  const last = (a.level ?? 1) >= 2;
+  const subject = last ? `Dernier rappel — devis ${a.number} — ${a.company}` : `Votre devis ${a.number} — ${a.company}`;
   const body = wrap(a.company, [
     "Bonjour,",
-    `Nous nous permettons de revenir vers vous au sujet de notre devis ${a.number} (${a.totalTtc} TTC)${a.validUntil ? `, valable jusqu'au ${a.validUntil}` : ""}. Avez-vous eu l'occasion de le consulter ?`,
+    last
+      ? `Sans réponse de votre part, notre devis ${a.number} (${a.totalTtc} TTC)${a.validUntil ? ` arrivera à échéance le ${a.validUntil}` : " va bientôt expirer"}. Si le projet est toujours d'actualité, il vous suffit de répondre « ok » à ce message pour que nous planifiions l'intervention.`
+      : `Nous nous permettons de revenir vers vous au sujet de notre devis ${a.number} (${a.totalTtc} TTC)${a.validUntil ? `, valable jusqu'au ${a.validUntil}` : ""}. Avez-vous eu l'occasion de le consulter ?`,
     "Nous pouvons l'ajuster à vos besoins ou répondre à vos questions : répondez simplement à ce message.",
     "Cordialement,"
   ], sign(a.company, a.phone));

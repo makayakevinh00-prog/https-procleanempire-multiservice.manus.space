@@ -15,7 +15,7 @@ export default async function QuotesPage({ searchParams }: { searchParams: { sta
   const { data, error } = await query;
   if (error) throw new Error(error.message);
 
-  const tabs = [["", "Tous"], ["brouillon", "Brouillons"], ["envoye", "Envoyés"], ["accepte", "Acceptés"], ["refuse", "Refusés"]];
+  const tabs = [["", "Tous"], ["brouillon", "Brouillons"], ["envoye", "Envoyés"], ["accepte", "Acceptés"], ["refuse", "Refusés"], ["expire", "Expirés"]];
   return (
     <>
       <PageHeader title="Devis" actions={<Link href="/devis/new"><Button><Plus className="h-4 w-4" /> Nouveau devis</Button></Link>} />

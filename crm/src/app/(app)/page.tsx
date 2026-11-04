@@ -10,7 +10,8 @@ import { Badge, StatusBadge } from "@/components/ui/badge";
 import { Table, Td, Tr } from "@/components/ui/table";
 import { ClientName } from "@/components/crm/client-name";
 import { daysBetween, formatDate, formatEUR, formatHours, round2 } from "@/lib/utils";
-import { parisToday } from "@/lib/domain/dates";
+import { parisToday, addDays, monthOf } from "@/lib/domain/dates";
+import { contractIssues } from "@/lib/domain/contract-check";
 import type { Contract } from "@/lib/domain/types";
 
 function Stat({ label, value, sub, href, tone }: { label: string; value: string; sub?: string; href?: string; tone?: string }) {
@@ -32,7 +33,8 @@ export default async function Dashboard() {
   const settings = await getSettings(supabase);
 
   const todayStr = parisToday();
-  const [contracts, invoices, quotes, payments, reserved, requests, toConfirm, unsent] = await Promise.all([
+  const head = { count: "exact" as const, head: true };
+  const [contracts, invoices, quotes, payments, reserved, requests, toConfirm, unsent, lateReq, unassigned, unbilledDone, noAnswer, noEmail, mailFail] = await Promise.all([
     supabase.from("contracts").select("*, clients(id, name, is_reserved)").eq("status", "actif"),
     supabase.from("invoices").select("id, number, status, due_date, issue_date, total_ht, total_ttc, paid_amount, reminder_count, last_reminder_at, clients(id, name, is_reserved)").neq("status", "annule"),
     supabase.from("quotes").select("id, number, status, subject, total_ht, invoice_id, clients(id, name, is_reserved), invoices:invoice_id(status)").eq("status", "accepte"),
@@ -40,9 +42,15 @@ export default async function Dashboard() {
     supabase.from("clients").select("id, name").eq("is_reserved", true),
     supabase.from("quote_requests").select("id", { count: "exact", head: true }).eq("status", "nouvelle"),
     supabase.from("interventions").select("id", { count: "exact", head: true }).eq("status", "planifie").lte("scheduled_date", todayStr).is("invoice_id", null),
-    supabase.from("invoices").select("id", { count: "exact", head: true }).not("billing_month", "is", null).is("sent_at", null).in("status", ["envoye", "en_retard"])
+    supabase.from("invoices").select("id", { count: "exact", head: true }).not("billing_month", "is", null).is("sent_at", null).in("status", ["envoye", "en_retard"]),
+    supabase.from("quote_requests").select("id", head).eq("status", "nouvelle").lt("received_at", new Date(Date.now() - 86_400_000).toISOString()),
+    supabase.from("interventions").select("id", head).eq("status", "planifie").is("assignee", null).gte("scheduled_date", todayStr).lte("scheduled_date", addDays(todayStr, 7)),
+    supabase.from("interventions").select("id", head).eq("status", "realise").eq("billable", true).is("invoice_id", null).lt("scheduled_date", `${monthOf(todayStr)}-01`),
+    supabase.from("quotes").select("id", head).eq("status", "envoye").lt("sent_at", new Date(Date.now() - Number(settings.quote_followup_days) * 86_400_000).toISOString()),
+    supabase.from("clients").select("id", head).eq("status", "actif").is("email", null),
+    supabase.from("email_log").select("id", head).eq("ok", false).gte("sent_at", new Date(Date.now() - 7 * 86_400_000).toISOString())
   ]);
-  for (const r of [contracts, invoices, quotes, payments, reserved, requests, toConfirm, unsent]) if (r.error) throw new Error(r.error.message);
+  for (const r of [contracts, invoices, quotes, payments, reserved, requests, toConfirm, unsent, lateReq, unassigned, unbilledDone, noAnswer, noEmail, mailFail]) if (r.error) throw new Error(r.error.message);
 
   const inv = (invoices.data ?? []) as any[];
   const drafts = inv.filter((i) => i.status === "brouillon");
@@ -65,9 +73,20 @@ export default async function Dashboard() {
 
   // Alertes patron
   const alerts: { tone: "red" | "orange"; text: React.ReactNode; href: string }[] = [];
+  if (mailFail.count) alerts.push({ tone: "red", href: "/journal", text: <><b>{mailFail.count}</b> e-mail(s) en échec ces 7 derniers jours : à vérifier dans le journal.</> });
+  if (lateReq.count) alerts.push({ tone: "red", href: "/demandes", text: <><b>{lateReq.count}</b> demande(s) de devis sans traitement depuis plus de 24 h.</> });
   if (requests.count) alerts.push({ tone: "orange", href: "/demandes", text: <><b>{requests.count}</b> nouvelle(s) demande(s) de devis du site à traiter.</> });
   if (toConfirm.count) alerts.push({ tone: "orange", href: "/planning", text: <><b>{toConfirm.count}</b> intervention(s) passée(s) à confirmer dans le planning (elles alimentent la facture du mois).</> });
   if (unsent.count) alerts.push({ tone: "orange", href: "/facturation-auto", text: <><b>{unsent.count}</b> facture(s) émise(s) automatiquement en attente d&apos;envoi.</> });
+  const incompleteContracts = ((contracts.data ?? []) as any[]).filter((k) => {
+    const i = contractIssues({ ...k, monthly_amount_ht: numOrNull(k.monthly_amount_ht), per_visit_amount_ht: numOrNull(k.per_visit_amount_ht), hours_per_visit: numOrNull(k.hours_per_visit), visits_per_week: numOrNull(k.visits_per_week) });
+    return i.blocking.length + i.warnings.length > 0;
+  });
+  if (incompleteContracts.length) alerts.push({ tone: "orange", href: "/contrats?filtre=incomplets", text: <><b>{incompleteContracts.length}</b> contrat(s) actif(s) incomplet(s) (jours de passage, durée, intervenant…) : planning et heures non fiables.</> });
+  if (unassigned.count) alerts.push({ tone: "orange", href: "/planning", text: <><b>{unassigned.count}</b> passage(s) des 7 prochains jours sans intervenant.</> });
+  if (unbilledDone.count) alerts.push({ tone: "orange", href: "/planning", text: <><b>{unbilledDone.count}</b> prestation(s) réalisée(s) d&apos;un mois passé jamais facturée(s).</> });
+  if (noAnswer.count) alerts.push({ tone: "orange", href: "/devis?statut=envoye", text: <><b>{noAnswer.count}</b> devis envoyé(s) sans réponse depuis plus de {settings.quote_followup_days} jours.</> });
+  if (noEmail.count) alerts.push({ tone: "orange", href: "/clients", text: <><b>{noEmail.count}</b> client(s) actif(s) sans adresse e-mail (leurs factures ne pourront pas partir automatiquement).</> });
   for (const q of toInvoice) {
     if (q.clients.is_reserved) alerts.push({ tone: "red", href: `/devis/${q.id}`, text: <>🔒 <b>{q.number}</b> ({q.clients.name}) accepté, en attente de facturation — traitement patron uniquement.</> });
   }
@@ -96,6 +115,13 @@ export default async function Dashboard() {
         </div>
       )}
 
+      <div className="mb-4 flex flex-wrap gap-2">
+        <Link href="/planning" className="rounded-full border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted">📅 Générer le planning</Link>
+        <Link href="/facturation-auto" className="rounded-full border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted">⚡ Préparer les factures</Link>
+        <Link href="/devis?statut=envoye" className="rounded-full border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted">✉️ Relancer les devis</Link>
+        <Link href="#alertes" className="rounded-full border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted">⚠️ Voir les anomalies ({alerts.length})</Link>
+      </div>
+
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="CA récurrent / mois (HT)" value={formatEUR(mrr)} sub={`${rows.length} contrat(s) actif(s)`} href="/contrats" />
         <Stat label="Facturé ce mois (HT)" value={formatEUR(billedMonth)} href="/factures" />
@@ -104,7 +130,7 @@ export default async function Dashboard() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2" id="alertes">
           <CardHeader><CardTitle className="flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-amber-600" /> Alertes patron ({alerts.length})</CardTitle></CardHeader>
           {!alerts.length ? <Empty>Aucune alerte.</Empty> : (
             <ul className="divide-y">{alerts.map((a, n) => (

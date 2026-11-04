@@ -13,6 +13,7 @@ export interface ScheduleContract {
   start_time: string | null;
   hours_per_visit: number | null;
   site_address: string | null;
+  assignee?: string | null;
 }
 
 export interface PlannedVisit {
@@ -26,6 +27,7 @@ export interface PlannedVisit {
   site_address: string | null;
   billable: boolean;
   unit_price_ht: number | null;
+  assignee: string | null;
 }
 
 /**
@@ -47,7 +49,7 @@ export function contractVisits(contracts: ScheduleContract[], month: string): Pl
       out.push({
         source_key: `contract:${k.id}:${day}`, client_id: k.client_id, contract_id: k.id, title: k.label, scheduled_date: day,
         start_time: k.start_time, duration_hours: k.hours_per_visit, site_address: k.site_address,
-        billable: perVisit, unit_price_ht: perVisit ? k.per_visit_amount_ht : null
+        billable: perVisit, unit_price_ht: perVisit ? k.per_visit_amount_ht : null, assignee: k.assignee ?? null
       });
     }
   }

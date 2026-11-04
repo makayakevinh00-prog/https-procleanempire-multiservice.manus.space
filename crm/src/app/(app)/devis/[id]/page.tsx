@@ -11,7 +11,7 @@ import { StatusBadge } from "@/components/ui/badge";
 import { Table, Td, Th, Tr } from "@/components/ui/table";
 import { ClientName, ReservedBanner } from "@/components/crm/client-name";
 import { ConfirmAction } from "@/components/crm/confirm-action";
-import { convertQuoteAction, sendQuoteEmailAction, setQuoteStatusAction } from "@/app/actions/quotes";
+import { convertQuoteAction, followupQuoteNowAction, sendQuoteEmailAction, setQuoteStatusAction } from "@/app/actions/quotes";
 import { Field, Input } from "@/components/ui/form";
 import { formatDate, formatEUR, cn } from "@/lib/utils";
 
@@ -21,6 +21,7 @@ export default async function QuotePage({ params }: { params: { id: string } }) 
     .select("*, clients(id, name, email, is_reserved, reserved_reason), quote_lines(*), invoices:invoice_id(id, number, status)").eq("id", params.id).maybeSingle();
   if (!q) notFound();
   const settings = await getSettings(supabase);
+  const { data: mails } = await supabase.from("email_log").select("id, sent_at, kind, to_email, ok, error").eq("entity", "quote").eq("entity_id", q.id).order("sent_at", { ascending: false }).limit(10);
   const c = q.clients;
   const lines = [...q.quote_lines].sort((a: any, b: any) => a.position - b.position);
   const large = isLargeAmount(num(q.total_ht), settings);
@@ -80,6 +81,10 @@ export default async function QuotePage({ params }: { params: { id: string } }) 
                   confirmLabel="Envoyer" reservedName={reservedName} largeAmount={largeAmount}
                   extra={<Field label="Destinataire"><Input name="to" type="email" required defaultValue={c.email ?? ""} placeholder="client@exemple.fr" /></Field>} />
               )}
+              {q.status === "envoye" && c.email && (
+                <ConfirmAction action={followupQuoteNowAction.bind(null, q.id)} label="🔔 Relancer maintenant" variant="outline" className="w-full"
+                  title={`Relancer ${c.email} ?`} description={`Relance n°${(q.followup_count ?? 0) + 1} du devis ${q.number} par e-mail.`} confirmLabel="Envoyer la relance" reservedName={reservedName} />
+              )}
               <div className="flex flex-wrap gap-2">
                 {q.status === "brouillon" && statusBtn("envoye", "Marquer envoyé (sans e-mail)")}
                 {["brouillon", "envoye"].includes(q.status) && statusBtn("accepte", "Marquer accepté")}
@@ -93,9 +98,29 @@ export default async function QuotePage({ params }: { params: { id: string } }) 
                   description="Une facture BROUILLON est créée avec les lignes du devis. Elle ne sera ni numérotée ni envoyée : vous devrez la relire puis la valider manuellement."
                   confirmLabel="Créer le brouillon" reservedName={reservedName} largeAmount={largeAmount} />
               ))}
+              {q.status === "accepte" && !alreadyInvoiced && (
+                <div className="rounded-md bg-muted p-3 text-xs">
+                  <b>Prochaines étapes</b>
+                  <ul className="mt-1 space-y-1">
+                    <li>1. <Link className="text-primary hover:underline" href={`/contrats/new?client=${c.id}`}>Créer le contrat récurrent</Link> (si la prestation est répétée)</li>
+                    <li>2. <Link className="text-primary hover:underline" href={`/planning?client=${c.id}`}>Planifier le premier passage</Link></li>
+                    <li>3. Convertir en facture (bouton ci-dessus)</li>
+                  </ul>
+                </div>
+              )}
               {linked?.status === "annule" && <p className="text-xs text-muted-foreground">La facture précédente est annulée : une nouvelle peut être créée.</p>}
             </CardContent>
           </Card>
+          {!!mails?.length && (
+            <Card>
+              <CardHeader><CardTitle>Historique des envois</CardTitle></CardHeader>
+              <CardContent className="space-y-1 text-xs">
+                {mails.map((m: any) => (
+                  <div key={m.id} className="flex justify-between gap-2"><span>{formatDate(m.sent_at)} · {m.kind === "relance_devis" ? "relance" : "devis"} → {m.to_email}</span><span className={m.ok ? "text-emerald-700" : "text-red-700"}>{m.ok ? "envoyé" : `échec : ${m.error}`}</span></div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </>

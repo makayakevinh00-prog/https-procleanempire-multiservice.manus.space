@@ -25,7 +25,7 @@ export function ReservedBadge({ className }: { className?: string }) {
 }
 
 const STATUS: Record<string, [string, "gray" | "blue" | "green" | "orange" | "red"]> = {
-  brouillon: ["Brouillon", "gray"], envoye: ["Envoyé", "blue"], accepte: ["Accepté", "green"], refuse: ["Refusé", "red"],
+  brouillon: ["Brouillon", "gray"], envoye: ["Envoyé", "blue"], accepte: ["Accepté", "green"], refuse: ["Refusé", "red"], expire: ["Expiré", "gray"],
   paye: ["Payé", "green"], en_retard: ["En retard", "red"], annule: ["Annulé", "gray"],
   actif: ["Actif", "green"], resilie: ["Résilié", "red"], en_cours: ["En cours", "orange"],
   prospect: ["Prospect", "blue"], inactif: ["Inactif", "gray"],

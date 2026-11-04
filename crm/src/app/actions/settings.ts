@@ -25,6 +25,7 @@ export async function saveSettingsAction(fd: FormData) {
     company_legal_form: str(fd, "company_legal_form"), company_capital: str(fd, "company_capital"), company_rcs: str(fd, "company_rcs"), company_footer: str(fd, "company_footer"),
     quote_default_validity_days: Math.round(n("quote_default_validity_days", 30)), quote_terms: str(fd, "quote_terms"), notify_email: str(fd, "notify_email"),
     quote_followup_enabled: checked(fd, "quote_followup_enabled"), quote_followup_days: Math.round(n("quote_followup_days", 5)),
+    quote_followup2_days: Math.round(n("quote_followup2_days", 12)), quote_expire_enabled: checked(fd, "quote_expire_enabled"), auto_planning_enabled: checked(fd, "auto_planning_enabled"),
     auto_invoicing_enabled: checked(fd, "auto_invoicing_enabled"), auto_invoicing_start_month: month,
     count_planned_as_done: checked(fd, "count_planned_as_done"), month_end_send_next_day: checked(fd, "month_end_send_next_day"),
     updated_at: new Date().toISOString()

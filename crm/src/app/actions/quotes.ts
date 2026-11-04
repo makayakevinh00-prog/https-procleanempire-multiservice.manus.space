@@ -9,6 +9,8 @@ import { sendMail } from "@/lib/mail";
 import { quoteEmail } from "@/lib/mail-templates";
 import { getSettings, num } from "@/lib/data";
 import { isLargeAmount } from "@/lib/domain/billing";
+import { logEmail } from "@/lib/email-log";
+import { quoteFollowupEmail } from "@/lib/mail-templates";
 import { formatEUR, formatDate } from "@/lib/utils";
 
 export async function createQuoteAction(fd: FormData) {
@@ -52,7 +54,7 @@ export async function updateQuoteAction(id: string, fd: FormData) {
   flash(`/devis/${id}`, "ok", "Devis mis à jour.");
 }
 
-export async function setQuoteStatusAction(id: string, status: "envoye" | "accepte" | "refuse" | "brouillon", fd: FormData) {
+export async function setQuoteStatusAction(id: string, status: "envoye" | "accepte" | "refuse" | "brouillon" | "expire", fd: FormData) {
   const back = `/devis/${id}`;
   const supabase = createClient();
   const { data: q } = await supabase.from("quotes").select("client_id, invoice_id").eq("id", id).single();
@@ -94,9 +96,30 @@ export async function sendQuoteEmailAction(id: string, fd: FormData) {
   if (!pdf) flash(back, "error", "PDF introuvable.");
   const mail = quoteEmail({ company: settings.company_name, phone: settings.company_phone, clientName: q.clients.name, number: q.number, subject: q.subject, totalTtc: formatEUR(q.total_ttc), validUntil: q.valid_until ? formatDate(q.valid_until) : null });
   const res = await sendMail({ to: to!, subject: mail.subject, text: mail.text, html: mail.html, attachment: { filename: pdf!.filename, bytes: pdf!.bytes } });
+  await logEmail(supabase, { kind: "devis", to: to!, subject: mail.subject, ok: res.sent, error: res.sent ? undefined : res.reason, entity: "quote", entityId: id });
   if (!res.sent) flash(back, "error", `Le devis n'a PAS été envoyé : ${res.reason}.`);
   await supabase.from("quotes").update({ status: q.status === "brouillon" ? "envoye" : q.status, sent_at: new Date().toISOString() }).eq("id", id);
   await supabase.from("interactions").insert({ client_id: q.client_id, kind: "devis", summary: `Devis ${q.number} envoyé par e-mail à ${to}` });
   revalidatePath("/devis");
   flash(back, "ok", `Devis ${q.number} envoyé à ${to}.`);
+}
+
+/** Relance manuelle immédiate d'un devis envoyé (ne dépend pas du délai automatique). */
+export async function followupQuoteNowAction(id: string, fd: FormData) {
+  const back = `/devis/${id}`;
+  const supabase = createClient();
+  const { data: q } = await supabase.from("quotes").select("*, clients(name, email, is_reserved)").eq("id", id).maybeSingle();
+  if (!q) flash("/devis", "error", "Devis introuvable.");
+  if (q.clients.is_reserved && !checked(fd, "ack_reserved")) flash(back, "error", `Contact réservé (${q.clients.name}) : confirmation explicite du patron requise.`);
+  if (!q.clients.email) flash(back, "error", "Le client n'a pas d'adresse e-mail.");
+  const settings = await getSettings(supabase);
+  const level = (q.followup_count ?? 0) + 1;
+  const mail = quoteFollowupEmail({ company: settings.company_name, phone: settings.company_phone, number: q.number, totalTtc: formatEUR(q.total_ttc), validUntil: q.valid_until ? formatDate(q.valid_until) : null, level });
+  const res = await sendMail({ to: q.clients.email, subject: mail.subject, text: mail.text, html: mail.html });
+  await logEmail(supabase, { kind: "relance_devis", to: q.clients.email, subject: mail.subject, ok: res.sent, error: res.sent ? undefined : res.reason, entity: "quote", entityId: id });
+  if (!res.sent) flash(back, "error", `Relance non envoyée : ${res.reason}.`);
+  await supabase.from("quotes").update({ followup_count: level, followup_sent_at: new Date().toISOString() }).eq("id", id);
+  await supabase.from("interactions").insert({ client_id: q.client_id, kind: "devis", summary: `Relance n°${level} du devis ${q.number} (manuelle)` });
+  revalidatePath("/devis");
+  flash(back, "ok", `Relance envoyée à ${q.clients.email}.`);
 }
