@@ -14,6 +14,8 @@
  * - LEADS_TO_EMAIL        destinataire interne (défaut : contact@procleanempire.com)
  * - KV_REST_API_URL / KV_REST_API_TOKEN (ajoutées automatiquement par l'intégration Upstash de Vercel)
  *   ou UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN.
+ * - CRM_INBOUND_URL / CRM_INBOUND_SECRET (facultatif) : transmet aussi chaque demande au CRM ProClean
+ *   (https://…/api/inbound/quote-request). Un échec n'a AUCUN effet sur la demande du client.
  */
 
 export type Lead = {
@@ -40,6 +42,7 @@ export type DeliveryReport = {
   stored: boolean;
   internalEmail: boolean;
   clientEmail: boolean | "non configuré";
+  crm?: boolean | "non configuré";
   errors: string[];
 };
 
@@ -179,6 +182,20 @@ export async function sendClientAcknowledgement(lead: Lead) {
   });
 }
 
+export function crmConfigured() {
+  return Boolean(process.env.CRM_INBOUND_URL?.trim() && process.env.CRM_INBOUND_SECRET?.trim());
+}
+
+/** Transmission (facultative) de la demande au CRM : fiche client et devis brouillon en un clic. */
+export async function forwardToCrm(lead: Lead) {
+  const response = await timedFetch(process.env.CRM_INBOUND_URL!.trim(), {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-inbound-secret": process.env.CRM_INBOUND_SECRET!.trim() },
+    body: JSON.stringify(lead)
+  });
+  if (!response.ok) throw new Error(`CRM_REFUS ${response.status}`);
+}
+
 /**
  * Sauvegarde puis e-mails. La demande est considérée comme reçue si elle est sauvegardée
  * OU si l'e-mail interne est parti. L'accusé client ne bloque jamais.
@@ -210,6 +227,16 @@ export async function deliverLead(lead: Lead): Promise<DeliveryReport> {
     } catch (error) {
       report.clientEmail = false;
       report.errors.push(String(error));
+    }
+  }
+  report.crm = "non configuré";
+  if (crmConfigured() && (report.stored || report.internalEmail)) {
+    try {
+      await forwardToCrm(lead);
+      report.crm = true;
+    } catch (error) {
+      report.crm = false;
+      report.errors.push(String(error)); // journalisé seulement : la demande du client n'est pas affectée
     }
   }
   if (report.stored) {
