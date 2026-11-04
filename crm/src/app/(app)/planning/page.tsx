@@ -19,13 +19,19 @@ const shift = (month: string, n: number) => {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
 };
 
-export default async function PlanningPage({ searchParams }: { searchParams: { mois?: string; client?: string } }) {
+export default async function PlanningPage({ searchParams }: { searchParams: { mois?: string; client?: string; filtre?: string } }) {
   const today = parisToday();
   const month = /^\d{4}-\d{2}$/.test(searchParams.mois ?? "") ? searchParams.mois! : monthOf(today);
   const { start, end } = monthBounds(month);
   const supabase = createClient();
-  let q = supabase.from("interventions").select("*, clients(id, name, is_reserved)").gte("scheduled_date", start).lte("scheduled_date", end)
+  // Filtres issus des compteurs de l'accueil : ils ignorent le mois affiché.
+  const filtre = ["a_confirmer", "sans_intervenant", "non_facturees"].includes(searchParams.filtre ?? "") ? searchParams.filtre : undefined;
+  let q = supabase.from("interventions").select("*, clients(id, name, is_reserved)")
     .order("scheduled_date").order("start_time", { nullsFirst: false });
+  if (filtre === "a_confirmer") q = q.eq("status", "planifie").lte("scheduled_date", today).is("invoice_id", null);
+  else if (filtre === "sans_intervenant") q = q.eq("status", "planifie").is("assignee", null).gte("scheduled_date", today).lte("scheduled_date", addDays(today, 7));
+  else if (filtre === "non_facturees") q = q.eq("status", "realise").eq("billable", true).is("invoice_id", null).lt("scheduled_date", `${monthOf(today)}-01`);
+  else q = q.gte("scheduled_date", start).lte("scheduled_date", end);
   if (searchParams.client) q = q.eq("client_id", searchParams.client);
   const [{ data: rows, error }, { data: clients }, services] = await Promise.all([
     q, supabase.from("clients").select("id, name, is_reserved").neq("status", "inactif").order("name"), loadServices(supabase)
@@ -49,6 +55,13 @@ export default async function PlanningPage({ searchParams }: { searchParams: { m
           {toConfirm > 0 && <form action={markPastDoneAction.bind(null, month)}><Button><Check className="h-4 w-4" /> Marquer les {toConfirm} passés comme réalisés</Button></form>}
         </>} />
 
+      {filtre && (
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-md border bg-card px-4 py-2 text-sm">
+          <b>Filtre actif :</b>
+          {{ a_confirmer: "passages passés à confirmer", sans_intervenant: "passages des 7 prochains jours sans intervenant", non_facturees: "prestations réalisées d'un mois passé jamais facturées" }[filtre]}
+          <Link href="/planning" className="ml-auto text-primary hover:underline">Retirer le filtre</Link>
+        </div>
+      )}
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1 rounded-md border bg-card">
           <Link href={nav(shift(month, -1))} className="p-2 hover:bg-muted" aria-label="Mois précédent"><ChevronLeft className="h-4 w-4" /></Link>

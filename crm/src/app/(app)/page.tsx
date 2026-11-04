@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { AlertTriangle, Lock } from "lucide-react";
+import { AlertTriangle, Lock, UserPlus, FilePlus, CalendarPlus, CalendarCheck, Zap, Mail, Siren } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getSettings, num, numOrNull } from "@/lib/data";
-import { isLargeAmount } from "@/lib/domain/billing";
+import { loadActions } from "@/lib/actions";
 import { monthlyRevenueHt, summarize, weeklyHours, weeklyRevenueHt, type SiteRow } from "@/lib/domain/recruitment";
 import { PageHeader, Empty } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,8 +10,6 @@ import { Badge, StatusBadge } from "@/components/ui/badge";
 import { Table, Td, Tr } from "@/components/ui/table";
 import { ClientName } from "@/components/crm/client-name";
 import { daysBetween, formatDate, formatEUR, formatHours, round2 } from "@/lib/utils";
-import { parisToday, addDays, monthOf } from "@/lib/domain/dates";
-import { contractIssues } from "@/lib/domain/contract-check";
 import type { Contract } from "@/lib/domain/types";
 
 function Stat({ label, value, sub, href, tone }: { label: string; value: string; sub?: string; href?: string; tone?: string }) {
@@ -32,31 +30,20 @@ export default async function Dashboard() {
   await supabase.rpc("refresh_overdue");
   const settings = await getSettings(supabase);
 
-  const todayStr = parisToday();
-  const head = { count: "exact" as const, head: true };
-  const [contracts, invoices, quotes, payments, reserved, requests, toConfirm, unsent, lateReq, unassigned, unbilledDone, noAnswer, noEmail, mailFail] = await Promise.all([
+  const [contracts, invoices, quotes, payments, reserved, actions] = await Promise.all([
     supabase.from("contracts").select("*, clients(id, name, is_reserved)").eq("status", "actif"),
     supabase.from("invoices").select("id, number, status, due_date, issue_date, total_ht, total_ttc, paid_amount, reminder_count, last_reminder_at, clients(id, name, is_reserved)").neq("status", "annule"),
     supabase.from("quotes").select("id, number, status, subject, total_ht, invoice_id, clients(id, name, is_reserved), invoices:invoice_id(status)").eq("status", "accepte"),
     supabase.from("payments").select("id", { count: "exact", head: true }).in("match_status", ["non_rapproche", "propose"]),
     supabase.from("clients").select("id, name").eq("is_reserved", true),
-    supabase.from("quote_requests").select("id", { count: "exact", head: true }).eq("status", "nouvelle"),
-    supabase.from("interventions").select("id", { count: "exact", head: true }).eq("status", "planifie").lte("scheduled_date", todayStr).is("invoice_id", null),
-    supabase.from("invoices").select("id", { count: "exact", head: true }).not("billing_month", "is", null).is("sent_at", null).in("status", ["envoye", "en_retard"]),
-    supabase.from("quote_requests").select("id", head).eq("status", "nouvelle").lt("received_at", new Date(Date.now() - 86_400_000).toISOString()),
-    supabase.from("interventions").select("id", head).eq("status", "planifie").is("assignee", null).gte("scheduled_date", todayStr).lte("scheduled_date", addDays(todayStr, 7)),
-    supabase.from("interventions").select("id", head).eq("status", "realise").eq("billable", true).is("invoice_id", null).lt("scheduled_date", `${monthOf(todayStr)}-01`),
-    supabase.from("quotes").select("id", head).eq("status", "envoye").lt("sent_at", new Date(Date.now() - Number(settings.quote_followup_days) * 86_400_000).toISOString()),
-    supabase.from("clients").select("id", head).eq("status", "actif").is("email", null),
-    supabase.from("email_log").select("id", head).eq("ok", false).gte("sent_at", new Date(Date.now() - 7 * 86_400_000).toISOString())
+    loadActions(supabase)
   ]);
-  for (const r of [contracts, invoices, quotes, payments, reserved, requests, toConfirm, unsent, lateReq, unassigned, unbilledDone, noAnswer, noEmail, mailFail]) if (r.error) throw new Error(r.error.message);
+  for (const r of [contracts, invoices, quotes, payments, reserved]) if (r.error) throw new Error(r.error.message);
 
   const inv = (invoices.data ?? []) as any[];
   const drafts = inv.filter((i) => i.status === "brouillon");
   const open = inv.filter((i) => ["envoye", "en_retard"].includes(i.status));
   const late = open.filter((i) => i.status === "en_retard");
-  const lateAlert = late.filter((i) => i.due_date && daysBetween(i.due_date) >= settings.unpaid_alert_days);
   const outstanding = round2(open.reduce((a, i) => a + num(i.total_ttc) - num(i.paid_amount), 0));
   const month = new Date().toISOString().slice(0, 7);
   const billedMonth = round2(inv.filter((i) => i.status !== "brouillon" && i.issue_date?.startsWith(month)).reduce((a, i) => a + num(i.total_ht), 0));
@@ -71,41 +58,9 @@ export default async function Dashboard() {
   const mrr = round2(rows.reduce((a, r) => a + (monthlyRevenueHt(r.contract) ?? 0), 0));
   const recTone = { vert: "border-emerald-400", orange: "border-amber-400", rouge: "border-red-500" }[rec.level];
 
-  // Alertes patron
-  const alerts: { tone: "red" | "orange"; text: React.ReactNode; href: string }[] = [];
-  if (mailFail.count) alerts.push({ tone: "red", href: "/journal", text: <><b>{mailFail.count}</b> e-mail(s) en échec ces 7 derniers jours : à vérifier dans le journal.</> });
-  if (lateReq.count) alerts.push({ tone: "red", href: "/demandes", text: <><b>{lateReq.count}</b> demande(s) de devis sans traitement depuis plus de 24 h.</> });
-  if (requests.count) alerts.push({ tone: "orange", href: "/demandes", text: <><b>{requests.count}</b> nouvelle(s) demande(s) de devis du site à traiter.</> });
-  if (toConfirm.count) alerts.push({ tone: "orange", href: "/planning", text: <><b>{toConfirm.count}</b> intervention(s) passée(s) à confirmer dans le planning (elles alimentent la facture du mois).</> });
-  if (unsent.count) alerts.push({ tone: "orange", href: "/facturation-auto", text: <><b>{unsent.count}</b> facture(s) émise(s) automatiquement en attente d&apos;envoi.</> });
-  const incompleteContracts = ((contracts.data ?? []) as any[]).filter((k) => {
-    const i = contractIssues({ ...k, monthly_amount_ht: numOrNull(k.monthly_amount_ht), per_visit_amount_ht: numOrNull(k.per_visit_amount_ht), hours_per_visit: numOrNull(k.hours_per_visit), visits_per_week: numOrNull(k.visits_per_week) });
-    return i.blocking.length + i.warnings.length > 0;
-  });
-  if (incompleteContracts.length) alerts.push({ tone: "orange", href: "/contrats?filtre=incomplets", text: <><b>{incompleteContracts.length}</b> contrat(s) actif(s) incomplet(s) (jours de passage, durée, intervenant…) : planning et heures non fiables.</> });
-  if (unassigned.count) alerts.push({ tone: "orange", href: "/planning", text: <><b>{unassigned.count}</b> passage(s) des 7 prochains jours sans intervenant.</> });
-  if (unbilledDone.count) alerts.push({ tone: "orange", href: "/planning", text: <><b>{unbilledDone.count}</b> prestation(s) réalisée(s) d&apos;un mois passé jamais facturée(s).</> });
-  if (noAnswer.count) alerts.push({ tone: "orange", href: "/devis?statut=envoye", text: <><b>{noAnswer.count}</b> devis envoyé(s) sans réponse depuis plus de {settings.quote_followup_days} jours.</> });
-  if (noEmail.count) alerts.push({ tone: "orange", href: "/clients", text: <><b>{noEmail.count}</b> client(s) actif(s) sans adresse e-mail (leurs factures ne pourront pas partir automatiquement).</> });
-  for (const q of toInvoice) {
-    if (q.clients.is_reserved) alerts.push({ tone: "red", href: `/devis/${q.id}`, text: <>🔒 <b>{q.number}</b> ({q.clients.name}) accepté, en attente de facturation — traitement patron uniquement.</> });
-  }
-  for (const i of drafts) {
-    const big = isLargeAmount(num(i.total_ht), settings);
-    if (i.clients.is_reserved || big) alerts.push({ tone: i.clients.is_reserved ? "red" : "orange", href: `/factures/${i.id}`,
-      text: <>Brouillon de {formatEUR(i.total_ht)} HT ({i.clients.name}){big ? ` — au-dessus du seuil de ${formatEUR(settings.large_amount_threshold_ht)}` : ""}{i.clients.is_reserved ? " — contact réservé" : ""} : validation manuelle requise.</> });
-  }
-  for (const q of toInvoice) {
-    if (!q.clients.is_reserved && isLargeAmount(num(q.total_ht), settings)) alerts.push({ tone: "orange", href: `/devis/${q.id}`, text: <><b>{q.number}</b> : {formatEUR(q.total_ht)} HT à facturer — montant au-dessus du seuil.</> });
-  }
-  for (const i of lateAlert) {
-    alerts.push({ tone: i.clients.is_reserved ? "red" : "orange", href: `/factures/${i.id}`,
-      text: <>{i.clients.is_reserved ? "🔒 " : ""}<b>{i.number}</b> ({i.clients.name}) impayée depuis {daysBetween(i.due_date)} jours{i.clients.is_reserved ? " — aucune relance automatique" : ""}.</> });
-  }
-
   return (
     <>
-      <PageHeader title="Tableau de bord" subtitle={`ProClean Empire — ${new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}`} />
+      <PageHeader title="Accueil" subtitle={`ProClean Empire — ${new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}`} />
 
       {(reserved.data?.length ?? 0) > 0 && (
         <div className="mb-4 flex flex-wrap items-center gap-2 rounded-md border-2 border-destructive bg-red-50 p-3 text-sm text-red-900">
@@ -115,12 +70,38 @@ export default async function Dashboard() {
         </div>
       )}
 
-      <div className="mb-4 flex flex-wrap gap-2">
-        <Link href="/planning" className="rounded-full border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted">📅 Générer le planning</Link>
-        <Link href="/facturation-auto" className="rounded-full border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted">⚡ Préparer les factures</Link>
-        <Link href="/devis?statut=envoye" className="rounded-full border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted">✉️ Relancer les devis</Link>
-        <Link href="#alertes" className="rounded-full border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted">⚠️ Voir les anomalies ({alerts.length})</Link>
+      <div className="mb-5 flex flex-wrap gap-2">
+        {[
+          ["/clients/new", UserPlus, "Ajouter un client"],
+          ["/devis/new", FilePlus, "Créer un devis"],
+          ["/planning", CalendarPlus, "Planifier une mission"],
+          ["/planning", CalendarCheck, "Générer le planning"],
+          ["/facturation-auto", Zap, "Préparer les factures"],
+          ["/factures?statut=en_retard", Mail, "Relancer les clients"],
+          ["/actions", Siren, "Voir les urgences"]
+        ].map(([href, Icon, label]: any) => (
+          <Link key={label} href={href} className="inline-flex items-center gap-2 rounded-full border bg-card px-3.5 py-2 text-sm font-medium hover:bg-muted">
+            <Icon className="h-4 w-4 text-primary" /> {label}
+          </Link>
+        ))}
       </div>
+
+      <Card className="mb-6" id="alertes">
+        <CardHeader><CardTitle className="flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-amber-600" /> À faire maintenant</CardTitle>
+          <Link href="/actions" className="text-xs font-medium text-primary hover:underline">Tout voir ({actions.length})</Link></CardHeader>
+        {!actions.length ? <Empty>Rien à faire : tout est à jour.</Empty> : (
+          <div className="grid gap-2 p-4 sm:grid-cols-2 lg:grid-cols-3">
+            {actions.filter((a) => a.count !== undefined).slice(0, 9).map((a) => (
+              <Link key={a.key} href={a.href} className={`flex items-center gap-3 rounded-md border bg-card p-3 text-sm hover:shadow-md ${a.tone === "red" ? "border-destructive" : a.tone === "orange" ? "border-amber-400" : "border-sky-300"}`}>
+                <span className="text-2xl font-bold">{a.count}</span><span className="leading-snug text-muted-foreground">{a.label}</span>
+              </Link>
+            ))}
+            {actions.filter((a) => a.count === undefined).slice(0, 6).map((a) => (
+              <Link key={a.key} href={a.href} className={`rounded-md border bg-card p-3 text-sm hover:shadow-md ${a.tone === "red" ? "border-destructive" : "border-amber-400"}`}>{a.label}</Link>
+            ))}
+          </div>
+        )}
+      </Card>
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="CA récurrent / mois (HT)" value={formatEUR(mrr)} sub={`${rows.length} contrat(s) actif(s)`} href="/contrats" />
@@ -134,15 +115,6 @@ export default async function Dashboard() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="lg:col-span-2" id="alertes">
-          <CardHeader><CardTitle className="flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-amber-600" /> Alertes patron ({alerts.length})</CardTitle></CardHeader>
-          {!alerts.length ? <Empty>Aucune alerte.</Empty> : (
-            <ul className="divide-y">{alerts.map((a, n) => (
-              <li key={n}><Link href={a.href} className={`block px-5 py-3 text-sm hover:bg-muted/50 ${a.tone === "red" ? "border-l-4 border-destructive" : "border-l-4 border-amber-500"}`}>{a.text}</Link></li>
-            ))}</ul>
-          )}
-        </Card>
-
         <Card>
           <CardHeader><CardTitle>Factures à valider ({drafts.length})</CardTitle></CardHeader>
           {!drafts.length ? <Empty>Aucun brouillon en attente.</Empty> : (

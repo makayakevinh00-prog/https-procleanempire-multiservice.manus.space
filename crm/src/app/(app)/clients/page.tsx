@@ -8,9 +8,10 @@ import { Table, Td, Th, Tr } from "@/components/ui/table";
 import { StatusBadge } from "@/components/ui/badge";
 import { ClientName } from "@/components/crm/client-name";
 
-export default async function ClientsPage({ searchParams }: { searchParams: { q?: string } }) {
+export default async function ClientsPage({ searchParams }: { searchParams: { q?: string; filtre?: string } }) {
   const supabase = createClient();
   let query = supabase.from("clients").select("*").order("name");
+  if (searchParams.filtre === "sans_email") query = query.eq("status", "actif").is("email", null);
   const q = searchParams.q?.trim();
   if (q) query = query.or(`name.ilike.%${q.replace(/[%,]/g, "")}%,city.ilike.%${q.replace(/[%,]/g, "")}%`);
   const { data: clients, error } = await query;
@@ -20,6 +21,11 @@ export default async function ClientsPage({ searchParams }: { searchParams: { q?
     <>
       <PageHeader title="Clients" subtitle={`${clients?.length ?? 0} fiche(s)`}
         actions={<Link href="/clients/new"><Button><Plus className="h-4 w-4" /> Nouveau client</Button></Link>} />
+      {searchParams.filtre === "sans_email" && (
+        <div className="mb-4 flex items-center gap-2 rounded-md border bg-card px-4 py-2 text-sm">
+          <b>Filtre actif :</b> clients actifs sans e-mail <Link href="/clients" className="ml-auto text-primary hover:underline">Retirer le filtre</Link>
+        </div>
+      )}
       <form className="mb-4"><input name="q" defaultValue={q} placeholder="Rechercher un nom ou une ville…"
         className="h-10 w-full max-w-sm rounded-md border bg-card px-3 text-sm" /></form>
       <Card>
