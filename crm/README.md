@@ -46,3 +46,19 @@ sont proposés pour confirmation en un clic.
 - TVA 20 % par défaut (cohérent avec 129,17 € HT = 155 € TTC) ; modifiable ligne par ligne.
 - Coûts de recrutement par défaut (indépendant 22 €/h ; salarié 12,02 € brut + 10 % congés + 42 % de charges) : **valeurs d'amorçage, à ajuster**.
 - « Alerte impayés > X jours » = jours de retard **après échéance**.
+
+## Automatisations (migrations 0002 et 0003)
+
+Une seule tâche quotidienne (`/api/cron/daily`, 18 h UTC, compatible plan Vercel gratuit) :
+
+1. **Dernier jour du mois** : une facture par client = forfaits mensuels des contrats actifs + passages du **planning** (réalisés, ou planifiés et passés selon le réglage). Brouillon dans tous les cas ; **émise et envoyée** seulement si : facturation auto activée (Paramètres) · case « envoi automatique » cochée sur le client · pas de contact réservé · montant ≤ seuil · e-mail connu · pas de contrat commencé/terminé en cours de mois · pas de facture déjà préparée pour ce mois.
+2. **Envoi** des factures émises (le lendemain par défaut, pour laisser une fenêtre de relecture), PDF joint ; une facture n'est marquée envoyée qu'après succès de l'e-mail.
+3. Relances de **factures impayées** et de **devis sans réponse** (désactivées par défaut, mêmes garde-fous qu'avant).
+4. **Récapitulatif** envoyé à l'adresse de notification après chaque passage.
+
+Aucune clé `service_role` : les tâches appellent des fonctions SQL protégées par `app_settings.automation_secret` (variable Vercel `AUTOMATION_SECRET`).
+Test sans risque : `GET /api/cron/daily?dry=1&force=1&month=AAAA-MM` avec `Authorization: Bearer $CRON_SECRET`.
+
+Variables à ajouter pour que les e-mails partent : `RESEND_API_KEY` (et `MAIL_FROM` si besoin). Sans elle, rien n'est envoyé et le CRM le signale.
+
+Demandes de devis du site : `POST /api/inbound/quote-request` (en-tête `x-inbound-secret` = `INBOUND_SECRET`). Côté site vitrine : variables `CRM_INBOUND_URL` et `CRM_INBOUND_SECRET`.
