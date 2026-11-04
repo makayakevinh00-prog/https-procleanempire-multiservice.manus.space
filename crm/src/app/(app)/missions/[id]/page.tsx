@@ -4,7 +4,7 @@ import { CheckSquare, Square, AlertTriangle, History, UserCheck } from "lucide-r
 import { createClient } from "@/lib/supabase/server";
 import { addDays, isoWeekday } from "@/lib/domain/dates";
 import { MANUAL_STAGES, STAGE_LABEL, nextStage, suggestAgents, type Stage } from "@/lib/domain/missions";
-import { addChecklistItemAction, addIssueAction, assignStaffAction, resolveIssueAction, saveMissionNotesAction, setStageAction, toggleChecklistAction } from "@/app/actions/missions";
+import { addChecklistItemAction, addIssueAction, assignStaffAction, deletePhotoAction, resolveIssueAction, saveMissionNotesAction, setStageAction, toggleChecklistAction } from "@/app/actions/missions";
 import { PageHeader, Empty } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,11 +29,12 @@ export default async function MissionPage({ params }: { params: { id: string } }
     .eq("id", params.id).maybeSingle();
   if (!m) notFound();
   const monday = addDays(m.scheduled_date, 1 - isoWeekday(m.scheduled_date));
-  const [{ data: staff }, { data: week }, { data: issues }, { data: history }] = await Promise.all([
+  const [{ data: staff }, { data: week }, { data: issues }, { data: history }, { data: photos }] = await Promise.all([
     supabase.from("staff").select("id, full_name, zone, weekly_capacity_hours, active").order("full_name"),
     supabase.from("interventions").select("id, staff_id, site_id, scheduled_date, start_time, duration_hours, stage").gte("scheduled_date", monday).lte("scheduled_date", addDays(monday, 6)),
     supabase.from("mission_issues").select("*").eq("intervention_id", m.id).order("created_at", { ascending: false }),
-    supabase.from("change_log").select("at, actor, action, changes").eq("table_name", "interventions").eq("row_id", m.id).order("at", { ascending: false }).limit(30)
+    supabase.from("change_log").select("at, actor, action, changes").eq("table_name", "interventions").eq("row_id", m.id).order("at", { ascending: false }).limit(30),
+    supabase.from("mission_photos").select("id, kind, taken_at, size_bytes, staff:staff_id(full_name)").eq("intervention_id", m.id).order("taken_at")
   ]);
 
   const back = `/missions/${m.id}`;
@@ -133,7 +134,27 @@ export default async function MissionPage({ params }: { params: { id: string } }
           </Card>
 
           <Card>
-            <CardHeader><CardTitle>Notes</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Photos ({(photos ?? []).length})</CardTitle><span className="text-xs text-slate-500">envoyées par l&apos;agent depuis son téléphone</span></CardHeader>
+            {!(photos ?? []).length ? <Empty>Aucune photo pour cette mission.</Empty> : (
+              <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3">
+                {(photos ?? []).map((p: any) => (
+                  <figure key={p.id} className="space-y-1">
+                    <a href={`/api/missions/photo/${p.id}`} target="_blank" rel="noopener noreferrer">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={`/api/missions/photo/${p.id}`} alt={`Photo ${p.kind}`} loading="lazy" className="aspect-square w-full rounded-lg border object-cover" />
+                    </a>
+                    <figcaption className="flex items-center justify-between gap-1 text-xs text-slate-500">
+                      <span><b className="capitalize text-slate-700">{p.kind === "apres" ? "après" : p.kind}</b> · {new Date(p.taken_at).toLocaleString("fr-FR", { timeZone: "Europe/Paris", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}{p.staff?.full_name ? ` · ${p.staff.full_name}` : ""}</span>
+                      <form action={deletePhotoAction.bind(null, p.id)}><input type="hidden" name="back" value={back} /><button className="text-red-700 hover:underline">Suppr.</button></form>
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle>Notes</CardTitle><span className="text-xs text-slate-500">visibles par l&apos;agent : pas de montants ici</span></CardHeader>
             <form action={saveMissionNotesAction.bind(null, m.id)} className="space-y-2 p-4"><input type="hidden" name="back" value={back} />
               <Textarea name="notes" defaultValue={m.notes ?? ""} rows={3} placeholder="Consignes, remarques du passage…" />
               <Button variant="outline" size="sm">Enregistrer</Button>

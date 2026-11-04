@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies, headers } from "next/headers";
+import { createHash, randomBytes } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { dbMessage, flash, numField, str } from "@/lib/data";
 import { isStage, MANUAL_STAGES, STAGE_LABEL } from "@/lib/domain/missions";
@@ -151,4 +153,40 @@ export async function resolveIssueAction(issueId: string, fd: FormData) {
   if (error) flash(back, "error", dbMessage(error));
   refresh();
   flash(back, "ok", "Marqué comme réglé.");
+}
+
+// ───────────── Lien mobile des agents ─────────────
+/**
+ * Génère (ou remplace) le lien privé d'un agent. Seule l'empreinte SHA-256 est stockée : le lien n'est affiché
+ * qu'une fois (cookie de 2 minutes lu par la page Équipe). Régénérer invalide immédiatement l'ancien lien.
+ */
+export async function generateAgentLinkAction(staffId: string) {
+  const token = randomBytes(32).toString("hex");
+  const hash = createHash("sha256").update(token).digest("hex");
+  const supabase = createClient();
+  const { data, error } = await supabase.from("staff").update({ agent_token_hash: hash, agent_token_set_at: new Date().toISOString() })
+    .eq("id", staffId).eq("active", true).select("full_name").maybeSingle();
+  if (error) flash("/equipe", "error", dbMessage(error));
+  if (!data) flash("/equipe", "error", "Agent introuvable ou inactif.");
+  const h = headers();
+  const origin = `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`;
+  cookies().set("agent_link", JSON.stringify({ id: staffId, name: data!.full_name, url: `${origin}/agent/${token}` }),
+    { httpOnly: true, secure: true, sameSite: "strict", path: "/equipe", maxAge: 120 });
+  revalidatePath("/equipe");
+  flash("/equipe", "ok", `Lien généré pour ${data!.full_name} : copiez-le ci-dessous (affiché une seule fois).`);
+}
+
+export async function revokeAgentLinkAction(staffId: string) {
+  const { error } = await createClient().from("staff").update({ agent_token_hash: null, agent_token_set_at: null }).eq("id", staffId);
+  if (error) flash("/equipe", "error", dbMessage(error));
+  revalidatePath("/equipe");
+  flash("/equipe", "ok", "Lien révoqué : l'ancien lien ne fonctionne plus.");
+}
+
+export async function deletePhotoAction(photoId: string, fd: FormData) {
+  const back = backOf(fd, "/missions");
+  const { error } = await createClient().from("mission_photos").delete().eq("id", photoId);
+  if (error) flash(back, "error", dbMessage(error));
+  revalidatePath(back);
+  flash(back, "ok", "Photo supprimée.");
 }
