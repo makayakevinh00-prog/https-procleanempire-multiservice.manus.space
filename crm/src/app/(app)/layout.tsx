@@ -26,7 +26,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen">
       <Sidebar signOut={signOut} counts={counts} />
-      <main className="mx-auto max-w-6xl px-4 py-6 md:ml-60 md:px-8">
+      <main className="mx-auto max-w-6xl px-4 py-6 md:ml-64 md:px-8">
         <form action="/recherche" className="relative mb-4 max-w-md">
           <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <input name="q" placeholder="Rechercher un client, site, adresse, téléphone, mission, devis, facture…" aria-label="Recherche"
