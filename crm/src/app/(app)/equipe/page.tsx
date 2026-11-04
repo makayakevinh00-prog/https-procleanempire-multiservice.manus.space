@@ -37,7 +37,7 @@ export default async function TeamPage() {
   ]);
   if (error) throw new Error(error.message);
   let fresh: { id: string; name: string; url: string } | null = null;
-  try { fresh = JSON.parse(cookies().get("agent_link")?.value ?? "null"); } catch { fresh = null; }
+  try { fresh = JSON.parse(decodeURIComponent(cookies().get("agent_link")?.value ?? "null")); } catch { fresh = null; }
   const load = (id: string) => {
     const mine = (week ?? []).filter((w: any) => w.staff_id === id);
     return { count: mine.length, hours: mine.reduce((a: number, w: any) => a + Number(w.duration_hours ?? 0), 0), today: mine.filter((w: any) => w.scheduled_date === today).length };

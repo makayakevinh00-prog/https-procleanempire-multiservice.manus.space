@@ -170,7 +170,7 @@ export async function generateAgentLinkAction(staffId: string) {
   if (!data) flash("/equipe", "error", "Agent introuvable ou inactif.");
   const h = headers();
   const origin = `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`;
-  cookies().set("agent_link", JSON.stringify({ id: staffId, name: data!.full_name, url: `${origin}/agent/${token}` }),
+  cookies().set("agent_link", encodeURIComponent(JSON.stringify({ id: staffId, name: data!.full_name, url: `${origin}/agent/${token}` })),
     { httpOnly: true, secure: true, sameSite: "strict", path: "/equipe", maxAge: 120 });
   revalidatePath("/equipe");
   flash("/equipe", "ok", `Lien généré pour ${data!.full_name} : copiez-le ci-dessous (affiché une seule fois).`);
