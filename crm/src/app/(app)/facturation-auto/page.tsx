@@ -136,6 +136,11 @@ export default async function AutoBillingPage() {
         </ul>
       </Card>
 
+      {(generated ?? []).some((i: any) => i.status === "brouillon") && (
+        <div className="mb-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+          <b>{(generated ?? []).filter((i: any) => i.status === "brouillon").length} brouillon(s) déjà préparé(s) pour {monthLabel(month)}.</b> Au dernier jour du mois, l&apos;automatisation <b>ne les touche pas</b> (ils peuvent avoir été corrigés) : validez-les vous-même, ou supprimez le brouillon pour que la facture soit refaite et envoyée automatiquement.
+        </div>
+      )}
       {(generated?.length ?? 0) > 0 && (
         <Card className="mb-4">
           <CardHeader><CardTitle>Déjà préparées pour {monthLabel(month)}</CardTitle></CardHeader>

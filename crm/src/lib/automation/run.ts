@@ -38,6 +38,7 @@ export interface Report {
   followups: { number: string; to: string; level: number }[];
   reminders: { number: string; to: string; level: number }[];
   planning: { created: number; incompleteContracts: string[] };
+  skippedDrafts: string[];
   expiredQuotes: number;
   alerts: { unassigned_next7: number; to_confirm: number; requests_late: number; overdue_15: number };
   pendingMail: number;
@@ -53,7 +54,7 @@ export async function runDaily(deps: Deps, opts: RunOptions = {}): Promise<Repor
   const lastDay = isLastDayOfMonth(today);
   const report: Report = {
     today, month, enabled: false, generated: [], sent: [], failed: [], followups: [], reminders: [],
-    planning: { created: 0, incompleteContracts: [] }, expiredQuotes: 0,
+    planning: { created: 0, incompleteContracts: [] }, skippedDrafts: [], expiredQuotes: 0,
     alerts: { unassigned_next7: 0, to_confirm: 0, requests_late: 0, overdue_15: 0 }, pendingMail: 0, digestSent: "rien à signaler"
   };
   const call = async (name: string, args: Record<string, unknown>) => {
@@ -101,6 +102,9 @@ export async function runDaily(deps: Deps, opts: RunOptions = {}): Promise<Repor
 
   // 1. Génération (et validation des seules factures éligibles) le dernier jour du mois
   if (report.enabled && (lastDay || opts.forceGenerate)) {
+    // Un brouillon déjà préparé pour ce mois n'est JAMAIS écrasé (il peut avoir été corrigé) : il est signalé au patron.
+    const draftIds = new Set<string>(data.draft_clients ?? []);
+    report.skippedDrafts = (data.clients ?? []).filter((c: any) => draftIds.has(c.id)).map((c: any) => c.name);
     const plan: PlannedInvoice[] = planMonthlyInvoices({
       month, today, settings, clients: data.clients, contracts: data.contracts,
       interventions: data.interventions, invoicedClientIds: data.invoiced_clients
@@ -228,6 +232,7 @@ export async function runDaily(deps: Deps, opts: RunOptions = {}): Promise<Repor
   for (const f of report.followups) lines.push(`Devis ${f.number} relancé (relance n°${f.level}, ${f.to}).`);
   if (report.planning.created) lines.push(`${report.planning.created} passage(s) ajouté(s) au planning d'après les contrats.`);
   if (report.expiredQuotes) lines.push(`${report.expiredQuotes} devis expiré(s) faute de réponse.`);
+  for (const n of report.skippedDrafts) todo.push(`Facture de ${monthLabel(month)} déjà préparée en brouillon pour ${n} : l'automatisation ne l'écrase pas — validez-la, ou supprimez ce brouillon pour qu'elle soit refaite automatiquement.`);
   for (const f of report.failed) todo.push(`${f.what} : ${f.reason}.`);
   if (report.planning.incompleteContracts.length) todo.push(`${report.planning.incompleteContracts.length} contrat(s) actif(s) sans jours de passage, planning automatique impossible : ${report.planning.incompleteContracts.join(", ")}.`);
   if (report.alerts.unassigned_next7) todo.push(`${report.alerts.unassigned_next7} passage(s) des 7 prochains jours sans intervenant.`);

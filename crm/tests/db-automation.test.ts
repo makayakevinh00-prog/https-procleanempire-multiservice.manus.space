@@ -23,6 +23,7 @@ beforeAll(async () => {
   await db.exec(read("supabase/migrations/0002_automation.sql"));
   await db.exec(read("supabase/migrations/0003_automation_reminders.sql"));
   await db.exec(read("supabase/migrations/0004_reliability.sql"));
+  await db.exec(read("supabase/migrations/0005_draft_clients.sql"));
   await db.exec(read("supabase/seed_services.sql"));
   secret = (await q("select automation_secret s from app_settings"))[0].s;
 });
@@ -215,5 +216,15 @@ describe("fiabilisation (0004)", () => {
   it("cadence de relance des impayés mise à J+1 / J+7", async () => {
     const [s] = await q("select reminder_first_after_days f, reminder_interval_days i, reminder_max_count m from app_settings");
     expect(s).toEqual({ f: 1, i: 6, m: 2 });
+  });
+});
+
+describe("brouillons mensuels existants (0005)", () => {
+  it("sont listés à part et comptés comme déjà facturés (jamais écrasés)", async () => {
+    const c = await client("Brouillon1");
+    await q("select automation_create_invoice($1,$2,'2027-08','x',$3::jsonb,array[]::uuid[],null)", [secret, c, lines(10)]);
+    const [d] = await q("select automation_month_data($1,'2027-08') d", [secret]);
+    expect(d.d.draft_clients).toContain(c);
+    expect(d.d.invoiced_clients).toContain(c);
   });
 });

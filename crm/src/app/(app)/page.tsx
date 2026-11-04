@@ -126,7 +126,11 @@ export default async function Dashboard() {
         <Stat label="CA récurrent / mois (HT)" value={formatEUR(mrr)} sub={`${rows.length} contrat(s) actif(s)`} href="/contrats" />
         <Stat label="Facturé ce mois (HT)" value={formatEUR(billedMonth)} href="/factures" />
         <Stat label="Encours à encaisser (TTC)" value={formatEUR(outstanding)} sub={`${late.length} en retard`} href="/factures?statut=en_retard" tone={late.length ? "border-red-300" : ""} />
-        <Stat label="Heures hebdo" value={formatHours(rec.totalHours)} sub={`Recrutement : ${rec.level.toUpperCase()}${rec.sitesMissingHours ? ` · ${rec.sitesMissingHours} site(s) sans heures` : ""}`} href="/recrutement" tone={`border-2 ${recTone}`} />
+        {rec.sitesWithHours === 0 && rows.length > 0 ? (
+          <Stat label="Heures hebdo" value="—" sub={`⚠ Données incomplètes : ${rec.sitesMissingHours} site(s) sans heures renseignées`} href="/contrats?filtre=incomplets" tone="border-2 border-amber-400" />
+        ) : (
+          <Stat label="Heures hebdo" value={formatHours(rec.totalHours)} sub={`Recrutement : ${rec.level.toUpperCase()}${rec.sitesMissingHours ? ` · ⚠ ${rec.sitesMissingHours} site(s) sans heures (total sous-estimé)` : ""}`} href="/recrutement" tone={`border-2 ${recTone}`} />
+        )}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">

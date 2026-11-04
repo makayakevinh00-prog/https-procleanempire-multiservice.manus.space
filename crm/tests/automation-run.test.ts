@@ -10,7 +10,7 @@ const settings = {
 const client = (o: any = {}) => ({ id: "c1", name: "SEA", email: "sea@x.fr", is_reserved: false, auto_send_invoices: true, status: "actif", ...o });
 const contract = (o: any = {}) => ({ id: "k1", client_id: "c1", label: "Entretien", billing_mode: "mensuel", monthly_amount_ht: 600, start_date: "2026-01-01", end_date: null, status: "actif", ...o });
 
-function fake(overrides: { settings?: any; clients?: any[]; contracts?: any[]; interventions?: any[]; pending?: any[]; quotes?: any[]; mailOk?: boolean; mailConfigured?: boolean; validateFails?: boolean; due?: any[]; registerFails?: boolean; expired?: number; alerts?: any } = {}) {
+function fake(overrides: { settings?: any; clients?: any[]; contracts?: any[]; interventions?: any[]; pending?: any[]; quotes?: any[]; mailOk?: boolean; mailConfigured?: boolean; validateFails?: boolean; due?: any[]; registerFails?: boolean; expired?: number; alerts?: any; drafts?: string[] } = {}) {
   const calls: { name: string; args: any }[] = [];
   const mails: any[] = [];
   const st = { ...settings, ...(overrides.settings ?? {}) };
@@ -22,7 +22,7 @@ function fake(overrides: { settings?: any; clients?: any[]; contracts?: any[]; i
     rpc: async (name, args) => {
       calls.push({ name, args });
       switch (name) {
-        case "automation_month_data": return { data: { settings: st, clients: overrides.clients ?? [client()], contracts: overrides.contracts ?? [contract()], interventions: overrides.interventions ?? [], invoiced_clients: [] }, error: null };
+        case "automation_month_data": return { data: { settings: st, clients: overrides.clients ?? [client()], contracts: overrides.contracts ?? [contract()], interventions: overrides.interventions ?? [], invoiced_clients: overrides.drafts ?? [], draft_clients: overrides.drafts ?? [] }, error: null };
         case "automation_create_invoice": return { data: "inv-" + calls.filter((c) => c.name === name).length, error: null };
         case "automation_validate_invoice": return overrides.validateFails ? { data: null, error: { message: "CONTACT_RESERVE: x" } } : { data: "F-2026-001", error: null };
         case "automation_pending_send": return { data: { settings: st, items: overrides.pending ?? [] }, error: null };
@@ -201,5 +201,14 @@ describe("automatisation quotidienne", () => {
       await runDaily(d.deps, { dryRun: true });
       expect(d.names()).not.toContain("automation_log_run");
     });
+  });
+
+  it("un brouillon déjà préparé n'est ni dupliqué ni écrasé : il est signalé au patron", async () => {
+    const f = fake({ drafts: ["c1"] });
+    const r = await runDaily(f.deps);
+    expect(r.generated).toEqual([]);
+    expect(r.skippedDrafts).toEqual(["SEA"]);
+    expect(f.names()).not.toContain("automation_create_invoice");
+    expect(f.mails.find((m) => m.to === "patron@x.fr").text).toMatch(/déjà préparée en brouillon pour SEA/);
   });
 });
