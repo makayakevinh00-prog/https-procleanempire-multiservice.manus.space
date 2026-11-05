@@ -1,3 +1,4 @@
+import { createHmac } from "node:crypto";
 /**
  * Livraison des demandes de devis du site (côté serveur uniquement, aucune clé dans le navigateur).
  *
@@ -188,10 +189,14 @@ export function crmConfigured() {
 
 /** Transmission (facultative) de la demande au CRM : fiche client et devis brouillon en un clic. */
 export async function forwardToCrm(lead: Lead) {
+  // Requête signée (HMAC-SHA256 de « horodatage.corps ») : le secret ne circule jamais, une requête interceptée expire en 5 min.
+  const body = JSON.stringify(lead);
+  const timestamp = String(Math.floor(Date.now() / 1000));
+  const signature = createHmac("sha256", process.env.CRM_INBOUND_SECRET!.trim()).update(`${timestamp}.${body}`).digest("hex");
   const response = await timedFetch(process.env.CRM_INBOUND_URL!.trim(), {
     method: "POST",
-    headers: { "Content-Type": "application/json", "x-inbound-secret": process.env.CRM_INBOUND_SECRET!.trim() },
-    body: JSON.stringify(lead)
+    headers: { "Content-Type": "application/json", "x-timestamp": timestamp, "x-signature": signature },
+    body
   });
   if (!response.ok) throw new Error(`CRM_REFUS ${response.status}`);
 }

@@ -61,4 +61,4 @@ Test sans risque : `GET /api/cron/daily?dry=1&force=1&month=AAAA-MM` avec `Autho
 
 Variables à ajouter pour que les e-mails partent : `RESEND_API_KEY` (et `MAIL_FROM` si besoin). Sans elle, rien n'est envoyé et le CRM le signale.
 
-Demandes de devis du site : `POST /api/inbound/quote-request` (en-tête `x-inbound-secret` = `INBOUND_SECRET`). Côté site vitrine : variables `CRM_INBOUND_URL` et `CRM_INBOUND_SECRET`.
+Demandes de devis du site : `POST /api/inbound/quote-request`, requête signée HMAC (`x-timestamp` + `x-signature`, clé `INBOUND_SECRET`) ; suivi client : `/suivi/<numéro>?t=<jeton>` et `GET /api/public/requests/<numéro>`. Voir `docs/api-site.md`. Côté site vitrine : variables `CRM_INBOUND_URL` et `CRM_INBOUND_SECRET`.
