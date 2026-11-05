@@ -10,6 +10,9 @@ const KIND: Record<string, string> = {
 };
 const TABLE: Record<string, string> = { clients: "Client", contracts: "Contrat", quotes: "Devis", invoices: "Facture", payments: "Paiement", interventions: "Mission", sites: "Site", staff: "Équipe", mission_issues: "Anomalie / réclamation", services: "Catalogue" };
 const LINK: Record<string, (id: string) => string> = { clients: (i) => `/clients/${i}`, contracts: (i) => `/contrats/${i}`, quotes: (i) => `/devis/${i}`, invoices: (i) => `/factures/${i}`, interventions: (i) => `/missions/${i}`, sites: (i) => `/sites/${i}` };
+const FIELDS: Record<string, string> = { name: "nom", email: "e-mail", phone: "téléphone", address: "adresse", city: "ville", notes: "notes", pipeline: "étape commerciale", stage: "étape", staff_id: "intervenant",
+  scheduled_date: "date", start_time: "heure", due_date: "échéance", sent_at: "envoi", paid_amount: "montant payé", paid_at: "date de paiement", subject: "objet", number: "numéro", is_reserved: "contact réservé",
+  agent_token_hash: "lien mobile", active: "actif", checklist: "check-list", invoice_id: "facture liée", contract_id: "contrat lié", unit_price_ht: "prix", reminder_count: "relances" };
 const HIDDEN = new Set(["status", "assignee", "total_ht", "total_tva", "total_ttc"]);
 const when = (d: string) => new Date(d).toLocaleString("fr-FR", { timeZone: "Europe/Paris", dateStyle: "short", timeStyle: "short" });
 
@@ -35,7 +38,7 @@ export default async function JournalPage() {
                 <Td>{c.row_id && LINK[c.table_name] ? <Link href={LINK[c.table_name](c.row_id)} className="text-primary hover:underline">{TABLE[c.table_name] ?? c.table_name}</Link> : (TABLE[c.table_name] ?? c.table_name)}</Td>
                 <Td>{c.action === "insert" ? "Création" : c.action === "delete" ? <span className="font-medium text-red-700">Suppression</span> : "Modification"}</Td>
                 <Td className="max-w-md truncate text-xs text-muted-foreground" title={c.action === "update" ? JSON.stringify(c.changes) : ""}>
-                  {c.action === "update" ? Object.keys(c.changes ?? {}).filter((k) => !HIDDEN.has(k)).join(", ") : c.action === "delete" ? (c.changes?.name ?? c.changes?.number ?? c.changes?.label ?? c.changes?.title ?? "") : ""}
+                  {c.action === "update" ? (Object.keys(c.changes ?? {}).filter((k) => !HIDDEN.has(k)).map((k) => FIELDS[k] ?? k).join(", ") || "mise à jour automatique (statut, totaux)") : c.action === "delete" ? (c.changes?.name ?? c.changes?.number ?? c.changes?.label ?? c.changes?.title ?? "") : ""}
                 </Td>
               </Tr>
             ))}</tbody>
