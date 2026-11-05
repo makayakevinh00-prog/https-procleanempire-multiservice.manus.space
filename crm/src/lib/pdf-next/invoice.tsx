@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import React from "react";
 import { Page, Text, View } from "@react-pdf/renderer";
 import { Bar, C, Footer, Letterhead, Meta, PageShell, Party, Totals, dateFr, money, s } from "./kit";

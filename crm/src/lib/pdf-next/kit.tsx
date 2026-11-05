@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import React from "react";
 import { Document, Font, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import path from "node:path";
