@@ -15,7 +15,7 @@ export interface Article { title: string; blocks: Block[] }
 export interface ContractInput {
   category: ContractCategory;
   contract: { label: string; billing_mode: string; monthly_amount_ht: number | null; per_visit_amount_ht: number | null; terms: string | null; start_date: string | null; end_date: string | null;
-    visits_per_week: number | null; weekdays: string[] | null; start_time: string | null; hours_per_visit: number | null; notes: string | null };
+    visits_per_week: number | null; weekdays: (number | string)[] | null; start_time: string | null; hours_per_visit: number | null; notes: string | null };
   client: { name: string; kind: string | null; address: string | null; postal_code: string | null; city: string | null; phone: string | null; email: string | null; siret: string | null };
   site: { name: string | null; address: string | null } | null;
   ref: string;
@@ -48,7 +48,8 @@ function common(i: ContractInput) {
 
 function rhythm(i: ContractInput) {
   const c = i.contract;
-  const days = (c.weekdays ?? []).map((d) => DAYS[d.toLowerCase()] ?? d);
+  const ISO = ["", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
+  const days = (c.weekdays ?? []).map((d) => (typeof d === "number" ? ISO[d] ?? String(d) : DAYS[String(d).toLowerCase()] ?? String(d)));
   const freq = c.visits_per_week ? (c.visits_per_week >= 1 ? `${String(c.visits_per_week).replace(".", ",")} passage(s) par semaine` : `${Math.round(1 / c.visits_per_week)} semaine(s) sur 1`) : ph("fréquence des passages");
   const when = days.length ? `les ${days.join(", ")}` : ph("jours d'intervention");
   const hour = c.start_time ? `à partir de ${c.start_time.slice(0, 5).replace(":", " h ")}`.replace(" h 00", " h") : ph("horaires d'intervention");

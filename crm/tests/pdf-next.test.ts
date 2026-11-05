@@ -64,7 +64,7 @@ describe("PDF haut de gamme — facture et devis", () => {
 describe("PDF haut de gamme — contrats par catégorie", () => {
   const base = (category: ContractCategory) => ({ category, ref: "CT-2611-AB12", client, site: { name: null, address: "28 rue des Tilleuls, 95300 Pontoise" },
     contract: { label: "Contrat", billing_mode: "mensuel", monthly_amount_ht: 979, per_visit_amount_ht: null, terms: category === "airbnb" ? "9 % des revenus + 155 € TTC par séjour" : null,
-      start_date: "2027-01-01", end_date: null, visits_per_week: 2, weekdays: ["mar", "ven"], start_time: "07:00:00", hours_per_visit: 3, notes: null } });
+      start_date: "2027-01-01", end_date: null, visits_per_week: 2, weekdays: [2, 5], start_time: "07:00:00", hours_per_visit: 3, notes: null } });
   for (const c of ["airbnb", "bureaux", "commerce"] as ContractCategory[]) {
     it(`contrat ${c} : plusieurs pages, signatures, mentions`, async () => {
       const b = await renderContractPdf(base(c), settings, client.name);
@@ -75,6 +75,9 @@ describe("PDF haut de gamme — contrats par catégorie", () => {
         else expect(t).toContain("1 174,80 € TTC"); }
     });
   }
+  it("jours de passage numériques (base) : « les mardi, vendredi »", async () => {
+    const t = text(await renderContractPdf(base("bureaux"), settings, client.name)); if (t) expect(t.replace(/\s+/g, " ")).toContain("les mardi, vendredi");
+  });
   it("devine la catégorie", () => {
     expect(guessCategory({ label: "Gestion séjours Paris 16e", terms: "9 % des revenus" })).toBe("airbnb");
     expect(guessCategory({ label: "Entretien boutique" })).toBe("commerce");
