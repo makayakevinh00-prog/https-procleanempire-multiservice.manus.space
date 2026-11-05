@@ -1,10 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { siteConfig } from "@/lib/site";
-import { randomUUID } from "node:crypto";
+import { createHmac, randomUUID } from "node:crypto";
 import { deliverLead, deliveryConfigured, isDuplicate, type Lead } from "@/lib/server/lead-delivery";
 import { quoteServices } from "@/lib/quote-services";
 
 export const dynamic = "force-dynamic";
+
+/** Transmet la demande au CRM (non bloquant — un échec ne bloque pas la réponse au visiteur). */
+async function forwardToCrm(lead: Lead, details: Array<[string, string]>): Promise<void> {
+  const url = process.env.CRM_INBOUND_URL;
+  const secret = process.env.CRM_INBOUND_SECRET;
+  if (!url || !secret) return;
+  try {
+    const body = JSON.stringify({ ...lead, details });
+    const ts = Math.floor(Date.now() / 1000).toString();
+    const sig = createHmac("sha256", secret).update(`${ts}.${body}`).digest("hex");
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-timestamp": ts, "x-signature": sig },
+      body,
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) {
+      console.warn("[devis→crm] Erreur HTTP", res.status, await res.text().catch(() => ""));
+    } else {
+      const json = await res.json() as { request_number?: string };
+      console.log("[devis→crm] Transmis au CRM", JSON.stringify({ id: lead.id, crm_ref: json.request_number }));
+    }
+  } catch (err) {
+    console.warn("[devis→crm] Échec de transmission (non bloquant)", String(err));
+  }
+}
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const FAILURE_MESSAGE = `L'envoi automatique n'a pas fonctionné. Envoyez-nous votre demande en un clic ci-dessous (e-mail ou WhatsApp), ou appelez-nous au ${siteConfig.phone}.`;
@@ -129,6 +155,9 @@ export async function POST(request: NextRequest) {
 
   // Trace complète de la demande, quoi qu'il arrive ensuite (logs Vercel).
   console.log("[devis] Nouvelle demande reçue", JSON.stringify(lead));
+
+  // Transmission au CRM (fire-and-forget — non bloquant).
+  void forwardToCrm(lead, details);
 
   const config = deliveryConfigured();
   if (!config.storage && !config.email) {

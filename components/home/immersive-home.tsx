@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { Reveal } from "@/components/home/reveal";
 import { PartnersMarquee } from "@/components/phase1/partners-marquee";
 import { ReviewsPremiumSection } from "@/components/phase1/reviews-premium-section";
@@ -304,7 +304,7 @@ function ServicesTiles() {
                   planifiés selon vos horaires.
                 </p>
                 <span className="mt-5 inline-block text-base font-semibold text-[#8db8ff]">
-                  Voir le nettoyage de bureaux ›
+                  Voir le nettoyage de bureaux &gt;
                 </span>
               </div>
             </Link>
@@ -389,7 +389,183 @@ function DetailingStrip() {
   );
 }
 
-/* ---------- 5 bis. Comment ça se passe + FAQ ---------- */
+/* ---------- 5 bis. Notre processus — sticky scroll (inspiré ultra-mastermind) ---------- */
+const processStages = [
+  {
+    number: "01",
+    label: "Votre demande",
+    title: "Décrivez votre espace\nen 2 minutes.",
+    text: "Logement, bureaux ou conciergerie : remplissez le formulaire en ligne. Nous prenons contact dans la journée pour affiner votre besoin.",
+    image: "/media/photos/hero-showcase.webp",
+    imageAlt: "Espace professionnel lumineux prêt à être entretenu",
+  },
+  {
+    number: "02",
+    label: "Devis sous 24 h",
+    title: "Un prix clair,\nsans surprise.",
+    text: "Vous recevez un devis détaillé, avec visite sur place si nécessaire. Vous validez et nous planifions ensemble chaque passage.",
+    image: "/media/photos/airbnb-salon-table-basse.webp",
+    imageAlt: "Salon d'un logement Airbnb soigneusement préparé",
+  },
+  {
+    number: "03",
+    label: "Notre intervention",
+    title: "Nos équipes\nau travail.",
+    text: "Produits et matériel professionnels fournis. Intervention selon l'horaire convenu — tôt le matin, le soir ou entre deux voyageurs.",
+    image: "/media/photos/traitement-tapis.webp",
+    imageAlt: "Traitement professionnel d'un tapis par l'équipe ProClean",
+  },
+  {
+    number: "04",
+    label: "Résultat garanti",
+    title: "Zéro défaut,\nou on revient.",
+    text: "Chaque passage est contrôlé avant que nous partions. Un point à corriger ? Nous revenons sans supplément, sans discussion.",
+    image: "/media/photos/airbnb-table-accueil.webp",
+    imageAlt: "Table d'accueil impeccablement préparée pour les voyageurs",
+  },
+];
+
+function ProcessScroll() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"],
+  });
+  const [activeIdx, setActiveIdx] = useState(0);
+
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    const idx = Math.min(processStages.length - 1, Math.floor(latest * processStages.length));
+    setActiveIdx(idx);
+  });
+
+  const stage = processStages[activeIdx];
+
+  return (
+    <div
+      ref={containerRef}
+      style={{ height: `${processStages.length * 100}vh` }}
+      className="relative"
+    >
+      <div className="sticky top-0 h-[100svh] overflow-hidden bg-[#06091a] text-white">
+        {/* Header bar */}
+        <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-6 py-7 md:px-12">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/40">
+            Notre processus
+          </p>
+          <div className="flex items-center gap-2">
+            {processStages.map((_, i) => (
+              <motion.span
+                key={i}
+                className="block h-[3px] rounded-full bg-white"
+                animate={{
+                  width: i === activeIdx ? 28 : 8,
+                  opacity: i === activeIdx ? 1 : 0.25,
+                }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Two-column layout */}
+        <div className="grid h-full grid-cols-1 md:grid-cols-2">
+          {/* Left: Text */}
+          <div className="relative z-10 flex flex-col justify-center px-6 py-24 md:px-12 lg:px-16">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeIdx}
+                initial={reduce ? false : { opacity: 0, y: 32 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={reduce ? undefined : { opacity: 0, y: -20 }}
+                transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <p className="mb-6 font-mono text-6xl font-bold leading-none text-white/[0.07] md:text-7xl lg:text-8xl">
+                  {stage.number}
+                </p>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-[#5b9bff]">
+                  {stage.label}
+                </p>
+                <h2 className="whitespace-pre-line font-display text-4xl font-semibold leading-[1.1] tracking-tight text-white sm:text-5xl xl:text-6xl">
+                  {stage.title}
+                </h2>
+                <p className="mt-6 max-w-sm text-lg leading-relaxed text-white/55 md:max-w-md">
+                  {stage.text}
+                </p>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Mobile image */}
+            <div className="relative mt-10 h-48 overflow-hidden rounded-2xl md:hidden">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeIdx}
+                  className="absolute inset-0"
+                  initial={reduce ? false : { opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={reduce ? undefined : { opacity: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Image
+                    src={stage.image}
+                    alt={stage.imageAlt}
+                    fill
+                    className="object-cover"
+                    sizes="100vw"
+                  />
+                  <div className="absolute inset-0 bg-[#06091a]/30" />
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Right: Image (desktop only) */}
+          <div className="relative hidden overflow-hidden md:block">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeIdx}
+                className="absolute inset-0"
+                initial={reduce ? false : { opacity: 0, scale: 1.06 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={reduce ? undefined : { opacity: 0 }}
+                transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <Image
+                  src={stage.image}
+                  alt={stage.imageAlt}
+                  fill
+                  className="object-cover"
+                  sizes="50vw"
+                  priority={activeIdx === 0}
+                />
+                {/* Gradient blending left edge into dark background */}
+                <div className="absolute inset-0 bg-gradient-to-r from-[#06091a] via-[#06091a]/10 to-transparent" />
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {/* Stage counter — bottom right */}
+        <div className="absolute bottom-8 right-6 z-20 md:right-12">
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={activeIdx}
+              initial={reduce ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduce ? undefined : { opacity: 0, y: -8 }}
+              transition={{ duration: 0.3 }}
+              className="font-mono text-sm font-semibold text-white/25"
+            >
+              {String(activeIdx + 1).padStart(2, "0")} / {String(processStages.length).padStart(2, "0")}
+            </motion.p>
+          </AnimatePresence>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- 5 ter. Comment ça se passe + FAQ ---------- */
 const homeFaq = [
   { question: "Sous quel délai répondez-vous ?", answer: siteConfig.promise },
   { question: "Combien coûte une prestation ?", answer: "Le prix dépend de la surface, de la fréquence et de la prestation. Vous recevez un devis clair sous 24 h, sans engagement." },
@@ -401,27 +577,10 @@ const homeFaq = [
 ];
 
 function HowItWorks() {
-  const steps = [
-    { title: "Vous décrivez votre besoin", text: "Logement ou locaux, surface, fréquence : deux minutes en ligne." },
-    { title: "Nous confirmons le prix", text: "Devis clair sous 24 h, visite sur place si nécessaire." },
-    { title: "Nous intervenons", text: "Selon le planning convenu, et nous contrôlons le résultat." }
-  ];
   return (
     <section className="bg-mist">
       <div className="mx-auto max-w-[1200px] px-5 py-28 md:px-8 md:py-36">
-        <Reveal>
-          <h2 className="display-lg text-ink">Comment ça se passe ?</h2>
-        </Reveal>
-        <ol className="mt-14 grid gap-6 md:grid-cols-3">
-          {steps.map((step, index) => (
-            <Reveal as="li" className="h-full rounded-[28px] bg-white p-8 shadow-soft" key={step.title} delay={0.08 * index} y={20}>
-                <span className="font-display text-6xl font-semibold text-[#1d6fe0]">{index + 1}</span>
-                <h3 className="mt-4 text-xl font-semibold text-ink">{step.title}</h3>
-                <p className="mt-2 text-slate-600">{step.text}</p>
-              </Reveal>
-          ))}
-        </ol>
-        <div className="mx-auto mt-24 max-w-[900px]">
+        <div className="mx-auto max-w-[900px]">
           <Reveal>
             <h2 className="display-lg text-ink">Questions fréquentes</h2>
           </Reveal>
@@ -481,6 +640,7 @@ export function ImmersiveHome() {
       <AirbnbFeature />
       <ServicesTiles />
       <DetailingStrip />
+      <ProcessScroll />
       <PartnersMarquee />
       <ReviewsPremiumSection />
       <HowItWorks />
