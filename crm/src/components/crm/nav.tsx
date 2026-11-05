@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Home, ListChecks, Users, MapPin, ClipboardList, FileText, Receipt, UserCog, Package, Settings, LogOut, Bell, Search, X, LayoutGrid } from "lucide-react";
+import { Home, ListChecks, Users, MapPin, ClipboardList, FileText, Receipt, UserCog, Package, Settings, LogOut, Bell, Search, X, LayoutGrid, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Item = { href: string; label: string; icon: any; color: string; children?: { href: string; label: string }[] };
@@ -22,13 +22,14 @@ const GROUPS: Group[] = [
   ] },
   { title: "Opérations", items: [
     { href: "/sites", label: "Sites", icon: MapPin, color: "text-rose-400", children: [{ href: "/contrats", label: "Contrats" }] },
-    { href: "/missions", label: "Missions", icon: ClipboardList, color: "text-teal-400", children: [{ href: "/missions/problemes", label: "Anomalies & réclamations" }, { href: "/planning", label: "Planning du mois" }] },
+    { href: "/missions", label: "Missions", icon: ClipboardList, color: "text-teal-400", children: [{ href: "/sur-place", label: "Sur place (GPS)" }, { href: "/missions/problemes", label: "Anomalies & réclamations" }, { href: "/planning", label: "Planning du mois" }] },
     { href: "/equipe", label: "Équipe", icon: UserCog, color: "text-indigo-300", children: [{ href: "/recrutement", label: "Recrutement" }] }
   ] },
   { title: "Finance", items: [
     { href: "/factures", label: "Factures", icon: Receipt, color: "text-orange-400", children: [{ href: "/facturation-auto", label: "Facturation automatique" }, { href: "/paiements", label: "Paiements" }] }
   ] },
   { title: "Gestion", items: [
+    { href: "/fournisseurs", label: "Fournisseurs", icon: Truck, color: "text-orange-300" },
     { href: "/catalogue", label: "Catalogue", icon: Package, color: "text-cyan-300" },
     { href: "/parametres", label: "Paramètres", icon: Settings, color: "text-slate-400", children: [{ href: "/journal", label: "Journal" }, { href: "/compte", label: "Mon compte" }] }
   ] }

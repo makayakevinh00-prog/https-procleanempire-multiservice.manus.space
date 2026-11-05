@@ -53,11 +53,18 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
     if (r.error) throw new Error(r.error.message);
   }
 
+  // Agents attendus mais pas encore pointés (plus de 15 min après l'heure prévue)
+  const nowParts = new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date()).split(":");
+  const nowMin = Number(nowParts[0]) * 60 + Number(nowParts[1]);
+  const { data: todayRows } = await supabase.from("interventions").select("start_time, arrived_at, staff_id, stage").eq("scheduled_date", today).not("staff_id", "is", null).is("arrived_at", null).in("stage", ["planifiee", "affectee", "en_route"]);
+  const notArrived = (todayRows ?? []).filter((r: any) => r.start_time && nowMin > Number(r.start_time.slice(0, 2)) * 60 + Number(r.start_time.slice(3, 5)) + 15).length;
+
   const out: ActionItem[] = [];
   const add = (a: ActionItem) => { if (a.count === undefined || a.count > 0) out.push(a); };
 
   // Urgent
   add({ key: "mail_fail", tone: "red", count: mailFail.count ?? 0, label: "e-mail(s) en échec ces 7 derniers jours", href: "/journal" });
+  add({ key: "not_arrived", tone: "red", count: notArrived, label: "agent(s) pas encore arrivé(s) sur place (plus de 15 min après l'heure prévue)", href: "/sur-place", menu: "/missions" });
   add({ key: "claims", tone: "red", count: claims.count ?? 0, label: "réclamation(s) client ouverte(s)", href: "/missions/problemes", menu: "/missions" });
   add({ key: "req_late", tone: "red", count: lateReq.count ?? 0, label: "demande(s) de devis sans traitement depuis plus de 24 h", href: "/demandes", menu: "/clients" });
 

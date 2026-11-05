@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { createHash, randomBytes } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
+import { geocodeAddress } from "@/lib/geo";
 import { dbMessage, flash, numField, str } from "@/lib/data";
 import { isStage, MANUAL_STAGES, STAGE_LABEL } from "@/lib/domain/missions";
 
@@ -30,8 +31,11 @@ export async function saveSiteAction(fd: FormData) {
   const res = id ? await supabase.from("sites").update(row).eq("id", id).select("id").single()
                  : await supabase.from("sites").insert(row).select("id").single();
   if (res.error) flash(back, "error", dbMessage(res.error));
+  // Position GPS automatique à partir de l'adresse (sert au pointage des agents et à la carte).
+  const geo = await geocodeAddress(row.address ?? null, row.postal_code ?? null, row.city ?? null);
+  if (geo) await supabase.from("sites").update({ lat: geo.lat, lng: geo.lng, geocoded_at: new Date().toISOString() }).eq("id", res.data!.id);
   refresh();
-  flash(`/sites/${res.data!.id}`, "ok", id ? "Site enregistré." : "Site créé.");
+  flash(`/sites/${res.data!.id}`, "ok", (id ? "Site enregistré." : "Site créé.") + (geo ? " Position GPS trouvée." : " Position GPS non trouvée : vérifiez l'adresse."));
 }
 
 export async function linkContractSiteAction(contractId: string, fd: FormData) {

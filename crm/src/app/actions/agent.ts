@@ -32,3 +32,23 @@ export async function agentIssueAction(token: string, missionId: string, fd: For
   revalidatePath(`/agent/${token}`);
   go(token, "ok", "Problème signalé à votre responsable.");
 }
+
+/** Arrivée sur place : la position du téléphone doit être dans le rayon du site. Retourne une erreur lisible sinon. */
+export async function agentCheckInAction(token: string, missionId: string, lat: number | null, lng: number | null, acc: number | null): Promise<{ error?: string }> {
+  guard(token);
+  const { error } = await agentClient().rpc("agent_check_in", { p_token: token, p_id: missionId, p_lat: lat, p_lng: lng, p_acc: acc });
+  if (error) return { error: agentMessage(error.message) };
+  revalidatePath(`/agent/${token}`);
+  go(token, "ok", "Arrivée enregistrée. Bon courage !");
+  return {};
+}
+
+/** Fin de mission : contrôle de la check-list, puis heure de départ (position relevée si disponible). */
+export async function agentFinishAction(token: string, missionId: string, lat: number | null, lng: number | null, acc: number | null): Promise<{ error?: string }> {
+  guard(token);
+  const { error } = await agentClient().rpc("agent_finish", { p_token: token, p_id: missionId, p_lat: lat, p_lng: lng, p_acc: acc });
+  if (error) return { error: agentMessage(error.message) };
+  revalidatePath(`/agent/${token}`);
+  go(token, "ok", "Mission terminée. Merci !");
+  return {};
+}

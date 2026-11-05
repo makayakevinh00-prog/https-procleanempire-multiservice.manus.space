@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { CheckSquare, Square, MapPin, Phone, KeyRound, AlertTriangle, Clock } from "lucide-react";
 import { agentClient, agentMessage, isToken, type AgentMission } from "@/lib/agent";
-import { agentCheckAction, agentIssueAction, agentStageAction } from "@/app/actions/agent";
+import { agentCheckAction, agentCheckInAction, agentFinishAction, agentIssueAction, agentStageAction } from "@/app/actions/agent";
+import { GeoButton } from "@/components/crm/geo-button";
 import { STAGE_LABEL, type Stage } from "@/lib/domain/missions";
 import { PhotoButton } from "@/components/crm/photo-button";
 
@@ -13,6 +14,7 @@ const NEXT: Record<string, [string, string]> = {
   planifiee: ["en_route", "Je pars"], affectee: ["en_route", "Je pars"], en_route: ["arrivee", "Je suis arrivé(e)"],
   arrivee: ["en_cours", "Je commence"], en_cours: ["terminee", "J'ai terminé"]
 };
+const hhmm = (t: string) => new Date(t).toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris", hour: "2-digit", minute: "2-digit" });
 const day = (d: string, today: string) => d === today ? "Aujourd'hui" : new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
 
 function Invalid({ text }: { text: string }) {
@@ -94,9 +96,16 @@ export default async function AgentPage({ params, searchParams }: { params: { to
                     )}
                     {m.photos > 0 && <div className="text-xs text-slate-500">{m.photos} photo(s) envoyée(s)</div>}
 
-                    {next && (
+                    {m.arrived_at && <div className="rounded-xl bg-blue-50 p-3 text-sm font-medium text-blue-900">Arrivée à {hhmm(m.arrived_at)}{m.arrived_verified ? " ✓ position vérifiée" : " (position non vérifiée)"}{m.departed_at ? ` · départ à ${hhmm(m.departed_at)}` : ""}</div>}
+                    {next && next[0] === "arrivee" && (
+                      <GeoButton label={next[1]} action={agentCheckInAction.bind(null, token, m.id)} className="h-14 w-full rounded-xl bg-blue-600 text-lg font-bold text-white active:opacity-90 disabled:opacity-60" />
+                    )}
+                    {next && next[0] === "terminee" && (
+                      <GeoButton optional label={next[1]} action={agentFinishAction.bind(null, token, m.id)} className="h-14 w-full rounded-xl bg-emerald-600 text-lg font-bold text-white active:opacity-90 disabled:opacity-60" />
+                    )}
+                    {next && next[0] !== "arrivee" && next[0] !== "terminee" && (
                       <form action={agentStageAction.bind(null, token, m.id, next[0])}>
-                        <button className={`h-14 w-full rounded-xl text-lg font-bold text-white active:opacity-90 ${next[0] === "terminee" ? "bg-emerald-600" : "bg-blue-600"}`}>{next[1]}</button>
+                        <button className="h-14 w-full rounded-xl bg-blue-600 text-lg font-bold text-white active:opacity-90">{next[1]}</button>
                       </form>
                     )}
                     {finished && <div className="rounded-xl bg-emerald-50 p-3 text-center text-sm font-semibold text-emerald-800">{m.stage === "terminee" ? "Terminée — en attente de validation" : "Mission contrôlée ✓"}</div>}

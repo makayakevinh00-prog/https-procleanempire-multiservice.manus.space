@@ -10,6 +10,7 @@ import { SiteForm } from "@/components/crm/site-form";
 import { formatDate } from "@/lib/utils";
 import { ConfirmAction } from "@/components/crm/confirm-action";
 import { deleteSiteAction } from "@/app/actions/manage";
+import { SiteMapLazy } from "@/components/crm/site-map-lazy";
 
 export default async function SitePage({ params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -31,6 +32,11 @@ export default async function SitePage({ params }: { params: { id: string } }) {
           <ConfirmAction action={deleteSiteAction.bind(null, s.id)} label="Supprimer le site" variant="outline" size="sm" className="border-red-300 text-red-700 hover:bg-red-50"
             title={`Supprimer « ${s.name} » ?`} description="Le site est supprimé ; ses missions et contrats sont conservés, simplement sans site. Définitif." confirmLabel="Oui, supprimer" reservedName={s.clients.is_reserved ? s.clients.name : null} /></>} />
       <div className="mb-4 flex items-center gap-2 text-sm">Client : <Link href={`/clients/${s.clients.id}`} className="font-semibold text-primary hover:underline">{s.clients.name}</Link>{s.clients.is_reserved && <ReservedBadge />}</div>
+      {s.lat != null && s.lng != null ? (
+        <Card className="mb-4 p-3"><SiteMapLazy pins={[{ lat: s.lat, lng: s.lng, title: s.name, sub: [s.address, s.postal_code, s.city].filter(Boolean).join(" "), color: "blue" }]} height={240} /><p className="mt-2 px-1 text-xs text-slate-500">Position GPS trouvée automatiquement à partir de l&apos;adresse. Pointage des agents accepté dans un rayon de {s.geofence_m} m.</p></Card>
+      ) : (
+        <p className="mb-4 rounded-xl border border-orange-200 bg-orange-50 p-3 text-sm text-orange-900">Position GPS non trouvée : complétez l&apos;adresse puis enregistrez le site. Sans position, les arrivées des agents sont enregistrées sans vérification.</p>
+      )}
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader><CardTitle>Prochaines missions</CardTitle><Link href={`/missions?vue=mois&site=${s.id}`} className="text-xs font-semibold text-primary hover:underline">Toutes</Link></CardHeader>
