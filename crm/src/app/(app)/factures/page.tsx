@@ -9,6 +9,8 @@ import { Table, Td, Th, Tr } from "@/components/ui/table";
 import { Badge, StatusBadge } from "@/components/ui/badge";
 import { ClientName } from "@/components/crm/client-name";
 import { daysBetween, formatDate, formatEUR } from "@/lib/utils";
+import { ConfirmAction } from "@/components/crm/confirm-action";
+import { deleteDraftAction } from "@/app/actions/invoices";
 
 export default async function InvoicesPage({ searchParams }: { searchParams: { statut?: string } }) {
   const supabase = createClient();
@@ -35,7 +37,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams: { s
       <Card>
         {!data?.length ? <Empty>Aucune facture.</Empty> : (
           <Table>
-            <thead><tr><Th>N°</Th><Th>Client</Th><Th>Objet</Th><Th>Échéance</Th><Th className="text-right">HT</Th><Th className="text-right">TTC</Th><Th>Relances</Th><Th>Statut</Th></tr></thead>
+            <thead><tr><Th>N°</Th><Th>Client</Th><Th>Objet</Th><Th>Échéance</Th><Th className="text-right">HT</Th><Th className="text-right">TTC</Th><Th>Relances</Th><Th>Statut</Th><Th></Th></tr></thead>
             <tbody>
               {data.map((i: any) => {
                 const lateDays = ["envoye", "en_retard"].includes(i.status) && i.due_date ? daysBetween(i.due_date) : 0;
@@ -56,6 +58,10 @@ export default async function InvoicesPage({ searchParams }: { searchParams: { s
                       {i.reminder_count > 0 && i.status !== "paye" && <Badge tone="gray">relancée ×{i.reminder_count}</Badge>}
                       {i.status === "en_retard" && lateDays >= settings.unpaid_alert_days && <Badge tone="red">⚠ &gt; {settings.unpaid_alert_days} j</Badge>}
                     </Td>
+                    <Td className="text-right">{i.status === "brouillon" && (
+                      <ConfirmAction action={deleteDraftAction.bind(null, i.id)} label="Supprimer" variant="ghost" size="sm" className="text-red-700"
+                        title="Supprimer ce brouillon ?" description={`Brouillon de ${formatEUR(i.total_ht)} HT pour ${i.clients.name}. Aucun numéro n'a été consommé : la suppression est sans conséquence comptable (trace dans le journal).`} confirmLabel="Oui, supprimer" />
+                    )}</Td>
                   </Tr>
                 );
               })}

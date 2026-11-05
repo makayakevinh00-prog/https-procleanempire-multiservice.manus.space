@@ -8,6 +8,8 @@ import { Table, Td, Th, Tr } from "@/components/ui/table";
 import { Badge, StatusBadge } from "@/components/ui/badge";
 import { ClientName } from "@/components/crm/client-name";
 import { formatDate, formatEUR } from "@/lib/utils";
+import { ConfirmAction } from "@/components/crm/confirm-action";
+import { deleteQuoteAction } from "@/app/actions/quotes";
 
 export default async function QuotesPage({ searchParams }: { searchParams: { statut?: string } }) {
   let query = createClient().from("quotes").select("*, clients(id, name, is_reserved), invoices:invoice_id(status)").order("number", { ascending: false });
@@ -28,7 +30,7 @@ export default async function QuotesPage({ searchParams }: { searchParams: { sta
       <Card>
         {!data?.length ? <Empty>Aucun devis.</Empty> : (
           <Table>
-            <thead><tr><Th>N°</Th><Th>Client</Th><Th>Objet</Th><Th>Date</Th><Th className="text-right">HT</Th><Th className="text-right">TTC</Th><Th>Statut</Th></tr></thead>
+            <thead><tr><Th>N°</Th><Th>Client</Th><Th>Objet</Th><Th>Date</Th><Th className="text-right">HT</Th><Th className="text-right">TTC</Th><Th>Statut</Th><Th></Th></tr></thead>
             <tbody>
               {data.map((q: any) => {
                 const toInvoice = q.status === "accepte" && (!q.invoice_id || q.invoices?.status === "annule");
@@ -41,6 +43,12 @@ export default async function QuotesPage({ searchParams }: { searchParams: { sta
                     <Td className="text-right">{formatEUR(q.total_ht)}</Td>
                     <Td className="text-right">{formatEUR(q.total_ttc)}</Td>
                     <Td className="space-x-1"><StatusBadge status={q.status} />{toInvoice && <Badge tone="orange">À facturer</Badge>}</Td>
+                    <Td className="text-right">{(!q.invoice_id || q.invoices?.status === "annule") && (
+                      <ConfirmAction action={deleteQuoteAction.bind(null, q.id)} label="Supprimer" variant="ghost" size="sm" className="text-red-700"
+                        title={`Supprimer le devis ${q.number} ?`}
+                        description={q.status === "accepte" ? "Ce devis est ACCEPTÉ : le supprimer efface la trace de l'acceptation (elle reste dans le journal). Définitif." : "Le devis et ses lignes seront supprimés définitivement (trace dans le journal)."}
+                        confirmLabel="Oui, supprimer" reservedName={q.clients.is_reserved ? q.clients.name : null} />
+                    )}</Td>
                   </Tr>
                 );
               })}

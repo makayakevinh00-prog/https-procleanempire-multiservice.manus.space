@@ -11,7 +11,7 @@ import { StatusBadge } from "@/components/ui/badge";
 import { Table, Td, Th, Tr } from "@/components/ui/table";
 import { ClientName, ReservedBanner } from "@/components/crm/client-name";
 import { ConfirmAction } from "@/components/crm/confirm-action";
-import { convertQuoteAction, createContractFromQuoteAction, followupQuoteNowAction, sendQuoteEmailAction, setQuoteStatusAction } from "@/app/actions/quotes";
+import { convertQuoteAction, createContractFromQuoteAction, deleteQuoteAction, followupQuoteNowAction, sendQuoteEmailAction, setQuoteStatusAction } from "@/app/actions/quotes";
 import { Field, Input } from "@/components/ui/form";
 import { formatDate, formatEUR, cn } from "@/lib/utils";
 
@@ -111,6 +111,13 @@ export default async function QuotePage({ params }: { params: { id: string } }) 
                   </ul>
                 </div>
               )}
+              {(!alreadyInvoiced) && (
+                <ConfirmAction action={deleteQuoteAction.bind(null, q.id)} label="Supprimer le devis" variant="outline" size="sm" className="w-full text-red-700"
+                  title={`Supprimer le devis ${q.number} ?`}
+                  description={q.status === "accepte" ? "Ce devis est ACCEPTÉ : le supprimer efface la trace de l'acceptation (elle reste visible dans le journal des modifications). Cette action est définitive." : "Le devis et ses lignes seront supprimés définitivement (la trace reste dans le journal des modifications)."}
+                  confirmLabel="Oui, supprimer" reservedName={reservedName} />
+              )}
+              {alreadyInvoiced && <p className="text-xs text-muted-foreground">Ce devis est lié à une facture : pour le supprimer, supprimez ou annulez d&apos;abord la facture.</p>}
               {linked?.status === "annule" && <p className="text-xs text-muted-foreground">La facture précédente est annulée : une nouvelle peut être créée.</p>}
             </CardContent>
           </Card>

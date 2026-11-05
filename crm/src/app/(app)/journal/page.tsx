@@ -15,7 +15,7 @@ const when = (d: string) => new Date(d).toLocaleString("fr-FR", { timeZone: "Eur
 
 export default async function JournalPage() {
   const supabase = createClient();
-  const [{ data: runs }, { data: mails }, { data: changes }] = await Promise.all([
+  const [{ data: runs }, { data: changes }, { data: mails }] = await Promise.all([
     supabase.from("automation_runs").select("*").order("ran_at", { ascending: false }).limit(30),
     supabase.from("change_log").select("id, at, actor, table_name, row_id, action, changes").order("at", { ascending: false }).limit(80),
     supabase.from("email_log").select("*").order("sent_at", { ascending: false }).limit(100)

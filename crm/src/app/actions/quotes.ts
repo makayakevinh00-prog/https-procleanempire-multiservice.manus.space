@@ -149,3 +149,25 @@ export async function createContractFromQuoteAction(id: string, fd: FormData) {
   revalidatePath("/devis"); revalidatePath("/contrats"); revalidatePath("/sites"); revalidatePath("/", "layout");
   flash(`/contrats/${k!.id}`, "ok", `Contrat créé depuis ${q!.number}, avec son site. Pour l'activer et générer les missions, renseignez : ${blocking.length ? blocking.join(", ") : "rien de plus"}.`);
 }
+
+/**
+ * Supprime un devis. Refusé s'il a déjà donné une facture encore valable (il faut d'abord l'annuler).
+ * Contact réservé : confirmation explicite. La ligne complète reste consultable dans le journal des modifications.
+ */
+export async function deleteQuoteAction(id: string, fd: FormData) {
+  const back = `/devis/${id}`;
+  const supabase = createClient();
+  const { data: q } = await supabase.from("quotes").select("number, client_id, status, invoice_id, invoices:invoice_id(status, number)").eq("id", id).maybeSingle();
+  if (!q) flash("/devis", "error", "Devis introuvable.");
+  await requireReservedAck(q!.client_id, fd, back);
+  const inv = q!.invoices as unknown as { status: string; number: string | null } | null;
+  if (q!.invoice_id && inv && inv.status !== "annule") {
+    flash(back, "error", `Ce devis a donné la facture ${inv.number ?? "(brouillon)"} : supprimez ou annulez d'abord la facture.`);
+  }
+  const { error: le } = await supabase.from("quote_lines").delete().eq("quote_id", id);
+  if (le) flash(back, "error", dbMessage(le));
+  const { error } = await supabase.from("quotes").delete().eq("id", id);
+  if (error) flash(back, "error", dbMessage(error));
+  revalidatePath("/devis"); revalidatePath("/", "layout");
+  flash("/devis", "ok", `Devis ${q!.number} supprimé.`);
+}
