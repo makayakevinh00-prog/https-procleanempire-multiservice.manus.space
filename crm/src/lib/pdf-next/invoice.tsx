@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 import React from "react";
 import { Page, Text, View } from "@react-pdf/renderer";
-import { Bar, Body, C, Company, Footer, Letterhead, Meta, PageShell, Party, Totals, money, s } from "./kit";
+import { Bar, Body, Multi, C, Company, Footer, Letterhead, Meta, PageShell, Party, Totals, money, s } from "./kit";
 import { lineTotals } from "../domain/billing";
 import type { PdfDoc } from "../pdf/document";
 
@@ -62,7 +62,7 @@ export function InvoiceDoc({ doc, co, paymentDays }: { doc: PdfDoc; co: Company;
             <View key={i} wrap={false} style={{ flexDirection: "row", paddingVertical: 8, borderBottomWidth: 0.6, borderBottomColor: C.line }}>
               <View style={{ width: cols.desc, paddingRight: 12 }}>
                 <Text style={{ fontWeight: 600, fontSize: 10, color: C.navy }}>{title}</Text>
-                {detail ? <Text style={{ fontSize: 8.6, color: C.grey, marginTop: 2 }}>{detail}</Text> : null}
+                {detail ? <Multi text={detail} style={{ fontSize: 8.6, color: C.grey, marginTop: 2 }} /> : null}
               </View>
               <Text style={{ width: cols.qty, textAlign: "right" }}>{nb(l.quantity)}</Text>
               <Text style={{ width: cols.pu, textAlign: "right" }}>{money(l.unit_price_ht)}</Text>
@@ -83,7 +83,7 @@ export function InvoiceDoc({ doc, co, paymentDays }: { doc: PdfDoc; co: Company;
                 </View>
               ) : null}
               <Text style={{ fontSize: 7.8, color: C.grey, lineHeight: 1.5 }}>En cas de retard de paiement, une pénalité égale à trois fois le taux d'intérêt légal sera appliquée, ainsi qu'une indemnité forfaitaire de 40 € pour frais de recouvrement (art. L.441-10 du Code de commerce). Aucun escompte pour paiement anticipé.</Text>
-              {doc.notes ? <Text style={{ fontSize: 8.5, marginTop: 6 }}>{doc.notes}</Text> : null}
+              {doc.notes ? <Multi text={doc.notes} style={{ fontSize: 8.5, marginTop: 6 }} /> : null}
             </View>
             <Totals ht={doc.totals.ht} byRate={vatBreakdown(doc.lines)} ttc={doc.totals.ttc}
               extra={paid > 0 ? [{ label: "Déjà réglé", value: `- ${money(paid)}`, tone: "green" }, { label: "Reste à payer", value: money(rest) }] : undefined} />

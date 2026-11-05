@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 import React from "react";
 import { Page, Text, View } from "@react-pdf/renderer";
-import { Bar, Body, C, Company, Footer, Letterhead, PageShell, Party, s } from "./kit";
+import { Bar, Body, Multi, C, Company, Footer, Letterhead, PageShell, Party, s } from "./kit";
 import { LEGAL_REP, type BuiltContract } from "../contracts/clauses";
 
 /** Texte courant : les passages [ à compléter ] ressortent en bleu. */
@@ -65,7 +65,7 @@ export function ContractDoc({ built, co, clientName, signedAt }: { built: BuiltC
             {[["Pour le Prestataire", `${co.name}\n${LEGAL_REP.name}, ${LEGAL_REP.title}`, false], ["Le Client", clientName, true]].map(([k, v, blue], i) => (
               <View key={String(k)} style={{ flex: 1, borderWidth: 1, borderColor: blue ? C.blue : C.line, borderRadius: 8, padding: 14, minHeight: 130, marginLeft: i ? 8 : 0, marginRight: i ? 0 : 8 }}>
                 <Text style={[s.label, blue ? { color: C.blue } : {}]}>{String(k)}</Text>
-                <Text style={{ fontSize: 9.5, fontWeight: 600 }}>{String(v)}</Text>
+                <Multi text={String(v)} style={{ fontSize: 9.5, fontWeight: 600 }} />
                 <Text style={{ fontSize: 8, color: "#9AA1B1", marginTop: 8 }}>« Lu et approuvé », signature électronique</Text>
                 <View style={{ marginTop: 6, height: 44, borderWidth: 0.8, borderStyle: "dashed", borderColor: "#9AA1B1", borderRadius: 4 }} />
               </View>

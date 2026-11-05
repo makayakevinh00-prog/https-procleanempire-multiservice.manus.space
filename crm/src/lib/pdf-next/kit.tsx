@@ -107,6 +107,11 @@ export function PageShell({ children, co, title }: { children: React.ReactNode; 
 /** Le contenu porte l'interligne : posé sur la page, il fait disparaître le pied de page (comportement de react-pdf). */
 export const Body = ({ children }: { children: React.ReactNode }) => <View style={{ lineHeight: 1.0 }}>{children}</View>;
 
+/** Texte multi-lignes : un Text par ligne. Un saut de ligne dans un Text oblige react-pdf à chercher une police de secours qui n'existe pas en production. */
+export function Multi({ text, style }: { text: string; style?: any }) {
+  return <>{text.split(/\r?\n/).map((l, i) => <Text key={i} style={[style, l.trim() ? {} : { height: 5 }]}>{l.trim() ? l : " "}</Text>)}</>;
+}
+
 export const Bar = () => (<><View fixed style={s.topBar} /><View fixed style={s.topBarAccent} /></>);
 
 /** Cartouche des totaux : le TTC saute aux yeux. */

@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 import React from "react";
 import { Page, Text, View } from "@react-pdf/renderer";
-import { Bar, Body, C, Company, Footer, Letterhead, Meta, PageShell, Party, Totals, money, s } from "./kit";
+import { Bar, Body, Multi, C, Company, Footer, Letterhead, Meta, PageShell, Party, Totals, money, s } from "./kit";
 import { addressLines, dateLong, splitLine, vatBreakdown } from "./invoice";
 import { lineTotals } from "../domain/billing";
 import type { PdfDoc } from "../pdf/document";
@@ -57,7 +57,7 @@ export function QuoteDoc({ doc, co, paymentDays }: { doc: PdfDoc; co: Company; p
             <View key={i} wrap={false} style={{ flexDirection: "row", paddingVertical: 10, borderBottomWidth: 0.6, borderBottomColor: C.line }}>
               <View style={{ width: cols.desc, paddingRight: 12 }}>
                 <Text style={{ fontWeight: 600, fontSize: 10, color: C.navy }}>{title}</Text>
-                {detail ? <Text style={{ fontSize: 8.6, color: C.grey, marginTop: 2 }}>{detail}</Text> : null}
+                {detail ? <Multi text={detail} style={{ fontSize: 8.6, color: C.grey, marginTop: 2 }} /> : null}
               </View>
               <Text style={{ width: cols.qty, textAlign: "right" }}>{nb(l.quantity)}</Text>
               <Text style={{ width: cols.pu, textAlign: "right" }}>{money(l.unit_price_ht)}</Text>
@@ -72,7 +72,7 @@ export function QuoteDoc({ doc, co, paymentDays }: { doc: PdfDoc; co: Company; p
             <View style={{ flex: 1, paddingRight: 28 }}>
               <Text style={s.label}>Modalités de paiement</Text>
               <Text style={{ fontSize: 9, marginBottom: 3 }}>Règlement par virement sous {paymentDays} jours après facturation.</Text>
-              {doc.notes ? <Text style={{ fontSize: 9, color: C.grey }}>{doc.notes}</Text> : null}
+              {doc.notes ? <Multi text={doc.notes} style={{ fontSize: 9, color: C.grey }} /> : null}
             </View>
             <Totals ht={doc.totals.ht} byRate={vatBreakdown(doc.lines)} ttc={doc.totals.ttc} />
           </View>
