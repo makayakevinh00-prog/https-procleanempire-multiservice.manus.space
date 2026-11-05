@@ -1,10 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
+import { noStoreFetch } from "@/lib/supabase/no-store";
 import { mailConfigured, sendMail } from "@/lib/mail";
 import type { Deps } from "./run";
 
 /** Client « automatisation » : clé publique + secret d'automatisation (aucune clé service_role nécessaire). */
 export function automationClient() {
-  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false } });
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false }, global: { fetch: noStoreFetch } });
 }
 
 export function automationSecret(): string {

@@ -1,11 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
+import { noStoreFetch } from "@/lib/supabase/no-store";
 
 /**
  * Client anonyme pour l'interface agent : aucune session, aucun cookie.
  * Les agents n'ont accès à rien d'autre qu'aux fonctions agent_* (vérification du jeton dans la base).
  */
 export function agentClient() {
-  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false, autoRefreshToken: false } });
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: noStoreFetch } });
 }
 
 export type AgentMission = {

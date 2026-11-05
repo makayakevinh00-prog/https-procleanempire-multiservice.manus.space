@@ -61,7 +61,7 @@ describe("suivi public (base de données)", () => {
   beforeAll(async () => {
     db = new PGlite();
     await db.exec(`create schema auth; create function auth.uid() returns uuid language sql as $$ select null::uuid $$; create function auth.jwt() returns jsonb language sql as $$ select '{}'::jsonb $$; create role authenticated; create role anon;`);
-    for (const f of ["0001_schema", "0002_automation", "0003_automation_reminders", "0004_reliability", "0005_draft_clients", "0006_sites_staff_missions", "0007_process_links", "0008_agent_mobile", "0009_public_api"]) await db.exec(read(`supabase/migrations/${f}.sql`));
+    for (const f of ["0001_schema", "0002_automation", "0003_automation_reminders", "0004_reliability", "0005_draft_clients", "0006_sites_staff_missions", "0007_process_links", "0008_agent_mobile", "0009_public_api", "0010_request_number_gaps"]) await db.exec(read(`supabase/migrations/${f}.sql`));
     await db.exec(read("supabase/seed.sql"));
     secret = (await q("select automation_secret s from app_settings"))[0].s;
   });
@@ -82,6 +82,8 @@ describe("suivi public (base de données)", () => {
     expect((await q("select count(*)::int n from quote_requests where reference='WEB-1'"))[0].n).toBe(1);
     const second = await submit(lead({ reference: "WEB-2" }));
     expect(second.request_number).not.toBe(ref);
+    const seqN = (r: string) => Number(r.slice(-4));
+    expect(seqN(second.request_number)).toBe(seqN(ref) + 1);            // le renvoi n'a consommé aucun numéro
     expect(second.tracking_token).not.toBe(tok);
   });
   it("statut : « reçue » au départ ; numéro inconnu et mauvais jeton sont indiscernables", async () => {

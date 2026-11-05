@@ -1,9 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
+import { noStoreFetch } from "@/lib/supabase/no-store";
 import { allowedOrigin } from "@/lib/inbound-auth";
 
 /** Client anonyme : le public n'a aucun droit direct sur les tables, seulement sur public_request_*. */
 export const publicClient = () =>
-  createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false, autoRefreshToken: false } });
+  createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: noStoreFetch } });
 
 export const isRef = (s: string) => /^DEM-\d{4}-\d{4,}$/i.test(s);
 export const isTok = (s: string | null | undefined): s is string => !!s && /^[0-9a-f]{64}$/.test(s);
