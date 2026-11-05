@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { Reveal } from "@/components/home/reveal";
+import { CleanRoomScene } from "@/components/home/clean-room-scene";
 import { PartnersMarquee } from "@/components/phase1/partners-marquee";
 import { ReviewsPremiumSection } from "@/components/phase1/reviews-premium-section";
 import { siteConfig } from "@/lib/site";
@@ -471,7 +472,7 @@ function ProcessScroll() {
         {/* Two-column layout */}
         <div className="grid h-full grid-cols-1 md:grid-cols-2">
           {/* Left: Text */}
-          <div className="relative z-10 flex flex-col justify-center px-6 py-24 md:px-12 lg:px-16">
+          <div className="relative z-10 flex flex-col justify-center px-6 pb-24 pt-20 md:px-12 md:py-24 lg:px-16">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeIdx}
@@ -480,68 +481,34 @@ function ProcessScroll() {
                 exit={reduce ? undefined : { opacity: 0, y: -20 }}
                 transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
               >
-                <p className="mb-6 font-mono text-6xl font-bold leading-none text-white/[0.07] md:text-7xl lg:text-8xl">
+                <p className="mb-3 font-mono text-5xl font-bold leading-none text-white/[0.07] md:mb-6 md:text-7xl lg:text-8xl">
                   {stage.number}
                 </p>
                 <p className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-[#5b9bff]">
                   {stage.label}
                 </p>
-                <h2 className="whitespace-pre-line font-display text-4xl font-semibold leading-[1.1] tracking-tight text-white sm:text-5xl xl:text-6xl">
+                <h2 className="whitespace-pre-line font-display text-[34px] font-semibold leading-[1.1] tracking-tight text-white sm:text-5xl xl:text-6xl">
                   {stage.title}
                 </h2>
-                <p className="mt-6 max-w-sm text-lg leading-relaxed text-white/55 md:max-w-md">
+                <p className="mt-4 max-w-sm text-[15px] leading-relaxed text-white/55 md:mt-6 md:max-w-md md:text-lg">
                   {stage.text}
                 </p>
               </motion.div>
             </AnimatePresence>
 
-            {/* Mobile image */}
-            <div className="relative mt-10 h-48 overflow-hidden rounded-2xl md:hidden">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeIdx}
-                  className="absolute inset-0"
-                  initial={reduce ? false : { opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={reduce ? undefined : { opacity: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <Image
-                    src={stage.image}
-                    alt={stage.imageAlt}
-                    fill
-                    className="object-cover"
-                    sizes="100vw"
-                  />
-                  <div className="absolute inset-0 bg-[#06091a]/30" />
-                </motion.div>
-              </AnimatePresence>
+            {/* Mobile : la scène animée */}
+            <div className="relative mt-5 h-[252px] overflow-hidden rounded-2xl bg-[#080d22] md:hidden">
+              <CleanRoomScene stage={activeIdx} />
             </div>
           </div>
 
-          {/* Right: Image (desktop only) */}
+          {/* Droite : scène animée (ordinateur) */}
           <div className="relative hidden overflow-hidden md:block">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeIdx}
-                className="absolute inset-0"
-                initial={reduce ? false : { opacity: 0, scale: 1.06 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={reduce ? undefined : { opacity: 0 }}
-                transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <Image
-                  src={stage.image}
-                  alt={stage.imageAlt}
-                  fill
-                  className="object-cover"
-                  sizes="50vw"
-                  priority={activeIdx === 0}
-                />
-                {/* Gradient blending left edge into dark background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-[#06091a] via-[#06091a]/10 to-transparent" />
-              </motion.div>
-            </AnimatePresence>
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_60%_45%,#13224d_0%,#06091a_70%)]" />
+            <div className="absolute inset-0 px-4 py-16 lg:px-8">
+              <CleanRoomScene stage={activeIdx} />
+            </div>
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-[#06091a] to-transparent" />
           </div>
         </div>
 
