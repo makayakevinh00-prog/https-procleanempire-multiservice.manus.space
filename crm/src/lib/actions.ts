@@ -41,7 +41,7 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
     supabase.from("interventions").select("id", head).eq("status", "realise").eq("billable", true).is("invoice_id", null).lt("scheduled_date", `${monthOf(today)}-01`),
     supabase.from("quotes").select("id", head).eq("status", "envoye").lt("sent_at", followupCut),
     supabase.from("clients").select("id", head).eq("status", "actif").is("email", null),
-    supabase.from("email_log").select("id", head).eq("ok", false).gte("sent_at", new Date(Date.now() - 7 * 86_400_000).toISOString()),
+    supabase.from("email_log").select("id", head).eq("ok", false).eq("acknowledged", false).gte("sent_at", new Date(Date.now() - 7 * 86_400_000).toISOString()),
     supabase.from("invoices").select("id", head).not("billing_month", "is", null).is("sent_at", null).in("status", ["envoye", "en_retard"]),
     supabase.from("mission_issues").select("id", head).eq("status", "ouverte").eq("kind", "reclamation"),
     supabase.from("mission_issues").select("id", head).eq("status", "ouverte").eq("kind", "anomalie"),

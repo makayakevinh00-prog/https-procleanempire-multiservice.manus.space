@@ -138,3 +138,13 @@ export async function deleteMissionAction(id: string) {
   refresh();
   flash("/missions", "ok", "Mission supprimée.");
 }
+
+// ───────────── Journal : e-mails en échec ─────────────
+/** Marque les e-mails en échec comme « traités » : l'alerte Urgent disparaît, l'historique reste dans le Journal. */
+export async function dismissMailFailuresAction() {
+  const { error } = await createClient().from("email_log").update({ acknowledged: true }).eq("ok", false).eq("acknowledged", false);
+  if (error) flash("/journal", "error", dbMessage(error));
+  refresh();
+  revalidatePath("/journal");
+  flash("/journal", "ok", "E-mails en échec marqués comme traités.");
+}

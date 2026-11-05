@@ -4,6 +4,7 @@ import { PageHeader, Empty } from "@/components/crm/page-header";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, Td, Th, Tr } from "@/components/ui/table";
+import { dismissMailFailuresAction } from "@/app/actions/manage";
 
 const KIND: Record<string, string> = {
   facture: "Facture", relance_facture: "Relance facture", devis: "Devis", relance_devis: "Relance devis", recapitulatif: "Récapitulatif patron", test: "Test"
@@ -65,7 +66,14 @@ export default async function JournalPage() {
         )}
       </Card>
       <Card>
-        <CardHeader><CardTitle>E-mails envoyés</CardTitle></CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between gap-3">
+          <CardTitle>E-mails envoyés</CardTitle>
+          {mails?.some((m: any) => !m.ok && !m.acknowledged) && (
+            <form action={dismissMailFailuresAction}>
+              <button type="submit" className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-100">Marquer les échecs comme traités</button>
+            </form>
+          )}
+        </CardHeader>
         {!mails?.length ? <Empty>Aucun e-mail envoyé pour l&apos;instant.</Empty> : (
           <Table>
             <thead><tr><Th>Date</Th><Th>Type</Th><Th>Destinataire</Th><Th>Objet</Th><Th>Origine</Th><Th>Résultat</Th></tr></thead>
@@ -76,7 +84,7 @@ export default async function JournalPage() {
                 <Td>{m.to_email}</Td>
                 <Td className="max-w-xs truncate text-muted-foreground">{m.subject}</Td>
                 <Td>{m.origin === "auto" ? <Badge tone="blue">Automatique</Badge> : <Badge>Manuel</Badge>}</Td>
-                <Td>{m.ok ? <Badge tone="green">Envoyé</Badge> : <Badge tone="red" title={m.error ?? ""}>Échec : {m.error}</Badge>}</Td>
+                <Td>{m.ok ? <Badge tone="green">Envoyé</Badge> : <Badge tone={m.acknowledged ? "gray" : "red"} title={m.error ?? ""}>{m.acknowledged ? "Échec traité" : `Échec : ${m.error}`}</Badge>}</Td>
               </Tr>
             ))}</tbody>
           </Table>

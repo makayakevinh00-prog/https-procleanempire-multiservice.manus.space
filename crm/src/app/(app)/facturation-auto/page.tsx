@@ -46,7 +46,7 @@ export default async function AutoBillingPage() {
     supabase.from("clients").select("id, name, email, is_reserved, status, auto_send_invoices").neq("status", "inactif").order("name"),
     supabase.from("contracts").select("*").eq("status", "actif"),
     supabase.from("automation_runs").select("*").order("ran_at", { ascending: false }).limit(1),
-    supabase.from("email_log").select("id, sent_at, kind, to_email, error").eq("ok", false).gte("sent_at", new Date(Date.now() - 7 * 86_400_000).toISOString()).order("sent_at", { ascending: false }).limit(5)
+    supabase.from("email_log").select("id, sent_at, kind, to_email, error").eq("ok", false).eq("acknowledged", false).gte("sent_at", new Date(Date.now() - 7 * 86_400_000).toISOString()).order("sent_at", { ascending: false }).limit(5)
   ]);
 
   const eligible = (clients ?? []).filter((c: any) => !c.is_reserved);
