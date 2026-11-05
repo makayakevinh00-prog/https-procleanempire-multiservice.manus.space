@@ -8,6 +8,7 @@ import { ClientName } from "@/components/crm/client-name";
 import { updateContractAction, terminateContractAction } from "@/app/actions/contracts";
 import { deleteContractAction } from "@/app/actions/manage";
 import { formatHours } from "@/lib/utils";
+import { guessCategory, CATEGORY_LABEL, type ContractCategory } from "@/lib/contracts/clauses";
 import { numOrNull } from "@/lib/data";
 import type { Contract } from "@/lib/domain/types";
 
@@ -42,6 +43,17 @@ export default async function ContractPage({ params }: { params: { id: string } 
       <Card className="mb-4"><CardContent className="text-sm">
         Heures hebdomadaires totales (calcul automatique) :{" "}
         <b>{weekly != null ? formatHours(weekly) : "à renseigner (heures par intervention × fréquence)"}</b>
+      </CardContent></Card>
+      <Card className="mb-4"><CardContent className="text-sm">
+        <p className="mb-2 font-semibold">Contrat de prestation (PDF)</p>
+        <p className="mb-3 text-muted-foreground">Choisissez le modèle adapté : les clauses changent selon la catégorie. Les passages entre crochets restent à compléter avant signature.</p>
+        <div className="flex flex-wrap gap-2">
+          {(Object.keys(CATEGORY_LABEL) as ContractCategory[]).map((c) => (
+            <a key={c} href={`/api/contrats/${k.id}/pdf?type=${c}`} className={`rounded-lg border px-3 py-2 font-semibold hover:bg-slate-50 ${c === guessCategory(k as any) ? "border-primary text-primary" : "border-slate-300"}`}>
+              {CATEGORY_LABEL[c]}{c === guessCategory(k as any) ? " (conseillé)" : ""}
+            </a>
+          ))}
+        </div>
       </CardContent></Card>
       <Card><CardContent>
         <ContractForm action={updateContractAction.bind(null, k.id)} clients={clients ?? []} contract={k as unknown as Contract} staff={staff ?? []} sites={sites ?? []} submitLabel="Enregistrer" />

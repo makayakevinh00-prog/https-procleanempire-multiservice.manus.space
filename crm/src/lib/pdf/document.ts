@@ -61,7 +61,18 @@ function wrap(text: string, font: PDFFont, size: number, maxWidth: number): stri
   return out;
 }
 
+/** Génération des devis et factures : nouveau modèle haut de gamme ; l'ancien modèle ne sert que de secours (erreur journalisée). */
 export async function renderPdf(doc: PdfDoc, s: Cfg): Promise<Uint8Array> {
+  try {
+    const { renderInvoiceOrQuote } = await import("../pdf-next/render");
+    return await renderInvoiceOrQuote(doc, s);
+  } catch (e) {
+    console.error("[pdf] nouveau modèle en échec, bascule sur l'ancien :", e);
+    return renderPdfLegacy(doc, s);
+  }
+}
+
+export async function renderPdfLegacy(doc: PdfDoc, s: Cfg): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
   pdf.setTitle(`${doc.kind === "devis" ? "Devis" : "Facture"} ${doc.number ?? "brouillon"}`);
   pdf.setAuthor(s.company_name);

@@ -1,138 +1,106 @@
 /* eslint-disable react/no-unescaped-entities */
 import React from "react";
 import { Page, Text, View } from "@react-pdf/renderer";
-import { Bar, C, Footer, Letterhead, Meta, PageShell, Party, Totals, dateFr, money, s } from "./kit";
-import { CLIENT, CO, SITE } from "./mock-data";
+import { Bar, Body, C, Company, Footer, Letterhead, Meta, PageShell, Party, Totals, money, s } from "./kit";
+import { addressLines, dateLong, splitLine, vatBreakdown } from "./invoice";
+import { lineTotals } from "../domain/billing";
+import type { PdfDoc } from "../pdf/document";
+import { LEGAL_REP } from "../contracts/clauses";
 
-type QLine = { title: string; desc: string; freq: string; qty: number; unit: string; pu: number; vat: number; option?: boolean };
-const SECTIONS: { title: string; lines: QLine[] }[] = [
-  { title: "A · Entretien régulier", lines: [
-    { title: "Entretien des parties communes", desc: "Nettoyage des halls, paliers et escaliers des bâtiments A et B : sols aspirés et lavés, mains courantes, boîtes aux lettres, poussières.", freq: "2 passages par semaine", qty: 8, unit: "passages", pu: 95, vat: 20 },
-    { title: "Sortie et entretien des conteneurs", desc: "Sortie et rentrée des bacs, nettoyage du local poubelles.", freq: "2 fois par semaine", qty: 8, unit: "passages", pu: 18, vat: 20 }
-  ] },
-  { title: "B · Prestations complémentaires", lines: [
-    { title: "Nettoyage de la vitrerie des parties communes", desc: "Vitres intérieures et extérieures accessibles, cadres et rebords. Passage trimestriel, lissé sur 12 mois.", freq: "Trimestriel", qty: 1, unit: "mensualité", pu: 75, vat: 20 }
-  ] },
-  { title: "C · Options (non incluses dans le total)", lines: [
-    { title: "Remise en état annuelle des sols", desc: "Décapage et protection des sols des halls d'entrée.", freq: "1 fois par an", qty: 1, unit: "forfait unique", pu: 480, vat: 20, option: true }
-  ] }
-];
-const cols = { d: "48%", q: "17%", p: "12%", v: "8%", t: "15%" };
+const cols = { desc: "46%", qty: "12%", pu: "14%", vat: "10%", tot: "18%" };
+const nb = (n: number) => String(n).replace(".", ",");
 
-function Sec({ title }: { title: string }) {
-  return <View wrap={false} style={{ marginTop: 18, marginBottom: 4, flexDirection: "row", alignItems: "center" }}>
-    <View style={{ width: 3, height: 13, backgroundColor: C.blue, marginRight: 8, borderRadius: 2 }} />
-    <Text style={s.h2}>{title}</Text>
-  </View>;
-}
-
-function Row({ l }: { l: QLine }) {
+function SignBox({ title, name, tone, hint }: { title: string; name?: string; tone: "blue" | "grey"; hint: string }) {
   return (
-    <View wrap={false} style={{ flexDirection: "row", paddingVertical: 10, borderBottomWidth: 0.6, borderBottomColor: C.line, opacity: l.option ? 0.85 : 1 }}>
-      <View style={{ width: cols.d, paddingRight: 12 }}>
-        <Text style={{ fontWeight: 600, fontSize: 10, color: C.navy }}>{l.title}{l.option ? "  (option)" : ""}</Text>
-        <Text style={{ fontSize: 8.6, color: C.grey, marginTop: 2 }}>{l.desc}</Text>
-        <View style={{ alignSelf: "flex-start", marginTop: 5, backgroundColor: C.blueSoft, borderRadius: 8, paddingVertical: 2, paddingHorizontal: 8 }}><Text style={{ fontSize: 7.8, color: C.blue, fontWeight: 600 }}>{l.freq}</Text></View>
-      </View>
-      <Text style={{ width: cols.q, textAlign: "right", fontSize: 9 }}>{l.qty} {l.unit}</Text>
-      <Text style={{ width: cols.p, textAlign: "right" }}>{money(l.pu)}</Text>
-      <Text style={{ width: cols.v, textAlign: "right", color: C.grey }}>{l.vat} %</Text>
-      <Text style={{ width: cols.t, textAlign: "right", fontWeight: 700 }}>{money(l.qty * l.pu)}</Text>
+    <View style={{ flex: 1, borderWidth: 1, borderColor: tone === "blue" ? C.blue : C.line, borderRadius: 8, padding: 14, minHeight: 124, backgroundColor: tone === "blue" ? C.white : C.light }}>
+      <Text style={[s.label, tone === "blue" ? { color: C.blue } : {}]}>{title}</Text>
+      <Text style={{ fontSize: 9, marginTop: 2 }}>{name ?? "Nom du signataire : ________________________"}</Text>
+      <Text style={{ fontSize: 9, marginTop: 8 }}>Fait à : ______________   Le : ____ / ____ / ______</Text>
+      <View style={{ marginTop: 10, height: 44, borderWidth: 0.8, borderStyle: "dashed", borderColor: "#9AA1B1", borderRadius: 4, justifyContent: "center", alignItems: "center" }}><Text style={{ fontSize: 8, color: "#9AA1B1" }}>{hint}</Text></View>
     </View>
   );
 }
 
-export function QuoteDoc() {
-  const counted = SECTIONS.flatMap((x) => x.lines).filter((l) => !l.option);
-  const ht = counted.reduce((a, l) => a + l.qty * l.pu, 0);
-  const vat = ht * 0.2;
+export function QuoteDoc({ doc, co, paymentDays }: { doc: PdfDoc; co: Company; paymentDays: number }) {
+  const label = `Devis ${doc.number ?? "(brouillon)"}`;
+  const first = doc.client.name.split(" ")[0];
   return (
-    <PageShell co={CO} doc="Devis D-2026-0017" title="Devis D-2026-0017">
+    <PageShell co={co} title={label}>
       <Page size="A4" style={s.page}>
         <Bar />
-        <Letterhead co={CO} title="DEVIS" number="D-2026-0017" pill="En attente de signature" pillTone="blue" />
-        <Meta items={[["Date de création", dateFr("2026-11-05")], ["Valable jusqu'au", dateFr("2026-12-05")], ["Début souhaité", "Janvier 2027"], ["Interlocuteur", "Kevin — ProClean"]]} />
+        <Footer co={co} doc={label} />
+        <Body>
+        <Letterhead co={co} title="DEVIS" number={doc.number ?? "Brouillon"} pill={doc.number ? (doc.status === "accepte" ? "Accepté" : doc.status === "refuse" ? "Refusé" : doc.status === "envoye" ? "En attente de signature" : "Brouillon") : "Brouillon"} pillTone={doc.status === "accepte" ? "green" : "blue"} />
+        <Meta items={[["Date de création", dateLong(doc.issueDate)], ["Valable jusqu'au", dateLong(doc.dueOrValidUntil) || "30 jours"], ["Mode de règlement", `Virement à ${paymentDays} jours`]]} />
         <View style={[s.row, { marginBottom: 12 }]}>
-          <Party title="Destinataire" tint lines={[{ t: CLIENT.name, b: true }, { t: CLIENT.contact }, { t: CLIENT.address }, { t: `${CLIENT.zip} ${CLIENT.city}` }, { t: CLIENT.email }]} />
+          <Party tint title="Destinataire" lines={[{ t: doc.client.name, b: true }, ...addressLines(doc.client).map((t) => ({ t }))]} />
           <View style={{ width: 12 }} />
-          <Party title="Lieu de prestation" lines={[{ t: SITE.name, b: true }, { t: SITE.address }, { t: "Accès : badge fourni par le syndic" }]} />
+          <Party title="Émetteur" lines={[{ t: co.name, b: true }, ...[co.address, co.siret ? `SIRET ${co.siret}` : "", [co.phone, co.email].filter(Boolean).join(" · ")].filter(Boolean).map((t) => ({ t }))]} />
         </View>
 
-        <View style={{ marginTop: 6, marginBottom: 2 }}>
-          <Text style={[s.h2, { fontSize: 15, marginBottom: 6 }]}>Notre proposition pour votre résidence</Text>
-          <Text style={{ fontSize: 10, lineHeight: 1.6, color: C.ink }}>Madame Martin,</Text>
-          <Text style={{ fontSize: 10, lineHeight: 1.6, color: C.ink, marginTop: 6 }}>Nous vous remercions pour l'intérêt porté à ProClean Empire. Nous avons le plaisir de vous présenter notre proposition commerciale pour l'entretien de votre résidence : une équipe dédiée, des produits professionnels et un contrôle qualité à chaque passage.</Text>
+        <View style={{ marginTop: 6, marginBottom: 4 }}>
+          <Text style={[s.h2, { fontSize: 15, marginBottom: 6 }]}>{doc.subject ?? "Notre proposition"}</Text>
+          <Text style={{ fontSize: 10, lineHeight: 1.6 }}>Bonjour{first ? ` ${first}` : ""},</Text>
+          <Text style={{ fontSize: 10, lineHeight: 1.6, marginTop: 5 }}>Nous vous remercions pour l'intérêt porté à ProClean Empire. Nous avons le plaisir de vous présenter notre proposition commerciale : une équipe dédiée, des produits professionnels et un suivi de la qualité à chaque intervention.</Text>
         </View>
 
-        <View style={{ flexDirection: "row", borderBottomWidth: 1.4, borderBottomColor: C.navy, paddingBottom: 7, marginTop: 6 }}>
-          <Text style={[s.label, { width: cols.d, marginBottom: 0 }]}>Prestation</Text>
-          <Text style={[s.label, { width: cols.q, marginBottom: 0, textAlign: "right" }]}>Quantité</Text>
-          <Text style={[s.label, { width: cols.p, marginBottom: 0, textAlign: "right" }]}>P.U. HT</Text>
-          <Text style={[s.label, { width: cols.v, marginBottom: 0, textAlign: "right" }]}>TVA</Text>
-          <Text style={[s.label, { width: cols.t, marginBottom: 0, textAlign: "right" }]}>Total HT</Text>
+        <View style={{ flexDirection: "row", borderBottomWidth: 1.4, borderBottomColor: C.navy, paddingBottom: 7, marginTop: 10 }}>
+          <Text style={[s.label, { width: cols.desc, marginBottom: 0 }]}>Prestation</Text>
+          <Text style={[s.label, { width: cols.qty, marginBottom: 0, textAlign: "right" }]}>Qté</Text>
+          <Text style={[s.label, { width: cols.pu, marginBottom: 0, textAlign: "right" }]}>P.U. HT</Text>
+          <Text style={[s.label, { width: cols.vat, marginBottom: 0, textAlign: "right" }]}>TVA</Text>
+          <Text style={[s.label, { width: cols.tot, marginBottom: 0, textAlign: "right" }]}>Total HT</Text>
         </View>
-        {SECTIONS.map((sec) => (<View key={sec.title}><View wrap={false}><Sec title={sec.title} /><Row l={sec.lines[0]} /></View>{sec.lines.slice(1).map((l, i) => <Row key={i} l={l} />)}</View>))}
+        {doc.lines.map((l, i) => {
+          const { title, detail } = splitLine(l.description);
+          return (
+            <View key={i} wrap={false} style={{ flexDirection: "row", paddingVertical: 10, borderBottomWidth: 0.6, borderBottomColor: C.line }}>
+              <View style={{ width: cols.desc, paddingRight: 12 }}>
+                <Text style={{ fontWeight: 600, fontSize: 10, color: C.navy }}>{title}</Text>
+                {detail ? <Text style={{ fontSize: 8.6, color: C.grey, marginTop: 2 }}>{detail}</Text> : null}
+              </View>
+              <Text style={{ width: cols.qty, textAlign: "right" }}>{nb(l.quantity)}</Text>
+              <Text style={{ width: cols.pu, textAlign: "right" }}>{money(l.unit_price_ht)}</Text>
+              <Text style={{ width: cols.vat, textAlign: "right", color: C.grey }}>{nb(l.vat_rate)} %</Text>
+              <Text style={{ width: cols.tot, textAlign: "right", fontWeight: 700 }}>{money(lineTotals(l).ht)}</Text>
+            </View>
+          );
+        })}
 
         <View wrap={false} style={{ marginTop: 14 }}>
           <View style={s.row}>
             <View style={{ flex: 1, paddingRight: 28 }}>
               <Text style={s.label}>Modalités de paiement</Text>
-              <Text style={{ fontSize: 9, marginBottom: 3 }}>Montants exprimés par mois. Facturation mensuelle, règlement par virement à 30 jours.</Text>
-              <Text style={{ fontSize: 9, color: C.grey }}>Aucuns frais supplémentaires : produits, matériel et déplacements sont inclus. Option C facturée uniquement sur votre accord.</Text>
+              <Text style={{ fontSize: 9, marginBottom: 3 }}>Règlement par virement sous {paymentDays} jours après facturation.</Text>
+              {doc.notes ? <Text style={{ fontSize: 9, color: C.grey }}>{doc.notes}</Text> : null}
             </View>
-            <Totals ht={ht} byRate={[{ rate: 20, base: ht, vat }]} ttc={ht + vat} />
+            <Totals ht={doc.totals.ht} byRate={vatBreakdown(doc.lines)} ttc={doc.totals.ttc} />
           </View>
         </View>
 
-        {/* Conditions commerciales */}
-        <View style={{ marginTop: 20 }}>
+        <View wrap={false} style={{ marginTop: 22 }}>
           <Text style={[s.h2, { fontSize: 15, marginBottom: 8 }]}>Conditions commerciales</Text>
-          <View style={[s.row, { marginBottom: 8 }]}>
-            <View style={{ flex: 1, backgroundColor: C.light, borderRadius: 6, padding: 11, marginRight: 8 }}>
-              <Text style={s.label}>Prestations incluses</Text>
-              {["Main-d'œuvre et encadrement", "Produits et matériel professionnels", "Contrôle qualité à chaque passage", "Remplacement en cas d'absence d'un agent"].map((t) => <Text key={t} style={{ fontSize: 9, marginBottom: 3 }}>+  {t}</Text>)}
-            </View>
-            <View style={{ flex: 1, backgroundColor: C.light, borderRadius: 6, padding: 11, marginLeft: 8 }}>
-              <Text style={s.label}>Prestations exclues</Text>
-              {["Remise en état après sinistre ou travaux", "Nettoyage des façades et toitures", "Consommables sanitaires (sauf accord)", "Toute prestation non décrite au devis"].map((t) => <Text key={t} style={{ fontSize: 9, marginBottom: 3, color: C.grey }}>—  {t}</Text>)}
-            </View>
-          </View>
-          {[
-            ["Validité", "Ce devis est valable 30 jours à compter de sa date de création."],
-            ["Conditions d'intervention", "Les interventions ont lieu aux jours et horaires convenus. Un accès aux locaux et à l'eau et à l'électricité est nécessaire."],
-            ["Annulation", "Toute intervention annulée moins de 48 h à l'avance peut être facturée. Résiliation du contrat : voir conditions du contrat."],
-            ["Conditions particulières", "Aucune."]
-          ].map(([k, v]) => (
-            <View key={k} wrap={false} style={{ flexDirection: "row", paddingVertical: 6, borderBottomWidth: 0.6, borderBottomColor: C.line }}>
-              <Text style={{ width: 130, fontWeight: 700, color: C.navy, fontSize: 9 }}>{k}</Text>
+          {[["Validité", doc.dueOrValidUntil ? `Ce devis est valable jusqu'au ${dateLong(doc.dueOrValidUntil)}.` : "Ce devis est valable 30 jours."], ["Conditions", "Aucun escompte pour paiement anticipé. Les interventions sont planifiées d'un commun accord après acceptation du devis."]].map(([k, v]) => (
+            <View key={k} style={{ flexDirection: "row", paddingVertical: 6, borderBottomWidth: 0.6, borderBottomColor: C.line }}>
+              <Text style={{ width: 110, fontWeight: 700, color: C.navy, fontSize: 9 }}>{k}</Text>
               <Text style={{ flex: 1, fontSize: 9 }}>{v}</Text>
             </View>
           ))}
+        </View>
 
-          {/* Acceptation — conçu pour la signature électronique */}
-          <View break wrap={false}>
-            <Text style={[s.h2, { fontSize: 18, marginBottom: 6 }]}>Acceptation du devis</Text>
-            <View style={{ flexDirection: "row", backgroundColor: C.light, borderRadius: 6, padding: 14, marginBottom: 14 }}>
-              {[["Devis", "D-2026-0017"], ["Client", CLIENT.name], ["Total TTC", money(ht + vat) + " / mois"], ["Début", "Janvier 2027"]].map(([k, v], i) => (<View key={k} style={{ flex: i === 1 ? 2 : 1, paddingLeft: i ? 10 : 0 }}><Text style={s.label}>{k}</Text><Text style={{ fontWeight: 600, fontSize: 9.5 }}>{v}</Text></View>))}
-            </View>
-            <Text style={{ fontSize: 9, color: C.grey, marginBottom: 10 }}>« Bon pour accord » : en signant, le client accepte le présent devis et ses conditions. Signature électronique sécurisée via notre prestataire agréé.</Text>
-            <View style={s.row}>
-              <View style={{ flex: 1, borderWidth: 1, borderColor: C.blue, borderRadius: 8, padding: 14, marginRight: 8, minHeight: 118, backgroundColor: C.white }}>
-                <Text style={[s.label, { color: C.blue }]}>Le client</Text>
-                <Text style={{ fontSize: 9, marginTop: 2 }}>Nom du signataire : <Text style={{ fontWeight: 600 }}>________________________</Text></Text>
-                <Text style={{ fontSize: 9, marginTop: 8 }}>Fait à : ______________  Le : ____ / ____ / ______</Text>
-                <View style={{ marginTop: 10, height: 44, borderWidth: 0.8, borderStyle: "dashed", borderColor: "#9AA1B1", borderRadius: 4, justifyContent: "center", alignItems: "center" }}><Text style={{ fontSize: 8, color: "#9AA1B1" }}>Zone de signature électronique</Text></View>
-              </View>
-              <View style={{ flex: 1, borderWidth: 1, borderColor: C.line, borderRadius: 8, padding: 14, marginLeft: 8, minHeight: 118, backgroundColor: C.light }}>
-                <Text style={s.label}>Pour ProClean Empire</Text>
-                <Text style={{ fontSize: 9, marginTop: 2 }}>Kevin — Gérant</Text>
-                <Text style={{ fontSize: 9, marginTop: 8 }}>Pontoise, le {dateFr("2026-11-05")}</Text>
-                <View style={{ marginTop: 10, height: 44, borderWidth: 0.8, borderStyle: "dashed", borderColor: "#9AA1B1", borderRadius: 4, justifyContent: "center", alignItems: "center" }}><Text style={{ fontSize: 8, color: "#9AA1B1" }}>Signature électronique</Text></View>
-              </View>
-            </View>
+        </Body>
+        <View break wrap={false} style={{ lineHeight: 1.2 }}>
+          <Text style={[s.h2, { fontSize: 18, marginBottom: 6 }]}>Acceptation du devis</Text>
+          <View style={{ flexDirection: "row", backgroundColor: C.light, borderRadius: 6, padding: 14, marginBottom: 14 }}>
+            {[["Devis", doc.number ?? "Brouillon"], ["Client", doc.client.name], ["Total TTC", money(doc.totals.ttc)]].map(([k, v], i) => (<View key={k} style={{ flex: i === 1 ? 2 : 1, paddingLeft: i ? 10 : 0 }}><Text style={s.label}>{k}</Text><Text style={{ fontWeight: 600, fontSize: 9.5 }}>{v}</Text></View>))}
+          </View>
+          <Text style={{ fontSize: 9, color: C.grey, marginBottom: 10 }}>« Bon pour accord » : en signant, le client accepte le présent devis et ses conditions.</Text>
+          <View style={s.row}>
+            <SignBox title="Le client" tone="blue" hint="Zone de signature électronique" />
+            <View style={{ width: 16 }} />
+            <SignBox title={`Pour ${co.name}`} tone="grey" name={`${LEGAL_REP.name}, ${LEGAL_REP.title}`} hint="Signature électronique" />
           </View>
         </View>
-        <Footer co={CO} doc="Devis D-2026-0017" />
       </Page>
     </PageShell>
   );

@@ -1,35 +1,20 @@
 /* eslint-disable react/no-unescaped-entities */
 import React from "react";
 import { Document, Font, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
-import path from "node:path";
-import fs from "node:fs";
+import { FONT_DATA } from "./fonts-data";
+import { LOGO_PNG_BASE64 } from "../pdf/logo";
 
-/** Identité documentaire ProClean Empire — grille, typographie et composants communs aux 3 modèles. */
-const fp = (pkg: string, f: string) => path.join(process.cwd(), "node_modules", "@fontsource", pkg, "files", f);
-Font.register({
-  family: "Inter",
-  fonts: [
-    { src: fp("inter", "inter-latin-400-normal.woff"), fontWeight: 400 },
-    { src: fp("inter", "inter-latin-500-normal.woff"), fontWeight: 500 },
-    { src: fp("inter", "inter-latin-600-normal.woff"), fontWeight: 600 },
-    { src: fp("inter", "inter-latin-700-normal.woff"), fontWeight: 700 }
-  ]
-});
-Font.register({
-  family: "Jakarta",
-  fonts: [
-    { src: fp("plus-jakarta-sans", "plus-jakarta-sans-latin-600-normal.woff"), fontWeight: 600 },
-    { src: fp("plus-jakarta-sans", "plus-jakarta-sans-latin-700-normal.woff"), fontWeight: 700 },
-    { src: fp("plus-jakarta-sans", "plus-jakarta-sans-latin-800-normal.woff"), fontWeight: 800 }
-  ]
-});
+/** Identité documentaire ProClean Empire : grille, typographie et composants communs aux documents. */
+const reg = (family: string) => Font.register({ family, fonts: Object.entries(FONT_DATA[family]).map(([w, b]) => ({ src: `data:font/woff;base64,${b}`, fontWeight: Number(w) })) });
+reg("Inter");
+reg("Jakarta");
 Font.registerHyphenationCallback((w) => [w]); // jamais de coupure de mot au milieu
 
 export const C = { navy: "#14213D", blue: "#1D6FE0", blueSoft: "#EAF2FD", ink: "#1A1F2E", grey: "#6B7385", light: "#F4F6FA", line: "#E3E7EF", white: "#FFFFFF", green: "#15803D", greenSoft: "#E8F6EE", amber: "#B45309", amberSoft: "#FEF3E2" };
-export const M = { x: 42, top: 44, bottom: 84 };
+export const M = { x: 42, top: 40, bottom: 72 };
 
 export const s = StyleSheet.create({
-  page: { fontFamily: "Inter", fontSize: 9.5, color: C.ink, paddingTop: M.top, paddingBottom: M.bottom, paddingHorizontal: M.x, lineHeight: 1.45 },
+  page: { fontFamily: "Inter", fontSize: 9.5, color: C.ink, paddingTop: M.top, paddingBottom: M.bottom, paddingHorizontal: M.x },
   topBar: { position: "absolute", top: 0, left: 0, right: 0, height: 6, backgroundColor: C.navy },
   topBarAccent: { position: "absolute", top: 0, left: 0, width: 96, height: 6, backgroundColor: C.blue },
   label: { fontSize: 7.5, fontWeight: 700, letterSpacing: 1.1, color: C.grey, textTransform: "uppercase", marginBottom: 5 },
@@ -46,22 +31,23 @@ export const money = (n: number) => {
 };
 export const dateFr = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
 
-export interface Company { name: string; address: string; zip: string; city: string; phone: string; email: string; siret: string; vat: string | null; legal: string; capital: string; rcs: string; iban: string | null; web: string }
+export interface Company { name: string; address: string; phone: string; email: string; siret: string; vat: string | null; legal: string; capital: string; rcs: string; iban: string | null; footer: string | null }
 
-const LOGO = fs.existsSync(path.join(process.cwd(), "public/logo.png")) ? path.join(process.cwd(), "public/logo.png") : "";
+export const companyFrom = (s: any): Company => ({ name: s.company_name, address: s.company_address ?? "", phone: s.company_phone ?? "", email: s.company_email ?? "", siret: s.company_siret ?? "", vat: s.company_vat_number ?? null, legal: s.company_legal_form ?? "", capital: s.company_capital ?? "", rcs: s.company_rcs ?? "", iban: s.company_iban ?? null, footer: s.company_footer ?? null });
+
+const LOGO = `data:image/png;base64,${LOGO_PNG_BASE64}`;
 
 export function Letterhead({ co, title, number, pill, pillTone = "blue" }: { co: Company; title: string; number: string; pill?: string; pillTone?: "blue" | "green" | "amber" }) {
   const tone = { blue: [C.blueSoft, C.blue], green: [C.greenSoft, C.green], amber: [C.amberSoft, C.amber] }[pillTone];
   return (
-    <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 20 }}>
+    <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 14 }}>
       <View style={{ flexDirection: "row", width: "58%" }}>
         {/* eslint-disable-next-line jsx-a11y/alt-text */}
         {LOGO ? <Image src={LOGO} style={{ width: 38, height: 70, marginRight: 14 }} /> : null}
         <View style={{ justifyContent: "center" }}>
           <Text style={{ fontFamily: "Jakarta", fontWeight: 800, fontSize: 14, color: C.navy, marginBottom: 4 }}>{co.name}</Text>
           <Text style={s.small}>{co.address}</Text>
-          <Text style={s.small}>{co.zip} {co.city}</Text>
-          <Text style={s.small}>{co.phone} · {co.email}</Text>
+          <Text style={s.small}>{[co.phone, co.email].filter(Boolean).join(" · ")}</Text>
         </View>
       </View>
       <View style={{ alignItems: "flex-end", width: "40%" }}>
@@ -75,7 +61,7 @@ export function Letterhead({ co, title, number, pill, pillTone = "blue" }: { co:
 
 export function Meta({ items }: { items: [string, string][] }) {
   return (
-    <View style={{ flexDirection: "row", marginBottom: 16, paddingVertical: 9, paddingHorizontal: 14, backgroundColor: C.light, borderRadius: 6 }}>
+    <View style={{ flexDirection: "row", marginBottom: 12, paddingVertical: 8, paddingHorizontal: 14, backgroundColor: C.light, borderRadius: 6 }}>
       {items.map(([k, v], i) => (
         <View key={k} style={{ flex: 1, paddingLeft: i ? 12 : 0 }}>
           <Text style={s.label}>{k}</Text>
@@ -88,7 +74,7 @@ export function Meta({ items }: { items: [string, string][] }) {
 
 export function Party({ title, lines, tint = false }: { title: string; lines: { t: string; b?: boolean }[]; tint?: boolean }) {
   return (
-    <View style={{ flex: 1, padding: 13, borderRadius: 6, backgroundColor: tint ? C.blueSoft : C.light }}>
+    <View style={{ flex: 1, padding: 11, borderRadius: 6, backgroundColor: tint ? C.blueSoft : C.light }}>
       <Text style={[s.label, tint ? { color: C.blue } : {}]}>{title}</Text>
       {lines.map((l, i) => <Text key={i} style={{ fontWeight: l.b ? 700 : 400, fontSize: l.b ? 10.5 : 9, color: l.b ? C.navy : C.ink, marginBottom: 1.5 }}>{l.t}</Text>)}
     </View>
@@ -99,23 +85,27 @@ export function Footer({ co, doc }: { co: Company; doc: string }) {
   return (
     <View fixed style={{ position: "absolute", left: M.x, right: M.x, bottom: 26, borderTopWidth: 0.6, borderTopColor: C.line, paddingTop: 8, flexDirection: "row", justifyContent: "space-between" }}>
       <View style={{ width: "82%" }}>
-        <Text style={{ fontSize: 7.3, color: C.grey, lineHeight: 1.5 }}>
-          {co.name} · {co.legal} au capital de {co.capital} · {co.rcs} · SIRET {co.siret}{co.vat ? ` · TVA ${co.vat}` : " · TVA non renseignée"}
-        </Text>
-        <Text style={{ fontSize: 7.3, color: C.grey }}>{co.address}, {co.zip} {co.city} · {co.phone} · {co.email}</Text>
+        {co.footer ? <Text style={{ fontSize: 7.3, color: C.grey, lineHeight: 1.5 }}>{co.footer}</Text> : (<>
+          <Text style={{ fontSize: 7.3, color: C.grey, lineHeight: 1.5 }}>
+            {[co.name, [co.legal, co.capital ? `au capital de ${co.capital}` : ""].filter(Boolean).join(" "), co.rcs, co.siret ? `SIRET ${co.siret}` : "", co.vat ? `TVA ${co.vat}` : ""].filter(Boolean).join(" · ")}
+          </Text>
+          <Text style={{ fontSize: 7.3, color: C.grey }}>{[co.address, co.phone, co.email].filter(Boolean).join(" · ")}</Text></>)}
       </View>
       <Text style={{ fontFamily: "Inter", fontSize: 7.5, color: C.grey }} render={({ pageNumber, totalPages }) => `${doc}  ·  ${pageNumber} / ${totalPages}`} />
     </View>
   );
 }
 
-export function PageShell({ children, co, doc, title }: { children: React.ReactNode; co: Company; doc: string; title: string }) {
+export function PageShell({ children, co, title }: { children: React.ReactNode; co: Company; title: string }) {
   return (
     <Document title={title} author={co.name} creator="ProClean CRM" producer="ProClean CRM">
       {children}
     </Document>
   );
 }
+
+/** Le contenu porte l'interligne : posé sur la page, il fait disparaître le pied de page (comportement de react-pdf). */
+export const Body = ({ children }: { children: React.ReactNode }) => <View style={{ lineHeight: 1.0 }}>{children}</View>;
 
 export const Bar = () => (<><View fixed style={s.topBar} /><View fixed style={s.topBarAccent} /></>);
 
