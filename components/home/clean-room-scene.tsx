@@ -12,20 +12,20 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
  */
 
 // ─── Projection isométrique ───────────────────────────────────────────────
-const S = 33;                 // pixels par unité
+export const S = 33;                 // pixels par unité
 const C = Math.cos(Math.PI / 6);
 const OX = 330, OY = 206;      // position écran du coin arrière (0,0,0)
-const SIZE = 10;              // pièce de 10 × 10 unités
-const H = 5.6;                // hauteur des murs
+export const SIZE = 10;              // pièce de 10 × 10 unités
+export const H = 5.6;                // hauteur des murs
 
-const P = (x: number, y: number, z = 0): [number, number] => [OX + (x - y) * C * S, OY + (x + y) * 0.5 * S - z * S];
-const pts = (a: [number, number, number][]) => a.map(([x, y, z]) => P(x, y, z).map((n) => n.toFixed(1)).join(",")).join(" ");
-const FLOOR = `matrix(${C * S} ${0.5 * S} ${-C * S} ${0.5 * S} ${OX} ${OY})`;               // plan du sol : (x,y)
-const WALL_L = `matrix(${-C * S} ${0.5 * S} 0 ${-S} ${OX} ${OY})`;                          // mur gauche (x=0) : (y,z)
-const WALL_R = `matrix(${C * S} ${0.5 * S} 0 ${-S} ${OX} ${OY})`;                           // mur droit  (y=0) : (x,z)
+export const P = (x: number, y: number, z = 0): [number, number] => [OX + (x - y) * C * S, OY + (x + y) * 0.5 * S - z * S];
+export const pts = (a: [number, number, number][]) => a.map(([x, y, z]) => P(x, y, z).map((n) => n.toFixed(1)).join(",")).join(" ");
+export const FLOOR = `matrix(${C * S} ${0.5 * S} ${-C * S} ${0.5 * S} ${OX} ${OY})`;               // plan du sol : (x,y)
+export const WALL_L = `matrix(${-C * S} ${0.5 * S} 0 ${-S} ${OX} ${OY})`;                          // mur gauche (x=0) : (y,z)
+export const WALL_R = `matrix(${C * S} ${0.5 * S} 0 ${-S} ${OX} ${OY})`;                           // mur droit  (y=0) : (x,z)
 
-type Tone = { top: string; left: string; right: string };
-const T = {
+export type Tone = { top: string; left: string; right: string };
+export const T = {
   green: { top: "#3f8a68", left: "#2f6b4f", right: "#255641" },
   wood: { top: "#7a4a24", left: "#5f3a1c", right: "#4b2d15" },
   dark: { top: "#3b4252", left: "#2a303c", right: "#1f242d" },
@@ -38,7 +38,7 @@ const T = {
 } satisfies Record<string, Tone>;
 
 /** Pavé droit : 3 faces visibles (dessus, face +y, face +x). */
-function Box({ x, y, z = 0, w, d, h, tone, opacity = 1 }: { x: number; y: number; z?: number; w: number; d: number; h: number; tone: Tone; opacity?: number }) {
+export function Box({ x, y, z = 0, w, d, h, tone, opacity = 1 }: { x: number; y: number; z?: number; w: number; d: number; h: number; tone: Tone; opacity?: number }) {
   const z1 = z + h;
   return (
     <g opacity={opacity}>
@@ -61,7 +61,7 @@ const DIRT: { x: number; y: number; r: number; t: number; kind: "dust" | "stain"
 ];
 const SWEEP_SECONDS = 9;
 
-function Sparkle({ x, y, delay, big = false }: { x: number; y: number; delay: number; big?: boolean }) {
+export function Sparkle({ x, y, delay, big = false }: { x: number; y: number; delay: number; big?: boolean }) {
   const [px, py] = P(x, y, 0.2);
   const r = big ? 9 : 6;
   return (
@@ -77,7 +77,7 @@ function Sparkle({ x, y, delay, big = false }: { x: number; y: number; delay: nu
 }
 
 // ─── La femme de ménage (silhouette plate, 100 % originale) ───────────────
-function Cleaner({ walking }: { walking: boolean }) {
+export function Cleaner({ walking }: { walking: boolean }) {
   const swing = (deg: number, delay = 0) => ({
     animate: walking ? { rotate: [-deg, deg] } : { rotate: 0 },
     transition: walking ? { duration: 0.42, repeat: Infinity, repeatType: "reverse" as const, ease: "easeInOut" as const, delay } : { duration: 0.3 }
@@ -112,7 +112,7 @@ function Cleaner({ walking }: { walking: boolean }) {
   );
 }
 
-function WetSign() {
+export function WetSign() {
   return (
     <g>
       <ellipse cx="0" cy="1" rx="11" ry="3.4" fill="#000" opacity="0.25" />

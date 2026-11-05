@@ -7,6 +7,7 @@ import Link from "next/link";
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { Reveal } from "@/components/home/reveal";
 import { CleanRoomScene } from "@/components/home/clean-room-scene";
+import { AirbnbTurnoverScene } from "@/components/home/airbnb-turnover-scene";
 import { PartnersMarquee } from "@/components/phase1/partners-marquee";
 import { ReviewsPremiumSection } from "@/components/phase1/reviews-premium-section";
 import { siteConfig } from "@/lib/site";
@@ -179,12 +180,6 @@ function CleaningCompanyText() {
 
 /* ---------- 3. Ménage Airbnb (mis en avant) ---------- */
 function AirbnbFeature() {
-  const ref = useRef<HTMLElement>(null);
-  const reduce = useReducedMotion();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const yA = useTransform(scrollYProgress, [0, 1], [reduce ? 0 : 60, reduce ? 0 : -60]);
-  const yB = useTransform(scrollYProgress, [0, 1], [reduce ? 0 : 120, reduce ? 0 : -120]);
-
   const points = [
     "Pour les conciergeries et les propriétaires.",
     "Le jour de ménage, c'est vous qui le fixez.",
@@ -193,7 +188,7 @@ function AirbnbFeature() {
   ];
 
   return (
-    <section id="prestations" ref={ref} className="scroll-mt-16 overflow-hidden bg-mist">
+    <section id="prestations" className="scroll-mt-16 overflow-hidden bg-mist">
       <div className="mx-auto grid max-w-[1400px] items-center gap-16 px-5 py-28 md:px-8 md:py-36 lg:grid-cols-2">
         <div>
           <Reveal>
@@ -225,36 +220,8 @@ function AirbnbFeature() {
           </Reveal>
         </div>
 
-        <div className="relative grid h-[560px] grid-cols-2 gap-4 md:h-[680px]">
-          <motion.div style={{ y: yA }} className="relative h-[85%] overflow-hidden rounded-[28px]">
-            <Image
-              src="/media/photos/airbnb-salon-table-basse.webp"
-              alt="Salon d'un logement Airbnb nettoyé et préparé pour l'arrivée des voyageurs"
-              fill
-              sizes="(min-width: 1024px) 25vw, 50vw"
-              className="object-cover"
-            />
-          </motion.div>
-          <motion.div style={{ y: yB }} className="flex flex-col gap-4 pt-16">
-            <div className="relative h-1/2 overflow-hidden rounded-[28px]">
-              <Image
-                src="/media/photos/airbnb-entree-logement.webp"
-                alt="Entrée lumineuse d'un appartement Airbnb après le ménage"
-                fill
-                sizes="(min-width: 1024px) 25vw, 50vw"
-                className="object-cover"
-              />
-            </div>
-            <div className="relative h-1/2 overflow-hidden rounded-[28px]">
-              <Image
-                src="/media/photos/canape-velours-apres.webp"
-                alt="Canapé en velours propre dans un logement de location courte durée"
-                fill
-                sizes="(min-width: 1024px) 25vw, 50vw"
-                className="object-cover"
-              />
-            </div>
-          </motion.div>
+        <div className="relative h-[470px] overflow-hidden rounded-[32px] bg-[radial-gradient(ellipse_at_50%_35%,#1a2b5e_0%,#0d1633_65%,#080d20_100%)] shadow-[0_30px_80px_-30px_rgba(13,27,61,0.55)] sm:h-[600px] lg:h-[680px]">
+          <AirbnbTurnoverScene />
         </div>
       </div>
     </section>
