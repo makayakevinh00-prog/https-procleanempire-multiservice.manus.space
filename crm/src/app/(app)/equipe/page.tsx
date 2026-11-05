@@ -50,7 +50,7 @@ export default async function TeamPage() {
         <Card className="mb-4 border-emerald-300 bg-emerald-50">
           <CardContent className="space-y-2 p-4 text-sm">
             <div className="font-bold text-emerald-900">Lien mobile de {fresh.name} — affiché une seule fois</div>
-            <input readOnly value={fresh.url} onFocus={(e) => e.currentTarget.select()} className="w-full rounded-md border bg-white px-3 py-2 font-mono text-xs" aria-label="Lien mobile" />
+            <input readOnly value={fresh.url} className="w-full select-all rounded-md border bg-white px-3 py-2 font-mono text-xs" aria-label="Lien mobile" />
             <div className="flex flex-wrap gap-3 text-xs">
               <a className="font-semibold text-emerald-800 underline" href={`https://wa.me/?text=${encodeURIComponent(`Bonjour ${fresh.name.split(" ")[0]}, voici ton lien personnel pour tes missions ProClean : ${fresh.url}`)}`} target="_blank" rel="noopener noreferrer">Envoyer par WhatsApp</a>
               <span className="text-emerald-900">Personnel et confidentiel. Si vous régénérez le lien, l&apos;ancien cesse de fonctionner.</span>
