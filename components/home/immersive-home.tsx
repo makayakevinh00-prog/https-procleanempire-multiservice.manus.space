@@ -22,15 +22,14 @@ function Hero() {
   return (
     <section ref={ref} className="relative h-[100svh] min-h-[560px] overflow-hidden bg-ink text-white">
       <motion.div style={{ scale }} className="absolute inset-0">
-        <video
-          className="h-full w-full object-cover"
-          src="/media/videos/proclean-demonstration-2.mp4"
-          poster="/media/photos/hero-showcase.webp"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
+        {/* Image fixe (plus de vidéo) : l'affiche du hero, plein écran, chargée en priorité. */}
+        <Image
+          src="/media/photos/hero-showcase.webp"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
           aria-hidden
         />
       </motion.div>
