@@ -8,7 +8,7 @@ import { guessCategory, type ContractCategory } from "@/lib/contracts/clauses";
 import type { PdfDoc } from "@/lib/pdf/document";
 
 const settings: any = { company_name: "ProClean Empire", company_address: "3 rue Stéphane Charbonnier, 95300 Pontoise", company_phone: "06 17 21 22 30", company_email: "contact@procleanempire.com",
-  company_siret: "106 602 659 00018", company_vat_number: null, company_iban: "FR76 1234 5678", company_legal_form: "SASU", company_capital: "1 000 €", company_rcs: "RCS Pontoise 106 602 659", company_footer: null, payment_terms_days: 30 };
+  company_siret: "106 602 659 00018", company_vat_number: null, company_iban: "FR76 1695 8000 0162 8198 8735 439", company_bic: "QNTOFRP1XXX", company_legal_form: "SASU", company_capital: "1 000 €", company_rcs: "RCS Pontoise 106 602 659", company_footer: null, payment_terms_days: 30 };
 const client = { name: "SEA SOCIETE D'EXPLOITATION AUTOMOBILE", address: "6 Rue d'Armaillé", postal_code: "75017", city: "Paris", siret: "30265423100026", email: "a@b.fr", phone: "0102030405", kind: "entreprise" };
 const doc = (o: Partial<PdfDoc> = {}): PdfDoc => ({ kind: "facture", number: "F-2026-0042", status: "envoye", issueDate: "2026-11-05", dueOrValidUntil: "2026-12-05", subject: "Entretien", notes: null, client,
   lines: [{ description: "Entretien mensuel", quantity: 1, unit_price_ht: 600, vat_rate: 20 }], totals: { ht: 600, vat: 120, ttc: 720 }, ...o });
@@ -54,6 +54,16 @@ describe("PDF haut de gamme — facture et devis", () => {
     const lines = [...many(2), { description: "Remise commerciale", quantity: 1, unit_price_ht: -50, vat_rate: 20 }];
     expect(pages(await renderInvoiceOrQuote(doc({ number: null, status: "brouillon", lines, totals: totalsOf(lines) }), settings))).toBe(1);
     const t = text(await renderInvoiceOrQuote(doc({ status: "paye", paidAmount: 720 }), settings)); if (t) expect(t.replace(/\s/g, "").toUpperCase()).toContain("ACQUITTÉE");
+  });
+  it("RIB (IBAN + BIC) présent sur la facture", async () => {
+    const t = text(await renderInvoiceOrQuote(doc(), settings)); if (t) { const n = t.replace(/\s+/g, " "); expect(n).toContain("FR76 1695 8000 0162 8198 8735 439"); expect(n).toContain("QNTOFRP1XXX"); }
+  });
+  it("document émis : jamais « Brouillon » ; brouillon sans numéro : « Brouillon »", async () => {
+    const up = (b: Uint8Array) => (text(b) ?? "").replace(/\s/g, "").toUpperCase();
+    expect(up(await renderInvoiceOrQuote(doc({ status: "envoye" }), settings))).not.toContain("BROUILLON");
+    expect(up(await renderInvoiceOrQuote(doc({ status: "brouillon" }), settings))).not.toContain("BROUILLON"); // numéro attribué = facture validée
+    expect(up(await renderInvoiceOrQuote(doc({ kind: "devis", number: "DEV-1", status: "envoye" }), settings))).not.toContain("BROUILLON");
+    expect(up(await renderInvoiceOrQuote(doc({ number: null, status: "brouillon" }), settings))).toContain("BROUILLON");
   });
   it("accents, apostrophes et symboles s'impriment sans « ? »", async () => {
     const t = text(await renderInvoiceOrQuote(doc({ subject: "Remise en état — fin de chantier « Œuvres » → 2 000 € ✓" }), settings));

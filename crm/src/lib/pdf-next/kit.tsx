@@ -31,9 +31,9 @@ export const money = (n: number) => {
 };
 export const dateFr = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
 
-export interface Company { name: string; address: string; phone: string; email: string; siret: string; vat: string | null; legal: string; capital: string; rcs: string; iban: string | null; footer: string | null }
+export interface Company { name: string; address: string; phone: string; email: string; siret: string; vat: string | null; legal: string; capital: string; rcs: string; iban: string | null; bic: string | null; footer: string | null }
 
-export const companyFrom = (s: any): Company => ({ name: s.company_name, address: s.company_address ?? "", phone: s.company_phone ?? "", email: s.company_email ?? "", siret: s.company_siret ?? "", vat: s.company_vat_number ?? null, legal: s.company_legal_form ?? "", capital: s.company_capital ?? "", rcs: s.company_rcs ?? "", iban: s.company_iban ?? null, footer: s.company_footer ?? null });
+export const companyFrom = (s: any): Company => ({ name: s.company_name, address: s.company_address ?? "", phone: s.company_phone ?? "", email: s.company_email ?? "", siret: s.company_siret ?? "", vat: s.company_vat_number ?? null, legal: s.company_legal_form ?? "", capital: s.company_capital ?? "", rcs: s.company_rcs ?? "", iban: s.company_iban ?? null, bic: s.company_bic ?? null, footer: s.company_footer ?? null });
 
 const LOGO = `data:image/png;base64,${LOGO_PNG_BASE64}`;
 

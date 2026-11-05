@@ -23,6 +23,7 @@ export default async function SettingsPage() {
             <Field label="SIRET"><Input name="company_siret" defaultValue={s.company_siret ?? ""} /></Field>
             <Field label="N° TVA intracommunautaire"><Input name="company_vat_number" defaultValue={s.company_vat_number ?? ""} /></Field>
             <Field label="IBAN (pied de facture)"><Input name="company_iban" defaultValue={s.company_iban ?? ""} /></Field>
+            <Field label="BIC"><Input name="company_bic" defaultValue={(s as any).company_bic ?? ""} /></Field>
             <Field label="Forme juridique"><Input name="company_legal_form" defaultValue={s.company_legal_form ?? ""} placeholder="SASU" /></Field>
             <Field label="Capital"><Input name="company_capital" defaultValue={s.company_capital ?? ""} placeholder="1 000,00 €" /></Field>
             <Field label="RCS"><Input name="company_rcs" defaultValue={s.company_rcs ?? ""} placeholder="RCS Pontoise 106 602 659" /></Field>

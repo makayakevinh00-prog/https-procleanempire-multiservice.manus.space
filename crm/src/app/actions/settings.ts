@@ -13,7 +13,7 @@ export async function saveSettingsAction(fd: FormData) {
   if (green >= orange) flash("/parametres", "error", "Le seuil vert doit être inférieur au seuil orange.");
   const { error } = await createClient().from("app_settings").update({
     company_name: str(fd, "company_name") ?? "ProClean Empire", company_address: str(fd, "company_address"),
-    company_siret: str(fd, "company_siret"), company_vat_number: str(fd, "company_vat_number"), company_iban: str(fd, "company_iban"),
+    company_siret: str(fd, "company_siret"), company_vat_number: str(fd, "company_vat_number"), company_iban: str(fd, "company_iban"), company_bic: str(fd, "company_bic"),
     company_phone: str(fd, "company_phone"), company_email: str(fd, "company_email"),
     default_vat_rate: n("default_vat_rate", 20), payment_terms_days: Math.round(n("payment_terms_days", 30)),
     large_amount_threshold_ht: n("large_amount_threshold_ht", 1500), unpaid_alert_days: Math.round(n("unpaid_alert_days", 15)), reminder_manual_days: Math.max(Math.round(n("reminder_manual_days", 30)), Math.round(n("unpaid_alert_days", 15)) + 1),

@@ -30,7 +30,7 @@ export function QuoteDoc({ doc, co, paymentDays }: { doc: PdfDoc; co: Company; p
         <Bar />
         <Footer co={co} doc={label} />
         <Body>
-        <Letterhead co={co} title="DEVIS" number={doc.number ?? "Brouillon"} pill={doc.number ? (doc.status === "accepte" ? "Accepté" : doc.status === "refuse" ? "Refusé" : doc.status === "envoye" ? "En attente de signature" : "Brouillon") : "Brouillon"} pillTone={doc.status === "accepte" ? "green" : "blue"} />
+        <Letterhead co={co} title="DEVIS" number={doc.number ?? "Brouillon"} pill={doc.status === "accepte" ? "Accepté" : doc.status === "refuse" ? "Refusé" : doc.status === "envoye" && doc.number ? "En attente de signature" : "Brouillon"} pillTone={doc.status === "accepte" ? "green" : "blue"} />
         <Meta items={[["Date de création", dateLong(doc.issueDate)], ["Valable jusqu'au", dateLong(doc.dueOrValidUntil) || "30 jours"], ["Mode de règlement", `Virement à ${paymentDays} jours`]]} />
         <View style={[s.row, { marginBottom: 12 }]}>
           <Party tint title="Destinataire" lines={[{ t: doc.client.name, b: true }, ...addressLines(doc.client).map((t) => ({ t }))]} />

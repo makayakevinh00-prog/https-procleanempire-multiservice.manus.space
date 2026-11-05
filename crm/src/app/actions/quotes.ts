@@ -93,7 +93,7 @@ export async function sendQuoteEmailAction(id: string, fd: FormData) {
   if (isLargeAmount(num(q.total_ht), settings) && !checked(fd, "ack_large")) flash(back, "error", `Montant ${formatEUR(q.total_ht)} HT au-dessus du seuil d'alerte : confirmation requise.`);
   const to = str(fd, "to") ?? q.clients.email;
   if (!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) flash(back, "error", "Adresse e-mail du destinataire manquante ou invalide.");
-  const pdf = await buildPdf("devis", id);
+  const pdf = await buildPdf("devis", id, { sent: true });
   if (!pdf) flash(back, "error", "PDF introuvable.");
   const mail = quoteEmail({ company: settings.company_name, phone: settings.company_phone, clientName: q.clients.name, number: q.number, subject: q.subject, totalTtc: formatEUR(q.total_ttc), validUntil: q.valid_until ? formatDate(q.valid_until) : null });
   const res = await sendMail({ to: to!, subject: mail.subject, text: mail.text, html: mail.html, attachment: { filename: pdf!.filename, bytes: pdf!.bytes } });

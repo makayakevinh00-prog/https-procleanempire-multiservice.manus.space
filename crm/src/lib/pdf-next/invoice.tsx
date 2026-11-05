@@ -22,7 +22,7 @@ export function vatBreakdown(lines: PdfDoc["lines"]) {
 
 export const addressLines = (c: PdfDoc["client"]) => [[c.address, [c.postal_code, c.city].filter(Boolean).join(" ")].filter(Boolean).join(", "), c.siret ? `SIRET ${c.siret}` : "", c.email ?? ""].filter((x) => x && x.trim()) as string[];
 
-const STATUS: Record<string, [string, "blue" | "green" | "amber"]> = { brouillon: ["Brouillon", "blue"], envoye: ["À régler", "amber"], paye: ["Acquittée", "green"], en_retard: ["En retard", "amber"], annule: ["Annulée", "amber"] };
+const STATUS: Record<string, [string, "blue" | "green" | "amber"]> = { brouillon: ["À régler", "amber"], envoye: ["À régler", "amber"], paye: ["Acquittée", "green"], en_retard: ["En retard", "amber"], annule: ["Annulée", "amber"] };
 
 export function InvoiceDoc({ doc, co, paymentDays }: { doc: PdfDoc; co: Company; paymentDays: number }) {
   const [pill, tone] = (doc.number ? STATUS[doc.status] ?? ["", "blue"] : ["Brouillon", "blue"]) as [string, "blue" | "green" | "amber"];
@@ -79,7 +79,7 @@ export function InvoiceDoc({ doc, co, paymentDays }: { doc: PdfDoc; co: Company;
               <Text style={{ fontSize: 8.8, marginBottom: 3 }}>Paiement par virement sous {paymentDays} jours{doc.dueOrValidUntil ? <>, avant le <Text style={{ fontWeight: 700 }}>{dateLong(doc.dueOrValidUntil)}</Text></> : ""}.</Text>
               {co.iban ? (
                 <View style={{ backgroundColor: C.light, borderRadius: 6, paddingVertical: 7, paddingHorizontal: 10, marginVertical: 5 }}>
-                  <Text style={{ fontSize: 8.8, fontWeight: 600 }}>IBAN  {co.iban}{doc.number ? `   ·   Réf. ${doc.number}` : ""}</Text>
+                  <Text style={{ fontSize: 8.8, fontWeight: 600 }}>IBAN  {co.iban}{co.bic ? `   ·   BIC ${co.bic}` : ""}{doc.number ? `   ·   Réf. ${doc.number}` : ""}</Text>
                 </View>
               ) : null}
               <Text style={{ fontSize: 7.8, color: C.grey, lineHeight: 1.5 }}>En cas de retard de paiement, une pénalité égale à trois fois le taux d'intérêt légal sera appliquée, ainsi qu'une indemnité forfaitaire de 40 € pour frais de recouvrement (art. L.441-10 du Code de commerce). Aucun escompte pour paiement anticipé.</Text>

@@ -9,6 +9,7 @@ export interface Settings {
   company_siret: string | null;
   company_vat_number: string | null;
   company_iban: string | null;
+  company_bic?: string | null;
   company_phone: string | null;
   company_email: string | null;
   default_vat_rate: number;
