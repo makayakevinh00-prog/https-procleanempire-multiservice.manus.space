@@ -29,7 +29,7 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
   const head = { count: "exact" as const, head: true };
   const followupCut = new Date(Date.now() - Number(settings.quote_followup_days) * 86_400_000).toISOString();
 
-  const [contracts, invoices, quotes, payments, requests, lateReq, toConfirm, unassigned, unbilledDone, noAnswer, noEmail, mailFail, unsent, claims, anomalies, toCheck, toValidate] = await Promise.all([
+  const [contracts, invoices, quotes, payments, requests, lateReq, toConfirm, unassigned, unbilledDone, noAnswer, noEmail, mailFail, unsent, claims, anomalies, toCheck, toValidate, toContact] = await Promise.all([
     supabase.from("contracts").select("*").eq("status", "actif"),
     supabase.from("invoices").select("id, number, status, due_date, total_ht, clients(id, name, is_reserved)").neq("status", "annule").in("status", ["brouillon", "envoye", "en_retard"]),
     supabase.from("quotes").select("id, number, total_ht, invoice_id, contract_id, clients(name, is_reserved), invoices:invoice_id(status)").eq("status", "accepte"),
@@ -46,9 +46,10 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
     supabase.from("mission_issues").select("id", head).eq("status", "ouverte").eq("kind", "reclamation"),
     supabase.from("mission_issues").select("id", head).eq("status", "ouverte").eq("kind", "anomalie"),
     supabase.from("interventions").select("id", head).eq("stage", "a_verifier"),
-    supabase.from("interventions").select("id", head).eq("stage", "terminee").is("invoice_id", null)
+    supabase.from("interventions").select("id", head).eq("stage", "terminee").is("invoice_id", null),
+    supabase.from("clients").select("id", head).eq("pipeline", "a_contacter")
   ]);
-  for (const r of [contracts, invoices, quotes, payments, requests, lateReq, toConfirm, unassigned, unbilledDone, noAnswer, noEmail, mailFail, unsent, claims, anomalies, toCheck, toValidate]) {
+  for (const r of [contracts, invoices, quotes, payments, requests, lateReq, toConfirm, unassigned, unbilledDone, noAnswer, noEmail, mailFail, unsent, claims, anomalies, toCheck, toValidate, toContact]) {
     if (r.error) throw new Error(r.error.message);
   }
 
@@ -85,6 +86,7 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
 
   // À traiter
   add({ key: "req_new", tone: "orange", count: requests.count ?? 0, label: "nouvelle(s) demande(s) de devis du site", href: "/demandes", menu: "/clients" });
+  add({ key: "to_contact", tone: "orange", count: toContact.count ?? 0, label: "prospect(s) à contacter", href: "/clients?etape=a_contacter", menu: "/clients" });
   add({ key: "quote_accepted", tone: "orange", count: toInvoice.length, label: "devis accepté(s) à facturer ou à mettre en contrat", href: "/devis?statut=accepte", menu: "/devis" });
   add({ key: "quote_noanswer", tone: "orange", count: noAnswer.count ?? 0, label: `devis envoyé(s) sans réponse depuis plus de ${settings.quote_followup_days} jours`, href: "/devis?statut=envoye", menu: "/devis" });
   add({ key: "draft_inv", tone: "orange", count: drafts.length, label: "facture(s) brouillon à relire et valider", href: "/factures?statut=a_valider", menu: "/factures" });

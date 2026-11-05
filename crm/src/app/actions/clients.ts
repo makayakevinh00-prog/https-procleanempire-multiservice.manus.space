@@ -41,3 +41,13 @@ export async function addInteractionAction(clientId: string, fd: FormData) {
   revalidatePath(`/clients/${clientId}`);
   flash(`/clients/${clientId}`, "ok", "Interaction ajoutée.");
 }
+
+export async function setPipelineAction(clientId: string, fd: FormData) {
+  const v = str(fd, "pipeline");
+  const allowed = ["nouveau_prospect", "a_contacter", "rdv_programme", "devis_envoye", "devis_accepte", "devis_refuse", "client_actif"];
+  if (v !== null && !allowed.includes(v)) flash(`/clients/${clientId}`, "error", "Étape inconnue.");
+  const { error } = await createClient().from("clients").update({ pipeline: v }).eq("id", clientId);
+  if (error) flash(`/clients/${clientId}`, "error", dbMessage(error));
+  revalidatePath("/clients"); revalidatePath("/", "layout");
+  flash(`/clients/${clientId}`, "ok", "Étape commerciale mise à jour (inscrite dans l'historique).");
+}

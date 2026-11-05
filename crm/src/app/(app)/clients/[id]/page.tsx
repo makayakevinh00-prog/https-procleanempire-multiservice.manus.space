@@ -9,10 +9,11 @@ import { Field, Input, Select } from "@/components/ui/form";
 import { StatusBadge } from "@/components/ui/badge";
 import { Table, Td, Th, Tr } from "@/components/ui/table";
 import { ClientName, ReservedBanner } from "@/components/crm/client-name";
-import { addInteractionAction } from "@/app/actions/clients";
+import { addInteractionAction, setPipelineAction } from "@/app/actions/clients";
+import { PIPELINE, PIPELINE_LABEL, PIPELINE_TONE, type Pipeline } from "@/lib/request-type";
 import { formatDate, formatEUR, formatHours } from "@/lib/utils";
 
-const KIND: Record<string, string> = { appel: "📞 Appel", email: "✉️ E-mail", rdv: "📅 RDV", note: "📝 Note", relance: "🔔 Relance", devis: "📄 Devis", facture: "🧾 Facture", autre: "• Autre" };
+const KIND: Record<string, string> = { appel: "📞 Appel", email: "✉️ E-mail", rdv: "📅 RDV", note: "📝 Note", relance: "🔔 Relance", devis: "📄 Devis", facture: "🧾 Facture", autre: "• Autre", demande: "🌐 Demande du site", statut: "🔀 Étape" };
 
 export default async function ClientPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -43,6 +44,15 @@ export default async function ClientPage({ params }: { params: { id: string } })
             <div>✉️ {c.email ?? "—"}</div>
             <div>📞 {c.phone ?? "—"}</div>
             <div>SIRET : {c.siret ?? "—"}</div>
+            {c.source && <div className="text-xs text-muted-foreground">Origine : {c.source}</div>}
+            <form action={setPipelineAction.bind(null, c.id)} className="space-y-2 rounded-lg bg-slate-50 p-3">
+              <div className="flex items-center justify-between text-xs font-semibold text-slate-600">Étape commerciale
+                {c.pipeline && <span className={`rounded-full px-2 py-0.5 ${PIPELINE_TONE[c.pipeline as Pipeline]}`}>{PIPELINE_LABEL[c.pipeline as Pipeline]}</span>}</div>
+              <div className="flex gap-2">
+                <Select name="pipeline" defaultValue={c.pipeline ?? ""} className="h-9 flex-1"><option value="">— Aucune —</option>{PIPELINE.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</Select>
+                <Button variant="outline" size="sm" className="h-9">Changer</Button>
+              </div>
+            </form>
             {c.notes && <p className="whitespace-pre-wrap rounded-md bg-muted p-3">{c.notes}</p>}
           </CardContent>
         </Card>

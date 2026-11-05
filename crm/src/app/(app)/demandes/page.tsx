@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { createQuoteFromRequestAction, setRequestStatusAction } from "@/app/actions/requests";
 import { formatDate } from "@/lib/utils";
+import { REQUEST_TYPE_LABEL, type RequestType } from "@/lib/request-type";
 
 export default async function RequestsPage({ searchParams }: { searchParams: { statut?: string } }) {
   const statut = searchParams.statut ?? "nouvelle";
@@ -17,7 +18,7 @@ export default async function RequestsPage({ searchParams }: { searchParams: { s
   const tabs = [["nouvelle", "Nouvelles"], ["traitee", "Traitées"], ["ignoree", "Ignorées"], ["toutes", "Toutes"]];
   return (
     <>
-      <PageHeader title="Demandes de devis" subtitle="Les demandes envoyées depuis le formulaire de votre site arrivent ici. En un clic : fiche client + devis brouillon pré-rempli." />
+      <PageHeader title="Demandes de devis" subtitle="Chaque demande du site crée automatiquement une fiche prospect (sans doublon) et reste dans l'historique du contact. En un clic : devis brouillon pré-rempli." />
       <div className="mb-4 flex flex-wrap gap-2">
         {tabs.map(([v, l]) => (
           <Link key={v} href={`/demandes?statut=${v}`} className={`rounded-full border px-3 py-1 text-sm ${statut === v ? "bg-primary text-primary-foreground" : "bg-card hover:bg-muted"}`}>{l}</Link>
@@ -33,7 +34,7 @@ export default async function RequestsPage({ searchParams }: { searchParams: { s
                     <div className="font-semibold">{r.company ? `${r.company} — ${r.name}` : r.name}</div>
                     <div className="text-sm text-muted-foreground">{formatDate(r.received_at)} · {r.service ?? "prestation non précisée"}{r.source ? ` · source : ${r.source}` : ""}</div>
                   </div>
-                  <Badge tone={r.status === "nouvelle" ? "blue" : r.status === "traitee" ? "green" : "gray"}>{r.status === "nouvelle" ? "Nouvelle" : r.status === "traitee" ? "Traitée" : "Ignorée"}</Badge>
+                  <span className="flex items-center gap-2"><Badge tone="gray">{REQUEST_TYPE_LABEL[r.request_type as RequestType] ?? "Devis"}</Badge><Badge tone={r.status === "nouvelle" ? "blue" : r.status === "traitee" ? "green" : "gray"}>{r.status === "nouvelle" ? "Nouvelle" : r.status === "traitee" ? "Traitée" : "Ignorée"}</Badge></span>
                 </div>
                 <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
                   {r.phone && <a className="text-primary hover:underline" href={`tel:${r.phone}`}>📞 {r.phone}</a>}
@@ -46,9 +47,11 @@ export default async function RequestsPage({ searchParams }: { searchParams: { s
                   <ul className="grid gap-x-6 text-xs text-muted-foreground sm:grid-cols-2">{Object.entries(r.details).map(([k, v]) => <li key={k}><b>{k} :</b> {String(v)}</li>)}</ul>
                 )}
                 <div className="flex flex-wrap gap-2">
+                  {r.client_id && <Link href={`/clients/${r.client_id}`} className="text-sm font-medium text-primary hover:underline">→ Fiche prospect / client</Link>}
                   {r.quote_id ? <Link href={`/devis/${r.quote_id}`} className="text-sm font-medium text-primary hover:underline">→ Voir le devis créé</Link> : (
-                    <form action={createQuoteFromRequestAction.bind(null, r.id)}><Button>Créer le client et le devis</Button></form>
+                    <form action={createQuoteFromRequestAction.bind(null, r.id)}><Button>{r.client_id ? "Créer le devis" : "Créer le client et le devis"}</Button></form>
                   )}
+                  {r.request_number && <span className="self-center text-xs text-muted-foreground">{r.request_number}</span>}
                   {r.status === "nouvelle" && <form action={setRequestStatusAction.bind(null, r.id, "ignoree")}><Button variant="ghost" size="sm">Ignorer</Button></form>}
                   {r.status !== "nouvelle" && <form action={setRequestStatusAction.bind(null, r.id, "nouvelle")}><Button variant="ghost" size="sm">Remettre en « nouvelle »</Button></form>}
                 </div>

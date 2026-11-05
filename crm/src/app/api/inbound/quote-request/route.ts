@@ -1,5 +1,8 @@
 import { automationClient, automationSecret } from "@/lib/automation/deps";
 import { verifyInbound } from "@/lib/inbound-auth";
+import { requestType } from "@/lib/request-type";
+import { sendMail } from "@/lib/mail";
+import { REQUEST_TYPE_LABEL } from "@/lib/request-type";
 
 export const dynamic = "force-dynamic";
 
@@ -27,14 +30,37 @@ export async function POST(req: Request) {
     p: {
       reference: s(b.reference ?? b.id, 60) || null, received_at: s(b.receivedAt, 40) || null, name: s(b.name, 120), company: s(b.company, 120),
       email: s(b.email, 200), phone: s(b.phone, 40), address: s(b.address, 250), postcode: s(b.postcode, 10), city: s(b.city, 120),
-      service: s(b.service, 120), start_date: s(b.startDate, 40), message: s(b.comments ?? b.message, 2000), details, source: s(b.source, 120)
+      service: s(b.service, 120), start_date: s(b.startDate, 40), message: s(b.comments ?? b.message, 2000), details, source: s(b.source, 120),
+      type: requestType(b.type, b.service)
     }
   });
   if (error) return Response.json({ error: "Enregistrement impossible" }, { status: 500 });
-  const r = data as { id: string; request_number: string; tracking_token: string; status: string; duplicate: boolean };
+  const r = data as { id: string; request_number: string; tracking_token: string; status: string; duplicate: boolean; client_id: string | null; new_prospect: boolean;
+    reserved: boolean; request_type: keyof typeof REQUEST_TYPE_LABEL; notify_to: string | null; company_name: string };
   const origin = new URL(req.url).origin;
+
+  // Notification à l'administrateur : une seule fois par demande, jamais bloquante pour le site.
+  let notified = false;
+  if (!r.duplicate && r.notify_to) {
+    try {
+      const who = s(b.company, 120) ? `${s(b.company, 120)} — ${s(b.name, 120)}` : s(b.name, 120);
+      const lines = [`Une demande vient d'arriver depuis le site (${r.request_number}).`, "", `Type : ${REQUEST_TYPE_LABEL[r.request_type] ?? r.request_type}`, `De : ${who}`];
+      if (s(b.email)) lines.push(`E-mail : ${s(b.email)}`);
+      if (s(b.phone)) lines.push(`Téléphone : ${s(b.phone)}`);
+      if (s(b.service)) lines.push(`Prestation : ${s(b.service)}`);
+      if (s(b.comments ?? b.message, 800)) lines.push(`Message : ${s(b.comments ?? b.message, 800)}`);
+      lines.push("", r.reserved ? "⚠ Contact réservé : aucune action automatique n'a été faite." : r.new_prospect ? "Une fiche prospect a été créée automatiquement." : "Ce contact existait déjà : l'échange a été ajouté à son historique.", `À traiter : ${origin}/demandes`);
+      const res = await sendMail({
+        to: r.notify_to, subject: `Nouvelle demande ${REQUEST_TYPE_LABEL[r.request_type] ?? "de devis"} — ${who}${r.reserved ? " (contact réservé)" : ""}`,
+        text: lines.join("\n")
+      });
+      notified = res.sent;
+      await automationClient().rpc("automation_log_email", { p_secret: automationSecret(), p_kind: "recapitulatif", p_to: r.notify_to, p_subject: "Nouvelle demande du site " + r.request_number, p_ok: res.sent, p_error: res.sent ? null : res.reason, p_entity: "quote_request", p_entity_id: r.id });
+    } catch { /* la notification ne doit jamais faire échouer la réception */ }
+  }
   return Response.json({
-    ok: true, id: r.id, duplicate: r.duplicate, request_number: r.request_number, status: r.status,
+    ok: true, id: r.id, duplicate: r.duplicate, request_number: r.request_number, status: r.status, request_type: r.request_type,
+    prospect_created: r.new_prospect, notified,
     tracking_token: r.tracking_token, tracking_url: `${origin}/suivi/${r.request_number}?t=${r.tracking_token}`
   }, { status: r.duplicate ? 200 : 201 });
 }

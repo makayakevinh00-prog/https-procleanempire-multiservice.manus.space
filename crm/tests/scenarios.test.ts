@@ -99,17 +99,23 @@ describe("Scénario 1 — du site au paiement (cas nominal)", () => {
     const r = (await q("select submit_quote_request_v2($1,$2::jsonb) r", [secret, JSON.stringify({ reference: "WEB-1", name: "Nominal SA", email: "c1@client.test", service: "Entretien bureaux" })]))[0].r;
     requestNumber = r.request_number; requestToken = r.tracking_token;
     expect(requestNumber).toMatch(/^DEM-\d{4}-0001$/);
+    // la demande a créé la fiche prospect toute seule
+    expect(r).toMatchObject({ new_prospect: true });
+    ids.c1 = r.client_id;
+    expect((await q("select status, pipeline from clients where id=$1", [ids.c1]))[0]).toEqual({ status: "prospect", pipeline: "nouveau_prospect" });
     const s = (await q("select public_request_status($1,$2) r", [requestNumber, requestToken]))[0].r;
     expect(s.status).toBe("recue");
   });
   it("2. le patron crée client + devis ; le devis envoyé puis accepté apparaît côté client", async () => {
-    const c1 = await mkClient("c1", { name: "Nominal SA" });
+    const c1 = ids.c1;                                                    // le prospect créé par la demande du site (pas de doublon)
+    await q("update clients set auto_send_invoices=true, address='1 rue du Test', city='Paris' where id=$1", [c1]);
     const [qt] = await q("insert into quotes(client_id, subject, status, number) values ($1,'Entretien bureaux','envoye','DEV-S1') returning id", [c1]);
     await q("insert into quote_lines(quote_id, position, description, quantity, unit_price_ht) values ($1,0,'Entretien mensuel',1,600)", [qt.id]);
     await q("update quote_requests set status='traitee', client_id=$1, quote_id=$2 where request_number=$3", [c1, qt.id, requestNumber]);
     expect((await q("select public_request_status($1,$2) r", [requestNumber, requestToken]))[0].r.status).toBe("devis_envoye");
     await q("update quotes set status='accepte' where id=$1", [qt.id]);
     expect((await q("select public_request_status($1,$2) r", [requestNumber, requestToken]))[0].r.status).toBe("devis_accepte");
+    expect((await q("select pipeline from clients where id=$1", [c1]))[0].pipeline).toBe("devis_accepte");   // le pipeline a suivi le devis
     ids.quote = qt.id;
   });
   it("3. un contrat incomplet est refusé à l'activation avec le message exact, puis complété", () => {
@@ -126,6 +132,7 @@ describe("Scénario 1 — du site au paiement (cas nominal)", () => {
     await q("update quotes set contract_id=$1 where id=$2", [c1Contract, ids.quote]);
     const [k] = await q("select site_id, assignee from contracts where id=$1", [c1Contract]);
     siteId = k.site_id;
+    expect((await q("select status, pipeline from clients where id=$1", [ids.c1]))[0]).toEqual({ status: "actif", pipeline: "client_actif" });   // contrat actif : le prospect devient client
     expect(siteId).toBeTruthy();                        // site créé automatiquement
     expect(k.assignee).toBe("Fatou Diallo");              // nom recopié depuis la fiche
     await q("update sites set checklist='[\"Vider les poubelles\",\"Aspirer\"]' where id=$1", [siteId]);
