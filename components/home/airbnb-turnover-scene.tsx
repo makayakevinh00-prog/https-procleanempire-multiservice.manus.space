@@ -14,6 +14,8 @@ import { Box, Cleaner, FLOOR, H, P, SIZE, Sparkle, T, WALL_L, WALL_R, pts, type 
 
 const DURATIONS = [3400, 6400, 4800];
 const SWEEP = 5.8; // secondes de passage
+const SLAB: Tone = { top: "#eceef3", left: "#d3d7e0", right: "#c2c7d3" };
+const EDGE: Tone = { top: "#ffffff", left: "#dfe3ec", right: "#cdd2de" };
 const LINEN: Tone = { top: "#fbfcff", left: "#d9dfec", right: "#c3cbdc" };
 const BED_WOOD: Tone = { top: "#b88a5a", left: "#98703f", right: "#7b5830" };
 const STEPS = [
@@ -66,15 +68,18 @@ export function AirbnbTurnoverScene() {
       <div className="relative min-h-0 flex-1">
         <svg viewBox="0 0 660 590" className="h-full w-full" role="img" aria-label="Un logement Airbnb passe de l'état « départ des voyageurs » à l'état « prêt pour l'arrivée » grâce au ménage ProClean" preserveAspectRatio="xMidYMid meet">
           <defs>
-            <filter id="ab-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3.2" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+            <filter id="ab-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+            <filter id="ab-soft" x="-30%" y="-100%" width="160%" height="300%"><feGaussianBlur stdDeviation="11" /></filter>
             <linearGradient id="ab-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#8cc4ff" /><stop offset="1" stopColor="#e4f2ff" /></linearGradient>
             <linearGradient id="ab-shine" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffffff" stopOpacity="0.4" /><stop offset="1" stopColor="#ffffff" stopOpacity="0" /></linearGradient>
           </defs>
 
           {/* dalle + sol parquet clair */}
-          <Box x={0} y={0} z={-0.7} w={SIZE} d={SIZE} h={0.7} tone={T.dark} />
-          <polygon points={pts([[0, 0, 0], [SIZE, 0, 0], [SIZE, SIZE, 0], [0, SIZE, 0]])} fill="#dcbf92" />
-          <g transform={FLOOR} stroke="#c9a674" strokeWidth="1">
+          {/* ombre portée douce sous la pièce */}
+          <ellipse cx="330" cy="552" rx="210" ry="20" fill="#0b1b3a" opacity="0.14" filter="url(#ab-soft)" />
+          <Box x={0} y={0} z={-0.7} w={SIZE} d={SIZE} h={0.7} tone={SLAB} />
+          <polygon points={pts([[0, 0, 0], [SIZE, 0, 0], [SIZE, SIZE, 0], [0, SIZE, 0]])} fill="#e7d2ac" />
+          <g transform={FLOOR} stroke="#d8bf94" strokeWidth="1">
             {Array.from({ length: SIZE - 1 }, (_, i) => <line key={i} x1="0" y1={i + 1} x2={SIZE} y2={i + 1} vectorEffect="non-scaling-stroke" />)}
           </g>
           <motion.polygon points={pts([[0, 0, 0], [SIZE, 0, 0], [SIZE, SIZE, 0], [0, SIZE, 0]])} fill="url(#ab-shine)" initial={false} animate={{ opacity: done ? 1 : 0 }} transition={{ duration: 1.2 }} />
@@ -82,12 +87,12 @@ export function AirbnbTurnoverScene() {
           <g transform={FLOOR}><rect x="3.0" y="5.6" width="3.6" height="3.0" rx="0.25" fill="#9fb8e8" /><rect x="3.25" y="5.85" width="3.1" height="2.5" rx="0.15" fill="none" stroke="#fff" strokeWidth="0.1" opacity="0.7" /></g>
 
           {/* murs clairs en coupe */}
-          <polygon points={pts([[0, 0, 0], [0, SIZE, 0], [0, SIZE, H], [0, 0, H]])} fill="#dfe5f1" />
-          <polygon points={pts([[0, 0, 0], [SIZE, 0, 0], [SIZE, 0, H], [0, 0, H]])} fill="#eef1f8" />
-          <Box x={-0.5} y={-0.5} z={0} w={0.5} d={SIZE + 0.5} h={H} tone={T.grey} />
-          <Box x={0} y={-0.5} z={0} w={SIZE} d={0.5} h={H} tone={T.grey} />
-          <polygon points={pts([[0, 0, 0], [0, SIZE, 0], [0, SIZE, H], [0, 0, H]])} fill="#dfe5f1" />
-          <polygon points={pts([[0, 0, 0], [SIZE, 0, 0], [SIZE, 0, H], [0, 0, H]])} fill="#eef1f8" />
+          <polygon points={pts([[0, 0, 0], [0, SIZE, 0], [0, SIZE, H], [0, 0, H]])} fill="#e6e9f1" />
+          <polygon points={pts([[0, 0, 0], [SIZE, 0, 0], [SIZE, 0, H], [0, 0, H]])} fill="#f4f5f9" />
+          <Box x={-0.5} y={-0.5} z={0} w={0.5} d={SIZE + 0.5} h={H} tone={EDGE} />
+          <Box x={0} y={-0.5} z={0} w={SIZE} d={0.5} h={H} tone={EDGE} />
+          <polygon points={pts([[0, 0, 0], [0, SIZE, 0], [0, SIZE, H], [0, 0, H]])} fill="#e6e9f1" />
+          <polygon points={pts([[0, 0, 0], [SIZE, 0, 0], [SIZE, 0, H], [0, 0, H]])} fill="#f4f5f9" />
 
           {/* fenêtre de jour (mur gauche) + rideau */}
           <g transform={WALL_L}>
@@ -106,10 +111,10 @@ export function AirbnbTurnoverScene() {
           </g>
 
           {/* néon bleu sur l'arête des murs */}
-          <g filter="url(#ab-glow)" fill="none" stroke="#5b9bff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <g filter="url(#ab-glow)" fill="none" stroke="#4f8ff7" strokeWidth="2.2" opacity="0.55" strokeLinecap="round" strokeLinejoin="round">
             <polyline points={pts([[0, SIZE, H], [0, 0, H], [SIZE, 0, H]])} />
           </g>
-          <polyline points={pts([[0, SIZE, H], [0, 0, H], [SIZE, 0, H]])} fill="none" stroke="#e1eeff" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+          <polyline points={pts([[0, SIZE, H], [0, 0, H], [SIZE, 0, H]])} fill="none" stroke="#7fb0ff" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
 
           {/* poussière au sol : s'efface au passage */}
           <g transform={FLOOR}>
@@ -226,25 +231,25 @@ export function AirbnbTurnoverScene() {
 
         {/* carte flottante selon la phase */}
         <AnimatePresence mode="wait">
-          <motion.div key={phase} className="pointer-events-none absolute right-[3%] top-[5%] hidden w-[44%] max-w-[230px] rounded-2xl border border-white/15 bg-[#0e1530]/90 p-4 text-left shadow-2xl backdrop-blur sm:block" initial={reduce ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={reduce ? undefined : { opacity: 0, y: -10 }} transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}>
+          <motion.div key={phase} className="pointer-events-none absolute right-[3%] top-[5%] hidden w-[44%] max-w-[230px] rounded-2xl border border-black/5 bg-white/75 p-4 text-left shadow-[0_18px_50px_-18px_rgba(10,20,50,0.35)] backdrop-blur-xl sm:block" initial={reduce ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={reduce ? undefined : { opacity: 0, y: -10 }} transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}>
             {phase === 0 && (<>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#5b9bff]">Départ · 11 h</p>
-              <p className="mt-2 text-base font-semibold text-white">Les voyageurs sont partis</p>
-              <p className="mt-2 text-xs leading-relaxed text-white/60">Lit défait, serviettes au sol, cuisine à remettre en ordre.</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#1d6fe0]">Départ · 11 h</p>
+              <p className="mt-2 text-base font-semibold text-ink">Les voyageurs sont partis</p>
+              <p className="mt-2 text-xs leading-relaxed text-slate-500">Lit défait, serviettes au sol, cuisine à remettre en ordre.</p>
             </>)}
             {phase === 1 && (<>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#5b9bff]">Ménage en cours</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#1d6fe0]">Ménage en cours</p>
               {["Linge changé, lit refait", "Cuisine et salle de bain", "Sols lavés, poubelles sorties"].map((l, i) => (
-                <motion.div key={l} className="mt-2.5 flex items-center gap-2 text-xs text-white/85" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + i * 0.35 }}>
-                  <span className="grid h-4 w-4 place-items-center rounded-full bg-[#5b9bff]/25 text-[9px] text-[#9cc4ff]">✓</span>{l}
+                <motion.div key={l} className="mt-2.5 flex items-center gap-2 text-xs text-ink" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + i * 0.35 }}>
+                  <span className="grid h-4 w-4 place-items-center rounded-full bg-[#1d6fe0]/12 text-[9px] text-[#1d6fe0]">✓</span>{l}
                 </motion.div>
               ))}
             </>)}
             {phase === 2 && (<>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#5ee2a0]">Prêt · 14 h</p>
-              <p className="mt-2 text-base font-semibold text-white">Prêt pour l&apos;arrivée</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#15803d]">Prêt · 14 h</p>
+              <p className="mt-2 text-base font-semibold text-ink">Prêt pour l&apos;arrivée</p>
               <p className="mt-1 text-lg tracking-widest text-[#ffc233]" aria-label="Cinq étoiles">★★★★★</p>
-              <p className="mt-1 text-xs text-white/60">Un logement qui donne envie de laisser cinq étoiles.</p>
+              <p className="mt-1 text-xs text-slate-500">Un logement qui donne envie de laisser cinq étoiles.</p>
             </>)}
           </motion.div>
         </AnimatePresence>
@@ -252,14 +257,14 @@ export function AirbnbTurnoverScene() {
 
       {/* frise : départ → ménage → arrivée (cliquable) */}
       <div className="relative z-10 px-4 pb-4 pt-2 sm:px-6">
-        <div className="relative mb-3 h-1 rounded-full bg-white/15">
-          <motion.div className="h-full rounded-full bg-[#5b9bff]" initial={false} animate={{ width: ["10%", "55%", "100%"][phase] }} transition={{ duration: 0.8, ease: "easeInOut" }} />
+        <div className="relative mb-3 h-1 rounded-full bg-black/10">
+          <motion.div className="h-full rounded-full bg-[#1d6fe0]" initial={false} animate={{ width: ["10%", "55%", "100%"][phase] }} transition={{ duration: 0.8, ease: "easeInOut" }} />
         </div>
         <div className="grid grid-cols-3 gap-2">
           {STEPS.map((s, i) => (
-            <button key={s.h} type="button" onClick={() => setPhase(i)} aria-pressed={phase === i} className={`rounded-xl px-2 py-2 text-left transition-colors ${phase === i ? "bg-white/12" : "hover:bg-white/5"}`}>
-              <span className={`block text-xs font-bold tabular-nums sm:text-sm ${phase === i ? "text-[#9cc4ff]" : "text-white/50"}`}>{s.h}</span>
-              <span className={`block text-[11px] leading-tight sm:text-xs ${phase === i ? "text-white" : "text-white/45"}`}>{s.l}</span>
+            <button key={s.h} type="button" onClick={() => setPhase(i)} aria-pressed={phase === i} className={`rounded-xl px-2 py-2 text-left transition-colors ${phase === i ? "bg-white shadow-[0_2px_10px_rgba(10,20,50,0.12)]" : "hover:bg-black/5"}`}>
+              <span className={`block text-xs font-bold tabular-nums sm:text-sm ${phase === i ? "text-[#1d6fe0]" : "text-slate-400"}`}>{s.h}</span>
+              <span className={`block text-[11px] leading-tight sm:text-xs ${phase === i ? "text-ink" : "text-slate-400"}`}>{s.l}</span>
             </button>
           ))}
         </div>

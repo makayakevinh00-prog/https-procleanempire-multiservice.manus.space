@@ -220,7 +220,7 @@ function AirbnbFeature() {
           </Reveal>
         </div>
 
-        <div className="relative h-[470px] overflow-hidden rounded-[32px] bg-[radial-gradient(ellipse_at_50%_35%,#1a2b5e_0%,#0d1633_65%,#080d20_100%)] shadow-[0_30px_80px_-30px_rgba(13,27,61,0.55)] sm:h-[600px] lg:h-[680px]">
+        <div className="relative h-[470px] overflow-hidden rounded-[32px] bg-gradient-to-b from-white to-[#ececf1] ring-1 ring-black/5 shadow-[0_40px_90px_-40px_rgba(10,20,50,0.35)] sm:h-[600px] lg:h-[680px]">
           <AirbnbTurnoverScene />
         </div>
       </div>
