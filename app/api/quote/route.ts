@@ -7,10 +7,15 @@ import { quoteServices } from "@/lib/quote-services";
 export const dynamic = "force-dynamic";
 
 /** Transmet la demande au CRM (non bloquant — un échec ne bloque pas la réponse au visiteur). */
-async function forwardToCrm(lead: Lead, details: Array<[string, string]>): Promise<void> {
+type CrmResult = { ok: boolean; reference?: string; acknowledgement?: boolean };
+
+async function forwardToCrm(lead: Lead, details: Array<[string, string]>): Promise<CrmResult> {
   const url = process.env.CRM_INBOUND_URL;
   const secret = process.env.CRM_INBOUND_SECRET;
-  if (!url || !secret) return;
+  if (!url || !secret) {
+    console.warn("[devis→crm] CRM_INBOUND_URL / CRM_INBOUND_SECRET absents : demande non transmise au CRM");
+    return { ok: false };
+  }
   try {
     const body = JSON.stringify({ ...lead, details });
     const ts = Math.floor(Date.now() / 1000).toString();
@@ -23,12 +28,14 @@ async function forwardToCrm(lead: Lead, details: Array<[string, string]>): Promi
     });
     if (!res.ok) {
       console.warn("[devis→crm] Erreur HTTP", res.status, await res.text().catch(() => ""));
-    } else {
-      const json = await res.json() as { request_number?: string };
-      console.log("[devis→crm] Transmis au CRM", JSON.stringify({ id: lead.id, crm_ref: json.request_number }));
+      return { ok: false };
     }
+    const json = (await res.json()) as { request_number?: string; acknowledged?: boolean };
+    console.log("[devis→crm] Transmis au CRM", JSON.stringify({ id: lead.id, crm_ref: json.request_number }));
+    return { ok: true, reference: json.request_number, acknowledgement: json.acknowledged === true };
   } catch (err) {
     console.warn("[devis→crm] Échec de transmission (non bloquant)", String(err));
+    return { ok: false };
   }
 }
 
@@ -156,11 +163,16 @@ export async function POST(request: NextRequest) {
   // Trace complète de la demande, quoi qu'il arrive ensuite (logs Vercel).
   console.log("[devis] Nouvelle demande reçue", JSON.stringify(lead));
 
-  // Transmission au CRM (fire-and-forget — non bloquant).
-  void forwardToCrm(lead, details);
+  // Transmission au CRM : on attend la réponse (sur Vercel, un envoi « oublié » en arrière-plan est coupé
+  // dès que la réponse part). Un échec n'empêche pas le reste du traitement.
+  const crm = await forwardToCrm(lead, details);
 
   const config = deliveryConfigured();
   if (!config.storage && !config.email) {
+    if (crm.ok) {
+      // La demande est dans le CRM : le visiteur n'a rien à envoyer lui-même.
+      return NextResponse.json({ ok: true, reference: crm.reference ?? lead.id, acknowledgement: crm.acknowledgement === true });
+    }
     // Rien de configuré sur Vercel : le visiteur transmet sa demande en un clic (e-mail pré-rempli ou WhatsApp).
     console.log("[devis] Transmission directe par le visiteur (e-mail / WhatsApp)", JSON.stringify({ id: lead.id }));
     return NextResponse.json({ ok: true, handoff: true });
@@ -177,8 +189,8 @@ export async function POST(request: NextRequest) {
 
   const report = await deliverLead(lead);
   console.log("[devis] Livraison", JSON.stringify({ id: lead.id, ...report }));
-  if (report.stored || report.internalEmail) {
-    return NextResponse.json({ ok: true, reference: lead.id, acknowledgement: report.clientEmail === true });
+  if (report.stored || report.internalEmail || crm.ok) {
+    return NextResponse.json({ ok: true, reference: crm.reference ?? lead.id, acknowledgement: report.clientEmail === true || crm.acknowledgement === true });
   }
   console.error("[devis] ÉCHEC de livraison — demande à ressaisir à la main depuis ce log", JSON.stringify(lead));
   return NextResponse.json({ error: FAILURE_MESSAGE, code: "ENVOI_IMPOSSIBLE", fallback: true }, { status: 502 });

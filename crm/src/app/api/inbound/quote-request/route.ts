@@ -58,9 +58,28 @@ export async function POST(req: Request) {
       await automationClient().rpc("automation_log_email", { p_secret: automationSecret(), p_kind: "recapitulatif", p_to: r.notify_to, p_subject: "Nouvelle demande du site " + r.request_number, p_ok: res.sent, p_error: res.sent ? null : res.reason, p_entity: "quote_request", p_entity_id: r.id });
     } catch { /* la notification ne doit jamais faire échouer la réception */ }
   }
+  // Accusé de réception automatique au client, dans les secondes qui suivent (jamais pour un contact réservé,
+  // jamais deux fois pour la même demande). Le devis, lui, reste validé par un humain avant envoi.
+  const tracking = `${origin}/suivi/${r.request_number}?t=${r.tracking_token}`;
+  let acknowledged = false;
+  if (!r.duplicate && !r.reserved && s(b.email) && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s(b.email))) {
+    try {
+      const first = s(b.name, 120).split(/\s+/)[0];
+      const text = [
+        `Bonjour ${first},`, "",
+        `Merci pour votre demande${s(b.service) ? ` (${s(b.service)})` : ""} : nous l'avons bien reçue sous la référence ${r.request_number}.`,
+        "Nous étudions votre besoin et vous envoyons un devis détaillé sous 24 h (7j/7, 8h–18h). Pour une urgence, appelez-nous.", "",
+        `Suivre l'avancement de votre demande : ${tracking}`, "",
+        "À très vite,", "L'équipe ProClean Empire", "06 17 21 22 30 · contact@procleanempire.com"
+      ].join("\n");
+      const res = await sendMail({ to: s(b.email), subject: `Votre demande ${r.request_number} est bien reçue — ProClean Empire`, text });
+      acknowledged = res.sent;
+      await automationClient().rpc("automation_log_email", { p_secret: automationSecret(), p_kind: "accuse_reception", p_to: s(b.email), p_subject: "Accusé de réception " + r.request_number, p_ok: res.sent, p_error: res.sent ? null : res.reason, p_entity: "quote_request", p_entity_id: r.id });
+    } catch { /* l'accusé ne doit jamais faire échouer la réception */ }
+  }
   return Response.json({
-    ok: true, id: r.id, duplicate: r.duplicate, request_number: r.request_number, status: r.status, request_type: r.request_type,
+    ok: true, id: r.id, acknowledged, duplicate: r.duplicate, request_number: r.request_number, status: r.status, request_type: r.request_type,
     prospect_created: r.new_prospect, notified,
-    tracking_token: r.tracking_token, tracking_url: `${origin}/suivi/${r.request_number}?t=${r.tracking_token}`
+    tracking_token: r.tracking_token, tracking_url: tracking
   }, { status: r.duplicate ? 200 : 201 });
 }
