@@ -8,6 +8,8 @@ import { Table, Td, Th, Tr } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { saveServiceAction, toggleServiceAction } from "@/app/actions/services";
 import { formatEUR } from "@/lib/utils";
+import { ConfirmAction } from "@/components/crm/confirm-action";
+import { deleteServiceAction } from "@/app/actions/manage";
 
 export default async function CataloguePage({ searchParams }: { searchParams: { edit?: string } }) {
   const { data, error } = await createClient().from("services").select("*").order("code");
@@ -50,6 +52,8 @@ export default async function CataloguePage({ searchParams }: { searchParams: { 
                   <Td className="whitespace-nowrap text-right">
                     <Link href={`/catalogue?edit=${s.id}`} className="mr-3 text-xs text-primary hover:underline">Modifier</Link>
                     <form action={toggleServiceAction.bind(null, s.id, !s.active)} className="inline"><button className="text-xs text-muted-foreground hover:underline">{s.active ? "Masquer" : "Réactiver"}</button></form>
+                    <ConfirmAction action={deleteServiceAction.bind(null, s.id)} label="Supprimer" variant="ghost" size="sm" className="ml-2 text-red-700"
+                      title={`Supprimer « ${s.name} » ?`} description="La prestation est retirée du catalogue. Les devis et factures déjà faits ne changent pas." confirmLabel="Oui, supprimer" />
                   </Td>
                 </Tr>
               ))}

@@ -10,6 +10,7 @@ import { StatusBadge } from "@/components/ui/badge";
 import { ClientName } from "@/components/crm/client-name";
 import { ConfirmAction } from "@/components/crm/confirm-action";
 import { addManualPaymentAction, ignorePaymentAction, reconcileAction, syncQontoAction, unreconcileAction } from "@/app/actions/payments";
+import { deletePaymentAction } from "@/app/actions/manage";
 import { daysBetween, formatDate, formatEUR } from "@/lib/utils";
 import Link from "next/link";
 
@@ -82,6 +83,8 @@ export default async function PaymentsPage() {
                           </div>
                         } />
                       <form action={ignorePaymentAction.bind(null, p.id)}><Button size="sm" variant="ghost">Ignorer</Button></form>
+                      <ConfirmAction action={deletePaymentAction.bind(null, p.id)} label="Supprimer" size="sm" variant="ghost" className="text-red-700"
+                        title="Supprimer ce paiement ?" description="Le paiement est supprimé définitivement (trace dans le journal). Si c'est un virement Qonto, il reviendra à la prochaine synchronisation : préférez « Ignorer »." confirmLabel="Oui, supprimer" />
                     </div>
                   </Td>
                 </Tr>
@@ -111,9 +114,12 @@ export default async function PaymentsPage() {
                 <Td className="whitespace-nowrap">{formatDate(p.received_at)}</Td><Td>{p.counterparty ?? p.label ?? "—"}</Td>
                 <Td className="text-right">{formatEUR(p.amount)}</Td><Td><StatusBadge status={p.match_status} /></Td>
                 <Td>{p.matched ? <Link href={`/factures/${p.matched.id}`} className="text-primary hover:underline">{p.matched.number}</Link> : "—"}</Td>
-                <Td>{p.match_status === "rapproche" && (
+                <Td className="text-right">{p.match_status === "rapproche" ? (
                   <ConfirmAction action={unreconcileAction.bind(null, p.id)} label="Annuler" size="sm" variant="ghost"
                     title="Annuler le rapprochement ?" description="La facture reviendra à son statut précédent." confirmLabel="Annuler le rapprochement" />
+                ) : (
+                  <ConfirmAction action={deletePaymentAction.bind(null, p.id)} label="Supprimer" size="sm" variant="ghost" className="text-red-700"
+                    title="Supprimer ce paiement ?" description="Suppression définitive (trace dans le journal)." confirmLabel="Oui, supprimer" />
                 )}</Td>
               </Tr>
             ))}</tbody>

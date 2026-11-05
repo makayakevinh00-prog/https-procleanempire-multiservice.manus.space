@@ -1,57 +1,75 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { CheckCircle2, FilePen, FileText, Plus, Send } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader, Empty } from "@/components/crm/page-header";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Table, Td, Th, Tr } from "@/components/ui/table";
-import { Badge, StatusBadge } from "@/components/ui/badge";
-import { ClientName } from "@/components/crm/client-name";
-import { formatDate, formatEUR } from "@/lib/utils";
+import { Badge, ReservedBadge, StatusBadge } from "@/components/ui/badge";
+import { Avatar } from "@/components/ui/avatar";
+import { Stat } from "@/components/ui/stat";
+import { Tabs } from "@/components/ui/tabs";
 import { ConfirmAction } from "@/components/crm/confirm-action";
 import { deleteQuoteAction } from "@/app/actions/quotes";
+import { cn, formatDate, formatEUR } from "@/lib/utils";
+
+const n = (v: unknown) => (v === null || v === undefined ? 0 : Number(v));
 
 export default async function QuotesPage({ searchParams }: { searchParams: { statut?: string } }) {
-  let query = createClient().from("quotes").select("*, clients(id, name, is_reserved), invoices:invoice_id(status)").order("number", { ascending: false });
-  if (searchParams.statut) query = query.eq("status", searchParams.statut);
-  const { data, error } = await query;
+  const { data: all, error } = await createClient().from("quotes").select("*, clients(id, name, is_reserved), invoices:invoice_id(status)").order("number", { ascending: false });
   if (error) throw new Error(error.message);
+  const rows = (all ?? []) as any[];
+  const KEYS = ["brouillon", "envoye", "accepte", "refuse", "expire"];
+  const current = KEYS.includes(searchParams.statut ?? "") ? searchParams.statut! : "";
+  const data = current ? rows.filter((q) => q.status === current) : rows;
+  const by = (s: string) => rows.filter((q) => q.status === s);
+  const toInvoice = (q: any) => q.status === "accepte" && (!q.invoice_id || q.invoices?.status === "annule");
+  const sum = (l: any[]) => l.reduce((a, q) => a + n(q.total_ht), 0);
 
-  const tabs = [["", "Tous"], ["brouillon", "Brouillons"], ["envoye", "Envoyés"], ["accepte", "Acceptés"], ["refuse", "Refusés"], ["expire", "Expirés"]];
+  const tabs = [
+    { href: "/devis", label: "Tous", count: rows.length, active: !current },
+    ...[["brouillon", "Brouillons"], ["envoye", "Envoyés"], ["accepte", "Acceptés"], ["refuse", "Refusés"], ["expire", "Expirés"]].map(([k, l]) => ({ href: `/devis?statut=${k}`, label: l, count: by(k).length, active: current === k }))
+  ];
+
   return (
     <>
-      <PageHeader title="Devis" actions={<Link href="/devis/new"><Button><Plus className="h-4 w-4" /> Nouveau devis</Button></Link>} />
-      <div className="mb-4 flex flex-wrap gap-2">
-        {tabs.map(([v, l]) => (
-          <Link key={v} href={v ? `/devis?statut=${v}` : "/devis"}
-            className={`rounded-full border px-3 py-1 text-sm ${(searchParams.statut ?? "") === v ? "bg-primary text-primary-foreground" : "bg-card hover:bg-muted"}`}>{l}</Link>
-        ))}
+      <PageHeader title="Devis" subtitle="Préparez, envoyez et suivez vos devis. Un devis accepté peut devenir un contrat puis une facture en un clic."
+        actions={<Link href="/devis/new" className={cn(buttonVariants({}))}><Plus className="h-5 w-5" /> Nouveau devis</Link>} />
+
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+        <Stat label="Brouillons" value={by("brouillon").length} sub={`${formatEUR(sum(by("brouillon")))} HT`} tone="slate" icon={FilePen} href="/devis?statut=brouillon" />
+        <Stat label="En attente de réponse" value={by("envoye").length} sub={`${formatEUR(sum(by("envoye")))} HT`} tone="blue" icon={Send} href="/devis?statut=envoye" />
+        <Stat label="Acceptés" value={by("accepte").length} sub={`${formatEUR(sum(by("accepte")))} HT`} tone="green" icon={CheckCircle2} href="/devis?statut=accepte" />
+        <Stat label="À facturer" value={rows.filter(toInvoice).length} sub="acceptés sans facture" tone="orange" icon={FileText} />
       </div>
+
+      <Tabs items={tabs} />
+
       <Card>
-        {!data?.length ? <Empty>Aucun devis.</Empty> : (
+        {!data.length ? <Empty icon={FileText} action={<Link href="/devis/new" className={cn(buttonVariants({ size: "sm" }))}>Créer un devis</Link>}>Aucun devis dans cette vue.</Empty> : (
           <Table>
-            <thead><tr><Th>N°</Th><Th>Client</Th><Th>Objet</Th><Th>Date</Th><Th className="text-right">HT</Th><Th className="text-right">TTC</Th><Th>Statut</Th><Th></Th></tr></thead>
+            <thead><tr><Th>N°</Th><Th>Client</Th><Th className="hidden xl:table-cell">Objet</Th><Th className="hidden md:table-cell">Date</Th><Th className="hidden 2xl:table-cell text-right">HT</Th><Th className="text-right">TTC</Th><Th>Statut</Th><Th /></tr></thead>
             <tbody>
-              {data.map((q: any) => {
-                const toInvoice = q.status === "accepte" && (!q.invoice_id || q.invoices?.status === "annule");
-                return (
-                  <Tr key={q.id} className={q.clients.is_reserved ? "bg-red-50/60" : ""}>
-                    <Td><Link href={`/devis/${q.id}`} className="font-semibold hover:underline">{q.number}</Link></Td>
-                    <Td><ClientName id={q.clients.id} name={q.clients.name} reserved={q.clients.is_reserved} /></Td>
-                    <Td className="text-muted-foreground">{q.subject}</Td>
-                    <Td>{formatDate(q.issue_date)}</Td>
-                    <Td className="text-right">{formatEUR(q.total_ht)}</Td>
-                    <Td className="text-right">{formatEUR(q.total_ttc)}</Td>
-                    <Td className="space-x-1"><StatusBadge status={q.status} />{toInvoice && <Badge tone="orange">À facturer</Badge>}</Td>
-                    <Td className="text-right">{(!q.invoice_id || q.invoices?.status === "annule") && (
-                      <ConfirmAction action={deleteQuoteAction.bind(null, q.id)} label="Supprimer" variant="ghost" size="sm" className="text-red-700"
-                        title={`Supprimer le devis ${q.number} ?`}
-                        description={q.status === "accepte" ? "Ce devis est ACCEPTÉ : le supprimer efface la trace de l'acceptation (elle reste dans le journal). Définitif." : "Le devis et ses lignes seront supprimés définitivement (trace dans le journal)."}
-                        confirmLabel="Oui, supprimer" reservedName={q.clients.is_reserved ? q.clients.name : null} />
-                    )}</Td>
-                  </Tr>
-                );
-              })}
+              {data.map((q: any) => (
+                <Tr key={q.id} className={q.clients.is_reserved ? "bg-red-50/60" : ""}>
+                  <Td><Link href={`/devis/${q.id}`} className="font-bold text-slate-900 hover:text-primary hover:underline">{q.number}</Link></Td>
+                  <Td>
+                    <Link href={`/clients/${q.clients.id}`} className="flex items-center gap-3 hover:underline"><Avatar name={q.clients.name} size="sm" /><span className="font-medium text-slate-800">{q.clients.name}</span></Link>
+                    {q.clients.is_reserved && <ReservedBadge className="mt-1" />}
+                  </Td>
+                  <Td className="hidden max-w-[14rem] truncate text-slate-500 xl:table-cell">{q.subject}</Td>
+                  <Td className="hidden whitespace-nowrap md:table-cell">{formatDate(q.issue_date)}</Td>
+                  <Td className="hidden whitespace-nowrap text-right text-slate-600 2xl:table-cell">{formatEUR(q.total_ht)}</Td>
+                  <Td className="whitespace-nowrap text-right font-bold text-slate-900">{formatEUR(q.total_ttc)}</Td>
+                  <Td><div className="flex flex-wrap items-center gap-1.5"><StatusBadge status={q.status} />{toInvoice(q) && <Badge tone="orange">À facturer</Badge>}</div></Td>
+                  <Td className="text-right">{(!q.invoice_id || q.invoices?.status === "annule") && (
+                    <ConfirmAction action={deleteQuoteAction.bind(null, q.id)} label="Supprimer" variant="ghost" size="sm" className="text-red-700"
+                      title={`Supprimer le devis ${q.number} ?`}
+                      description={q.status === "accepte" ? "Ce devis est ACCEPTÉ : le supprimer efface la trace de l'acceptation (elle reste dans le journal). Définitif." : "Le devis et ses lignes seront supprimés définitivement (trace dans le journal)."}
+                      confirmLabel="Oui, supprimer" reservedName={q.clients.is_reserved ? q.clients.name : null} />
+                  )}</Td>
+                </Tr>
+              ))}
             </tbody>
           </Table>
         )}

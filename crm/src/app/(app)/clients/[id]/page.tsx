@@ -1,70 +1,151 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Pencil } from "lucide-react";
+import { Archive, FilePlus, Mail, MapPin, Pencil, Phone, Plus, Receipt, Repeat, Trash2, Undo2, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { PageHeader, Empty } from "@/components/crm/page-header";
+import { clientImpact } from "@/lib/impact";
+import { Empty } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/form";
-import { StatusBadge } from "@/components/ui/badge";
-import { Table, Td, Th, Tr } from "@/components/ui/table";
-import { ClientName, ReservedBanner } from "@/components/crm/client-name";
+import { Avatar } from "@/components/ui/avatar";
+import { Stat } from "@/components/ui/stat";
+import { Tabs } from "@/components/ui/tabs";
+import { StatusBadge, ReservedBadge } from "@/components/ui/badge";
+import { Table, Td, Tr } from "@/components/ui/table";
+import { ConfirmAction } from "@/components/crm/confirm-action";
 import { addInteractionAction, setPipelineAction } from "@/app/actions/clients";
+import { archiveClientAction, deleteClientAction, deleteInteractionAction } from "@/app/actions/manage";
 import { PIPELINE, PIPELINE_LABEL, PIPELINE_TONE, type Pipeline } from "@/lib/request-type";
-import { formatDate, formatEUR, formatHours } from "@/lib/utils";
+import { cn, formatDate, formatEUR, formatHours } from "@/lib/utils";
 
 const KIND: Record<string, string> = { appel: "📞 Appel", email: "✉️ E-mail", rdv: "📅 RDV", note: "📝 Note", relance: "🔔 Relance", devis: "📄 Devis", facture: "🧾 Facture", autre: "• Autre", demande: "🌐 Demande du site", statut: "🔀 Étape" };
+const n = (v: unknown) => (v === null || v === undefined ? 0 : Number(v));
 
-export default async function ClientPage({ params }: { params: { id: string } }) {
+export default async function ClientPage({ params, searchParams }: { params: { id: string }; searchParams: { onglet?: string } }) {
   const supabase = createClient();
   const { data: c } = await supabase.from("clients").select("*").eq("id", params.id).maybeSingle();
   if (!c) notFound();
 
-  const [contracts, quotes, invoices, interactions] = await Promise.all([
+  const [contracts, quotes, invoices, interactions, impact] = await Promise.all([
     supabase.from("contracts").select("*").eq("client_id", c.id).order("created_at"),
     supabase.from("quotes").select("id, number, status, subject, total_ht, invoice_id").eq("client_id", c.id).order("number", { ascending: false }),
-    supabase.from("invoices").select("id, number, status, subject, total_ttc, due_date").eq("client_id", c.id).order("created_at", { ascending: false }),
-    supabase.from("interactions").select("*").eq("client_id", c.id).order("occurred_at", { ascending: false }).limit(50)
+    supabase.from("invoices").select("id, number, status, subject, total_ht, total_ttc, paid_amount, due_date").eq("client_id", c.id).order("created_at", { ascending: false }),
+    supabase.from("interactions").select("*").eq("client_id", c.id).order("occurred_at", { ascending: false }).limit(60),
+    clientImpact(c.id)
   ]);
+  const inv = invoices.data ?? [];
+  const issued = inv.filter((i) => i.status !== "brouillon" && i.status !== "annule");
+  const billedHt = issued.reduce((a, i) => a + n(i.total_ht), 0);
+  const due = inv.filter((i) => ["envoye", "en_retard"].includes(i.status)).reduce((a, i) => a + n(i.total_ttc) - n(i.paid_amount), 0);
+  const lateCount = inv.filter((i) => i.status === "en_retard").length;
+  const activeContracts = (contracts.data ?? []).filter((k) => k.status === "actif").length;
+
+  const tab = ["contrats", "documents", "historique"].includes(searchParams.onglet ?? "") ? searchParams.onglet! : "resume";
+  const base = `/clients/${c.id}`;
+  const tabs = [
+    { href: base, label: "Résumé", active: tab === "resume" },
+    { href: `${base}?onglet=contrats`, label: "Contrats", count: contracts.data?.length ?? 0, active: tab === "contrats" },
+    { href: `${base}?onglet=documents`, label: "Devis & factures", count: (quotes.data?.length ?? 0) + inv.length, active: tab === "documents" },
+    { href: `${base}?onglet=historique`, label: "Historique", count: interactions.data?.length ?? 0, active: tab === "historique" }
+  ];
+  const address = [c.address, [c.postal_code, c.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+  const reservedName = c.is_reserved ? c.name : null;
+  const archived = c.status === "inactif";
 
   return (
     <>
-      <PageHeader
-        title={c.name}
-        subtitle={[c.address, [c.postal_code, c.city].filter(Boolean).join(" ")].filter(Boolean).join(", ") || undefined}
-        actions={<Link href={`/clients/${c.id}/edit`}><Button variant="outline"><Pencil className="h-4 w-4" /> Modifier</Button></Link>}
-      />
-      {c.is_reserved && <ReservedBanner name={c.name} reason={c.reserved_reason} />}
+      {/* Bandeau du client */}
+      <Card className={cn("mb-5 overflow-hidden", c.is_reserved && "border-2 border-red-500")}>
+        {c.is_reserved && <div role="alert" className="bg-red-50 px-6 py-2.5 text-sm text-red-900"><b>🔒 CONTACT RÉSERVÉ.</b> Aucune action automatique (relances, rapprochement, envoi). Toute action manuelle demande une confirmation explicite. {c.reserved_reason}</div>}
+        <div className="flex flex-col gap-4 p-5 sm:flex-row sm:flex-wrap sm:items-start sm:gap-5 sm:p-6">
+          <Avatar name={c.name} size="xl" />
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-2xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-[28px]">{c.name}</h1>
+              {c.is_reserved && <ReservedBadge />}
+              {archived && <span className="rounded-full bg-slate-200 px-3 py-1 text-xs font-bold text-slate-700">Archivé</span>}
+              {c.pipeline && <span className={cn("rounded-full px-3 py-1 text-xs font-bold", PIPELINE_TONE[c.pipeline as Pipeline])}>{PIPELINE_LABEL[c.pipeline as Pipeline]}</span>}
+            </div>
+            <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-[15px] text-slate-600">
+              <span className="capitalize">{c.kind}</span>
+              {address && <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4 text-slate-400" />{address}</span>}
+              {c.source && <span>Origine : {c.source}</span>}
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {c.phone && <a href={`tel:${c.phone}`} className={cn(buttonVariants({ variant: "outline", size: "sm" }))}><Phone className="h-4 w-4 text-emerald-600" /> {c.phone}</a>}
+              {c.email && <a href={`mailto:${c.email}`} className={cn(buttonVariants({ variant: "outline", size: "sm" }))}><Mail className="h-4 w-4 text-sky-600" /> {c.email}</a>}
+              <Link href={`${base}/edit`} className={cn(buttonVariants({ variant: "outline", size: "sm" }))}><Pencil className="h-4 w-4" /> Modifier</Link>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link href={`/devis/new?client=${c.id}`} className={cn(buttonVariants({}))}><FilePlus className="h-5 w-5" /> Nouveau devis</Link>
+            <Link href={`/factures/new?client=${c.id}`} className={cn(buttonVariants({ variant: "outline" }))}><Receipt className="h-5 w-5" /> Nouvelle facture</Link>
+          </div>
+        </div>
+      </Card>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+        <Stat label="Facturé (HT)" value={formatEUR(billedHt)} sub={`${issued.length} facture(s) émise(s)`} tone="green" icon={Receipt} />
+        <Stat label="Reste à encaisser" value={formatEUR(due)} sub={lateCount ? `${lateCount} en retard` : "aucun retard"} tone={lateCount ? "red" : "orange"} icon={Wallet} />
+        <Stat label="Contrats actifs" value={activeContracts} sub={`${contracts.data?.length ?? 0} au total`} tone="blue" icon={Repeat} />
+        <Stat label="Devis" value={quotes.data?.length ?? 0} sub={`${(quotes.data ?? []).filter((q) => q.status === "envoye").length} en attente de réponse`} tone="violet" icon={FilePlus} />
+      </div>
+
+      <Tabs items={tabs} />
+
+      {tab === "resume" && (
+        <div className="grid gap-5 lg:grid-cols-3">
+          <Card className="lg:col-span-2">
+            <CardHeader><CardTitle>Coordonnées et notes</CardTitle></CardHeader>
+            <CardContent className="grid gap-x-8 gap-y-4 text-[15px] sm:grid-cols-2">
+              <div><div className="text-xs font-semibold uppercase tracking-wide text-slate-400">E-mail</div>{c.email ?? "—"}</div>
+              <div><div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Téléphone</div>{c.phone ?? "—"}</div>
+              <div><div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Adresse</div>{address || "—"}</div>
+              <div><div className="text-xs font-semibold uppercase tracking-wide text-slate-400">SIRET</div>{c.siret ?? "—"}</div>
+              {c.notes && <p className="whitespace-pre-wrap rounded-xl bg-slate-50 p-4 sm:col-span-2">{c.notes}</p>}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle>Étape commerciale</CardTitle></CardHeader>
+            <CardContent>
+              <form action={setPipelineAction.bind(null, c.id)} className="space-y-3">
+                <Select name="pipeline" defaultValue={c.pipeline ?? ""}><option value="">— Aucune —</option>{PIPELINE.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</Select>
+                <Button variant="outline" className="w-full">Changer l&apos;étape</Button>
+                <p className="text-xs text-slate-500">L&apos;étape suit automatiquement vos devis et contrats ; chaque changement est daté dans l&apos;historique.</p>
+              </form>
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-3 border-red-200/70">
+            <CardHeader><CardTitle>Gérer cette fiche</CardTitle></CardHeader>
+            <CardContent className="flex flex-wrap items-center gap-3">
+              <ConfirmAction action={archiveClientAction.bind(null, c.id, !archived)} label={archived ? "Réactiver le client" : "Archiver le client"} variant="outline"
+                title={archived ? "Réactiver ce client ?" : "Archiver ce client ?"}
+                description={archived ? "Le client reprend sa place dans les listes." : "Le client disparaît des listes et des factures automatiques, mais tout son historique et ses factures restent consultables. C'est réversible."}
+                confirmLabel={archived ? "Réactiver" : "Archiver"} reservedName={reservedName} />
+              {impact.issued > 0 ? (
+                <p className="max-w-xl text-sm text-slate-600"><Trash2 className="mr-1 inline h-4 w-4 text-slate-400" />Suppression impossible : <b>{impact.issued} facture(s) émise(s)</b> doivent être conservées (obligation légale). Archivez le client à la place.</p>
+              ) : (
+                <ConfirmAction action={deleteClientAction.bind(null, c.id)} label="Supprimer le client" variant="outline" className="border-red-300 text-red-700 hover:bg-red-50"
+                  title={`Supprimer ${c.name} ?`}
+                  description={<>Seront supprimés définitivement : <b>{impact.quotes} devis</b>, <b>{impact.drafts} brouillon(s) de facture</b>, <b>{impact.contracts} contrat(s)</b>, <b>{impact.sites} site(s)</b>, <b>{impact.missions} mission(s)</b> et <b>{impact.interactions} ligne(s) d&apos;historique</b>. Une trace reste dans le Journal.</>}
+                  confirmLabel="Oui, tout supprimer" reservedName={reservedName} />
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {tab === "contrats" && (
         <Card>
-          <CardHeader><CardTitle>Coordonnées</CardTitle><StatusBadge status={c.status} /></CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div><ClientName name={c.name} reserved={c.is_reserved} link={false} /></div>
-            <div>✉️ {c.email ?? "—"}</div>
-            <div>📞 {c.phone ?? "—"}</div>
-            <div>SIRET : {c.siret ?? "—"}</div>
-            {c.source && <div className="text-xs text-muted-foreground">Origine : {c.source}</div>}
-            <form action={setPipelineAction.bind(null, c.id)} className="space-y-2 rounded-lg bg-slate-50 p-3">
-              <div className="flex items-center justify-between text-xs font-semibold text-slate-600">Étape commerciale
-                {c.pipeline && <span className={`rounded-full px-2 py-0.5 ${PIPELINE_TONE[c.pipeline as Pipeline]}`}>{PIPELINE_LABEL[c.pipeline as Pipeline]}</span>}</div>
-              <div className="flex gap-2">
-                <Select name="pipeline" defaultValue={c.pipeline ?? ""} className="h-9 flex-1"><option value="">— Aucune —</option>{PIPELINE.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</Select>
-                <Button variant="outline" size="sm" className="h-9">Changer</Button>
-              </div>
-            </form>
-            {c.notes && <p className="whitespace-pre-wrap rounded-md bg-muted p-3">{c.notes}</p>}
-          </CardContent>
-        </Card>
-
-        <Card className="lg:col-span-2">
           <CardHeader><CardTitle>Contrats récurrents</CardTitle>
-            <Link href={`/contrats/new?client=${c.id}`} className="text-xs font-medium text-primary hover:underline">+ Ajouter</Link></CardHeader>
-          {!contracts.data?.length ? <Empty>Aucun contrat.</Empty> : (
+            <Link href={`/contrats/new?client=${c.id}`} className={cn(buttonVariants({ size: "sm" }))}><Plus className="h-4 w-4" /> Nouveau contrat</Link></CardHeader>
+          {!contracts.data?.length ? <Empty icon={Repeat} action={<Link href={`/contrats/new?client=${c.id}`} className={cn(buttonVariants({ size: "sm" }))}>Créer un contrat</Link>}>Aucun contrat pour ce client.</Empty> : (
             <Table><tbody>
               {contracts.data.map((k) => (
                 <Tr key={k.id}>
-                  <Td><Link href={`/contrats/${k.id}`} className="font-medium hover:underline">{k.label}</Link></Td>
+                  <Td><Link href={`/contrats/${k.id}`} className="font-semibold text-slate-900 hover:underline">{k.label}</Link></Td>
                   <Td>{k.monthly_amount_ht != null ? `${formatEUR(k.monthly_amount_ht)}/mois` : k.per_visit_amount_ht != null ? `${formatEUR(k.per_visit_amount_ht)}/passage` : "—"}</Td>
                   <Td>{formatHours(k.weekly_hours == null ? null : Number(k.weekly_hours))}/sem</Td>
                   <Td><StatusBadge status={k.status} /></Td>
@@ -73,50 +154,56 @@ export default async function ClientPage({ params }: { params: { id: string } })
             </tbody></Table>
           )}
         </Card>
+      )}
 
-        <Card className="lg:col-span-3 lg:grid lg:grid-cols-2">
-          <div>
-            <CardHeader><CardTitle>Devis</CardTitle><Link href={`/devis/new?client=${c.id}`} className="text-xs font-medium text-primary hover:underline">+ Nouveau</Link></CardHeader>
-            {!quotes.data?.length ? <Empty>Aucun devis.</Empty> : (
+      {tab === "documents" && (
+        <div className="grid gap-5 xl:grid-cols-2">
+          <Card>
+            <CardHeader><CardTitle>Devis</CardTitle><Link href={`/devis/new?client=${c.id}`} className={cn(buttonVariants({ size: "sm" }))}><Plus className="h-4 w-4" /> Nouveau</Link></CardHeader>
+            {!quotes.data?.length ? <Empty icon={FilePlus}>Aucun devis.</Empty> : (
               <Table><tbody>{quotes.data.map((q) => (
-                <Tr key={q.id}><Td><Link href={`/devis/${q.id}`} className="font-medium hover:underline">{q.number}</Link></Td>
-                  <Td className="text-muted-foreground">{q.subject}</Td><Td>{formatEUR(q.total_ht)} HT</Td><Td><StatusBadge status={q.status} /></Td></Tr>
+                <Tr key={q.id}><Td><Link href={`/devis/${q.id}`} className="font-semibold text-slate-900 hover:underline">{q.number}</Link></Td>
+                  <Td className="text-slate-500">{q.subject}</Td><Td className="whitespace-nowrap">{formatEUR(q.total_ht)} HT</Td><Td><StatusBadge status={q.status} /></Td></Tr>
               ))}</tbody></Table>
             )}
-          </div>
-          <div className="border-t lg:border-l lg:border-t-0">
-            <CardHeader><CardTitle>Factures</CardTitle></CardHeader>
-            {!invoices.data?.length ? <Empty>Aucune facture.</Empty> : (
-              <Table><tbody>{invoices.data.map((i) => (
-                <Tr key={i.id}><Td><Link href={`/factures/${i.id}`} className="font-medium hover:underline">{i.number ?? "Brouillon"}</Link></Td>
-                  <Td className="text-muted-foreground">{i.subject}</Td><Td>{formatEUR(i.total_ttc)} TTC</Td><Td><StatusBadge status={i.status} /></Td></Tr>
+          </Card>
+          <Card>
+            <CardHeader><CardTitle>Factures</CardTitle><Link href={`/factures/new?client=${c.id}`} className={cn(buttonVariants({ size: "sm" }))}><Plus className="h-4 w-4" /> Nouvelle</Link></CardHeader>
+            {!inv.length ? <Empty icon={Receipt}>Aucune facture.</Empty> : (
+              <Table><tbody>{inv.map((i) => (
+                <Tr key={i.id}><Td><Link href={`/factures/${i.id}`} className="font-semibold text-slate-900 hover:underline">{i.number ?? "Brouillon"}</Link></Td>
+                  <Td className="text-slate-500">{i.subject}</Td><Td className="whitespace-nowrap">{formatEUR(i.total_ttc)} TTC</Td><Td><StatusBadge status={i.status} /></Td></Tr>
               ))}</tbody></Table>
             )}
-          </div>
-        </Card>
+          </Card>
+        </div>
+      )}
 
-        <Card className="lg:col-span-3">
-          <CardHeader><CardTitle>Historique des interactions</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <form action={addInteractionAction.bind(null, c.id)} className="grid gap-3 sm:grid-cols-[10rem_1fr_auto] sm:items-end">
-              <Field label="Type"><Select name="kind">{Object.entries(KIND).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select></Field>
+      {tab === "historique" && (
+        <Card>
+          <CardHeader><CardTitle>Historique des échanges</CardTitle></CardHeader>
+          <CardContent className="space-y-5">
+            <form action={addInteractionAction.bind(null, c.id)} className="grid gap-3 sm:grid-cols-[11rem_1fr_auto] sm:items-end">
+              <Field label="Type"><Select name="kind">{Object.entries(KIND).filter(([k]) => !["demande", "statut"].includes(k)).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select></Field>
               <Field label="Résumé"><Input name="summary" required placeholder="Ex. : appelé pour confirmer le passage de jeudi" /></Field>
-              <Button>Ajouter</Button>
+              <Button><Plus className="h-5 w-5" /> Ajouter</Button>
             </form>
-            {!interactions.data?.length ? <p className="text-sm text-muted-foreground">Aucune interaction enregistrée.</p> : (
-              <ul className="divide-y text-sm">
+            {!interactions.data?.length ? <Empty>Aucun échange enregistré.</Empty> : (
+              <ul className="divide-y divide-slate-100 text-[15px]">
                 {interactions.data.map((i) => (
-                  <li key={i.id} className="flex gap-3 py-2">
-                    <span className="w-28 shrink-0 text-muted-foreground">{formatDate(i.occurred_at)}</span>
-                    <span className="w-24 shrink-0">{KIND[i.kind] ?? i.kind}</span>
-                    <span>{i.summary}</span>
+                  <li key={i.id} className="flex items-start gap-4 py-3">
+                    <span className="w-24 shrink-0 text-sm text-slate-400">{formatDate(i.occurred_at)}</span>
+                    <span className="w-36 shrink-0 font-medium text-slate-700">{KIND[i.kind] ?? i.kind}</span>
+                    <span className="flex-1 text-slate-800">{i.summary}</span>
+                    <ConfirmAction action={deleteInteractionAction.bind(null, i.id, c.id)} label="✕" variant="ghost" size="sm" className="text-slate-400 hover:text-red-600"
+                      title="Supprimer cette ligne ?" description="La ligne est retirée de l'historique de ce client." confirmLabel="Supprimer" reservedName={reservedName} />
                   </li>
                 ))}
               </ul>
             )}
           </CardContent>
         </Card>
-      </div>
+      )}
     </>
   );
 }

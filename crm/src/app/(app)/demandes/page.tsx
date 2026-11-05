@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { createQuoteFromRequestAction, setRequestStatusAction } from "@/app/actions/requests";
+import { ConfirmAction } from "@/components/crm/confirm-action";
+import { deleteRequestAction } from "@/app/actions/manage";
 import { formatDate } from "@/lib/utils";
 import { REQUEST_TYPE_LABEL, type RequestType } from "@/lib/request-type";
 
@@ -52,6 +54,8 @@ export default async function RequestsPage({ searchParams }: { searchParams: { s
                     <form action={createQuoteFromRequestAction.bind(null, r.id)}><Button>{r.client_id ? "Créer le devis" : "Créer le client et le devis"}</Button></form>
                   )}
                   {r.request_number && <span className="self-center text-xs text-muted-foreground">{r.request_number}</span>}
+                  <ConfirmAction action={deleteRequestAction.bind(null, r.id)} label="Supprimer" variant="ghost" size="sm" className="text-red-700"
+                    title="Supprimer cette demande ?" description="La demande est supprimée ; la fiche du contact et son historique sont conservés." confirmLabel="Oui, supprimer" />
                   {r.status === "nouvelle" && <form action={setRequestStatusAction.bind(null, r.id, "ignoree")}><Button variant="ghost" size="sm">Ignorer</Button></form>}
                   {r.status !== "nouvelle" && <form action={setRequestStatusAction.bind(null, r.id, "nouvelle")}><Button variant="ghost" size="sm">Remettre en « nouvelle »</Button></form>}
                 </div>

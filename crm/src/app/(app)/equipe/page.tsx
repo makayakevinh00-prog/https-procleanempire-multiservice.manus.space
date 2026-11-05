@@ -5,6 +5,7 @@ import { addDays, isoWeekday, parisToday } from "@/lib/domain/dates";
 import { cookies } from "next/headers";
 import { generateAgentLinkAction, revokeAgentLinkAction, saveStaffAction } from "@/app/actions/missions";
 import { ConfirmAction } from "@/components/crm/confirm-action";
+import { deleteStaffAction } from "@/app/actions/manage";
 import { PageHeader, Empty } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -93,13 +94,15 @@ export default async function TeamPage() {
                 <details>
                   <summary className="cursor-pointer text-xs font-medium text-primary">Modifier</summary>
                   <form action={saveStaffAction} className="mt-3 space-y-3"><StaffFields s={s} /><Button size="sm">Enregistrer</Button></form>
+                  <div className="mt-3 border-t border-slate-100 pt-3"><ConfirmAction action={deleteStaffAction.bind(null, s.id)} label="Supprimer cet agent" variant="outline" size="sm" className="border-red-300 text-red-700 hover:bg-red-50"
+                    title={`Supprimer ${s.full_name} ?`} description="Ses missions à venir repassent « sans intervenant » et son lien mobile cesse de fonctionner. Astuce : « Actif : Non » le retire des suggestions sans rien effacer." confirmLabel="Oui, supprimer" /></div>
                 </details>
               </CardContent>
             </Card>
           );
         })}
       </div>
-      <Card>
+      <Card id="ajout">
         <CardHeader><CardTitle className="flex items-center gap-2"><UserPlus className="h-4 w-4 text-emerald-600" /> Ajouter un membre</CardTitle></CardHeader>
         <CardContent><form action={saveStaffAction} className="space-y-3"><StaffFields /><Button>Ajouter</Button></form></CardContent>
       </Card>

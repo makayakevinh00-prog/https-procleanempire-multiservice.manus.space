@@ -6,6 +6,7 @@ import { ContractForm } from "@/components/crm/contract-form";
 import { ConfirmAction } from "@/components/crm/confirm-action";
 import { ClientName } from "@/components/crm/client-name";
 import { updateContractAction, terminateContractAction } from "@/app/actions/contracts";
+import { deleteContractAction } from "@/app/actions/manage";
 import { formatHours } from "@/lib/utils";
 import { numOrNull } from "@/lib/data";
 import type { Contract } from "@/lib/domain/types";
@@ -26,11 +27,16 @@ export default async function ContractPage({ params }: { params: { id: string } 
       <PageHeader
         title={k.label}
         subtitle={undefined}
-        actions={k.status !== "resilie" ? (
-          <ConfirmAction action={terminateContractAction.bind(null, k.id)} label="Résilier" variant="destructive" size="sm"
-            title="Résilier ce contrat ?" description="Le statut passe à « résilié » et la date de fin est fixée à aujourd'hui. Les heures sortent du stock des sites."
-            confirmLabel="Résilier le contrat" />
-        ) : undefined}
+        actions={<>
+          {k.status !== "resilie" && (
+            <ConfirmAction action={terminateContractAction.bind(null, k.id)} label="Résilier" variant="outline" size="sm"
+              title="Résilier ce contrat ?" description="Le statut passe à « résilié » et la date de fin est fixée à aujourd'hui. Les heures sortent du stock des sites."
+              confirmLabel="Résilier le contrat" reservedName={k.clients.is_reserved ? k.clients.name : null} />
+          )}
+          <ConfirmAction action={deleteContractAction.bind(null, k.id)} label="Supprimer" variant="outline" size="sm" className="border-red-300 text-red-700 hover:bg-red-50"
+            title={`Supprimer « ${k.label} » ?`} description="Le contrat est supprimé, ainsi que ses passages à venir non facturés. L'historique (passages réalisés ou facturés) est conservé. Définitif."
+            confirmLabel="Oui, supprimer" reservedName={k.clients.is_reserved ? k.clients.name : null} />
+        </>}
       />
       <p className="-mt-4 mb-4"><ClientName id={k.clients.id} name={k.clients.name} reserved={k.clients.is_reserved} /></p>
       <Card className="mb-4"><CardContent className="text-sm">

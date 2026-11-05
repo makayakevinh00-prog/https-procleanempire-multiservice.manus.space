@@ -12,6 +12,9 @@ import { Input, Select, Textarea } from "@/components/ui/form";
 import { ReservedBadge } from "@/components/ui/badge";
 import { StageBadge } from "@/components/crm/mission";
 import { formatDate, formatEUR } from "@/lib/utils";
+import { ConfirmAction } from "@/components/crm/confirm-action";
+import { deleteMissionAction, updateMissionAction } from "@/app/actions/manage";
+import { Field } from "@/components/ui/form";
 
 const FIELD: Record<string, string> = { stage: "Étape", status: "Statut", staff_id: "Intervenant", assignee: "Intervenant", scheduled_date: "Date", start_time: "Heure", checklist: "Check-list", notes: "Notes", invoice_id: "Facture", unit_price_ht: "Prix", duration_hours: "Durée", site_id: "Site" };
 const show = (k: string, v: unknown) => {
@@ -29,12 +32,13 @@ export default async function MissionPage({ params }: { params: { id: string } }
     .eq("id", params.id).maybeSingle();
   if (!m) notFound();
   const monday = addDays(m.scheduled_date, 1 - isoWeekday(m.scheduled_date));
-  const [{ data: staff }, { data: week }, { data: issues }, { data: history }, { data: photos }] = await Promise.all([
+  const [{ data: staff }, { data: week }, { data: issues }, { data: history }, { data: photos }, { data: allSites }] = await Promise.all([
     supabase.from("staff").select("id, full_name, zone, weekly_capacity_hours, active").order("full_name"),
     supabase.from("interventions").select("id, staff_id, site_id, scheduled_date, start_time, duration_hours, stage").gte("scheduled_date", monday).lte("scheduled_date", addDays(monday, 6)),
     supabase.from("mission_issues").select("*").eq("intervention_id", m.id).order("created_at", { ascending: false }),
     supabase.from("change_log").select("at, actor, action, changes").eq("table_name", "interventions").eq("row_id", m.id).order("at", { ascending: false }).limit(30),
-    supabase.from("mission_photos").select("id, kind, taken_at, size_bytes, staff:staff_id(full_name)").eq("intervention_id", m.id).order("taken_at")
+    supabase.from("mission_photos").select("id, kind, taken_at, size_bytes, staff:staff_id(full_name)").eq("intervention_id", m.id).order("taken_at"),
+    supabase.from("sites").select("id, name").eq("client_id", m.client_id).order("name")
   ]);
 
   const back = `/missions/${m.id}`;
@@ -131,6 +135,28 @@ export default async function MissionPage({ params }: { params: { id: string } }
               <Input name="description" placeholder="Que s'est-il passé ?" required />
               <Button variant="outline">Signaler</Button>
             </form>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle>Modifier la mission</CardTitle><span className="text-xs text-slate-500">{locked ? "verrouillée : déjà facturée" : "date, heure, durée, prix…"}</span></CardHeader>
+            <form action={updateMissionAction.bind(null, m.id)} className="grid gap-4 p-6 sm:grid-cols-6">
+              <Field label="Désignation *" className="sm:col-span-4"><Input name="title" required defaultValue={m.title} disabled={locked} /></Field>
+              <Field label="Date *" className="sm:col-span-2"><Input name="scheduled_date" type="date" required defaultValue={m.scheduled_date} disabled={locked} /></Field>
+              <Field label="Heure" className="sm:col-span-2"><Input name="start_time" type="time" defaultValue={m.start_time?.slice(0, 5) ?? ""} disabled={locked} /></Field>
+              <Field label="Durée (h)" className="sm:col-span-2"><Input name="duration_hours" inputMode="decimal" defaultValue={m.duration_hours ?? ""} disabled={locked} /></Field>
+              <Field label="Site" className="sm:col-span-2"><Select name="site_id" defaultValue={m.site_id ?? ""} disabled={locked}><option value="">— Aucun —</option>{(allSites ?? []).map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}</Select></Field>
+              <Field label="Prix unitaire HT (€)" className="sm:col-span-2"><Input name="unit_price_ht" inputMode="decimal" defaultValue={m.unit_price_ht ?? ""} disabled={locked} /></Field>
+              <Field label="Quantité" className="sm:col-span-2"><Input name="quantity" inputMode="decimal" defaultValue={m.quantity ?? 1} disabled={locked} /></Field>
+              <label className="flex items-center gap-2 self-end pb-3 text-[15px] sm:col-span-2"><input type="checkbox" name="billable" defaultChecked={m.billable} disabled={locked} className="h-4 w-4" /> Facturable à l&apos;unité</label>
+              {!locked && <div className="sm:col-span-6"><Button>Enregistrer</Button></div>}
+            </form>
+            {!locked && (
+              <div className="border-t border-slate-100 px-6 py-4">
+                <ConfirmAction action={deleteMissionAction.bind(null, m.id)} label="Supprimer la mission" variant="outline" className="border-red-300 text-red-700 hover:bg-red-50"
+                  title="Supprimer cette mission ?" description="La mission, sa check-list et ses photos sont supprimées définitivement (trace dans le journal). Pour la garder sans la faire, passez-la plutôt à « Annulée »."
+                  confirmLabel="Oui, supprimer" reservedName={m.clients.is_reserved ? m.clients.name : null} />
+              </div>
+            )}
           </Card>
 
           <Card>

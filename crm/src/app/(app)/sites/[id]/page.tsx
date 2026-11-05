@@ -8,6 +8,8 @@ import { StatusBadge, ReservedBadge } from "@/components/ui/badge";
 import { MissionRow } from "@/components/crm/mission";
 import { SiteForm } from "@/components/crm/site-form";
 import { formatDate } from "@/lib/utils";
+import { ConfirmAction } from "@/components/crm/confirm-action";
+import { deleteSiteAction } from "@/app/actions/manage";
 
 export default async function SitePage({ params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -25,7 +27,9 @@ export default async function SitePage({ params }: { params: { id: string } }) {
   return (
     <>
       <PageHeader title={s.name} subtitle={[s.address, s.postal_code, s.city].filter(Boolean).join(" ") || "Adresse à compléter"}
-        actions={<><StatusBadge status={s.status} /><Link href="/sites" className="text-sm text-primary hover:underline">← Sites</Link></>} />
+        actions={<><StatusBadge status={s.status} /><Link href="/sites" className="text-sm font-semibold text-primary hover:underline">← Sites</Link>
+          <ConfirmAction action={deleteSiteAction.bind(null, s.id)} label="Supprimer le site" variant="outline" size="sm" className="border-red-300 text-red-700 hover:bg-red-50"
+            title={`Supprimer « ${s.name} » ?`} description="Le site est supprimé ; ses missions et contrats sont conservés, simplement sans site. Définitif." confirmLabel="Oui, supprimer" reservedName={s.clients.is_reserved ? s.clients.name : null} /></>} />
       <div className="mb-4 flex items-center gap-2 text-sm">Client : <Link href={`/clients/${s.clients.id}`} className="font-semibold text-primary hover:underline">{s.clients.name}</Link>{s.clients.is_reserved && <ReservedBadge />}</div>
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>

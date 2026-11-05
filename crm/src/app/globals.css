@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 216 33% 97%;
+    --background: 214 32% 96%;
     --foreground: 222 30% 12%;
     --card: 0 0% 100%;
     --card-foreground: 222 30% 12%;
@@ -22,5 +22,8 @@
     --ring: 217 78% 48%;
   }
   * { @apply border-border; }
-  body { @apply bg-background text-foreground antialiased; }
+  body { @apply bg-background text-foreground antialiased; font-size: 15px; line-height: 1.55; }
+  html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline-color: hsl(var(--ring)); }
+  @media (max-width: 767px) { input, select, textarea { font-size: 16px !important; } }
 }
