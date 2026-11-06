@@ -51,3 +51,32 @@ export async function setPipelineAction(clientId: string, fd: FormData) {
   revalidatePath("/clients"); revalidatePath("/", "layout");
   flash(`/clients/${clientId}`, "ok", "Étape commerciale mise à jour (inscrite dans l'historique).");
 }
+
+
+// ───────────── Adresses e-mail supplémentaires ─────────────
+export async function addClientEmailAction(clientId: string, fd: FormData) {
+  const back = `/clients/${clientId}`;
+  const email = String(fd.get("email") ?? "").trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) flash(back, "error", "Adresse e-mail invalide.");
+  const label = String(fd.get("label") ?? "").trim() || null;
+  const { error } = await createClient().from("client_emails").insert({ client_id: clientId, email, label, for_invoices: fd.get("for_invoices") !== null });
+  if (error) flash(back, "error", error.code === "23505" ? "Cette adresse existe déjà pour ce client." : dbMessage(error));
+  revalidatePath(back);
+  flash(back, "ok", "Adresse ajoutée.");
+}
+
+export async function deleteClientEmailAction(clientId: string, id: string) {
+  const back = `/clients/${clientId}`;
+  const { error } = await createClient().from("client_emails").delete().eq("id", id);
+  if (error) flash(back, "error", dbMessage(error));
+  revalidatePath(back);
+  flash(back, "ok", "Adresse supprimée.");
+}
+
+export async function toggleClientEmailInvoicesAction(clientId: string, id: string, value: boolean) {
+  const back = `/clients/${clientId}`;
+  const { error } = await createClient().from("client_emails").update({ for_invoices: value }).eq("id", id);
+  if (error) flash(back, "error", dbMessage(error));
+  revalidatePath(back);
+  flash(back, "ok", value ? "Cette adresse recevra les factures par défaut." : "Cette adresse ne recevra plus les factures par défaut.");
+}

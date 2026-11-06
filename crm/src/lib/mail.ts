@@ -1,6 +1,6 @@
 /** Envoi via Resend. Sans RESEND_API_KEY, rien ne part et l'appelant en est informé (jamais d'échec silencieux). */
 export interface MailInput {
-  to: string;
+  to: string | string[];
   subject: string;
   text: string;
   html?: string;
@@ -21,7 +21,7 @@ export async function sendMail(m: MailInput): Promise<MailResult> {
       signal: AbortSignal.timeout(15_000),
       body: JSON.stringify({
         from: process.env.MAIL_FROM ?? "ProClean Empire <contact@procleanempire.com>",
-        to: [m.to],
+        to: Array.isArray(m.to) ? m.to : [m.to],
         reply_to: "contact@procleanempire.com",
         subject: m.subject,
         text: m.text,

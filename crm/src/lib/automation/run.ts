@@ -67,7 +67,7 @@ export async function runDaily(deps: Deps, opts: RunOptions = {}): Promise<Repor
     const res = await deps.sendMail(m);
     if (!opts.dryRun) {
       try {
-        await call("automation_log_email", { p_kind: kind, p_to: m.to, p_subject: m.subject, p_ok: res.sent, p_error: res.sent ? null : res.reason, p_entity: entity ?? null, p_entity_id: entityId ?? null });
+        await call("automation_log_email", { p_kind: kind, p_to: Array.isArray(m.to) ? m.to.join(", ") : m.to, p_subject: m.subject, p_ok: res.sent, p_error: res.sent ? null : res.reason, p_entity: entity ?? null, p_entity_id: entityId ?? null });
       } catch { /* journal indisponible : l'envoi reste valable */ }
     }
     return res;
@@ -155,12 +155,14 @@ export async function runDaily(deps: Deps, opts: RunOptions = {}): Promise<Repor
             company, phone: pending.settings.company_phone, number: inv.number, totalTtc: eur(inv.total_ttc),
             dueDate: fr(inv.due_date), period: inv.billing_month ? monthLabel(inv.billing_month) : null, iban: pending.settings.company_iban
           });
-          const res = await send("facture", { to: client.email, subject: mail.subject, text: mail.text, html: mail.html, attachment: { filename: `${inv.number}.pdf`, bytes } }, "invoice", inv.id);
+          // Adresse principale + adresses supplémentaires « reçoit les factures » (dédoublonnées)
+          const everyone = [client.email, ...((it.extra_emails as string[] | undefined) ?? [])].filter((e, k, a) => e && a.findIndex((x) => x.toLowerCase() === e.toLowerCase()) === k);
+          const res = await send("facture", { to: everyone, subject: mail.subject, text: mail.text, html: mail.html, attachment: { filename: `${inv.number}.pdf`, bytes } }, "invoice", inv.id);
           if (res.sent) {
-            await call("automation_mark_sent", { p_invoice_id: inv.id, p_to: client.email });
-            report.sent.push({ number: inv.number, to: client.email });
+            await call("automation_mark_sent", { p_invoice_id: inv.id, p_to: everyone.join(", ") });
+            report.sent.push({ number: inv.number, to: everyone.join(", ") });
           } else {
-            report.failed.push({ what: `envoi ${inv.number} à ${client.email}`, reason: res.reason });
+            report.failed.push({ what: `envoi ${inv.number} à ${everyone.join(", ")}`, reason: res.reason });
           }
         } catch (e) {
           report.failed.push({ what: `envoi ${inv.number}`, reason: (e as Error).message });

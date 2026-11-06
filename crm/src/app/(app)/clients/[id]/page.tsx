@@ -13,7 +13,7 @@ import { Tabs } from "@/components/ui/tabs";
 import { StatusBadge, ReservedBadge } from "@/components/ui/badge";
 import { Table, Td, Tr } from "@/components/ui/table";
 import { ConfirmAction } from "@/components/crm/confirm-action";
-import { addInteractionAction, setPipelineAction } from "@/app/actions/clients";
+import { addInteractionAction, addClientEmailAction, deleteClientEmailAction, setPipelineAction, toggleClientEmailInvoicesAction } from "@/app/actions/clients";
 import { archiveClientAction, deleteClientAction, deleteInteractionAction } from "@/app/actions/manage";
 import { PIPELINE, PIPELINE_LABEL, PIPELINE_TONE, type Pipeline } from "@/lib/request-type";
 import { cn, formatDate, formatEUR, formatHours } from "@/lib/utils";
@@ -26,6 +26,7 @@ export default async function ClientPage({ params, searchParams }: { params: { i
   const { data: c } = await supabase.from("clients").select("*").eq("id", params.id).maybeSingle();
   if (!c) notFound();
 
+  const { data: emails } = await supabase.from("client_emails").select("*").eq("client_id", c.id).order("created_at");
   const [contracts, quotes, invoices, interactions, impact] = await Promise.all([
     supabase.from("contracts").select("*").eq("client_id", c.id).order("created_at"),
     supabase.from("quotes").select("id, number, status, subject, total_ht, invoice_id").eq("client_id", c.id).order("number", { ascending: false }),
@@ -103,6 +104,29 @@ export default async function ClientPage({ params, searchParams }: { params: { i
               <div><div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Adresse</div>{address || "—"}</div>
               <div><div className="text-xs font-semibold uppercase tracking-wide text-slate-400">SIRET</div>{c.siret ?? "—"}</div>
               {c.notes && <p className="whitespace-pre-wrap rounded-xl bg-slate-50 p-4 sm:col-span-2">{c.notes}</p>}
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-3">
+            <CardHeader><CardTitle>Adresses e-mail du client</CardTitle></CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <p className="text-slate-500">À l&apos;envoi d&apos;une facture, vous choisissez à qui l&apos;envoyer, ou vous cochez tout le monde.</p>
+              <ul className="divide-y rounded-lg border">
+                <li className="flex items-center gap-3 px-3 py-2"><span className="flex-1">{c.email ?? <span className="text-red-700">Aucune adresse principale</span>}</span><span className="text-xs text-slate-500">principale</span></li>
+                {(emails ?? []).map((e: any) => (
+                  <li key={e.id} className="flex flex-wrap items-center gap-3 px-3 py-2">
+                    <span className="min-w-0 flex-1 truncate">{e.email}{e.label ? <span className="text-slate-500"> · {e.label}</span> : null}</span>
+                    <form action={toggleClientEmailInvoicesAction.bind(null, c.id, e.id, !e.for_invoices)}><button className={`rounded-full px-2.5 py-1 text-xs font-semibold ${e.for_invoices ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-600"}`}>{e.for_invoices ? "Reçoit les factures" : "Factures : non"}</button></form>
+                    <form action={deleteClientEmailAction.bind(null, c.id, e.id)}><button className="text-xs text-red-700 hover:underline">Supprimer</button></form>
+                  </li>
+                ))}
+              </ul>
+              <form action={addClientEmailAction.bind(null, c.id)} className="flex flex-wrap items-end gap-2">
+                <label className="block"><span className="text-xs text-slate-500">Nouvelle adresse</span><input name="email" type="email" required placeholder="compta@exemple.fr" className="mt-1 h-10 w-64 rounded-md border px-3" /></label>
+                <label className="block"><span className="text-xs text-slate-500">Rôle (facultatif)</span><input name="label" placeholder="Comptabilité, gérant…" className="mt-1 h-10 w-48 rounded-md border px-3" /></label>
+                <label className="flex h-10 items-center gap-2"><input type="checkbox" name="for_invoices" defaultChecked /> Reçoit les factures</label>
+                <button className="h-10 rounded-md bg-primary px-4 font-semibold text-white">Ajouter</button>
+              </form>
             </CardContent>
           </Card>
 

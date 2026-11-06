@@ -18,7 +18,7 @@ function fake(overrides: { settings?: any; clients?: any[]; contracts?: any[]; i
     secret: "S",
     now: new Date("2026-11-30T18:00:00Z"), // dernier jour de novembre, 19 h à Paris
     mailConfigured: () => overrides.mailConfigured ?? true,
-    sendMail: async (m) => { mails.push(m); return overrides.mailOk === false ? { sent: false, reason: "refusé" } : { sent: true }; },
+    sendMail: async (m) => { mails.push({ ...m, to: Array.isArray(m.to) ? m.to.join(", ") : m.to }); return overrides.mailOk === false ? { sent: false, reason: "refusé" } : { sent: true }; },
     rpc: async (name, args) => {
       calls.push({ name, args });
       switch (name) {

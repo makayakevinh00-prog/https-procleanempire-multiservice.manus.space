@@ -13,7 +13,9 @@ import { StatusBadge } from "@/components/ui/badge";
 import { Table, Td, Th, Tr } from "@/components/ui/table";
 import { ClientName, ReservedBanner } from "@/components/crm/client-name";
 import { ConfirmAction } from "@/components/crm/confirm-action";
-import { cancelInvoiceAction, deleteDraftAction, remindInvoiceAction, validateInvoiceAction } from "@/app/actions/invoices";
+import { cancelInvoiceAction, deleteDraftAction, remindInvoiceAction, resendInvoiceAction, syncQontoForInvoiceAction, validateInvoiceAction } from "@/app/actions/invoices";
+import { loadRecipients } from "@/lib/recipients";
+import { RecipientPicker } from "@/components/crm/recipient-picker";
 import { cn, daysBetween, formatDate, formatEUR } from "@/lib/utils";
 
 export default async function InvoicePage({ params }: { params: { id: string } }) {
@@ -25,6 +27,12 @@ export default async function InvoicePage({ params }: { params: { id: string } }
   if (!i) notFound();
   const settings = await getSettings(supabase);
   const c = i.clients;
+  const recipients = await loadRecipients(supabase, c.id);
+  // Virements Qonto non rapprochés, du plus proche du montant de la facture au moins proche
+  const { data: pays } = await supabase.from("payments").select("id, amount, received_at, counterparty, label, match_status")
+    .in("match_status", ["non_rapproche", "propose"]).gt("amount", 0).gte("received_at", new Date(Date.now() - 120 * 86_400_000).toISOString());
+  const total = Number(i.total_ttc);
+  const candidates = (pays ?? []).slice().sort((a: any, b: any) => Math.abs(Number(a.amount) - total) - Math.abs(Number(b.amount) - total)).slice(0, 8);
   const lines = [...i.invoice_lines].sort((a: any, b: any) => a.position - b.position);
   const reminders = [...i.reminders].sort((a: any, b: any) => b.sent_at.localeCompare(a.sent_at));
   const isDraft = i.status === "brouillon";
@@ -75,7 +83,7 @@ export default async function InvoicePage({ params }: { params: { id: string } }
             <CardHeader><CardTitle>Informations</CardTitle></CardHeader>
             <CardContent className="space-y-2 text-sm">
               <div><ClientName id={c.id} name={c.name} reserved={c.is_reserved} /></div>
-              <div>✉️ {c.email ?? <span className="text-red-700">pas d&apos;e-mail</span>}</div>
+              <div>✉️ {recipients.length ? recipients.map((r) => r.email).join(", ") : <span className="text-red-700">pas d&apos;e-mail</span>}</div>
               <div>Émise le : {formatDate(isDraft ? null : i.issue_date)}</div>
               <div>Échéance : {formatDate(i.due_date)}</div>
               {i.validated_at && <div>Validée le {formatDate(i.validated_at)}</div>}
@@ -96,14 +104,28 @@ export default async function InvoicePage({ params }: { params: { id: string } }
                     description={<>Un numéro définitif sera attribué à <b>{c.name}</b> et la facture ne sera <b>plus modifiable</b>. Cette action est la validation manuelle obligatoire.</>}
                     confirmLabel="Oui, valider" reservedName={reservedName} largeAmount={largeAmount}
                     extra={
-                      <label className="flex items-center gap-2 text-sm">
-                        <input type="checkbox" name="send_email" defaultChecked={!!c.email} disabled={!c.email} />
-                        Envoyer par e-mail à {c.email ?? "— (aucun e-mail client)"}
-                      </label>
+                      <div className="space-y-3">
+                        <label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" name="send_email" defaultChecked={recipients.length > 0} /> Envoyer la facture par e-mail</label>
+                        <RecipientPicker recipients={recipients} />
+                        <label className="block text-sm">
+                          <span className="font-medium">Cette prestation est déjà payée ?</span>
+                          <select name="payment_id" defaultValue="" className="mt-1 h-10 w-full rounded-md border bg-white px-2">
+                            <option value="">Non, à régler après envoi</option>
+                            {candidates.map((p: any) => <option key={p.id} value={p.id}>{formatDate(p.received_at)} · {formatEUR(p.amount)} · {p.counterparty ?? p.label ?? "virement"}</option>)}
+                          </select>
+                          <span className="mt-1 block text-xs text-slate-500">Choisissez le virement Qonto reçu : la facture part « acquittée » et ne sera jamais relancée.</span>
+                        </label>
+                      </div>
                     } />
+                  <form action={syncQontoForInvoiceAction.bind(null, i.id)}><button className="w-full text-center text-xs font-semibold text-primary hover:underline">Le virement n&apos;apparaît pas ? Actualiser depuis Qonto</button></form>
                   <ConfirmAction action={deleteDraftAction.bind(null, i.id)} label="Supprimer le brouillon" variant="outline" size="sm" className="w-full"
                     title="Supprimer ce brouillon ?" description="Aucun numéro n'a été consommé : la suppression est sans conséquence comptable." confirmLabel="Supprimer" />
                 </>
+              )}
+              {!isDraft && i.status !== "annule" && (
+                <ConfirmAction action={resendInvoiceAction.bind(null, i.id)} label="Renvoyer la facture" variant="outline" className="w-full"
+                  title="Renvoyer la facture par e-mail" description="Le PDF est renvoyé tel quel (même numéro, même statut). Choisissez les destinataires, ou cochez-les tous."
+                  confirmLabel="Envoyer" reservedName={reservedName} extra={<RecipientPicker recipients={recipients} defaultAll />} />
               )}
               {open && (
                 <ConfirmAction action={remindInvoiceAction.bind(null, i.id)} label="Relancer" variant="outline" className="w-full"
@@ -116,6 +138,7 @@ export default async function InvoicePage({ params }: { params: { id: string } }
                   confirmLabel="Enregistrer la relance" reservedName={reservedName}
                   extra={
                     <div className="space-y-3">
+                      <RecipientPicker recipients={recipients} />
                       <Field label="Canal"><Select name="channel"><option value="email">E-mail (envoyé maintenant)</option><option value="telephone">Téléphone</option><option value="courrier">Courrier</option><option value="autre">Autre</option></Select></Field>
                       <Field label="Note"><Input name="note" placeholder="Ex. promet le virement vendredi" /></Field>
                       {tooSoon && <label className="flex items-center gap-2 text-sm font-medium text-red-700"><input type="checkbox" name="force" /> Je force malgré la relance récente</label>}

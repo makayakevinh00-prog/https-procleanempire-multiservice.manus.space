@@ -37,7 +37,7 @@ const rpc: Deps["rpc"] = async (name, args) => {
 };
 const deps = (now: Date): Deps => ({
   secret, now, rpc, mailConfigured: () => true,
-  sendMail: async (m: any) => { mails.push(m); return { sent: true }; }
+  sendMail: async (m: any) => { mails.push({ ...m, to: Array.isArray(m.to) ? m.to.join(", ") : m.to }); return { sent: true }; }
 });
 
 // Calendrier relatif à l'horloge de la base
