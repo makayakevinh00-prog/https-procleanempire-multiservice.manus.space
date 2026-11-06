@@ -7,6 +7,8 @@ import { parseLines, requireReservedAck } from "@/lib/action-helpers";
 import { buildPdf } from "@/lib/pdf/load";
 import { sendMail } from "@/lib/mail";
 import { formatEUR, formatDate } from "@/lib/utils";
+import { reminderEmail } from "@/lib/mail-templates";
+import { REMINDER_FEE_EUR, REMINDER_FEE_LEVEL } from "@/lib/domain/reminders";
 import { logEmail } from "@/lib/email-log";
 import { pickRecipients } from "@/lib/recipients";
 import { syncQonto } from "@/lib/qonto";
@@ -171,13 +173,14 @@ export async function remindInvoiceAction(id: string, fd: FormData) {
     const to = chosen.length ? chosen : client?.email ? [client.email] : [];
     if (!to.length) await fail("aucune adresse e-mail");
     const pdf = await buildPdf("facture", id);
+    const mail = reminderEmail({ company: "ProClean Empire", phone: null, number: inv!.number, totalTtc: formatEUR(inv!.total_ttc), dueDate: formatDate(inv!.due_date), level: r.level, fee: formatEUR(REMINDER_FEE_EUR), feeLevel: REMINDER_FEE_LEVEL, totalWithFee: formatEUR(Number(inv!.total_ttc) + REMINDER_FEE_EUR) });
     const res = await sendMail({
       to,
-      subject: `Relance — facture ${inv!.number}`,
-      text: `Bonjour,\n\nSauf erreur de notre part, la facture ${inv!.number} (${formatEUR(inv!.total_ttc)} TTC, échéance ${formatDate(inv!.due_date)}) n'a pas encore été réglée. Merci de procéder au règlement ou de nous contacter si c'est déjà fait.\n\nCordialement,\nProClean Empire\ncontact@procleanempire.com`,
+      subject: mail.subject,
+      text: mail.text, html: mail.html,
       attachment: pdf ? { filename: pdf.filename, bytes: pdf.bytes } : undefined
     });
-    await logEmail(supabase, { kind: "relance_facture", to: to.join(", "), subject: `Relance — facture ${inv!.number}`, ok: res.sent, error: res.sent ? undefined : res.reason, entity: "invoice", entityId: id });
+    await logEmail(supabase, { kind: "relance_facture", to: to.join(", "), subject: mail.subject, ok: res.sent, error: res.sent ? undefined : res.reason, entity: "invoice", entityId: id });
     if (!res.sent) await fail(res.reason);
   }
   revalidatePath("/factures");

@@ -16,7 +16,7 @@ import { ConfirmAction } from "@/components/crm/confirm-action";
 import { addInteractionAction, addClientEmailAction, deleteClientEmailAction, setPipelineAction, toggleClientEmailInvoicesAction } from "@/app/actions/clients";
 import { archiveClientAction, deleteClientAction, deleteInteractionAction } from "@/app/actions/manage";
 import { PIPELINE, PIPELINE_LABEL, PIPELINE_TONE, type Pipeline } from "@/lib/request-type";
-import { cn, formatDate, formatEUR, formatHours } from "@/lib/utils";
+import { cn, dueInfo, formatDate, formatEUR, formatHours } from "@/lib/utils";
 
 const KIND: Record<string, string> = { appel: "📞 Appel", email: "✉️ E-mail", rdv: "📅 RDV", note: "📝 Note", relance: "🔔 Relance", devis: "📄 Devis", facture: "🧾 Facture", autre: "• Autre", demande: "🌐 Demande du site", statut: "🔀 Étape" };
 const n = (v: unknown) => (v === null || v === undefined ? 0 : Number(v));
@@ -196,7 +196,7 @@ export default async function ClientPage({ params, searchParams }: { params: { i
             {!inv.length ? <Empty icon={Receipt}>Aucune facture.</Empty> : (
               <Table><tbody>{inv.map((i) => (
                 <Tr key={i.id}><Td><Link href={`/factures/${i.id}`} className="font-semibold text-slate-900 hover:underline">{i.number ?? "Brouillon"}</Link></Td>
-                  <Td className="text-slate-500">{i.subject}</Td><Td className="whitespace-nowrap">{formatEUR(i.total_ttc)} TTC</Td><Td><StatusBadge status={i.status} /></Td></Tr>
+                  <Td className="text-slate-500">{i.subject}</Td><Td className="whitespace-nowrap">{formatEUR(i.total_ttc)} TTC</Td><Td><StatusBadge status={i.status} />{(() => { const d = dueInfo(i.due_date, i.status); return d ? <span className={`ml-2 rounded-full px-2 py-0.5 text-xs font-bold ${d.tone === "red" ? "bg-red-100 text-red-800" : d.tone === "orange" ? "bg-orange-100 text-orange-800" : "bg-emerald-100 text-emerald-800"}`}>{d.label}</span> : null; })()}</Td></Tr>
               ))}</tbody></Table>
             )}
           </Card>

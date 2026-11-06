@@ -13,7 +13,7 @@ import { Tabs } from "@/components/ui/tabs";
 import { ReservedBadge } from "@/components/ui/badge";
 import { ConfirmAction } from "@/components/crm/confirm-action";
 import { deleteDraftAction } from "@/app/actions/invoices";
-import { cn, daysBetween, formatDate, formatEUR } from "@/lib/utils";
+import { cn, daysBetween, dueInfo, formatDate, formatEUR } from "@/lib/utils";
 
 const n = (v: unknown) => (v === null || v === undefined ? 0 : Number(v));
 
@@ -81,7 +81,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams: { s
                       {i.clients.is_reserved && <ReservedBadge className="mt-1" />}
                     </Td>
                     <Td className="hidden max-w-[14rem] truncate text-slate-500 xl:table-cell">{i.subject}</Td>
-                    <Td className="hidden whitespace-nowrap md:table-cell">{formatDate(i.due_date)}{lateDays > 0 && <span className="ml-1 text-xs font-semibold text-red-700">+{lateDays} j</span>}</Td>
+                    <Td className="hidden whitespace-nowrap md:table-cell">{formatDate(i.due_date)}{(() => { const d = dueInfo(i.due_date, i.status); return d ? <span className={`ml-2 rounded-full px-2 py-0.5 text-xs font-bold ${d.tone === "red" ? "bg-red-100 text-red-800" : d.tone === "orange" ? "bg-orange-100 text-orange-800" : "bg-emerald-100 text-emerald-800"}`}>{d.label}</span> : null; })()}</Td>
                     <Td className="hidden whitespace-nowrap text-right text-slate-600 2xl:table-cell">{formatEUR(i.total_ht)}</Td>
                     <Td className="whitespace-nowrap text-right font-bold text-slate-900">{formatEUR(i.total_ttc)}</Td>
                     <Td>

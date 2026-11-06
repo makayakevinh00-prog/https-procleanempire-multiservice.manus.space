@@ -51,12 +51,56 @@ export function invoiceEmail(a: { company: string; phone?: string | null; number
   return { subject, ...body };
 }
 
-export function reminderEmail(a: { company: string; phone?: string | null; number: string; totalTtc: string; dueDate: string }): Mail {
-  const subject = `Relance — facture ${a.number}`;
+/**
+ * Relance de facture, par niveau :
+ *  1 = rappel + avertissement des frais ; 2 = rappel + dernier avertissement ; 3 = frais de recouvrement ajoutés.
+ * `fee` / `feeLevel` : voir REMINDER_FEE_* ; `remaining` = reste à régler TTC (avant frais), déjà formaté.
+ */
+export function reminderEmail(a: { company: string; phone?: string | null; number: string; totalTtc: string; dueDate: string; level?: number; fee?: string; feeLevel?: number; remaining?: string; totalWithFee?: string; interventionDate?: string | null }): Mail {
+  const level = a.level ?? 1;
+  const feeLevel = a.feeLevel ?? 3;
+  const fee = a.fee ?? "40,00 €";
+  const subject = level >= feeLevel ? `Relance n° ${level} — frais de recouvrement — facture ${a.number}` : `Relance${level > 1 ? ` n° ${level}` : ""} — facture ${a.number}`;
+  const where = a.interventionDate ? ` pour l'intervention du ${a.interventionDate}` : "";
+  const paras = [
+    "Bonjour,",
+    level === 1
+      ? `Sauf erreur de notre part, la facture ${a.number}${where} (${a.totalTtc} TTC, échéance ${a.dueDate}) n'a pas encore été réglée. Merci de procéder au règlement ou de nous contacter si c'est déjà fait.`
+      : `Malgré notre précédent message, la facture ${a.number}${where} (${a.totalTtc} TTC, échéance ${a.dueDate}) reste impayée.`
+  ];
+  if (level < feeLevel - 1) paras.push(`Conformément à nos conditions de règlement, des frais de recouvrement de ${fee} s'ajouteront à notre ${feeLevel}e relance en l'absence de règlement.`);
+  else if (level === feeLevel - 1) paras.push(`Sans règlement de votre part, des frais de recouvrement de ${fee} seront ajoutés à notre prochaine relance, conformément à nos conditions de règlement.`);
+  else paras.push(`Conformément à nos conditions de règlement, des frais de recouvrement de ${fee} s'ajoutent à cette relance${a.totalWithFee ? ` : le montant total à régler est de ${a.totalWithFee} TTC` : ""}. Nous vous remercions de régler sans délai.`);
+  paras.push("Cordialement,");
+  return { subject, ...wrap(a.company, paras, sign(a.company, a.phone)) };
+}
+
+/**
+ * Facture envoyée avec le mandat d'intervention complété (méthode SWYFO) :
+ * le mandat complété d'abord, puis la facture, les modalités et le règlement.
+ */
+export function mandateInvoiceEmail(a: {
+  company: string; phone?: string | null; number: string; interventionDate: string; mandateDate: string; mission: string; siteLabel: string;
+  keysNote: string; amountLine: string; observations?: string | null; dueDate: string; paymentDaysLabel: string;
+  provider: string; iban?: string | null; bic?: string | null; confirmAsk?: boolean;
+}): Mail {
+  const subject = `Facture ${a.number} + mandat d'intervention complété — ${a.siteLabel}`;
+  const mandate = [
+    "MANDAT D'INTERVENTION PONCTUELLE — partie complétée par le prestataire",
+    `1 — Adresse de remise des clés : ${a.keysNote}`,
+    `2 — Site d'intervention : ${a.siteLabel}`,
+    `Montant : ${a.amountLine}`,
+    `3 — Contenu de la mission : ${a.mission}${a.observations ? ` Observations : ${a.observations}` : ""}`,
+    `4 — Prestataire : ${a.provider}`
+  ].join("\n");
+  const pay = [`Facture ${a.number} — paiement ${a.paymentDaysLabel} (échéance ${a.dueDate}), par virement. Aucun escompte pour paiement anticipé.`,
+    ...(a.iban ? [`Règlement par virement — Titulaire : ${a.company} — IBAN : ${a.iban}${a.bic ? ` — BIC : ${a.bic}` : ""} — Référence à indiquer : ${a.number}`] : [])].join("\n");
   const body = wrap(a.company, [
     "Bonjour,",
-    `Sauf erreur de notre part, la facture ${a.number} (${a.totalTtc} TTC, échéance ${a.dueDate}) n'a pas encore été réglée. Merci de procéder au règlement ou de nous contacter si c'est déjà fait.`,
-    "Cordialement,"
+    `Suite à l'intervention du ${a.interventionDate}, réalisée dans le cadre de votre mandat du ${a.mandateDate}, vous trouverez ci-dessous le mandat complété, puis la facture correspondante (en pièce jointe).`,
+    mandate, pay,
+    ...(a.confirmAsk === false ? [] : ["Merci de nous confirmer la validation du mandat. Nous restons à votre disposition pour toute question."]),
+    "Bien cordialement,"
   ], sign(a.company, a.phone));
   return { subject, ...body };
 }

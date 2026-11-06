@@ -82,7 +82,7 @@ export function InvoiceDoc({ doc, co, paymentDays }: { doc: PdfDoc; co: Company;
                   <Text style={{ fontSize: 8.8, fontWeight: 600 }}>IBAN  {co.iban}{co.bic ? `   ·   BIC ${co.bic}` : ""}{doc.number ? `   ·   Réf. ${doc.number}` : ""}</Text>
                 </View>
               ) : null}
-              <Text style={{ fontSize: 7.8, color: C.grey, lineHeight: 1.5 }}>En cas de retard de paiement, une pénalité égale à trois fois le taux d'intérêt légal sera appliquée, ainsi qu'une indemnité forfaitaire de 40 € pour frais de recouvrement (art. L.441-10 du Code de commerce). Aucun escompte pour paiement anticipé.</Text>
+              <Text style={{ fontSize: 7.8, color: C.grey, lineHeight: 1.5 }}>Retard : pénalité de 3 fois le taux d'intérêt légal ; relance dès le lendemain de l'échéance, puis indemnité forfaitaire de 40 € ajoutée à la 3e relance (art. L.441-10 C. com.). Aucun escompte.</Text>
               {doc.notes ? <Multi text={doc.notes} style={{ fontSize: 8.5, marginTop: 6 }} /> : null}
             </View>
             <Totals ht={doc.totals.ht} byRate={vatBreakdown(doc.lines)} ttc={doc.totals.ttc}

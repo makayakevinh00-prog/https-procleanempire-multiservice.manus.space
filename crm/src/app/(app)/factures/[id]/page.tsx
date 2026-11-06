@@ -16,7 +16,8 @@ import { ConfirmAction } from "@/components/crm/confirm-action";
 import { cancelInvoiceAction, deleteDraftAction, remindInvoiceAction, resendInvoiceAction, syncQontoForInvoiceAction, validateInvoiceAction } from "@/app/actions/invoices";
 import { loadRecipients } from "@/lib/recipients";
 import { RecipientPicker } from "@/components/crm/recipient-picker";
-import { cn, daysBetween, formatDate, formatEUR } from "@/lib/utils";
+import { cn, daysBetween, dueInfo, formatDate, formatEUR } from "@/lib/utils";
+import { REMINDER_FEE_EUR, REMINDER_FEE_LEVEL } from "@/lib/domain/reminders";
 
 export default async function InvoicePage({ params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -85,7 +86,8 @@ export default async function InvoicePage({ params }: { params: { id: string } }
               <div><ClientName id={c.id} name={c.name} reserved={c.is_reserved} /></div>
               <div>✉️ {recipients.length ? recipients.map((r) => r.email).join(", ") : <span className="text-red-700">pas d&apos;e-mail</span>}</div>
               <div>Émise le : {formatDate(isDraft ? null : i.issue_date)}</div>
-              <div>Échéance : {formatDate(i.due_date)}</div>
+              <div>Échéance : {formatDate(i.due_date)}{(() => { const d = dueInfo(i.due_date, i.status); return d ? <span className={`ml-2 rounded-full px-2 py-0.5 text-xs font-bold ${d.tone === "red" ? "bg-red-100 text-red-800" : d.tone === "orange" ? "bg-orange-100 text-orange-800" : "bg-emerald-100 text-emerald-800"}`}>{d.label}</span> : null; })()}</div>
+              {i.reminder_count >= REMINDER_FEE_LEVEL && !["paye", "annule"].includes(i.status) && <div className="rounded-md bg-red-50 p-2 text-red-800">Frais de recouvrement dus : <b>{formatEUR(REMINDER_FEE_EUR)}</b> (ajoutés à la relance n° {REMINDER_FEE_LEVEL}) · total à régler <b>{formatEUR(Number(i.total_ttc) - Number(i.paid_amount) + REMINDER_FEE_EUR)}</b></div>}
               {i.validated_at && <div>Validée le {formatDate(i.validated_at)}</div>}
               {i.sent_at ? <div>Envoyée à {i.sent_to} le {formatDate(i.sent_at)}</div> : !isDraft && i.status !== "annule" && <div className="text-amber-700">E-mail non envoyé</div>}
               {i.paid_at && <div className="text-emerald-700">Payée le {formatDate(i.paid_at)}</div>}

@@ -5,6 +5,7 @@ import { contractVisits, type ScheduleContract } from "../domain/schedule";
 import { autoReminderDecision } from "../domain/reminders";
 import { renderPdf, pdfMoney, type PdfDoc } from "../pdf/document";
 import { invoiceDoc } from "../pdf/doc-mapper";
+import { REMINDER_FEE_EUR, REMINDER_FEE_LEVEL } from "../domain/reminders";
 import { digestEmail, invoiceEmail, quoteFollowupEmail, reminderEmail, type Mail } from "../mail-templates";
 import type { MailInput, MailResult } from "../mail";
 
@@ -203,7 +204,8 @@ export async function runDaily(deps: Deps, opts: RunOptions = {}): Promise<Repor
           if (!deps.mailConfigured()) { report.failed.push({ what: "relances de factures", reason: "clé e-mail non configurée" }); break; }
           let reminder: any;
           try { reminder = await call("automation_register_reminder", { p_invoice_id: inv.id }); } catch { continue; } // la base refuse : rien à faire
-          const mail = reminderEmail({ company, phone: settings.company_phone, number: inv.number, totalTtc: eur(inv.total_ttc), dueDate: fr(inv.due_date) });
+          const lvl = Number(reminder.level ?? 1);
+          const mail = reminderEmail({ company, phone: settings.company_phone, number: inv.number, totalTtc: eur(inv.total_ttc), dueDate: fr(inv.due_date), level: lvl, fee: eur(REMINDER_FEE_EUR), feeLevel: REMINDER_FEE_LEVEL, totalWithFee: eur(Number(inv.total_ttc) + REMINDER_FEE_EUR) });
           const res = await send("relance_facture", { to: client.email, subject: mail.subject, text: mail.text, html: mail.html }, "invoice", inv.id);
           if (res.sent) report.reminders.push({ number: inv.number, to: client.email, level: reminder.level });
           else {

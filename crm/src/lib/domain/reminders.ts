@@ -1,6 +1,10 @@
 import { daysBetween } from "../utils";
 import type { Settings } from "./types";
 
+/** Frais de recouvrement : 40 € une seule fois par facture, ajoutés à la 3e relance (art. L441-10 et D441-5 du Code de commerce). Annoncés dans les conditions. */
+export const REMINDER_FEE_EUR = 40;
+export const REMINDER_FEE_LEVEL = 3;
+
 export interface ReminderCandidate {
   status: string;
   due_date: string | null;

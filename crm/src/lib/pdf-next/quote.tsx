@@ -80,7 +80,7 @@ export function QuoteDoc({ doc, co, paymentDays }: { doc: PdfDoc; co: Company; p
 
         <View wrap={false} style={{ marginTop: 22 }}>
           <Text style={[s.h2, { fontSize: 15, marginBottom: 8 }]}>Conditions commerciales</Text>
-          {[["Validité", doc.dueOrValidUntil ? `Ce devis est valable jusqu'au ${dateLong(doc.dueOrValidUntil)}.` : "Ce devis est valable 30 jours."], ["Conditions", "Aucun escompte pour paiement anticipé. Les interventions sont planifiées d'un commun accord après acceptation du devis."]].map(([k, v]) => (
+          {[["Validité", doc.dueOrValidUntil ? `Ce devis est valable jusqu'au ${dateLong(doc.dueOrValidUntil)}.` : "Ce devis est valable 30 jours."], ["Conditions", "Factures payables par virement sous 15 jours. En cas de retard, une relance est envoyée dès le lendemain de l'échéance ; à la 3e relance, une indemnité forfaitaire de 40 € pour frais de recouvrement est ajoutée (art. L.441-10 du Code de commerce). Aucun escompte pour paiement anticipé. Les interventions sont planifiées d'un commun accord après acceptation du devis."]].map(([k, v]) => (
             <View key={k} style={{ flexDirection: "row", paddingVertical: 6, borderBottomWidth: 0.6, borderBottomColor: C.line }}>
               <Text style={{ width: 110, fontWeight: 700, color: C.navy, fontSize: 9 }}>{k}</Text>
               <Text style={{ flex: 1, fontSize: 9 }}>{v}</Text>
