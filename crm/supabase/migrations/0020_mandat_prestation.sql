@@ -6,5 +6,5 @@ alter table clients add column if not exists mandate_method boolean not null def
 update clients set mandate_method = true where name ilike '%swyfo%';
 insert into client_emails(client_id, email, label)
 select c.id, v.email, v.label from clients c,
-  (values ('contact@swyfo.com', 'Mandat + facture'), ('luc-amael.moussavou@colocatere.fr', 'Copie mandat')) as v(email, label)
+  (values ('contact@swyfo.com', 'Mandat + facture')) as v(email, label)
 where c.name ilike '%swyfo%' on conflict do nothing;
