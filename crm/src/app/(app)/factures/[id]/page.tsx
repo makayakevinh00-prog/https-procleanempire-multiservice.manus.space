@@ -13,7 +13,7 @@ import { StatusBadge } from "@/components/ui/badge";
 import { Table, Td, Th, Tr } from "@/components/ui/table";
 import { ClientName, ReservedBanner } from "@/components/crm/client-name";
 import { ConfirmAction } from "@/components/crm/confirm-action";
-import { cancelInvoiceAction, deleteDraftAction, remindInvoiceAction, resendInvoiceAction, syncQontoForInvoiceAction, validateInvoiceAction } from "@/app/actions/invoices";
+import { cancelInvoiceAction, deleteDraftAction, remindInvoiceAction, resendInvoiceAction, sendMandateInvoiceAction, syncQontoForInvoiceAction, validateInvoiceAction } from "@/app/actions/invoices";
 import { loadRecipients } from "@/lib/recipients";
 import { RecipientPicker } from "@/components/crm/recipient-picker";
 import { cn, daysBetween, dueInfo, formatDate, formatEUR } from "@/lib/utils";
@@ -23,7 +23,7 @@ export default async function InvoicePage({ params }: { params: { id: string } }
   const supabase = createClient();
   await supabase.rpc("refresh_overdue");
   const { data: i } = await supabase.from("invoices")
-    .select("*, clients(id, name, email, is_reserved, reserved_reason), invoice_lines(*), reminders(*), quotes:source_quote_id(id, number)")
+    .select("*, clients(id, name, email, is_reserved, reserved_reason, mandate_method), invoice_lines(*), reminders(*), quotes:source_quote_id(id, number)")
     .eq("id", params.id).maybeSingle();
   if (!i) notFound();
   const settings = await getSettings(supabase);
@@ -128,6 +128,22 @@ export default async function InvoicePage({ params }: { params: { id: string } }
                 <ConfirmAction action={resendInvoiceAction.bind(null, i.id)} label="Renvoyer la facture" variant="outline" className="w-full"
                   title="Renvoyer la facture par e-mail" description="Le PDF est renvoyé tel quel (même numéro, même statut). Choisissez les destinataires, ou cochez-les tous."
                   confirmLabel="Envoyer" reservedName={reservedName} extra={<RecipientPicker recipients={recipients} defaultAll />} />
+              )}
+              {c.mandate_method && !isDraft && i.status !== "annule" && (
+                <ConfirmAction action={sendMandateInvoiceAction.bind(null, i.id)} label="Envoyer facture + mandat complété" variant="outline" className="w-full"
+                  title="Facture avec le mandat d'intervention complété" description="Méthode de ce client : la facture part avec le mandat rempli (e-mail type). Vérifiez chaque champ avant d'envoyer."
+                  confirmLabel="Envoyer" reservedName={reservedName}
+                  extra={
+                    <div className="space-y-3">
+                      <RecipientPicker recipients={recipients} defaultAll />
+                      <Field label="Date d'intervention *"><Input type="date" name="intervention_date" defaultValue={i.service_date ?? ""} required /></Field>
+                      <Field label="Date du mandat *"><Input type="date" name="mandate_date" required /></Field>
+                      <Field label="Site d'intervention *"><Input name="site" required /></Field>
+                      <Field label="Contenu de la mission *"><Input name="mission" required /></Field>
+                      <Field label="Remise des clés"><Input name="keys" placeholder="sans objet" /></Field>
+                      <Field label="Observations"><Input name="observations" /></Field>
+                    </div>
+                  } />
               )}
               {open && (
                 <ConfirmAction action={remindInvoiceAction.bind(null, i.id)} label="Relancer" variant="outline" className="w-full"

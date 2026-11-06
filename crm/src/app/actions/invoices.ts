@@ -2,12 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { checked, dbMessage, flash, str } from "@/lib/data";
+import { checked, dbMessage, flash, getSettings, str } from "@/lib/data";
 import { parseLines, requireReservedAck } from "@/lib/action-helpers";
 import { buildPdf } from "@/lib/pdf/load";
 import { sendMail } from "@/lib/mail";
 import { formatEUR, formatDate } from "@/lib/utils";
-import { reminderEmail } from "@/lib/mail-templates";
+import { mandateInvoiceEmail, reminderEmail } from "@/lib/mail-templates";
 import { REMINDER_FEE_EUR, REMINDER_FEE_LEVEL } from "@/lib/domain/reminders";
 import { logEmail } from "@/lib/email-log";
 import { pickRecipients } from "@/lib/recipients";
@@ -185,4 +185,38 @@ export async function remindInvoiceAction(id: string, fd: FormData) {
   }
   revalidatePath("/factures");
   flash(back, "ok", `Relance n°${r.level} enregistrée.`);
+}
+
+/**
+ * Méthode « mandat » (SWYFO) : envoie la facture avec le mandat d'intervention complété.
+ * Enregistre aussi la date de prestation sur la facture. Action volontaire, jamais automatique.
+ */
+export async function sendMandateInvoiceAction(id: string, fd: FormData) {
+  const back = `/factures/${id}`;
+  const supabase = createClient();
+  const { list: to, invalid } = pickRecipients(fd);
+  if (invalid.length) flash(back, "error", `Adresse(s) invalide(s) : ${invalid.join(", ")}.`);
+  if (!to.length) flash(back, "error", "Cochez au moins une adresse e-mail.");
+  const need = (k: string) => str(fd, k) ?? "";
+  for (const [k, l] of [["intervention_date", "date d'intervention"], ["mandate_date", "date du mandat"], ["mission", "contenu de la mission"], ["site", "site d'intervention"]] as const)
+    if (!need(k)) flash(back, "error", `Renseignez : ${l}.`);
+  const { data: inv } = await supabase.from("invoices").select("number, total_ttc, due_date, status, client_id").eq("id", id).single();
+  if (!inv || !(inv as any).number || (inv as any).status === "brouillon") flash(back, "error", "Validez d'abord la facture : le mandat part avec une facture émise.");
+  await requireReservedAck((inv as any).client_id, fd, back);
+  const settings = await getSettings(supabase) as any;
+  const d = (x: string) => formatDate(x);
+  const mail = mandateInvoiceEmail({
+    company: "ProClean Empire", phone: settings.company_phone ?? null, number: (inv as any).number, interventionDate: d(need("intervention_date")), mandateDate: d(need("mandate_date")),
+    mission: need("mission"), siteLabel: need("site"), keysNote: need("keys") || "sans objet",
+    amountLine: `${formatEUR((inv as any).total_ttc)} TTC`, observations: str(fd, "observations"), dueDate: d((inv as any).due_date), paymentDaysLabel: "à 15 jours",
+    provider: "ProClean Empire", iban: settings.company_iban ?? null, bic: settings.company_bic ?? null
+  });
+  const pdf = await buildPdf("facture", id);
+  if (!pdf) flash(back, "error", "PDF introuvable.");
+  const res = await sendMail({ to, subject: mail.subject, text: mail.text, html: mail.html, attachment: { filename: pdf!.filename, bytes: pdf!.bytes } });
+  await logEmail(supabase, { kind: "facture", to: to.join(", "), subject: mail.subject, ok: res.sent, error: res.sent ? undefined : res.reason, entity: "invoice", entityId: id });
+  if (!res.sent) flash(back, "error", `Mandat + facture non envoyés : ${res.reason}.`);
+  await supabase.from("invoices").update({ service_date: need("intervention_date"), sent_at: new Date().toISOString(), sent_to: to.join(", ") }).eq("id", id);
+  revalidatePath("/factures");
+  flash(back, "ok", `Facture et mandat complété envoyés à ${to.join(", ")}.`);
 }
