@@ -8,6 +8,7 @@ import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScro
 import { Reveal } from "@/components/home/reveal";
 import { CleanRoomScene } from "@/components/home/clean-room-scene";
 import { AirbnbTurnoverScene } from "@/components/home/airbnb-turnover-scene";
+import { Scroll3DStory } from "@/components/home/scroll-3d-story";
 import { PartnersMarquee } from "@/components/phase1/partners-marquee";
 import { ReviewsPremiumSection } from "@/components/phase1/reviews-premium-section";
 import { siteConfig } from "@/lib/site";
@@ -569,6 +570,7 @@ export function ImmersiveHome() {
   return (
     <>
       <Hero />
+      <Scroll3DStory />
       <Statement />
       <CleaningCompanyText />
       <AirbnbFeature />
