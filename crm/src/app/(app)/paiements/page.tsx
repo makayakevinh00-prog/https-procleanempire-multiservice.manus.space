@@ -13,6 +13,7 @@ import { QontoStatus } from "@/components/crm/qonto-auto";
 import { addManualPaymentAction, ignorePaymentAction, reconcileAction, syncQontoAction, unreconcileAction } from "@/app/actions/payments";
 import { deletePaymentAction } from "@/app/actions/manage";
 import { daysBetween, formatDate, formatEUR } from "@/lib/utils";
+import { suggestInvoices } from "@/lib/domain/matching";
 import Link from "next/link";
 
 export default async function PaymentsPage() {
@@ -54,7 +55,9 @@ export default async function PaymentsPage() {
           <Table>
             <thead><tr><Th>Date</Th><Th>Émetteur / libellé</Th><Th className="text-right">Montant</Th><Th>Rapprocher avec</Th></tr></thead>
             <tbody>{todo.map((p: any) => {
-              const sugg = p.suggested;
+              const cand = open.map((i) => ({ id: i.id, number: i.number, total_ttc: num(i.total_ttc), paid_amount: num(i.paid_amount), client_name: i.clients.name, client_is_reserved: !!i.clients.is_reserved }));
+              const live = suggestInvoices({ amount: num(p.amount), label: p.label, reference: p.reference, counterparty: p.counterparty }, cand, 2);
+              const byId = new Map(open.map((i) => [i.id, i]));
               return (
                 <Tr key={p.id}>
                   <Td className="whitespace-nowrap">{formatDate(p.received_at)}</Td>
@@ -62,12 +65,18 @@ export default async function PaymentsPage() {
                   <Td className="text-right font-semibold">{formatEUR(p.amount)}</Td>
                   <Td>
                     <div className="flex flex-wrap items-center gap-2">
-                      {sugg && (
-                        <ConfirmAction action={reconcileAction.bind(null, p.id)} hidden={{ invoice_id: sugg.id }} size="sm"
-                          label={`✓ ${sugg.number} (${sugg.clients.name})`} title="Confirmer ce rapprochement ?"
-                          description={`Virement de ${formatEUR(p.amount)} ↔ facture ${sugg.number} (${formatEUR(sugg.total_ttc)} TTC).`}
-                          reservedName={sugg.clients.is_reserved ? sugg.clients.name : null} />
-                      )}
+                      {live.map((sg) => {
+                        const target = byId.get(sg.invoiceId)!;
+                        return (
+                          <div key={sg.invoiceId} className="flex flex-col items-start gap-1">
+                            <ConfirmAction action={reconcileAction.bind(null, p.id)} hidden={{ invoice_id: sg.invoiceId }} size="sm" variant={sg.level === "tres_probable" ? "default" : "outline"}
+                              label={`${sg.level === "tres_probable" ? "✓" : "?"} ${sg.number} · ${sg.clientName}`} title="Confirmer ce rapprochement ?"
+                              description={`Virement de ${formatEUR(p.amount)} ↔ facture ${sg.number} (reste dû ${formatEUR(sg.due)}). Raisons : ${sg.reasons.join(", ")}.${num(p.amount) < sg.due ? " Paiement partiel : la facture restera ouverte pour le solde." : ""}`}
+                              reservedName={target.clients.is_reserved ? target.clients.name : null} />
+                            <span className="text-[11px] text-muted-foreground">{sg.reasons.join(" · ")}</span>
+                          </div>
+                        );
+                      })}
                       <ConfirmAction action={reconcileAction.bind(null, p.id)} size="sm" variant="outline" label="Autre facture…"
                         title="Choisir la facture" confirmLabel="Rapprocher"
                         extra={

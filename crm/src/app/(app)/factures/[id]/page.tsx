@@ -18,6 +18,8 @@ import { loadRecipients } from "@/lib/recipients";
 import { RecipientPicker } from "@/components/crm/recipient-picker";
 import { cn, daysBetween, dueInfo, formatDate, formatEUR } from "@/lib/utils";
 import { REMINDER_FEE_EUR, REMINDER_FEE_LEVEL } from "@/lib/domain/reminders";
+import { markInvoicePaidAction, reconcileFromInvoiceAction } from "@/app/actions/payments";
+import { suggestInvoices } from "@/lib/domain/matching";
 
 export default async function InvoicePage({ params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -30,10 +32,14 @@ export default async function InvoicePage({ params }: { params: { id: string } }
   const c = i.clients;
   const recipients = await loadRecipients(supabase, c.id);
   // Virements Qonto non rapprochés, du plus proche du montant de la facture au moins proche
-  const { data: pays } = await supabase.from("payments").select("id, amount, received_at, counterparty, label, match_status")
+  const { data: pays } = await supabase.from("payments").select("id, amount, received_at, counterparty, label, reference, match_status")
     .in("match_status", ["non_rapproche", "propose"]).gt("amount", 0).gte("received_at", new Date(Date.now() - 120 * 86_400_000).toISOString());
   const total = Number(i.total_ttc);
   const candidates = (pays ?? []).slice().sort((a: any, b: any) => Math.abs(Number(a.amount) - total) - Math.abs(Number(b.amount) - total)).slice(0, 8);
+  const remaining = Math.round((total - Number(i.paid_amount)) * 100) / 100;
+  const me = { id: i.id, number: i.number, total_ttc: total, paid_amount: Number(i.paid_amount), client_name: c.name, client_is_reserved: !!c.is_reserved };
+  const smart = (pays ?? []).map((p: any) => ({ p, s: suggestInvoices({ amount: Number(p.amount), label: p.label, reference: p.reference, counterparty: p.counterparty }, [me], 1)[0] }))
+    .filter((x: any) => x.s).sort((a: any, b: any) => b.s.score - a.s.score).slice(0, 4);
   const lines = [...i.invoice_lines].sort((a: any, b: any) => a.position - b.position);
   const reminders = [...i.reminders].sort((a: any, b: any) => b.sent_at.localeCompare(a.sent_at));
   const isDraft = i.status === "brouillon";
@@ -123,6 +129,40 @@ export default async function InvoicePage({ params }: { params: { id: string } }
                   <ConfirmAction action={deleteDraftAction.bind(null, i.id)} label="Supprimer le brouillon" variant="outline" size="sm" className="w-full"
                     title="Supprimer ce brouillon ?" description="Aucun numéro n'a été consommé : la suppression est sans conséquence comptable." confirmLabel="Supprimer" />
                 </>
+              )}
+              {open && (
+                <div className="space-y-3 rounded-xl bg-secondary/60 p-3">
+                  <div className="text-sm font-medium text-foreground">Encaissement · reste dû {formatEUR(remaining)} TTC</div>
+                  {smart.length > 0 ? (
+                    <ul className="space-y-2">
+                      {smart.map(({ p, s: sg }: any) => (
+                        <li key={p.id} className="rounded-lg bg-card p-2.5 text-[13px]">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0"><div className="font-medium text-foreground">{formatEUR(p.amount)} · {p.counterparty ?? p.label ?? "virement"}</div>
+                              <div className="text-xs text-muted-foreground">{formatDate(p.received_at)} · {sg.reasons.join(", ")}</div></div>
+                            <ConfirmAction action={reconcileFromInvoiceAction.bind(null, i.id, p.id)} size="sm" label={sg.level === "tres_probable" ? "Rapprocher" : "Vérifier"}
+                              variant={sg.level === "tres_probable" ? "default" : "outline"} title="Rapprocher ce paiement ?" confirmLabel="Rapprocher"
+                              description={`Virement de ${formatEUR(p.amount)} du ${formatDate(p.received_at)} ↔ facture ${i.number} (reste dû ${formatEUR(remaining)}).${Number(p.amount) < remaining ? " Paiement partiel : la facture restera ouverte pour le solde." : ""}`}
+                              reservedName={reservedName} extra={c.is_reserved ? <label className="flex items-start gap-2 text-xs"><input type="checkbox" name="ack_reserved" className="mt-0.5" /> Contact réservé : je confirme agir moi-même.</label> : undefined} />
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : <p className="text-xs text-muted-foreground">Aucun virement Qonto ne correspond pour l&apos;instant. Il arrive peut-être dans les prochaines minutes (import toutes les 5 minutes), ou le client a payé autrement.</p>}
+                  <ConfirmAction action={markInvoicePaidAction.bind(null, i.id)} label="Marquer comme payée…" variant="outline" className="w-full"
+                    title={`Enregistrer un paiement pour ${i.number}`} confirmLabel="Enregistrer le paiement"
+                    description="Pour un règlement hors Qonto (espèces, chèque, virement non importé). La facture ne sera plus relancée une fois soldée."
+                    reservedName={reservedName}
+                    extra={
+                      <div className="space-y-3">
+                        <Field label="Montant reçu (TTC)"><Input name="amount" inputMode="decimal" defaultValue={String(remaining).replace(".", ",")} required /></Field>
+                        <Field label="Date de réception"><Input type="date" name="received_at" defaultValue={new Date().toISOString().slice(0, 10)} /></Field>
+                        <Field label="Mode de règlement"><Select name="mode" defaultValue="virement"><option value="virement">Virement</option><option value="espèces">Espèces</option><option value="chèque">Chèque</option><option value="carte">Carte</option><option value="autre">Autre</option></Select></Field>
+                        {c.is_reserved && <label className="flex items-start gap-2 text-xs"><input type="checkbox" name="ack_reserved" className="mt-0.5" /> Contact réservé : je confirme agir moi-même.</label>}
+                        <p className="text-xs text-muted-foreground">Un montant inférieur au reste dû enregistre un paiement partiel.</p>
+                      </div>
+                    } />
+                </div>
               )}
               {!isDraft && i.status !== "annule" && (
                 <ConfirmAction action={resendInvoiceAction.bind(null, i.id)} label="Renvoyer la facture" variant="outline" className="w-full"

@@ -74,3 +74,40 @@ export async function syncQontoQuietAction(): Promise<{ ok: boolean; inserted: n
     return { ok: false, inserted: 0, error: (e as Error).message.slice(0, 200) };
   }
 }
+
+/** Rapprochement lancé depuis la page d'une facture (retour sur la facture). */
+export async function reconcileFromInvoiceAction(invoiceId: string, paymentId: string, fd: FormData) {
+  await requireOwner();
+  const back = `/factures/${invoiceId}`;
+  const { error } = await createClient().rpc("reconcile_payment", { p_payment_id: paymentId, p_invoice_id: invoiceId, p_ack_reserved: checked(fd, "ack_reserved") });
+  if (error) flash(back, "error", dbMessage(error));
+  revalidatePath(back); revalidatePath("/paiements"); revalidatePath("/factures"); revalidatePath("/");
+  flash(back, "ok", "Paiement rapproché : la facture est mise à jour.");
+}
+
+/**
+ * Marquer une facture payée à la main (espèces, chèque, virement non importé…).
+ * Un paiement « manuel » est créé puis rapproché par la même fonction que Qonto : l'historique reste cohérent
+ * et la facture ne sera plus relancée. Un montant inférieur au reste dû = paiement partiel.
+ */
+export async function markInvoicePaidAction(invoiceId: string, fd: FormData) {
+  await requireOwner();
+  const back = `/factures/${invoiceId}`;
+  const supabase = createClient();
+  const { data: inv } = await supabase.from("invoices").select("id, number, total_ttc, paid_amount, status, clients(name)").eq("id", invoiceId).maybeSingle();
+  if (!inv) flash(back, "error", "Facture introuvable.");
+  if (!["envoye", "en_retard"].includes((inv as any).status)) flash(back, "error", "Seule une facture envoyée ou en retard peut être réglée.");
+  const remaining = Math.round((Number((inv as any).total_ttc) - Number((inv as any).paid_amount)) * 100) / 100;
+  const amount = numField(fd, "amount") ?? remaining;
+  if (!(amount > 0) || amount > remaining + 0.005) flash(back, "error", `Montant invalide : le reste dû est ${remaining.toFixed(2).replace(".", ",")} €.`);
+  const mode = str(fd, "mode") ?? "virement";
+  const date = str(fd, "received_at") ?? new Date().toISOString().slice(0, 10);
+  const { data: pay, error } = await supabase.from("payments").insert({
+    source: "manuel", amount, received_at: date, counterparty: (inv as any).clients?.name ?? null, label: `Paiement ${mode} · ${(inv as any).number}`
+  }).select("id").single();
+  if (error) flash(back, "error", dbMessage(error));
+  const { error: e2 } = await supabase.rpc("reconcile_payment", { p_payment_id: pay!.id, p_invoice_id: invoiceId, p_ack_reserved: checked(fd, "ack_reserved") });
+  if (e2) { await supabase.from("payments").delete().eq("id", pay!.id); flash(back, "error", dbMessage(e2)); }
+  revalidatePath(back); revalidatePath("/paiements"); revalidatePath("/factures"); revalidatePath("/");
+  flash(back, "ok", amount >= remaining ? "Facture marquée comme payée." : "Paiement partiel enregistré.");
+}
