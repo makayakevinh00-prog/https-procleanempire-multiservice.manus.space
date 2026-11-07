@@ -4,6 +4,8 @@ import { STAGE_LABEL, STAGE_TONE, nextStage, type Stage } from "@/lib/domain/mis
 import { setStageAction } from "@/app/actions/missions";
 import { formatDate } from "@/lib/utils";
 import { ReservedBadge } from "@/components/ui/badge";
+import { ActivityChip } from "@/components/crm/activity-ui";
+import type { Activity } from "@/lib/domain/activity";
 
 export function StageBadge({ stage }: { stage: string }) {
   const s = stage as Stage;
@@ -11,7 +13,7 @@ export function StageBadge({ stage }: { stage: string }) {
 }
 
 /** Ligne de mission : date, client, site, intervenant, étape + bouton « étape suivante ». */
-export function MissionRow({ m, back, showDate = true }: { m: any; back: string; showDate?: boolean }) {
+export function MissionRow({ m, back, showDate = true, activity }: { m: any; back: string; showDate?: boolean; activity?: Activity }) {
   const next = m.invoice_id ? null : nextStage(m.stage as Stage);
   const done = (m.checklist ?? []).filter((c: any) => c.done).length, total = (m.checklist ?? []).length;
   return (
@@ -25,6 +27,7 @@ export function MissionRow({ m, back, showDate = true }: { m: any; back: string;
         </span>
         <span className={`hidden w-36 shrink-0 truncate sm:block ${m.assignee ? "text-slate-700" : "font-medium text-orange-600"}`}>{m.assignee ?? "Sans intervenant"}</span>
         {total > 0 && <span className="hidden w-12 shrink-0 text-xs text-slate-500 md:block" title="Check-list">{done}/{total} ✓</span>}
+        {activity && <span className="hidden shrink-0 lg:block"><ActivityChip a={activity} /></span>}
         <StageBadge stage={m.stage} />
       </Link>
       {next && (

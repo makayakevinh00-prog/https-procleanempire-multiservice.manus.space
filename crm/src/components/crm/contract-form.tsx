@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { ACTIVITIES } from "@/lib/domain/activity";
 import { Field, Input, Select, Textarea } from "@/components/ui/form";
 import type { Contract } from "@/lib/domain/types";
 import { WEEKDAYS } from "@/lib/domain/schedule";
@@ -28,6 +29,12 @@ export function ContractForm({ action, clients, contract, defaultClient, submitL
       </Field>
       <Field label="Intitulé *"><Input name="label" required defaultValue={contract?.label} placeholder="Entretien bureaux…" /></Field>
 
+      <Field label="Famille d'activité" hint="Pour trier et mesurer ce qui rapporte">
+        <Select name="activity" defaultValue={contract?.activity ?? ""}>
+          <option value="">Automatique (selon l&apos;intitulé)</option>
+          {ACTIVITIES.map((a) => <option key={a.key} value={a.key}>{a.label}</option>)}
+        </Select>
+      </Field>
       <Field label="Facturation">
         <Select name="billing_mode" defaultValue={contract?.billing_mode ?? "mensuel"}>
           <option value="mensuel">Montant mensuel</option><option value="passage">Prix par passage</option><option value="autre">Autre (voir conditions)</option>

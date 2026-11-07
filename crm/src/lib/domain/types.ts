@@ -82,6 +82,7 @@ export interface Contract {
   site_address: string | null;
   notes: string | null;
   weekdays?: number[] | null;
+  activity?: string | null;
   start_time?: string | null;
   assignee?: string | null;
 }

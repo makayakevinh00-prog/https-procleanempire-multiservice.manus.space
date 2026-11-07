@@ -9,12 +9,15 @@ import { Select } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { MissionRow } from "@/components/crm/mission";
 import { formatDate } from "@/lib/utils";
+import { ActivityTabs } from "@/components/crm/activity-ui";
+import { isActivity, missionActivity, type Activity } from "@/lib/domain/activity";
+import { loadActivityModel, selectResilient } from "@/lib/activity-data";
 
 const VIEWS = [["calendrier", "Calendrier"], ["jour", "Aujourd'hui"], ["semaine", "Semaine"], ["mois", "Mois"], ["agent", "Par agent"], ["site", "Par site"], ["statut", "Par statut"]] as const;
 type View = (typeof VIEWS)[number][0];
 const DAY = ["", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
 
-export default async function MissionsPage({ searchParams }: { searchParams: { vue?: string; date?: string; agent?: string; site?: string; etape?: string } }) {
+export default async function MissionsPage({ searchParams }: { searchParams: { vue?: string; date?: string; agent?: string; site?: string; etape?: string; famille?: string } }) {
   const today = parisToday();
   const view: View = (VIEWS.map((v) => v[0]) as string[]).includes(searchParams.vue ?? "") ? (searchParams.vue as View) : "calendrier";
   const anchor = /^\d{4}-\d{2}-\d{2}$/.test(searchParams.date ?? "") ? searchParams.date! : today;
@@ -32,23 +35,32 @@ export default async function MissionsPage({ searchParams }: { searchParams: { v
   const next = isMonth ? addDays(mb.end, 1) : addDays(anchor, step);
 
   const supabase = createClient();
-  let q = supabase.from("interventions").select("id, title, scheduled_date, start_time, duration_hours, stage, assignee, staff_id, site_id, site_address, invoice_id, checklist, clients(id, name, is_reserved), sites(id, name, city)")
-    .gte("scheduled_date", range.start).lte("scheduled_date", range.end).order("scheduled_date").order("start_time", { nullsFirst: false });
-  if (searchParams.agent === "aucun") q = q.is("staff_id", null).is("assignee", null);
-  else if (searchParams.agent) q = q.eq("staff_id", searchParams.agent);
-  if (searchParams.site) q = q.eq("site_id", searchParams.site);
-  if (searchParams.etape && searchParams.etape in STAGE_LABEL) q = q.eq("stage", searchParams.etape);
+  const cols = "id, title, scheduled_date, start_time, duration_hours, stage, assignee, staff_id, site_id, site_address, invoice_id, checklist, contract_id, clients(id, name, is_reserved), sites(id, name, city)";
+  const build = (c: string) => {
+    let q = supabase.from("interventions").select(c).gte("scheduled_date", range.start).lte("scheduled_date", range.end).order("scheduled_date").order("start_time", { nullsFirst: false });
+    if (searchParams.agent === "aucun") q = q.is("staff_id", null).is("assignee", null);
+    else if (searchParams.agent) q = q.eq("staff_id", searchParams.agent);
+    if (searchParams.site) q = q.eq("site_id", searchParams.site);
+    if (searchParams.etape && searchParams.etape in STAGE_LABEL) q = q.eq("stage", searchParams.etape);
+    return q as any;
+  };
+  const model = await loadActivityModel(supabase);
   const [{ data, error }, { data: staff }, { data: sites }, { count: openIssues }] = await Promise.all([
-    q, supabase.from("staff").select("id, full_name").eq("active", true).order("full_name"),
+    selectResilient<any>(build, cols), supabase.from("staff").select("id, full_name").eq("active", true).order("full_name"),
     supabase.from("sites").select("id, name").eq("status", "actif").order("name"),
     supabase.from("mission_issues").select("id", { count: "exact", head: true }).eq("status", "ouverte")
   ]);
   if (error) throw new Error(error.message);
-  const rows = (data ?? []) as any[];
+  const withFam = ((data ?? []) as any[]).map((m) => ({ m, fam: missionActivity({ activity: isActivity(m.activity) ? (m.activity as Activity) : null, contractId: m.contract_id, title: m.title, clientName: m.clients?.name ?? null }, model.byContract) }));
+  const famCounts: Record<string, number> = {};
+  for (const x of withFam) if (x.m.stage !== "annulee") famCounts[x.fam] = (famCounts[x.fam] ?? 0) + 1;
+  const famSel = isActivity(searchParams.famille) ? (searchParams.famille as Activity) : "";
+  const famOf = new Map<string, Activity>(withFam.map((x) => [x.m.id as string, x.fam]));
+  const rows = withFam.filter((x) => !famSel || x.fam === famSel).map((x) => x.m) as any[];
 
   const params = (over: Record<string, string | undefined>) => {
     const p = new URLSearchParams();
-    const all = { vue: view, date: anchor, agent: searchParams.agent, site: searchParams.site, etape: searchParams.etape, ...over };
+    const all = { vue: view, date: anchor, agent: searchParams.agent, site: searchParams.site, etape: searchParams.etape, famille: famSel || undefined, ...over };
     for (const [k, v] of Object.entries(all)) if (v) p.set(k, v);
     return `/missions?${p.toString()}`;
   };
@@ -80,6 +92,8 @@ export default async function MissionsPage({ searchParams }: { searchParams: { v
     <>
       <PageHeader title="Missions" subtitle="Chaque passage chez un client, de la planification à la facture."
         actions={<Link href="/planning"><Button variant="outline"><CalendarPlus className="h-4 w-4" /> Générer / ajouter (planning)</Button></Link>} />
+
+      <ActivityTabs current={famSel} counts={famCounts} href={(k) => params({ famille: k || undefined })} />
 
       <div className="mb-4 flex flex-wrap gap-2">
         {VIEWS.map(([v, l]) => (
@@ -160,7 +174,7 @@ export default async function MissionsPage({ searchParams }: { searchParams: { v
           {groups.map((g) => (
             <Card key={g.key}>
               <CardHeader><CardTitle className="capitalize">{g.title}</CardTitle></CardHeader>
-              <ul className="divide-y divide-slate-100">{g.items.map((m) => <MissionRow key={m.id} m={m} back={back} showDate={!["jour", "semaine", "mois", "calendrier"].includes(view)} />)}</ul>
+              <ul className="divide-y divide-slate-100">{g.items.map((m) => <MissionRow key={m.id} m={m} back={back} activity={famOf.get(m.id)} showDate={!["jour", "semaine", "mois", "calendrier"].includes(view)} />)}</ul>
             </Card>
           ))}
         </div>

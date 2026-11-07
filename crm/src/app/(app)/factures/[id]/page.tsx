@@ -20,6 +20,10 @@ import { cn, daysBetween, dueInfo, formatDate, formatEUR } from "@/lib/utils";
 import { REMINDER_FEE_EUR, REMINDER_FEE_LEVEL } from "@/lib/domain/reminders";
 import { markInvoicePaidAction, reconcileFromInvoiceAction } from "@/app/actions/payments";
 import { suggestInvoices } from "@/lib/domain/matching";
+import { ACTIVITIES, invoiceActivity, isActivity, type Activity } from "@/lib/domain/activity";
+import { ActivityChip } from "@/components/crm/activity-ui";
+import { loadActivityModel } from "@/lib/activity-data";
+import { setInvoiceActivityAction } from "@/app/actions/activity";
 
 export default async function InvoicePage({ params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -40,6 +44,8 @@ export default async function InvoicePage({ params }: { params: { id: string } }
   const me = { id: i.id, number: i.number, total_ttc: total, paid_amount: Number(i.paid_amount), client_name: c.name, client_is_reserved: !!c.is_reserved };
   const smart = (pays ?? []).map((p: any) => ({ p, s: suggestInvoices({ amount: Number(p.amount), label: p.label, reference: p.reference, counterparty: p.counterparty }, [me], 1)[0] }))
     .filter((x: any) => x.s).sort((a: any, b: any) => b.s.score - a.s.score).slice(0, 4);
+  const model = await loadActivityModel(supabase);
+  const fam = invoiceActivity({ activity: isActivity(i.activity) ? (i.activity as Activity) : null, clientId: c.id }, model.byClient);
   const lines = [...i.invoice_lines].sort((a: any, b: any) => a.position - b.position);
   const reminders = [...i.reminders].sort((a: any, b: any) => b.sent_at.localeCompare(a.sent_at));
   const isDraft = i.status === "brouillon";
@@ -129,6 +135,15 @@ export default async function InvoicePage({ params }: { params: { id: string } }
                   <ConfirmAction action={deleteDraftAction.bind(null, i.id)} label="Supprimer le brouillon" variant="outline" size="sm" className="w-full"
                     title="Supprimer ce brouillon ?" description="Aucun numéro n'a été consommé : la suppression est sans conséquence comptable." confirmLabel="Supprimer" />
                 </>
+              )}
+              {"activity" in i && (
+                <form action={setInvoiceActivityAction.bind(null, i.id)} className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">Famille</span><ActivityChip a={fam} />
+                  <select name="activity" defaultValue={i.activity ?? ""} aria-label="Famille d'activité" className="h-8 rounded-md border bg-white px-2 text-[13px]">
+                    <option value="">Automatique</option>{ACTIVITIES.map((a) => <option key={a.key} value={a.key}>{a.label}</option>)}
+                  </select>
+                  <button className="text-[13px] font-medium text-primary hover:underline">Enregistrer</button>
+                </form>
               )}
               {open && (
                 <div className="space-y-3 rounded-xl bg-secondary/60 p-3">

@@ -14,16 +14,25 @@ import { ReservedBadge } from "@/components/ui/badge";
 import { ConfirmAction } from "@/components/crm/confirm-action";
 import { deleteDraftAction } from "@/app/actions/invoices";
 import { cn, daysBetween, dueInfo, formatDate, formatEUR } from "@/lib/utils";
+import { ActivityChip, ActivityTabs } from "@/components/crm/activity-ui";
+import { invoiceActivity, isActivity, type Activity } from "@/lib/domain/activity";
+import { loadActivityModel } from "@/lib/activity-data";
 
 const n = (v: unknown) => (v === null || v === undefined ? 0 : Number(v));
 
-export default async function InvoicesPage({ searchParams }: { searchParams: { statut?: string } }) {
+export default async function InvoicesPage({ searchParams }: { searchParams: { statut?: string; famille?: string } }) {
   const supabase = createClient();
   await supabase.rpc("refresh_overdue");
   const settings = await getSettings(supabase);
   const { data: all, error } = await supabase.from("invoices").select("*, clients(id, name, is_reserved)").order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
-  const rows = (all ?? []) as any[];
+  const model = await loadActivityModel(supabase);
+  const famOf = (i: any): Activity => invoiceActivity({ activity: isActivity(i.activity) ? (i.activity as Activity) : null, clientId: i.client_id }, model.byClient);
+  const famSel = isActivity(searchParams.famille) ? (searchParams.famille as Activity) : "";
+  const allRows = (all ?? []) as any[];
+  const famCounts: Record<string, number> = {};
+  for (const i of allRows) if (i.status !== "annule") famCounts[famOf(i)] = (famCounts[famOf(i)] ?? 0) + 1;
+  const rows = allRows.filter((i) => !famSel || famOf(i) === famSel);
 
   const toSend = (i: any) => i.billing_month && !i.sent_at && ["envoye", "en_retard"].includes(i.status);
   const filters: Record<string, (i: any) => boolean> = {
@@ -62,7 +71,8 @@ export default async function InvoicesPage({ searchParams }: { searchParams: { s
         <Stat label="Facturé ce mois (HT)" value={formatEUR(billedMonth)} tone="green" icon={Send} />
       </div>
 
-      <Tabs items={tabs} />
+      <ActivityTabs current={famSel} counts={famCounts} href={(k) => { const p = new URLSearchParams(); if (k) p.set("famille", k); if (searchParams.statut) p.set("statut", searchParams.statut); const q = p.toString(); return `/factures${q ? `?${q}` : ""}`; }} />
+      <Tabs items={tabs.map((t) => ({ ...t, href: famSel ? `${t.href}${t.href.includes("?") ? "&" : "?"}famille=${famSel}` : t.href }))} />
 
       <Card>
         {!data.length ? <Empty icon={Receipt} action={<Link href="/factures/new" className={cn(buttonVariants({ size: "sm" }))}>Créer une facture</Link>}>Aucune facture dans cette vue.</Empty> : (
@@ -79,6 +89,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams: { s
                         <Avatar name={i.clients.name} size="sm" /><span className="font-medium text-slate-800">{i.clients.name}</span>
                       </Link>
                       {i.clients.is_reserved && <ReservedBadge className="mt-1" />}
+                      <span className="mt-1 block"><ActivityChip a={famOf(i)} /></span>
                     </Td>
                     <Td className="hidden max-w-[14rem] truncate text-slate-500 xl:table-cell">{i.subject}</Td>
                     <Td className="hidden whitespace-nowrap md:table-cell">{formatDate(i.due_date)}{(() => { const d = dueInfo(i.due_date, i.status); return d ? <span className={`ml-2 rounded-full px-2 py-0.5 text-xs font-bold ${d.tone === "red" ? "bg-red-100 text-red-800" : d.tone === "orange" ? "bg-orange-100 text-orange-800" : "bg-emerald-100 text-emerald-800"}`}>{d.label}</span> : null; })()}</Td>

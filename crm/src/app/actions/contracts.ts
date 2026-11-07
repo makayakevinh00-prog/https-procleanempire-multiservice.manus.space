@@ -1,5 +1,6 @@
 "use server";
 
+import { isActivity } from "@/lib/domain/activity";
 import { requireOwner } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
@@ -27,7 +28,9 @@ function payload(fd: FormData, back: string) {
     weekdays: weekdays.length ? weekdays : null, start_time: str(fd, "start_time"), assignee: str(fd, "assignee"),
     // Formulaire avec liste Équipe / Sites : l'intervenant et le site sont des fiches (le nom est recopié par la base).
     ...(fd.has("staff_id") ? { staff_id: str(fd, "staff_id"), assignee: str(fd, "staff_id") ? str(fd, "staff_name") ?? "équipe" : null } : {}),
-    ...(fd.has("site_id") ? { site_id: str(fd, "site_id") } : {})
+    ...(fd.has("site_id") ? { site_id: str(fd, "site_id") } : {}),
+    // Famille d'activité : la clé n'est envoyée que si elle est choisie (la colonne n'existe qu'après la migration 0025).
+    ...(isActivity(str(fd, "activity")) ? { activity: str(fd, "activity") } : {})
   };
   if (row.status === "actif") {
     const { blocking } = contractIssues({ ...row, billing_mode: mode as "mensuel" | "passage" | "autre", weekdays: row.weekdays });

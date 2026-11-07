@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Home, ListChecks, Users, MapPin, ClipboardList, FileText, Receipt, UserCog, Package, Settings, LogOut, Bell, Search, X, LayoutGrid, Truck, Bot, ChevronsLeft } from "lucide-react";
+import { Home, ListChecks, Users, MapPin, ClipboardList, FileText, Receipt, UserCog, Package, Settings, LogOut, Bell, Search, X, LayoutGrid, Truck, Bot, ChevronsLeft, PieChart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Item = { href: string; label: string; icon: any; children?: { href: string; label: string }[] };
@@ -21,7 +21,8 @@ const GROUPS: Group[] = [
   ] },
   { title: "Commercial", items: [
     { href: "/clients", label: "Clients", icon: Users, children: [{ href: "/demandes", label: "Demandes du site" }] },
-    { href: "/devis", label: "Devis", icon: FileText }
+    { href: "/devis", label: "Devis", icon: FileText },
+    { href: "/activites", label: "Activités", icon: PieChart }
   ] },
   { title: "Opérations", items: [
     { href: "/sites", label: "Sites", icon: MapPin, children: [{ href: "/contrats", label: "Contrats" }] },
