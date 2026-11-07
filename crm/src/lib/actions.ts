@@ -25,12 +25,12 @@ export type ActionItem = {
  * pour que les chiffres soient toujours identiques partout.
  */
 export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[]> {
-  const settings = await getSettings(supabase);
   const today = parisToday();
   const head = { count: "exact" as const, head: true };
-  const followupCut = new Date(Date.now() - Number(settings.quote_followup_days) * 86_400_000).toISOString();
 
-  const [contracts, invoices, quotes, payments, requests, lateReq, toConfirm, unassigned, unbilledDone, noAnswer, noEmail, mailFail, unsent, claims, anomalies, toCheck, toValidate, toContact] = await Promise.all([
+  // Un SEUL lot de requêtes en parallèle (réglages, compteurs, « pas encore arrivé ») : un seul aller-retour sur le chemin critique.
+  const [settings, contracts, invoices, quotes, payments, requests, lateReq, toConfirm, unassigned, unbilledDone, noAnswer, noEmail, mailFail, unsent, claims, anomalies, toCheck, toValidate, toContact, todayRowsRes] = await Promise.all([
+    getSettings(supabase),
     supabase.from("contracts").select("*").eq("status", "actif"),
     supabase.from("invoices").select("id, number, status, due_date, total_ht, clients(id, name, is_reserved)").neq("status", "annule").in("status", ["brouillon", "envoye", "en_retard"]),
     supabase.from("quotes").select("id, number, total_ht, invoice_id, contract_id, clients(name, is_reserved), invoices:invoice_id(status)").eq("status", "accepte"),
@@ -40,7 +40,7 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
     supabase.from("interventions").select("id", head).eq("status", "planifie").lte("scheduled_date", today).is("invoice_id", null),
     supabase.from("interventions").select("id, scheduled_date, staff_id, assignee, title, clients(name), contracts(label)").eq("status", "planifie").gte("scheduled_date", today).lte("scheduled_date", addDays(today, 7)),
     supabase.from("interventions").select("id", head).eq("status", "realise").eq("billable", true).is("invoice_id", null).lt("scheduled_date", `${monthOf(today)}-01`),
-    supabase.from("quotes").select("id", head).eq("status", "envoye").lt("sent_at", followupCut),
+    supabase.from("quotes").select("id, sent_at").eq("status", "envoye").not("sent_at", "is", null),
     supabase.from("clients").select("id", head).eq("status", "actif").is("email", null),
     supabase.from("email_log").select("id", head).eq("ok", false).eq("acknowledged", false).gte("sent_at", new Date(Date.now() - 7 * 86_400_000).toISOString()),
     supabase.from("invoices").select("id", head).not("billing_month", "is", null).is("sent_at", null).in("status", ["envoye", "en_retard"]),
@@ -48,17 +48,21 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
     supabase.from("mission_issues").select("id", head).eq("status", "ouverte").eq("kind", "anomalie"),
     supabase.from("interventions").select("id", head).eq("stage", "a_verifier"),
     supabase.from("interventions").select("id", head).eq("stage", "terminee").is("invoice_id", null),
-    supabase.from("clients").select("id", head).eq("pipeline", "a_contacter")
+    supabase.from("clients").select("id", head).eq("pipeline", "a_contacter"),
+    supabase.from("interventions").select("start_time, arrived_at, staff_id, stage").eq("scheduled_date", today).not("staff_id", "is", null).is("arrived_at", null).in("stage", ["planifiee", "affectee", "en_route"])
   ]);
-  for (const r of [contracts, invoices, quotes, payments, requests, lateReq, toConfirm, unassigned, unbilledDone, noAnswer, noEmail, mailFail, unsent, claims, anomalies, toCheck, toValidate, toContact]) {
+  for (const r of [contracts, invoices, quotes, payments, requests, lateReq, toConfirm, unassigned, unbilledDone, noAnswer, noEmail, mailFail, unsent, claims, anomalies, toCheck, toValidate, toContact, todayRowsRes]) {
     if (r.error) throw new Error(r.error.message);
   }
 
   // Agents attendus mais pas encore pointés (plus de 15 min après l'heure prévue)
   const nowParts = new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date()).split(":");
   const nowMin = Number(nowParts[0]) * 60 + Number(nowParts[1]);
-  const { data: todayRows } = await supabase.from("interventions").select("start_time, arrived_at, staff_id, stage").eq("scheduled_date", today).not("staff_id", "is", null).is("arrived_at", null).in("stage", ["planifiee", "affectee", "en_route"]);
+  const todayRows = todayRowsRes.data;
   const notArrived = (todayRows ?? []).filter((r: any) => r.start_time && nowMin > Number(r.start_time.slice(0, 2)) * 60 + Number(r.start_time.slice(3, 5)) + 15).length;
+
+  const followupCut = Date.now() - Number(settings.quote_followup_days) * 86_400_000;
+  const noAnswerCount = ((noAnswer.data ?? []) as any[]).filter((q) => Date.parse(q.sent_at) < followupCut).length;
 
   const out: ActionItem[] = [];
   const add = (a: ActionItem) => { if (a.count === undefined || a.count > 0) out.push(a); };
@@ -96,7 +100,7 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
   add({ key: "req_new", tone: "orange", count: requests.count ?? 0, label: "nouvelle(s) demande(s) de devis du site", href: "/demandes", menu: "/clients" });
   add({ key: "to_contact", tone: "orange", count: toContact.count ?? 0, label: "prospect(s) à contacter", href: "/clients?etape=a_contacter", menu: "/clients" });
   add({ key: "quote_accepted", tone: "orange", count: toInvoice.length, label: "devis accepté(s) à facturer ou à mettre en contrat", href: "/devis?statut=accepte", menu: "/devis" });
-  add({ key: "quote_noanswer", tone: "orange", count: noAnswer.count ?? 0, label: `devis envoyé(s) sans réponse depuis plus de ${settings.quote_followup_days} jours`, href: "/devis?statut=envoye", menu: "/devis" });
+  add({ key: "quote_noanswer", tone: "orange", count: noAnswerCount, label: `devis envoyé(s) sans réponse depuis plus de ${settings.quote_followup_days} jours`, href: "/devis?statut=envoye", menu: "/devis" });
   add({ key: "draft_inv", tone: "orange", count: drafts.length, label: "facture(s) brouillon à relire et valider", href: "/factures?statut=a_valider", menu: "/factures" });
   add({ key: "unsent", tone: "orange", count: unsent.count ?? 0, label: "facture(s) émise(s) automatiquement en attente d'envoi", href: "/factures?statut=a_envoyer", menu: "/factures" });
   add({ key: "late_inv", tone: "orange", count: late.length, label: "facture(s) en retard de paiement", href: "/factures?statut=en_retard", menu: "/factures" });

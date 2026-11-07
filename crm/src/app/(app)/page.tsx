@@ -2,7 +2,8 @@ import Link from "next/link";
 import { AlertTriangle, Lock, UserPlus, FilePlus, CalendarPlus, CalendarCheck, Zap, Mail, Siren, TrendingUp, TrendingDown, Repeat, Receipt, Wallet, Clock, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getSettings, num, numOrNull } from "@/lib/data";
-import { loadActions, menuCountsFrom } from "@/lib/actions";
+import { menuCountsFrom } from "@/lib/actions";
+import { loadActionsCached } from "@/lib/actions-request";
 import { monthlyRevenueHt, summarize, weeklyHours, weeklyRevenueHt, type SiteRow } from "@/lib/domain/recruitment";
 import { parisToday } from "@/lib/domain/dates";
 import { PageHeader, Empty } from "@/components/crm/page-header";
@@ -52,15 +53,14 @@ function Kpi({ label, value, sub, href, icon: Icon, accent, trend }: {
 export default async function Dashboard() {
   const supabase = createClient();
   await supabase.rpc("refresh_overdue");
-  const settings = await getSettings(supabase);
-
-  const [contracts, invoices, quotes, payments, reserved, actions, clients] = await Promise.all([
+  const [settings, contracts, invoices, quotes, payments, reserved, actions, clients] = await Promise.all([
+    getSettings(supabase),
     supabase.from("contracts").select("*, clients(id, name, is_reserved)").eq("status", "actif"),
     supabase.from("invoices").select("id, number, status, due_date, issue_date, total_ht, total_ttc, paid_amount, reminder_count, last_reminder_at, clients(id, name, is_reserved)").neq("status", "annule"),
     supabase.from("quotes").select("id, number, status, subject, total_ht, invoice_id, clients(id, name, is_reserved), invoices:invoice_id(status)").eq("status", "accepte"),
     supabase.from("payments").select("id", { count: "exact", head: true }).in("match_status", ["non_rapproche", "propose"]),
     supabase.from("clients").select("id, name").eq("is_reserved", true),
-    loadActions(supabase),
+    loadActionsCached(),
     supabase.from("clients").select("kind, status")
   ]);
   for (const r of [contracts, invoices, quotes, payments, reserved, clients]) if (r.error) throw new Error(r.error.message);
