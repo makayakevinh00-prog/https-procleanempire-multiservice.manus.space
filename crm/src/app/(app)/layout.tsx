@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isOwner } from "@/lib/auth";
 import { SidebarLive, TopbarLive } from "@/components/crm/shell-live";
 import { Flash } from "@/components/crm/flash";
+import { QontoAutoSync } from "@/components/crm/qonto-auto";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           BASE DE TEST · données fictives, aucun e-mail réel, aucun accès à la production
         </div>
       )}
+      {(process.env.QONTO_ACCESS_TOKEN || (process.env.QONTO_ORGANIZATION_SLUG && process.env.QONTO_SECRET_KEY)) && <QontoAutoSync />}
       <SidebarLive signOut={signOut} />
       <div className="transition-[margin] duration-200 md:ml-[var(--nav-w)]">
         <TopbarLive signOut={signOut} />

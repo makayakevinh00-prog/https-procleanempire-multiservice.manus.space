@@ -9,6 +9,7 @@ import { Table, Td, Th, Tr } from "@/components/ui/table";
 import { StatusBadge } from "@/components/ui/badge";
 import { ClientName } from "@/components/crm/client-name";
 import { ConfirmAction } from "@/components/crm/confirm-action";
+import { QontoStatus } from "@/components/crm/qonto-auto";
 import { addManualPaymentAction, ignorePaymentAction, reconcileAction, syncQontoAction, unreconcileAction } from "@/app/actions/payments";
 import { deletePaymentAction } from "@/app/actions/manage";
 import { daysBetween, formatDate, formatEUR } from "@/lib/utils";
@@ -33,6 +34,7 @@ export default async function PaymentsPage() {
     <>
       <PageHeader title="Suivi des paiements" subtitle="Import Qonto et rapprochement facture ↔ virement."
         actions={<form action={syncQontoAction}><Button disabled={!qontoConfigured} title={qontoConfigured ? undefined : "Qonto non configuré (variables d'environnement)"}><RefreshCw className="h-4 w-4" /> Synchroniser Qonto</Button></form>} />
+      {qontoConfigured && <div className="mb-4"><QontoStatus /></div>}
       {!qontoConfigured && <div className="mb-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">Qonto n&apos;est pas connecté : renseignez <code>QONTO_ACCESS_TOKEN</code> (ou <code>QONTO_ORGANIZATION_SLUG</code> + <code>QONTO_SECRET_KEY</code>) sur Vercel. Vous pouvez en attendant saisir les paiements à la main.</div>}
 
       {late.length > 0 && (
