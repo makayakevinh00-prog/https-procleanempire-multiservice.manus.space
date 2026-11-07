@@ -5,19 +5,52 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/form";
 import { cookies } from "next/headers";
-import { saveSettingsAction, generateCalendarLinkAction, revokeCalendarLinkAction } from "@/app/actions/settings";
+import { saveSettingsAction, generateCalendarLinkAction, revokeCalendarLinkAction, createAgentConnectorAction, revokeAgentConnectorAction } from "@/app/actions/settings";
+import { AGENTS } from "@/lib/jarvis/registry";
+import { Select } from "@/components/ui/form";
 import { ConfirmAction } from "@/components/crm/confirm-action";
 
 export default async function SettingsPage() {
   const supabase = createClient();
   const s = await getSettings(supabase);
   const feed = await supabase.from("calendar_feed").select("set_at").eq("id", 1).maybeSingle();
+  const conns = await supabase.from("agent_connectors").select("id, agent_key, label, created_at, last_used_at, revoked_at").order("created_at", { ascending: false });
+  let freshAgent: { agent: string; url: string } | null = null;
+  try { freshAgent = JSON.parse(decodeURIComponent(cookies().get("agent_mcp")?.value ?? "null")); } catch { freshAgent = null; }
   let fresh: { url: string } | null = null;
   try { fresh = JSON.parse(decodeURIComponent(cookies().get("calendar_link")?.value ?? "null")); } catch { fresh = null; }
   const grid = "grid gap-4 sm:grid-cols-2 lg:grid-cols-3";
   return (
     <>
       <PageHeader title="Paramètres" />
+      <Card className="mb-4">
+        <CardHeader><CardTitle>Agents Claude Cowork (connecteur MCP)</CardTitle></CardHeader>
+        <CardContent className="space-y-3 text-sm text-secondary-foreground">
+          <p>Chaque agent a son propre lien secret. Il peut lire des chiffres limités (factures ouvertes, paiements à rapprocher, missions, demandes du site), ajouter une tâche et <b className="font-medium text-foreground">proposer</b> un e-mail à un client. Rien ne part sans votre validation dans JARVIS, et l&apos;e-mail est envoyé aux adresses de la fiche client. Les contacts réservés sont exclus.</p>
+          {freshAgent && (
+            <div className="space-y-2 rounded-xl bg-secondary p-4">
+              <div className="font-medium text-foreground">Lien de l&apos;agent « {freshAgent.agent} » : affiché une seule fois</div>
+              <input readOnly value={freshAgent.url} aria-label="Lien du connecteur MCP" className="w-full select-all rounded-md border bg-white px-3 py-2 font-mono text-xs" />
+              <p className="text-[13px] text-muted-foreground">Dans Claude Cowork : ajoutez un connecteur personnalisé (MCP), collez ce lien, sans autre réglage. Ne le partagez pas : il donne accès à ce que voit l&apos;agent.</p>
+            </div>
+          )}
+          {(conns.data ?? []).length > 0 && (
+            <ul className="divide-y divide-border/70 rounded-xl border border-border/70">
+              {(conns.data ?? []).map((c: any) => (
+                <li key={c.id} className="flex flex-wrap items-center gap-3 px-4 py-2.5">
+                  <span className="font-medium text-foreground">{AGENTS.find((a) => a.key === c.agent_key)?.name ?? c.agent_key}</span>
+                  {c.label && <span className="text-muted-foreground">{c.label}</span>}
+                  <span className="text-[13px] text-muted-foreground">{c.revoked_at ? `révoqué le ${new Date(c.revoked_at).toLocaleDateString("fr-FR")}` : c.last_used_at ? `dernier appel ${new Date(c.last_used_at).toLocaleString("fr-FR", { timeZone: "Europe/Paris", dateStyle: "short", timeStyle: "short" })}` : "jamais utilisé"}</span>
+                  {!c.revoked_at && <span className="ml-auto"><ConfirmAction action={revokeAgentConnectorAction.bind(null, c.id)} label="Révoquer" variant="outline" size="sm" title="Révoquer ce lien ?" description="L'agent n'aura plus accès au CRM. Vous pourrez créer un nouveau lien." confirmLabel="Révoquer" /></span>}
+                </li>
+              ))}
+            </ul>
+          )}
+          <ConfirmAction action={createAgentConnectorAction} label="Créer un lien pour un agent" variant="outline" size="sm" title="Créer un lien pour un agent" confirmLabel="Générer le lien"
+            description="Le lien est secret et s'affiche une seule fois."
+            extra={<div className="space-y-3"><Field label="Agent"><Select name="agent_key" defaultValue="finance">{AGENTS.map((a) => <option key={a.key} value={a.key}>{a.name}</option>)}</Select></Field><Field label="Nom (facultatif)"><Input name="label" placeholder="ex. Cowork de Kevinh" /></Field></div>} />
+        </CardContent>
+      </Card>
       <Card className="mb-4">
         <CardHeader><CardTitle>Calendrier Outlook</CardTitle></CardHeader>
         <CardContent className="space-y-3 text-sm text-secondary-foreground">

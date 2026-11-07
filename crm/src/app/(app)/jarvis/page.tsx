@@ -3,6 +3,10 @@ import { Bot, Bell, ListChecks, ShieldCheck, Play, Network } from "lucide-react"
 import { createClient } from "@/lib/supabase/server";
 import { requireOwner } from "@/lib/auth";
 import { runAgentAction, decideActionAction, setAlertStatusAction, completeTaskAction } from "@/app/actions/jarvis";
+import { approveAndSendEmailAction } from "@/app/actions/agent-mail";
+import { ConfirmAction } from "@/components/crm/confirm-action";
+import { RecipientPicker } from "@/components/crm/recipient-picker";
+import { loadRecipients } from "@/lib/recipients";
 import { PageHeader, Empty } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +33,8 @@ export default async function JarvisPage() {
   const firstError = [ag, al, ac, tk, ev, rn].find((r) => r.error && !isMissingTable(r.error))?.error;
   if (firstError) throw new Error(firstError.message);
 
+  const mailRecipients = new Map<string, Awaited<ReturnType<typeof loadRecipients>>>();
+  for (const a of (ac.data ?? []) as any[]) if (a.kind === "send_email" && a.status === "proposed" && a.payload?.client_id) mailRecipients.set(a.id, await loadRecipients(sb, a.payload.client_id));
   const dbState = new Map((ag.data ?? []).map((a: any) => [a.key, a]));
   const alerts = [...(al.data ?? [])].sort((a: any, b: any) => (SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity]) || a.title.localeCompare(b.title));
   const actions = ac.data ?? [], tasks = tk.data ?? [], events = ev.data ?? [], runs = rn.data ?? [];
@@ -73,13 +79,26 @@ export default async function JarvisPage() {
                 {a.payload?.brouillon && (
                   <details className="rounded-lg border bg-slate-50 p-3 text-sm"><summary className="cursor-pointer font-semibold">Voir le brouillon (non envoyé)</summary><pre className="mt-2 whitespace-pre-wrap font-sans text-slate-700">{a.payload.brouillon}</pre></details>
                 )}
+                {a.kind === "send_email" && a.payload?.subject && (
+                  <div className="rounded-lg border bg-slate-50 p-3 text-sm">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">E-mail rédigé par l&apos;agent (non envoyé)</div>
+                    <div className="mt-1 font-semibold text-slate-900">{a.payload.subject}</div>
+                    <pre className="mt-1 whitespace-pre-wrap font-sans text-slate-700">{a.payload.body}</pre>
+                  </div>
+                )}
                 {a.status === "blocked" ? (
                   <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
                     <b>Réservé : JARVIS ne peut pas exécuter ceci.</b> Il faut votre autorisation explicite, en dehors de ce circuit. {a.href && <Link href={a.href} className="font-semibold underline">Ouvrir le dossier</Link>}
                   </div>
                 ) : (
                   <div className="flex flex-wrap items-center gap-2">
-                    <form action={decideActionAction.bind(null, a.id, "approve")}><Button size="sm" type="submit">Valider (crée une tâche)</Button></form>
+                    {a.kind === "send_email" ? (
+                      <ConfirmAction action={approveAndSendEmailAction.bind(null, a.id)} size="sm" label="Approuver et envoyer" title="Envoyer cet e-mail ?" confirmLabel="Envoyer maintenant"
+                        description="L'e-mail part tout de suite, avec exactement l'objet et le texte affichés. Choisissez les destinataires."
+                        extra={<RecipientPicker recipients={mailRecipients.get(a.id) ?? []} />} />
+                    ) : (
+                      <form action={decideActionAction.bind(null, a.id, "approve")}><Button size="sm" type="submit">Valider (crée une tâche)</Button></form>
+                    )}
                     <form action={decideActionAction.bind(null, a.id, "reject")}><Button size="sm" variant="outline" type="submit">Refuser</Button></form>
                     {a.href && <Link href={a.href} className="text-sm font-semibold text-primary underline">Ouvrir le dossier</Link>}
                   </div>

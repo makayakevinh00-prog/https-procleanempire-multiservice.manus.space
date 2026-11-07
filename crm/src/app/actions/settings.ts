@@ -60,3 +60,28 @@ export async function revokeCalendarLinkAction() {
   revalidatePath("/parametres");
   flash("/parametres", "ok", "Lien calendrier révoqué : Outlook ne recevra plus les missions.");
 }
+
+const AGENT_KEYS = ["core", "finance", "commercial", "operations", "relation", "marketing", "studio", "rh", "juridique"];
+
+/** Crée un lien de connexion pour un agent Cowork. Seule l'empreinte est stockée ; le lien s'affiche une fois (cookie de 2 minutes). */
+export async function createAgentConnectorAction(fd: FormData) {
+  await requireOwner();
+  const agent = str(fd, "agent_key") ?? "";
+  if (!AGENT_KEYS.includes(agent)) flash("/parametres", "error", "Agent inconnu.");
+  const token = randomBytes(32).toString("hex");
+  const { error } = await createClient().from("agent_connectors").insert({ agent_key: agent, label: str(fd, "label"), token_hash: createHash("sha256").update(token).digest("hex") });
+  if (error) flash("/parametres", "error", dbMessage(error));
+  const h = headers();
+  const origin = `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`;
+  cookies().set("agent_mcp", JSON.stringify({ agent, url: `${origin}/api/mcp/${token}` }), { httpOnly: true, secure: true, sameSite: "strict", path: "/parametres", maxAge: 120 });
+  revalidatePath("/parametres");
+  flash("/parametres", "ok", "Lien créé : copiez-le ci-dessous (affiché une seule fois).");
+}
+
+export async function revokeAgentConnectorAction(id: string) {
+  await requireOwner();
+  const { error } = await createClient().from("agent_connectors").update({ revoked_at: new Date().toISOString() }).eq("id", id).is("revoked_at", null);
+  if (error) flash("/parametres", "error", dbMessage(error));
+  revalidatePath("/parametres");
+  flash("/parametres", "ok", "Lien révoqué : l'agent n'a plus accès au CRM.");
+}
