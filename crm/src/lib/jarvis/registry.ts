@@ -35,6 +35,7 @@ export const AGENTS: AgentSpec[] = [
       { label: "Brouillons de plus de 7 jours (tâche)", state: "construit" },
       { label: "Retard moyen de paiement par client (mémoire commune)", state: "construit" },
       { label: "Briefing financier chiffré", state: "construit" },
+      { label: "Alertes informatives : TVA à 0 %, numéro de TVA absent, informations de facturation manquantes", state: "construit" },
       { label: "Relances 3 niveaux, facturation mensuelle automatique (automate quotidien existant, hors JARVIS)", state: "construit" },
       { label: "Rapprochement bancaire Qonto", state: "prevu" },
       { label: "Dépenses, justificatifs, trésorerie, prévisions", state: "prevu" },

@@ -10,7 +10,7 @@ type Supa = ReturnType<typeof createClient>;
 export async function loadFinanceSnapshot(sb: Supa, now: Date = new Date()): Promise<FinanceSnapshot> {
   const settings = await getSettings(sb);
   const [inv, ctr, pay] = await Promise.all([
-    sb.from("invoices").select("id, number, client_id, status, issue_date, due_date, total_ttc, paid_amount, paid_at, sent_at, reminder_count, created_at, cancel_reason, clients(name, is_reserved)"),
+    sb.from("invoices").select("id, number, client_id, status, issue_date, due_date, total_ttc, paid_amount, paid_at, sent_at, reminder_count, created_at, cancel_reason, clients(name, is_reserved, address, postal_code, city, kind, siret), invoice_lines(vat_rate)"),
     sb.from("contracts").select("id, client_id, label, status, billing_mode, monthly_amount_ht, per_visit_amount_ht, terms, weekdays, visits_per_week, hours_per_visit, site_address, assignee, start_date, clients(name)"),
     sb.from("payments").select("id", { count: "exact", head: true })
   ]);
@@ -19,11 +19,13 @@ export async function loadFinanceSnapshot(sb: Supa, now: Date = new Date()): Pro
   if (pay.error) throw new Error(pay.error.message);
   return {
     today: parisToday(now),
-    settings: { payment_terms_days: settings.payment_terms_days, reminder_max_count: settings.reminder_max_count, reminder_manual_days: settings.reminder_manual_days, quote_terms: settings.quote_terms ?? null },
+    settings: { payment_terms_days: settings.payment_terms_days, reminder_max_count: settings.reminder_max_count, reminder_manual_days: settings.reminder_manual_days, quote_terms: settings.quote_terms ?? null, company_vat_number: settings.company_vat_number ?? null },
     invoices: (inv.data ?? []).map((i: any) => ({
       id: i.id, number: i.number, client_id: i.client_id, client_name: i.clients?.name ?? "Client inconnu", client_reserved: !!i.clients?.is_reserved, status: i.status,
       issue_date: i.issue_date, due_date: i.due_date, total_ttc: num(i.total_ttc), paid_amount: num(i.paid_amount), paid_at: i.paid_at, sent_at: i.sent_at,
-      reminder_count: i.reminder_count ?? 0, created_at: i.created_at, cancel_reason: i.cancel_reason ?? null
+      reminder_count: i.reminder_count ?? 0, created_at: i.created_at, cancel_reason: i.cancel_reason ?? null,
+      vat_rates: (i.invoice_lines ?? []).map((l: any) => num(l.vat_rate)),
+      client_billing: i.clients ? { address: i.clients.address ?? null, postal_code: i.clients.postal_code ?? null, city: i.clients.city ?? null, kind: i.clients.kind ?? null, siret: i.clients.siret ?? null } : undefined
     })),
     contracts: (ctr.data ?? []).map((k: any) => ({
       id: k.id, client_id: k.client_id, client_name: k.clients?.name ?? "Client inconnu", label: k.label, status: k.status, billing_mode: k.billing_mode,

@@ -36,7 +36,7 @@ export const ROADMAP: Record<AgentKey, Roadmap> = {
     skills: ["Rapprocher un virement et une facture", "Détecter une dépense inhabituelle", "Calculer marge et trésorerie", "Préparer un export comptable"],
     tools: ["Qonto (API, lecture)", "Base du CRM", "Export CSV/ZIP", "Signature électronique (décision à prendre)"],
     memory: ["client.delai_paiement_moyen_jours (déjà en place, réactivé quand les dates sont fiables)"],
-    deliverables: ["Rapprochement Qonto fiable", "Tableau de bord Direction (facturé, encaissé, marge, trésorerie)", "Espace expert-comptable (accès dédié, double authentification)", "Alertes TVA 0 %, numéros absents, adresses manquantes"],
+    deliverables: ["Rapprochement Qonto fiable", "Tableau de bord Direction (facturé, encaissé, marge, trésorerie)", "Espace expert-comptable (accès dédié, double authentification)", "Alerte numéros de facture absents (les alertes TVA 0 %, numéro de TVA et facturation sont faites)"],
     proof: ["≥ 25 des 27 factures payées rapprochées d'un virement réel", "« Combien ai-je gagné ce mois-ci ? » répond avec des chiffres réconciliés à Qonto à l'euro près", "Premier export accepté par le logiciel du cabinet sans retouche manuelle", "Le rapport d'anomalies passe de 15 à 0 point ouvert, chacun clôturé par vous"],
     cost: "0 € (Yousign éventuel : décision séparée)"
   },

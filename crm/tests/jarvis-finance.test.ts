@@ -158,3 +158,57 @@ describe("agent Finance — mémoire et briefing", () => {
     expect(diffDays("2026-03-28", "2026-03-30")).toBe(2); // changement d'heure
   });
 });
+
+describe("agent Finance — trois alertes informatives (TVA à 0 %, numéro de TVA, facturation)", () => {
+  const billing = (o: Partial<NonNullable<FinanceInvoice["client_billing"]>> = {}) => ({ address: "1 rue A", postal_code: "95000", city: "Pontoise", kind: "particulier", siret: null, ...o });
+
+  it("TVA à 0 % : seulement les factures ÉMISES, regroupées en une alerte informative", () => {
+    const r = analyseFinance(snap({ invoices: [
+      inv({ id: "a", vat_rates: [0], status: "paye", paid_amount: 240, paid_at: "2026-10-20", issue_date: "2026-10-01", due_date: "2026-10-16" }),
+      inv({ id: "b", vat_rates: [20, 0], issue_date: "2026-11-05", due_date: "2026-11-20" }),
+      inv({ id: "c", vat_rates: [20], issue_date: "2026-11-05", due_date: "2026-11-20" }),
+      inv({ id: "d", vat_rates: [0], status: "brouillon", number: null, sent_at: null }),
+      inv({ id: "e", vat_rates: [0], status: "annule" })
+    ] }));
+    const a = r.alerts.filter((x) => x.dedupe_key === "vat_zero");
+    expect(a).toHaveLength(1);
+    expect(a[0].severity).toBe("info");
+    expect(a[0].title).toContain("2 facture(s)");
+    expect(a[0].detail).toContain("Aucune facture n'est modifiée");
+  });
+  it("TVA : pas d'alerte quand les taux ne sont pas chargés ou qu'aucune ligne n'est à 0 %", () => {
+    expect(keys(analyseFinance(snap({ invoices: [inv({ id: "a" })] })))).not.toContain("vat_zero");
+    expect(keys(analyseFinance(snap({ invoices: [inv({ id: "a", vat_rates: [20, 10] })] })))).not.toContain("vat_zero");
+  });
+  it("numéro de TVA absent : alerte seulement s'il existe des factures émises et que le réglage est connu", () => {
+    const base = (vat: string | null | undefined) => snap({ settings: { payment_terms_days: 15, reminder_max_count: 3, reminder_manual_days: 30, quote_terms: null, company_vat_number: vat }, invoices: [inv({ id: "a", vat_rates: [20] })] });
+    for (const vide of [null, "", "   "]) expect(keys(analyseFinance(base(vide)))).toContain("vat_number_missing");
+    expect(keys(analyseFinance(base("FR12345678901")))).not.toContain("vat_number_missing");
+    expect(keys(analyseFinance(base(undefined)))).not.toContain("vat_number_missing");
+    expect(keys(analyseFinance(snap({ settings: { payment_terms_days: 15, reminder_max_count: 3, reminder_manual_days: 30, quote_terms: null, company_vat_number: null }, invoices: [] })))).not.toContain("vat_number_missing");
+    expect(analyseFinance(base(null)).alerts.find((x) => x.dedupe_key === "vat_number_missing")!.severity).toBe("info");
+  });
+  it("informations de facturation : adresse, code postal, ville, SIRET d'une entreprise ; un client compté une seule fois", () => {
+    const r = analyseFinance(snap({ invoices: [
+      inv({ id: "a", client_id: "x", client_name: "Mark Z", client_billing: billing({ address: null }) }),
+      inv({ id: "b", client_id: "x", client_name: "Mark Z", client_billing: billing({ address: null }) }),
+      inv({ id: "c", client_id: "y", client_name: "Société S", client_billing: billing({ kind: "entreprise", siret: " " }) }),
+      inv({ id: "d", client_id: "z", client_name: "Client complet", client_billing: billing() }),
+      inv({ id: "e", client_id: "w", client_name: "Brouillon seul", status: "brouillon", number: null, client_billing: billing({ address: null }) })
+    ] }));
+    const a = r.alerts.find((x) => x.dedupe_key === "billing_info_missing")!;
+    expect(a.severity).toBe("info");
+    expect(a.title).toContain("2 client(s)");
+    expect(a.detail).toContain("Mark Z (adresse)");
+    expect(a.detail).toContain("Société S (SIRET)");
+    expect(a.detail).not.toContain("Client complet");
+    expect(a.detail).not.toContain("Brouillon seul");
+  });
+  it("ces trois alertes ne créent AUCUNE proposition, tâche ni demande : informatives seulement", () => {
+    const r = analyseFinance(snap({ settings: { payment_terms_days: 15, reminder_max_count: 3, reminder_manual_days: 30, quote_terms: null, company_vat_number: null }, invoices: [inv({ id: "a", vat_rates: [0], issue_date: "2026-11-05", due_date: "2026-11-20", client_billing: billing({ address: null }) })] }));
+    expect(keys(r)).toEqual(expect.arrayContaining(["vat_zero", "vat_number_missing", "billing_info_missing"]));
+    expect(r.actions).toEqual([]);
+    expect(r.tasks).toEqual([]);
+    expect(r.events).toEqual([]);
+  });
+});

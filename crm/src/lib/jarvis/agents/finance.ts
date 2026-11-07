@@ -10,6 +10,10 @@ export interface FinanceInvoice {
   sent_at: string | null; reminder_count: number; created_at: string;
   /** Motif saisi lors de l'annulation, s'il existe. */
   cancel_reason?: string | null;
+  /** Taux de TVA des lignes (absent = non chargé : aucune alerte TVA n'est alors émise). */
+  vat_rates?: number[];
+  /** Informations de facturation du client (absent = non chargé : aucune alerte correspondante). */
+  client_billing?: { address: string | null; postal_code: string | null; city: string | null; kind: string | null; siret: string | null };
 }
 export interface FinanceContract {
   id: string; client_id: string; client_name: string; label: string; status: string;
@@ -19,7 +23,7 @@ export interface FinanceContract {
 export interface FinanceSnapshot {
   /** Date du jour à Paris, YYYY-MM-DD. */
   today: string;
-  settings: { payment_terms_days: number; reminder_max_count: number; reminder_manual_days: number; quote_terms: string | null };
+  settings: { payment_terms_days: number; reminder_max_count: number; reminder_manual_days: number; quote_terms: string | null; company_vat_number?: string | null };
   invoices: FinanceInvoice[];
   contracts: FinanceContract[];
   paymentsCount: number;
@@ -142,6 +146,47 @@ export function analyseFinance(s: FinanceSnapshot): AgentResult {
       title: `${sansTrace.length} facture(s) « envoyée(s) » sans aucune trace d'envoi dans le CRM`,
       detail: `${sansTrace.slice(0, 6).map((i) => `${name(i)} (${i.client_name})`).join(" · ")}. Peut-être envoyées autrement (ex. ancien outil) : à vérifier avant de les relancer.`,
       href: "/factures"
+    });
+  }
+
+  // B3. Trois alertes INFORMATIVES (jamais de correction automatique : le CRM ne sait pas ce que le cabinet sait)
+  const emisesInfo = s.invoices.filter((i) => !["brouillon", "annule"].includes(i.status));
+  const tvaZero = emisesInfo.filter((i) => i.vat_rates?.some((t) => t === 0));
+  if (tvaZero.length) {
+    alerts.push({
+      dedupe_key: "vat_zero", severity: "info",
+      title: `TVA à 0 % à vérifier : ${tvaZero.length} facture(s) émise(s) avec au moins une ligne à 0 %`,
+      detail: `${tvaZero.slice(0, 6).map((i) => `${name(i)} (${i.client_name})`).join(" · ")}${tvaZero.length > 6 ? ` · et ${tvaZero.length - 6} autre(s)` : ""}. Le CRM ne peut pas savoir si ces lignes sont légitimes (exonération, franchise) ni si la mention exigée figure sur le document : à confirmer avec l'expert-comptable. Aucune facture n'est modifiée.`,
+      href: "/factures"
+    });
+  }
+  if (s.settings.company_vat_number !== undefined && !(s.settings.company_vat_number ?? "").trim() && emisesInfo.length) {
+    const a20 = emisesInfo.filter((i) => i.vat_rates?.some((t) => t > 0)).length;
+    alerts.push({
+      dedupe_key: "vat_number_missing", severity: "info",
+      title: "Numéro de TVA de l'entreprise absent des réglages",
+      detail: `${emisesInfo.length} facture(s) émise(s)${a20 ? `, dont ${a20} avec de la TVA` : ""}. Une entreprise assujettie doit faire figurer son numéro de TVA sur ses factures ; une entreprise en franchise doit porter la mention correspondante. À confirmer avec l'expert-comptable, puis à saisir dans Paramètres si nécessaire.`,
+      href: "/parametres"
+    });
+  }
+  const incomplets = new Map<string, { nom: string; manque: string[] }>();
+  for (const i of emisesInfo) {
+    const c = i.client_billing;
+    if (!c) continue;
+    const manque: string[] = [];
+    if (!(c.address ?? "").trim()) manque.push("adresse");
+    if (!(c.postal_code ?? "").trim()) manque.push("code postal");
+    if (!(c.city ?? "").trim()) manque.push("ville");
+    if (c.kind === "entreprise" && !(c.siret ?? "").trim()) manque.push("SIRET");
+    if (manque.length) incomplets.set(i.client_id, { nom: i.client_name, manque });
+  }
+  if (incomplets.size) {
+    const l = [...incomplets.values()];
+    alerts.push({
+      dedupe_key: "billing_info_missing", severity: "info",
+      title: `Informations de facturation manquantes : ${l.length} client(s) facturé(s)`,
+      detail: `${l.slice(0, 6).map((x) => `${x.nom} (${x.manque.join(", ")})`).join(" · ")}${l.length > 6 ? ` · et ${l.length - 6} autre(s)` : ""}. L'adresse du client est une mention de la facture ; à compléter sur la fiche client (les factures déjà émises ne se modifient pas).`,
+      href: "/clients"
     });
   }
 
