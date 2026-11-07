@@ -4,14 +4,43 @@ import { PageHeader } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/form";
-import { saveSettingsAction } from "@/app/actions/settings";
+import { cookies } from "next/headers";
+import { saveSettingsAction, generateCalendarLinkAction, revokeCalendarLinkAction } from "@/app/actions/settings";
+import { ConfirmAction } from "@/components/crm/confirm-action";
 
 export default async function SettingsPage() {
-  const s = await getSettings(createClient());
+  const supabase = createClient();
+  const s = await getSettings(supabase);
+  const feed = await supabase.from("calendar_feed").select("set_at").eq("id", 1).maybeSingle();
+  let fresh: { url: string } | null = null;
+  try { fresh = JSON.parse(decodeURIComponent(cookies().get("calendar_link")?.value ?? "null")); } catch { fresh = null; }
   const grid = "grid gap-4 sm:grid-cols-2 lg:grid-cols-3";
   return (
     <>
       <PageHeader title="Paramètres" />
+      <Card className="mb-4">
+        <CardHeader><CardTitle>Calendrier Outlook</CardTitle></CardHeader>
+        <CardContent className="space-y-3 text-sm text-secondary-foreground">
+          <p>Vos missions apparaissent dans Outlook (ou Google Agenda, Apple Calendrier) par un abonnement en lecture seule : aucune invitation n&apos;est envoyée, rien n&apos;est modifié dans le CRM depuis le calendrier. Outlook actualise le flux toutes les quelques heures.</p>
+          {fresh && (
+            <div className="space-y-2 rounded-xl bg-secondary p-4">
+              <div className="font-medium text-foreground">Votre lien d&apos;abonnement : affiché une seule fois</div>
+              <input readOnly value={fresh.url} aria-label="Lien d'abonnement calendrier" className="w-full select-all rounded-md border bg-white px-3 py-2 font-mono text-xs" />
+              <ol className="list-decimal space-y-0.5 pl-5 text-[13px] text-muted-foreground">
+                <li>Copiez le lien ci-dessus.</li>
+                <li>Dans Outlook : Calendrier, puis « Ajouter un calendrier », puis « S&apos;abonner à partir du web ».</li>
+                <li>Collez le lien, donnez-lui un nom (« ProClean missions »), validez.</li>
+              </ol>
+            </div>
+          )}
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-muted-foreground">{feed.data ? `Lien actif depuis le ${new Date(feed.data.set_at).toLocaleDateString("fr-FR")}` : "Aucun lien actif."}</span>
+            <ConfirmAction action={generateCalendarLinkAction} label={feed.data ? "Nouveau lien" : "Créer le lien"} variant="outline" size="sm"
+              title="Créer le lien d'abonnement calendrier ?" description={feed.data ? "L'ancien lien cessera immédiatement de fonctionner." : "Le lien est secret : il montre vos missions (clients, adresses, horaires), jamais de montant ni de facture."} confirmLabel="Générer le lien" />
+            {feed.data && <ConfirmAction action={revokeCalendarLinkAction} label="Révoquer" variant="outline" size="sm" title="Révoquer le lien calendrier ?" description="Outlook ne recevra plus les missions tant que vous n'aurez pas créé un nouveau lien." confirmLabel="Révoquer" />}
+          </div>
+        </CardContent>
+      </Card>
       <form action={saveSettingsAction} className="space-y-4">
         <Card>
           <CardHeader><CardTitle>Société (affichée sur les PDF)</CardTitle></CardHeader>

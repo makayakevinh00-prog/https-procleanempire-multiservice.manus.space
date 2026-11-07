@@ -1,5 +1,7 @@
 "use server";
 
+import { createHash, randomBytes } from "node:crypto";
+import { cookies, headers } from "next/headers";
 import { requireOwner } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
@@ -36,4 +38,25 @@ export async function saveSettingsAction(fd: FormData) {
   if (error) flash("/parametres", "error", dbMessage(error));
   revalidatePath("/", "layout");
   flash("/parametres", "ok", "Paramètres enregistrés.");
+}
+
+/** Crée (ou remplace) le lien d'abonnement calendrier. Seule l'empreinte est stockée ; le lien s'affiche une fois (cookie de 2 minutes). */
+export async function generateCalendarLinkAction() {
+  await requireOwner();
+  const token = randomBytes(32).toString("hex");
+  const { error } = await createClient().from("calendar_feed").upsert({ id: 1, token_hash: createHash("sha256").update(token).digest("hex"), set_at: new Date().toISOString() });
+  if (error) flash("/parametres", "error", dbMessage(error));
+  const h = headers();
+  const origin = `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`;
+  cookies().set("calendar_link", JSON.stringify({ url: `${origin}/api/calendrier/${token}` }), { httpOnly: true, secure: true, sameSite: "strict", path: "/parametres", maxAge: 120 });
+  revalidatePath("/parametres");
+  flash("/parametres", "ok", "Lien calendrier créé : copiez-le ci-dessous (affiché une seule fois).");
+}
+
+export async function revokeCalendarLinkAction() {
+  await requireOwner();
+  const { error } = await createClient().from("calendar_feed").delete().eq("id", 1);
+  if (error) flash("/parametres", "error", dbMessage(error));
+  revalidatePath("/parametres");
+  flash("/parametres", "ok", "Lien calendrier révoqué : Outlook ne recevra plus les missions.");
 }
