@@ -1,4 +1,5 @@
 import { addDays, monthOf } from "@/lib/domain/dates";
+import { ASSIGN_LABEL, classifyAssignment, tallyAssignments, type AssignClass } from "./assignment";
 
 /**
  * Moteur d'indicateurs : fonction PURE (aucune écriture, aucune donnée d'exemple).
@@ -33,6 +34,8 @@ export interface Kpi {
   source: string;
   /** Date de la dernière modification d'une ligne qui compose le chiffre (ISO), ou null si aucune ligne. */
   lastChangeAt: string | null;
+  /** Vrai quand la valeur manque parce que la LECTURE a échoué (et non parce que le calcul est impossible). */
+  failed?: boolean;
   lines?: { label: string; value: string }[];
 }
 
@@ -77,6 +80,7 @@ export interface IntervRow {
   client_name: string | null;
   title: string;
   updated_at: string;
+  contract_label?: string | null;
 }
 export interface StaffRow {
   id: string;
@@ -146,6 +150,7 @@ function absent(
     unit,
     detail: null,
     reason,
+    failed: reason.startsWith("Lecture impossible"),
     source,
     lastChangeAt: null,
   };
@@ -623,34 +628,48 @@ export function computeKpis(s: KpiSnapshot): KpiSet {
       };
     },
   );
+  const upcoming = (iv: IntervRow[]) =>
+    planned(iv)
+      .filter((i) => i.scheduled_date >= s.today)
+      .map((i) => ({ i, a: classifyAssignment(i, s.today) }));
   O(
-    "ops.non_affectees",
-    "En attente d'affectation",
-    "Interventions à venir sans intervenant",
+    "ops.sans_intervenant",
+    "Réellement sans intervenant",
+    "Interventions à venir sans intervenant enregistré, sans règle d'affectation applicable et dans moins de 48 h",
     (iv) => {
-      const x = planned(iv)
-        .filter(
-          (i) =>
-            i.scheduled_date >= s.today &&
-            !i.staff_id &&
-            !(i.assignee ?? "").trim(),
-        )
-        .sort((a, b) => (a.scheduled_date < b.scheduled_date ? -1 : 1));
+      const all = upcoming(iv);
+      const t = tallyAssignments(all.map((x) => x.a));
+      const x = all.filter((y) => y.a.cls === "sans_intervenant");
+      const order: AssignClass[] = ["affectee", "organisation_dirigeant", "regle_airbnb", "a_confirmer", "sans_intervenant"];
       return {
         value: x.length,
-        detail: x.length
-          ? "Aucun intervenant désigné"
-          : "Toutes les interventions ont un intervenant",
-        lastChangeAt: latest(x.map((i) => i.updated_at)),
-        lines: x
-          .slice(0, 6)
-          .map((i) => ({
-            label: `${i.client_name ?? "Client"} · ${i.title}`,
-            value:
-              i.scheduled_date.slice(8, 10) +
-              "/" +
-              i.scheduled_date.slice(5, 7),
-          })),
+        detail: x.length ? "À affecter en priorité" : `${t.a_confirmer} à confirmer · aucune urgence`,
+        lastChangeAt: latest(all.map((y) => y.i.updated_at)),
+        lines: order.map((c) => ({ label: ASSIGN_LABEL[c], value: String(t[c]) })),
+      };
+    },
+  );
+  O(
+    "ops.a_confirmer",
+    "Affectation à confirmer",
+    "Interventions à venir sans intervenant enregistré, hors période du dirigeant et hors règle Airbnb",
+    (iv) => {
+      const x = upcoming(iv).filter((y) => y.a.cls === "a_confirmer");
+      const by = new Map<string, { n: number; from: string; to: string }>();
+      for (const { i } of x) {
+        const k = i.contract_label ?? i.title;
+        const e = by.get(k) ?? { n: 0, from: i.scheduled_date, to: i.scheduled_date };
+        e.n++;
+        if (i.scheduled_date < e.from) e.from = i.scheduled_date;
+        if (i.scheduled_date > e.to) e.to = i.scheduled_date;
+        by.set(k, e);
+      }
+      const fr = (d: string) => `${d.slice(8, 10)}/${d.slice(5, 7)}`;
+      return {
+        value: x.length,
+        detail: x.length ? "Intervenant à désigner, aucune règle ne s'applique" : "Rien à confirmer",
+        lastChangeAt: latest(x.map((y) => y.i.updated_at)),
+        lines: [...by.entries()].sort((a, b) => b[1].n - a[1].n).slice(0, 8).map(([k, e]) => ({ label: k, value: `${e.n} du ${fr(e.from)} au ${fr(e.to)}` })),
       };
     },
   );

@@ -3,6 +3,7 @@ import { getSettings, num, numOrNull } from "@/lib/data";
 import { isLargeAmount } from "@/lib/domain/billing";
 import { contractIssues } from "@/lib/domain/contract-check";
 import { addDays, monthOf, parisToday } from "@/lib/domain/dates";
+import { classifyAssignment } from "@/lib/jarvis/assignment";
 import { daysBetween, formatEUR } from "@/lib/utils";
 
 export type ActionTone = "red" | "orange" | "blue";
@@ -37,7 +38,7 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
     supabase.from("quote_requests").select("id", head).eq("status", "nouvelle"),
     supabase.from("quote_requests").select("id", head).eq("status", "nouvelle").lt("received_at", new Date(Date.now() - 86_400_000).toISOString()),
     supabase.from("interventions").select("id", head).eq("status", "planifie").lte("scheduled_date", today).is("invoice_id", null),
-    supabase.from("interventions").select("id", head).eq("status", "planifie").is("assignee", null).gte("scheduled_date", today).lte("scheduled_date", addDays(today, 7)),
+    supabase.from("interventions").select("id, scheduled_date, staff_id, assignee, title, clients(name), contracts(label)").eq("status", "planifie").gte("scheduled_date", today).lte("scheduled_date", addDays(today, 7)),
     supabase.from("interventions").select("id", head).eq("status", "realise").eq("billable", true).is("invoice_id", null).lt("scheduled_date", `${monthOf(today)}-01`),
     supabase.from("quotes").select("id", head).eq("status", "envoye").lt("sent_at", followupCut),
     supabase.from("clients").select("id", head).eq("status", "actif").is("email", null),
@@ -104,7 +105,10 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
   add({ key: "to_check", tone: "orange", count: toCheck.count ?? 0, label: "mission(s) « à vérifier » avant validation", href: "/missions?vue=statut&etape=a_verifier", menu: "/missions" });
   add({ key: "to_validate", tone: "orange", count: toValidate.count ?? 0, label: "mission(s) terminée(s) à valider pour pouvoir être facturée(s)", href: "/missions?vue=statut&etape=terminee", menu: "/missions" });
   add({ key: "to_confirm", tone: "orange", count: toConfirm.count ?? 0, label: "passage(s) passé(s) à confirmer (ils alimentent la facture du mois)", href: "/planning?filtre=a_confirmer", menu: "/missions" });
-  add({ key: "unassigned", tone: "orange", count: unassigned.count ?? 0, label: "mission(s) des 7 prochains jours sans intervenant", href: "/missions?vue=semaine&agent=aucun", menu: "/missions" });
+  // Règles d'affectation du dirigeant : seules les interventions réellement sans intervenant (ni enregistré, ni règle, ni période du dirigeant) sont une anomalie.
+  const week = ((unassigned.data ?? []) as any[]).map((i) => classifyAssignment({ scheduled_date: i.scheduled_date, staff_id: i.staff_id, assignee: i.assignee, title: i.title, client_name: i.clients?.name ?? null, contract_label: i.contracts?.label ?? null }, today).cls);
+  add({ key: "unassigned", tone: "orange", count: week.filter((c) => c === "sans_intervenant").length, label: "mission(s) des 7 prochains jours sans intervenant (aucune règle d'affectation ne s'applique)", href: "/missions?vue=semaine&agent=aucun", menu: "/missions" });
+  add({ key: "assign_confirm", tone: "blue", count: week.filter((c) => c === "a_confirmer").length, label: "passage(s) des 7 prochains jours dont l'intervenant est à confirmer", href: "/missions?vue=semaine&agent=aucun", menu: "/missions" });
   add({ key: "unbilled", tone: "orange", count: unbilledDone.count ?? 0, label: "prestation(s) réalisée(s) d'un mois passé jamais facturée(s)", href: "/planning?filtre=non_facturees", menu: "/missions" });
 
   const incomplete = ((contracts.data ?? []) as any[]).filter((k) => {

@@ -49,6 +49,12 @@ describe("indicateurs — Finance", () => {
     for (const id of ["fin.ca_mois", "fin.encaisse_total", "fin.en_attente", "fin.impayes"]) expect(set.kpis.find((x) => x.id === id)).toMatchObject({ value: null, reason: expect.stringContaining("permission denied") });
     expect(set.kpis.find((x) => x.id === "com.devis_attente")!.value).toBe(1);
   });
+  it("une lecture en échec est signalée comme telle (jamais confondue avec une donnée à jour)", () => {
+    const set = computeKpis(snap({ invoices: null, errors: { invoices: "boom" } }));
+    expect(set.kpis.find((x) => x.id === "fin.ca_mois")!.failed).toBe(true);
+    expect(set.kpis.find((x) => x.id === "fin.rentabilite")!.failed).toBe(false);
+    expect(set.kpis.find((x) => x.id === "com.devis_attente")!.failed ?? false).toBe(false);
+  });
   it("dépenses fournisseurs du mois", () => {
     const x = k(snap({ supplierPayments: [{ paid_on: "2026-11-02", amount: 80.5, created_at: "2026-11-02T00:00:00Z" }, { paid_on: "2026-10-30", amount: 999, created_at: "2026-10-30T00:00:00Z" }] }), "fin.depenses_mois");
     expect(x.value).toBe(80.5);
@@ -89,13 +95,14 @@ describe("indicateurs — Opérations", () => {
     ] });
     expect(k(s, "ops.a_venir")).toMatchObject({ value: 3, detail: "2 dans les 7 prochains jours" });
     expect(k(s, "ops.retard").value).toBe(1);
-    expect(k(s, "ops.non_affectees").value).toBe(1);
+    expect(k(s, "ops.a_confirmer").value).toBe(1);
     expect(k(s, "ops.realisees_mois").value).toBe(1);
     expect(k(s, "ops.annulees_mois").value).toBe(1);
   });
   it("un intervenant saisi en texte compte comme affecté", () => {
     const s = snap({ interventions: [iv({ staff_id: null, assignee: "Jean Dupont" })] });
-    expect(k(s, "ops.non_affectees").value).toBe(0);
+    expect(k(s, "ops.a_confirmer").value).toBe(0);
+    expect(k(s, "ops.sans_intervenant").value).toBe(0);
     expect(k(s, "ops.affectations_7j")).toMatchObject({ value: 1, lines: [{ label: "Jean Dupont", value: "1 intervention" }] });
   });
   it("affectations sur 7 jours : regroupées par intervenant, nom lu dans la fiche équipe", () => {

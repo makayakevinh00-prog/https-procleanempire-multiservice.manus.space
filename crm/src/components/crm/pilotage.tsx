@@ -18,16 +18,18 @@ function Tile({ k, demo, now, computedAt, open, onToggle }: { k: Kpi; demo: bool
   const f = demo ? null : freshnessOf(computedAt, now);
   return (
     <button type="button" onClick={onToggle} aria-expanded={open} title={`Source : ${k.source}`}
-      className={`flex min-w-[160px] flex-1 flex-col rounded-xl border p-2.5 text-left transition ${open ? "border-amber-300/70 bg-[#1f1a10]" : "border-white/10 bg-[#161e2e] hover:border-white/30"}`}>
+      className={`flex min-w-[176px] flex-1 flex-col rounded-xl border p-2.5 text-left transition ${open ? "border-amber-300/70 bg-[#1f1a10]" : "border-white/10 bg-[#161e2e] hover:border-white/30"}`}>
       <span className="text-[11.5px] text-slate-400">{k.label}{demo && <span className="ml-1.5 rounded bg-amber-400/15 px-1 text-[9.5px] font-bold uppercase tracking-wide text-amber-300">exemple</span>}</span>
       {v === null
         ? <span className="py-1 text-[13px] text-slate-400">non disponible</span>
         : <span className="font-mono text-xl font-semibold tabular-nums text-slate-50">{v}</span>}
       <span className="text-[11px] text-slate-400">{v === null ? k.reason : k.detail}</span>
-      <span className="mt-1 flex items-center gap-1.5 text-[10.5px] text-slate-400">
-        <i className={`inline-block h-[7px] w-[7px] rounded-full ${demo ? "bg-amber-400" : FRESH[f!.level]}`} />
-        {demo ? "exemple, rien n'est lu dans le CRM" : f!.label}
-        {!demo && k.lastChangeAt && <span className="text-slate-500">· modifié {relTime(k.lastChangeAt, now)}</span>}
+      <span className="mt-1.5 flex flex-col gap-0.5 text-[10.5px] text-slate-400">
+        <span className="flex items-center gap-1.5">
+          <i className={`inline-block h-[7px] w-[7px] shrink-0 rounded-full ${demo ? "bg-amber-400" : k.failed ? "bg-red-500" : FRESH[f!.level]}`} />
+          {demo ? "exemple, rien n'est lu dans le CRM" : k.failed ? "lecture en échec" : f!.label}
+        </span>
+        {!demo && !k.failed && k.lastChangeAt && <span className="pl-[13px] text-slate-500">modifié {relTime(k.lastChangeAt, now)}</span>}
       </span>
       {open && (
         <span className="mt-2 block border-t border-white/10 pt-2 text-[11.5px] text-slate-300">

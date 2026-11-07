@@ -22,7 +22,8 @@ export function demoKpiSet(now: Date = new Date()): KpiSet {
       k("ops.a_venir", "operations", "Interventions planifiées à venir", "int", 38, "12 dans les 7 prochains jours"),
       k("ops.realisees_mois", "operations", "Interventions réalisées ce mois", "int", 27),
       k("ops.retard", "operations", "Interventions en retard", "int", 2, "À clôturer ou à replanifier"),
-      k("ops.non_affectees", "operations", "En attente d'affectation", "int", 3, "Aucun intervenant désigné"),
+      k("ops.sans_intervenant", "operations", "Réellement sans intervenant", "int", 1, "À affecter en priorité"),
+      k("ops.a_confirmer", "operations", "Affectation à confirmer", "int", 6, "Intervenant à désigner, aucune règle ne s'applique"),
       k("ops.affectations_7j", "operations", "Intervenants mobilisés (7 jours)", "int", 4, "12 interventions affectées")
     ]
   };

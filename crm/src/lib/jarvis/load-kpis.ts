@@ -25,7 +25,7 @@ export async function loadKpis(sb: Supa, now: Date = new Date()): Promise<KpiSet
     read("quote_requests", sb.from("quote_requests").select("status, received_at").limit(5000), (r) => r),
     read("clients", sb.from("clients").select("status, created_at, updated_at").limit(5000), (c) => c),
     read("contracts", sb.from("contracts").select("status, updated_at").limit(5000), (c) => c),
-    read("interventions", sb.from("interventions").select("status, scheduled_date, staff_id, assignee, title, updated_at, clients(name)").limit(10000), (i) => ({ status: i.status, scheduled_date: i.scheduled_date, staff_id: i.staff_id, assignee: i.assignee, client_name: i.clients?.name ?? null, title: i.title, updated_at: i.updated_at })),
+    read("interventions", sb.from("interventions").select("status, scheduled_date, staff_id, assignee, title, updated_at, clients(name), contracts(label)").limit(10000), (i) => ({ status: i.status, scheduled_date: i.scheduled_date, staff_id: i.staff_id, assignee: i.assignee, client_name: i.clients?.name ?? null, contract_label: i.contracts?.label ?? null, title: i.title, updated_at: i.updated_at })),
     read("staff", sb.from("staff").select("id, full_name, active, updated_at").limit(1000), (p) => p),
     read("supplier_payments", sb.from("supplier_payments").select("paid_on, amount, created_at").limit(5000), (p) => ({ ...p, amount: num(p.amount) }))
   ]);
