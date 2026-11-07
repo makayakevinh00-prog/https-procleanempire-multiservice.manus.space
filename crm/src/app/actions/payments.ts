@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createAdmin, createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { checked, dbMessage, flash, numField, str } from "@/lib/data";
 import { syncQonto } from "@/lib/qonto";
 
@@ -11,7 +11,8 @@ export async function syncQontoAction() {
   if (!owner) flash("/paiements", "error", "Accès refusé.");
   let msg: string;
   try {
-    const r = await syncQonto(createAdmin());
+    // Session du patron (RLS) : fonctionne sans clé « service » ; l'import est réservé au propriétaire.
+    const r = await syncQonto(createClient());
     msg = `Qonto : ${r.fetched} virement(s) lu(s), ${r.inserted} nouveau(x), ${r.autoMatched} rapproché(s) automatiquement, ${r.proposed} à confirmer.`;
   } catch (e) {
     flash("/paiements", "error", (e as Error).message);
@@ -57,4 +58,16 @@ export async function addManualPaymentAction(fd: FormData) {
   if (error) flash("/paiements", "error", dbMessage(error));
   revalidatePath("/paiements");
   flash("/paiements", "ok", "Paiement ajouté.");
+}
+
+/** Synchronisation silencieuse (appelée à l'ouverture de la page et toutes les 5 minutes tant qu'elle reste ouverte). Ne produit aucun message. */
+export async function syncQontoQuietAction(): Promise<{ ok: boolean; inserted: number; error?: string }> {
+  await requireOwner();
+  try {
+    const r = await syncQonto(createClient());
+    if (r.inserted > 0) { revalidatePath("/paiements"); revalidatePath("/"); }
+    return { ok: true, inserted: r.inserted };
+  } catch (e) {
+    return { ok: false, inserted: 0, error: (e as Error).message.slice(0, 200) };
+  }
 }

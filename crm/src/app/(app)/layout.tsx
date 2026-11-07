@@ -4,6 +4,7 @@ import { loadActions, menuCountsFrom } from "@/lib/actions";
 import { Sidebar } from "@/components/crm/nav";
 import { Topbar } from "@/components/crm/topbar";
 import { Flash } from "@/components/crm/flash";
+import { QontoAutoSync } from "@/components/crm/qonto-auto";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const [counts, { data }] = await Promise.all([menuCounts(), createClient().auth.getUser()]);
   return (
     <div className="min-h-screen">
+      {(process.env.QONTO_ACCESS_TOKEN || (process.env.QONTO_ORGANIZATION_SLUG && process.env.QONTO_SECRET_KEY)) && <QontoAutoSync />}
       <Sidebar signOut={signOut} counts={counts} />
       <div className="md:ml-64">
         <Topbar actionsCount={counts["/actions"] ?? 0} email={data.user?.email ?? ""} signOut={signOut} />

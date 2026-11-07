@@ -20,17 +20,38 @@ async function qonto<T>(path: string, params: URLSearchParams = new URLSearchPar
 interface QontoTx {
   transaction_id: string; amount: number; currency: string; side: string; status: string;
   label: string | null; reference: string | null; settled_at: string | null; emitted_at: string | null;
+  operation_type?: string | null; income?: { counterparty_account_number?: string | null } | null;
+}
+
+/**
+ * Seuls les encaissements de clients sont des « paiements » : on écarte les remboursements de carte
+ * (ex. Leroy Merlin, Getaround) et les virements internes entre vos propres comptes (principal ↔ TVA).
+ */
+export function isCustomerPayment(t: QontoTx, ownIbans: string[] = []): boolean {
+  if (t.side !== "credit" || t.amount <= 0) return false;
+  if (t.operation_type === "card") return false;
+  if (/virement interne/i.test(t.reference ?? "")) return false;
+  const from = t.income?.counterparty_account_number?.replace(/\s/g, "");
+  if (from && ownIbans.some((i) => i.replace(/\s/g, "") === from)) return false;
+  return true;
 }
 
 async function bankAccountParams(): Promise<URLSearchParams> {
   const p = new URLSearchParams();
   if (process.env.QONTO_IBAN) { p.set("iban", process.env.QONTO_IBAN); return p; }
-  const org = await qonto<{ organization: { bank_accounts: { id: string; main?: boolean }[] } }>("/organization");
+  const org = await qonto<{ organization: { bank_accounts: { id: string; main?: boolean; iban?: string }[] } }>("/organization");
   const accounts = org.organization.bank_accounts;
   const main = accounts.find((a) => a.main) ?? accounts[0];
   if (!main) throw new Error("Aucun compte bancaire Qonto trouvé.");
   p.set("bank_account_id", main.id);
   return p;
+}
+
+async function ownIbans(): Promise<string[]> {
+  try {
+    const org = await qonto<{ organization: { bank_accounts: { iban?: string }[] } }>("/organization");
+    return org.organization.bank_accounts.map((a) => a.iban ?? "").filter(Boolean);
+  } catch { return []; }
 }
 
 /** Virements reçus (crédits terminés) depuis `since` (ISO). Pagination protégée contre les boucles. */
@@ -61,7 +82,8 @@ export interface SyncReport { fetched: number; inserted: number; autoMatched: nu
 /** Importe les virements, rapproche automatiquement SEULEMENT les cas certains (n° de facture + montant exact). */
 export async function syncQonto(db: SupabaseClient, sinceDays = 90): Promise<SyncReport> {
   const since = new Date(Date.now() - sinceDays * 86_400_000).toISOString();
-  const txs = await fetchCredits(since);
+  const [all, ibans] = await Promise.all([fetchCredits(since), ownIbans()]);
+  const txs = all.filter((t) => isCustomerPayment(t, ibans));
   const report: SyncReport = { fetched: txs.length, inserted: 0, autoMatched: 0, proposed: 0 };
   if (!txs.length) return report;
 
