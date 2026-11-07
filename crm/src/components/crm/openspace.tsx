@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { instructAgentAction } from "@/app/actions/jarvis";
 import { AGENT_BY_KEY } from "@/lib/jarvis/registry";
-import { demoState, relTime, type Activity, type Desk, type FeedItem, type OpenSpaceState } from "@/lib/jarvis/openspace";
+import { relTime, type Activity, type Desk, type FeedItem, type OpenSpaceState } from "@/lib/jarvis/openspace";
 import type { AgentKey } from "@/lib/jarvis/types";
 
 /** Position de chaque poste dans le bureau (3 × 3) : JARVIS Core au centre, les départements autour. */
@@ -74,7 +74,7 @@ function DeskCard({ d, selected, onSelect }: { d: Desk; selected: boolean; onSel
   );
 }
 
-export function OpenSpace({ initial, selectedKey, forcedDemo }: { initial: OpenSpaceState; selectedKey?: string; forcedDemo?: boolean }) {
+export function OpenSpace({ initial, selectedKey, forcedDemo, demoNext }: { initial: OpenSpaceState; selectedKey?: string; forcedDemo?: boolean; demoNext?: (tick: number, now: Date) => OpenSpaceState }) {
   const [state, setState] = useState<OpenSpaceState>(initial);
   const [selected, setSelected] = useState<AgentKey>((selectedKey && selectedKey in AGENT_BY_KEY ? selectedKey : "finance") as AgentKey);
   const [now, setNow] = useState(() => Date.parse(initial.generatedAt));
@@ -89,7 +89,7 @@ export function OpenSpace({ initial, selectedKey, forcedDemo }: { initial: OpenS
 
   useEffect(() => {
     if (demo) {
-      const id = setInterval(() => { tick.current += 1; setState(demoState(tick.current, new Date())); }, 3500);
+      const id = setInterval(() => { tick.current += 1; if (demoNext) setState(demoNext(tick.current, new Date())); }, 3500);
       return () => clearInterval(id);
     }
     let stop = false;

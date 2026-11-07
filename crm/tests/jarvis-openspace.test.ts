@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildOpenSpaceState, demoState, relTime, RECENT_MS, type Rows } from "@/lib/jarvis/openspace";
+import { buildOpenSpaceState, relTime, RECENT_MS, type Rows } from "@/lib/jarvis/openspace";
+import { demoState } from "@/lib/jarvis/demo/demo-state";
 import { AGENTS } from "@/lib/jarvis/registry";
 
 const NOW = new Date("2026-11-07T12:00:00Z");
