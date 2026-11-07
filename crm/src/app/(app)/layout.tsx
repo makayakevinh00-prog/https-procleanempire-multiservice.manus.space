@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isOwner } from "@/lib/auth";
 import { loadActions, menuCountsFrom } from "@/lib/actions";
 import { Sidebar } from "@/components/crm/nav";
 import { Topbar } from "@/components/crm/topbar";
@@ -21,6 +22,18 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     "use server";
     await createClient().auth.signOut();
     redirect("/login");
+  }
+  // Porte d'entrée : tout autre compte que celui du patron n'obtient aucune page ni aucun chiffre (la base refuse déjà ses lectures).
+  if (!(await isOwner())) {
+    return (
+      <main className="mx-auto max-w-md px-6 py-24 text-center">
+        <h1 className="text-xl font-bold">Accès refusé</h1>
+        <p className="mt-3 text-sm text-slate-600">Ce compte n&apos;a pas accès à cet espace.</p>
+        <form action={signOut} className="mt-6">
+          <button className="rounded-md border px-4 py-2 text-sm font-semibold">Se déconnecter</button>
+        </form>
+      </main>
+    );
   }
   const [counts, { data }] = await Promise.all([menuCounts(), createClient().auth.getUser()]);
   return (

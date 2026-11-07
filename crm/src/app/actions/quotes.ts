@@ -1,5 +1,6 @@
 "use server";
 
+import { requireOwner } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { checked, dbMessage, flash, str } from "@/lib/data";
@@ -15,6 +16,7 @@ import { formatEUR, formatDate } from "@/lib/utils";
 import { contractIssues } from "@/lib/domain/contract-check";
 
 export async function createQuoteAction(fd: FormData) {
+  await requireOwner();
   const back = "/devis/new";
   const clientId = str(fd, "client_id");
   if (!clientId) flash(back, "error", "Choisissez un client.");
@@ -37,6 +39,7 @@ export async function createQuoteAction(fd: FormData) {
 }
 
 export async function updateQuoteAction(id: string, fd: FormData) {
+  await requireOwner();
   const back = `/devis/${id}/edit`;
   const supabase = createClient();
   const { data: cur } = await supabase.from("quotes").select("status, invoice_id, client_id").eq("id", id).single();
@@ -56,6 +59,7 @@ export async function updateQuoteAction(id: string, fd: FormData) {
 }
 
 export async function setQuoteStatusAction(id: string, status: "envoye" | "accepte" | "refuse" | "brouillon" | "expire", fd: FormData) {
+  await requireOwner();
   const back = `/devis/${id}`;
   const supabase = createClient();
   const { data: q } = await supabase.from("quotes").select("client_id, invoice_id").eq("id", id).single();
@@ -72,6 +76,7 @@ export async function setQuoteStatusAction(id: string, status: "envoye" | "accep
 
 /** Crée une facture BROUILLON. La validation reste manuelle sur la facture (règle 2). */
 export async function convertQuoteAction(id: string, fd: FormData) {
+  await requireOwner();
   const back = `/devis/${id}`;
   const { data, error } = await createClient().rpc("convert_quote_to_invoice", {
     p_quote_id: id, p_ack_large: checked(fd, "ack_large"), p_ack_reserved: checked(fd, "ack_reserved")
@@ -84,6 +89,7 @@ export async function convertQuoteAction(id: string, fd: FormData) {
 
 /** Envoie le devis (PDF joint) par e-mail puis le passe en « envoyé ». */
 export async function sendQuoteEmailAction(id: string, fd: FormData) {
+  await requireOwner();
   const back = `/devis/${id}`;
   const supabase = createClient();
   const { data: q } = await supabase.from("quotes").select("*, clients(name, email, is_reserved)").eq("id", id).maybeSingle();
@@ -107,6 +113,7 @@ export async function sendQuoteEmailAction(id: string, fd: FormData) {
 
 /** Relance manuelle immédiate d'un devis envoyé (ne dépend pas du délai automatique). */
 export async function followupQuoteNowAction(id: string, fd: FormData) {
+  await requireOwner();
   const back = `/devis/${id}`;
   const supabase = createClient();
   const { data: q } = await supabase.from("quotes").select("*, clients(name, email, is_reserved)").eq("id", id).maybeSingle();
@@ -130,6 +137,7 @@ export async function followupQuoteNowAction(id: string, fd: FormData) {
  * Le contrat reste « en cours » ; le message indique exactement ce qui manque pour l'activer.
  */
 export async function createContractFromQuoteAction(id: string, fd: FormData) {
+  await requireOwner();
   const back = `/devis/${id}`;
   const supabase = createClient();
   const { data: q } = await supabase.from("quotes").select("number, subject, status, client_id, contract_id, total_ht").eq("id", id).maybeSingle();
@@ -155,6 +163,7 @@ export async function createContractFromQuoteAction(id: string, fd: FormData) {
  * Contact réservé : confirmation explicite. La ligne complète reste consultable dans le journal des modifications.
  */
 export async function deleteQuoteAction(id: string, fd: FormData) {
+  await requireOwner();
   const back = `/devis/${id}`;
   const supabase = createClient();
   const { data: q } = await supabase.from("quotes").select("number, client_id, status, invoice_id, invoices:invoice_id(status, number)").eq("id", id).maybeSingle();

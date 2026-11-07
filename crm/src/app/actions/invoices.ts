@@ -1,5 +1,6 @@
 "use server";
 
+import { requireOwner } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { checked, dbMessage, flash, getSettings, str } from "@/lib/data";
@@ -15,6 +16,7 @@ import { syncQonto } from "@/lib/qonto";
 import { createAdmin } from "@/lib/supabase/server";
 
 export async function createInvoiceAction(fd: FormData) {
+  await requireOwner();
   const back = "/factures/new";
   const clientId = str(fd, "client_id");
   if (!clientId) flash(back, "error", "Choisissez un client.");
@@ -36,6 +38,7 @@ export async function createInvoiceAction(fd: FormData) {
 }
 
 export async function updateInvoiceAction(id: string, fd: FormData) {
+  await requireOwner();
   const back = `/factures/${id}/edit`;
   const supabase = createClient();
   const { data: cur } = await supabase.from("invoices").select("status, client_id").eq("id", id).single();
@@ -53,6 +56,7 @@ export async function updateInvoiceAction(id: string, fd: FormData) {
 }
 
 export async function deleteDraftAction(id: string) {
+  await requireOwner();
   const { error } = await createClient().from("invoices").delete().eq("id", id);
   if (error) flash(`/factures/${id}`, "error", dbMessage(error));
   revalidatePath("/factures");
@@ -71,6 +75,7 @@ const mailText = (inv: { number: string; total_ttc: number | string; due_date: s
  * (virement Qonto rapproché : la facture part « acquittée », sans relance).
  */
 export async function validateInvoiceAction(id: string, fd: FormData) {
+  await requireOwner();
   const back = `/factures/${id}`;
   const supabase = createClient();
   const sendEmail = checked(fd, "send_email");
@@ -112,6 +117,7 @@ export async function validateInvoiceAction(id: string, fd: FormData) {
 
 /** Renvoyer une facture déjà émise (à une ou plusieurs adresses, ou à toutes). Ne change ni son numéro ni son statut. */
 export async function resendInvoiceAction(id: string, fd: FormData) {
+  await requireOwner();
   const back = `/factures/${id}`;
   const supabase = createClient();
   const { list: to, invalid } = pickRecipients(fd);
@@ -144,6 +150,7 @@ export async function syncQontoForInvoiceAction(id: string) {
 }
 
 export async function cancelInvoiceAction(id: string, fd: FormData) {
+  await requireOwner();
   const back = `/factures/${id}`;
   const { error } = await createClient().rpc("cancel_invoice", { p_invoice_id: id, p_reason: str(fd, "reason") ?? "" });
   if (error) flash(back, "error", error.message.includes("MOTIF_REQUIS") ? "Indiquez un motif d'annulation." : dbMessage(error));
@@ -153,6 +160,7 @@ export async function cancelInvoiceAction(id: string, fd: FormData) {
 
 /** Relance manuelle : la base vérifie l'historique avant d'enregistrer (règle 3). */
 export async function remindInvoiceAction(id: string, fd: FormData) {
+  await requireOwner();
   const back = `/factures/${id}`;
   const supabase = createClient();
   const channel = str(fd, "channel") ?? "email";
@@ -192,6 +200,7 @@ export async function remindInvoiceAction(id: string, fd: FormData) {
  * Enregistre aussi la date de prestation sur la facture. Action volontaire, jamais automatique.
  */
 export async function sendMandateInvoiceAction(id: string, fd: FormData) {
+  await requireOwner();
   const back = `/factures/${id}`;
   const supabase = createClient();
   const { list: to, invalid } = pickRecipients(fd);

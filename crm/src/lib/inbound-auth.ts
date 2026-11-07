@@ -1,3 +1,4 @@
+import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 /** Fenêtre de validité d'une requête signée : bloque le rejeu d'une requête interceptée. */

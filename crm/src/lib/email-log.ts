@@ -1,3 +1,4 @@
+import "server-only";
 import type { createClient } from "@/lib/supabase/server";
 
 /** Trace d'un e-mail envoyé depuis l'interface (jamais bloquante). */

@@ -1,11 +1,13 @@
 "use server";
 
+import { requireOwner } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { dbMessage, flash, numField, str } from "@/lib/data";
 import { parsePrices } from "@/lib/supplier-prices";
 
 export async function saveSupplierAction(id: string | null, fd: FormData) {
+  await requireOwner();
   const name = str(fd, "name");
   const back = id ? `/fournisseurs/${id}` : "/fournisseurs";
   if (!name) flash(back, "error", "Le nom est obligatoire.");
@@ -28,6 +30,7 @@ export async function saveSupplierAction(id: string | null, fd: FormData) {
 }
 
 export async function deleteSupplierAction(id: string) {
+  await requireOwner();
   const { error } = await createClient().from("suppliers").delete().eq("id", id);
   if (error) flash(`/fournisseurs/${id}`, "error", dbMessage(error));
   revalidatePath("/fournisseurs");
@@ -35,6 +38,7 @@ export async function deleteSupplierAction(id: string) {
 }
 
 export async function addSupplierPaymentAction(id: string, fd: FormData) {
+  await requireOwner();
   const back = `/fournisseurs/${id}`;
   const amount = numField(fd, "amount");
   const paid_on = str(fd, "paid_on");
@@ -46,6 +50,7 @@ export async function addSupplierPaymentAction(id: string, fd: FormData) {
 }
 
 export async function deleteSupplierPaymentAction(supplierId: string, paymentId: string) {
+  await requireOwner();
   const { error } = await createClient().from("supplier_payments").delete().eq("id", paymentId);
   if (error) flash(`/fournisseurs/${supplierId}`, "error", dbMessage(error));
   revalidatePath(`/fournisseurs/${supplierId}`);

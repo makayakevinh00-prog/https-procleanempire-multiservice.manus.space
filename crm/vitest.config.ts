@@ -3,5 +3,11 @@ import path from "node:path";
 
 export default defineConfig({
   test: { include: ["tests/**/*.test.ts"], testTimeout: 30000 },
-  resolve: { alias: { "@": path.resolve(__dirname, "src") } }
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "src"),
+      // Le paquet "server-only" lève une erreur hors du serveur Next : on le neutralise pour les tests.
+      "server-only": path.resolve(__dirname, "tests/stubs/server-only.ts")
+    }
+  }
 });

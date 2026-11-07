@@ -1,10 +1,12 @@
 "use server";
 
+import { requireOwner } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { checked, dbMessage, flash, numField, str } from "@/lib/data";
 
 export async function saveServiceAction(id: string | null, fd: FormData) {
+  await requireOwner();
   const name = str(fd, "name");
   const price = numField(fd, "unit_price_ht");
   if (!name) flash("/catalogue", "error", "Le nom est obligatoire.");
@@ -21,6 +23,7 @@ export async function saveServiceAction(id: string | null, fd: FormData) {
 }
 
 export async function toggleServiceAction(id: string, active: boolean) {
+  await requireOwner();
   const { error } = await createClient().from("services").update({ active }).eq("id", id);
   if (error) flash("/catalogue", "error", dbMessage(error));
   revalidatePath("/catalogue");

@@ -1,5 +1,6 @@
 "use server";
 
+import { requireOwner } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createAdmin, createClient } from "@/lib/supabase/server";
 import { checked, dbMessage, flash, numField, str } from "@/lib/data";
@@ -22,6 +23,7 @@ export async function syncQontoAction() {
 }
 
 export async function reconcileAction(paymentId: string, fd: FormData) {
+  await requireOwner();
   const invoiceId = str(fd, "invoice_id");
   if (!invoiceId) flash("/paiements", "error", "Choisissez une facture.");
   const { error } = await createClient().rpc("reconcile_payment", {
@@ -34,6 +36,7 @@ export async function reconcileAction(paymentId: string, fd: FormData) {
 }
 
 export async function unreconcileAction(paymentId: string) {
+  await requireOwner();
   const { error } = await createClient().rpc("unreconcile_payment", { p_payment_id: paymentId });
   if (error) flash("/paiements", "error", dbMessage(error));
   revalidatePath("/paiements");
@@ -41,6 +44,7 @@ export async function unreconcileAction(paymentId: string) {
 }
 
 export async function ignorePaymentAction(paymentId: string) {
+  await requireOwner();
   const { error } = await createClient().from("payments").update({ match_status: "ignore", suggested_invoice_id: null }).eq("id", paymentId).neq("match_status", "rapproche");
   if (error) flash("/paiements", "error", dbMessage(error));
   revalidatePath("/paiements");
@@ -48,6 +52,7 @@ export async function ignorePaymentAction(paymentId: string) {
 }
 
 export async function addManualPaymentAction(fd: FormData) {
+  await requireOwner();
   const amount = numField(fd, "amount");
   if (!amount || amount <= 0) flash("/paiements", "error", "Montant invalide.");
   const { error } = await createClient().from("payments").insert({

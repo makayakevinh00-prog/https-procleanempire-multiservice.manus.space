@@ -1,5 +1,6 @@
 "use server";
 
+import { requireOwner } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { checked, dbMessage, flash, numField, str } from "@/lib/data";
@@ -17,6 +18,7 @@ const refresh = () => { for (const p of ["/", "/clients", "/contrats", "/sites",
 
 // ───────────── Clients ─────────────
 export async function deleteClientAction(id: string, fd: FormData) {
+  await requireOwner();
   const back = `/clients/${id}`;
   const sb = createClient();
   const { data: c } = await sb.from("clients").select("name").eq("id", id).maybeSingle();
@@ -38,6 +40,7 @@ export async function deleteClientAction(id: string, fd: FormData) {
 }
 
 export async function archiveClientAction(id: string, archive: boolean) {
+  await requireOwner();
   const { error } = await createClient().from("clients").update({ status: archive ? "inactif" : "actif", ...(archive ? { auto_send_invoices: false } : {}) }).eq("id", id);
   if (error) flash(`/clients/${id}`, "error", dbMessage(error));
   refresh();
@@ -45,6 +48,7 @@ export async function archiveClientAction(id: string, archive: boolean) {
 }
 
 export async function deleteInteractionAction(id: string, clientId: string) {
+  await requireOwner();
   const { error } = await createClient().from("interactions").delete().eq("id", id);
   if (error) flash(`/clients/${clientId}`, "error", dbMessage(error));
   revalidatePath(`/clients/${clientId}`);
@@ -53,6 +57,7 @@ export async function deleteInteractionAction(id: string, clientId: string) {
 
 // ───────────── Contrats, sites, équipe, catalogue ─────────────
 export async function deleteContractAction(id: string, fd: FormData) {
+  await requireOwner();
   const back = `/contrats/${id}`;
   const sb = createClient();
   const { data: k } = await sb.from("contracts").select("label, client_id").eq("id", id).maybeSingle();
@@ -68,6 +73,7 @@ export async function deleteContractAction(id: string, fd: FormData) {
 }
 
 export async function deleteSiteAction(id: string) {
+  await requireOwner();
   const sb = createClient();
   const { data: s } = await sb.from("sites").select("name").eq("id", id).maybeSingle();
   const { error } = await sb.from("sites").delete().eq("id", id);
@@ -77,6 +83,7 @@ export async function deleteSiteAction(id: string) {
 }
 
 export async function deleteStaffAction(id: string) {
+  await requireOwner();
   const sb = createClient();
   const { data: s } = await sb.from("staff").select("full_name").eq("id", id).maybeSingle();
   const { error } = await sb.from("staff").delete().eq("id", id);
@@ -86,6 +93,7 @@ export async function deleteStaffAction(id: string) {
 }
 
 export async function deleteServiceAction(id: string) {
+  await requireOwner();
   const { error } = await createClient().from("services").delete().eq("id", id);
   if (error) flash("/catalogue", "error", dbMessage(error));
   refresh();
@@ -94,6 +102,7 @@ export async function deleteServiceAction(id: string) {
 
 // ───────────── Paiements, demandes ─────────────
 export async function deletePaymentAction(id: string) {
+  await requireOwner();
   const sb = createClient();
   const { data: p } = await sb.from("payments").select("match_status").eq("id", id).maybeSingle();
   if (p?.match_status === "rapproche") flash("/paiements", "error", "Ce paiement est rapproché d'une facture : annulez d'abord le rapprochement.");
@@ -104,6 +113,7 @@ export async function deletePaymentAction(id: string) {
 }
 
 export async function deleteRequestAction(id: string) {
+  await requireOwner();
   const { error } = await createClient().from("quote_requests").delete().eq("id", id);
   if (error) flash("/demandes", "error", dbMessage(error));
   refresh();
@@ -112,6 +122,7 @@ export async function deleteRequestAction(id: string) {
 
 // ───────────── Missions : modifier et supprimer ─────────────
 export async function updateMissionAction(id: string, fd: FormData) {
+  await requireOwner();
   const back = `/missions/${id}`;
   const sb = createClient();
   const { data: m } = await sb.from("interventions").select("invoice_id").eq("id", id).maybeSingle();
@@ -132,6 +143,7 @@ export async function updateMissionAction(id: string, fd: FormData) {
 }
 
 export async function deleteMissionAction(id: string) {
+  await requireOwner();
   const back = `/missions/${id}`;
   const { error } = await createClient().from("interventions").delete().eq("id", id);
   if (error) flash(back, "error", dbMessage(error));
@@ -142,6 +154,7 @@ export async function deleteMissionAction(id: string) {
 // ───────────── Journal : e-mails en échec ─────────────
 /** Marque les e-mails en échec comme « traités » : l'alerte Urgent disparaît, l'historique reste dans le Journal. */
 export async function dismissMailFailuresAction() {
+  await requireOwner();
   const { error } = await createClient().from("email_log").update({ acknowledged: true }).eq("ok", false).eq("acknowledged", false);
   if (error) flash("/journal", "error", dbMessage(error));
   refresh();

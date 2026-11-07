@@ -1,3 +1,4 @@
+import "server-only";
 /** Envoi via Resend. Sans RESEND_API_KEY, rien ne part et l'appelant en est informé (jamais d'échec silencieux). */
 export interface MailInput {
   to: string | string[];

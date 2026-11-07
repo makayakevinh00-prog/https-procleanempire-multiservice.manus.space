@@ -1,5 +1,6 @@
 "use server";
 
+import { requireOwner } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { dbMessage, flash, numField, str } from "@/lib/data";
@@ -36,6 +37,7 @@ function payload(fd: FormData, back: string) {
 }
 
 export async function createContractAction(fd: FormData) {
+  await requireOwner();
   const { data, error } = await createClient().from("contracts").insert(payload(fd, "/contrats/new")).select("id").single();
   if (error) flash("/contrats/new", "error", dbMessage(error));
   revalidatePath("/contrats");
@@ -43,6 +45,7 @@ export async function createContractAction(fd: FormData) {
 }
 
 export async function updateContractAction(id: string, fd: FormData) {
+  await requireOwner();
   const back = `/contrats/${id}`;
   const { error } = await createClient().from("contracts").update(payload(fd, back)).eq("id", id);
   if (error) flash(back, "error", dbMessage(error));
@@ -52,6 +55,7 @@ export async function updateContractAction(id: string, fd: FormData) {
 }
 
 export async function terminateContractAction(id: string) {
+  await requireOwner();
   const today = new Date().toISOString().slice(0, 10);
   const { error } = await createClient().from("contracts").update({ status: "resilie", end_date: today }).eq("id", id);
   if (error) flash(`/contrats/${id}`, "error", dbMessage(error));

@@ -1,5 +1,6 @@
 "use server";
 
+import { requireOwner } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { checked, dbMessage, flash, str } from "@/lib/data";
@@ -20,6 +21,7 @@ function payload(fd: FormData) {
 }
 
 export async function createClientAction(fd: FormData) {
+  await requireOwner();
   const { data, error } = await createClient().from("clients").insert(payload(fd)).select("id").single();
   if (error) flash("/clients/new", "error", error.code === "23505" ? "Un client porte déjà ce nom." : dbMessage(error));
   revalidatePath("/clients");
@@ -27,6 +29,7 @@ export async function createClientAction(fd: FormData) {
 }
 
 export async function updateClientAction(id: string, fd: FormData) {
+  await requireOwner();
   const { error } = await createClient().from("clients").update(payload(fd)).eq("id", id);
   if (error) flash(`/clients/${id}/edit`, "error", error.code === "23505" ? "Un client porte déjà ce nom." : dbMessage(error));
   revalidatePath("/clients");
@@ -34,6 +37,7 @@ export async function updateClientAction(id: string, fd: FormData) {
 }
 
 export async function addInteractionAction(clientId: string, fd: FormData) {
+  await requireOwner();
   const summary = str(fd, "summary");
   if (!summary) flash(`/clients/${clientId}`, "error", "Le résumé est obligatoire.");
   const { error } = await createClient().from("interactions").insert({ client_id: clientId, kind: str(fd, "kind") ?? "note", summary });
@@ -43,6 +47,7 @@ export async function addInteractionAction(clientId: string, fd: FormData) {
 }
 
 export async function setPipelineAction(clientId: string, fd: FormData) {
+  await requireOwner();
   const v = str(fd, "pipeline");
   const allowed = ["nouveau_prospect", "a_contacter", "rdv_programme", "devis_envoye", "devis_accepte", "devis_refuse", "client_actif"];
   if (v !== null && !allowed.includes(v)) flash(`/clients/${clientId}`, "error", "Étape inconnue.");
@@ -55,6 +60,7 @@ export async function setPipelineAction(clientId: string, fd: FormData) {
 
 // ───────────── Adresses e-mail supplémentaires ─────────────
 export async function addClientEmailAction(clientId: string, fd: FormData) {
+  await requireOwner();
   const back = `/clients/${clientId}`;
   const email = String(fd.get("email") ?? "").trim();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) flash(back, "error", "Adresse e-mail invalide.");
@@ -66,6 +72,7 @@ export async function addClientEmailAction(clientId: string, fd: FormData) {
 }
 
 export async function deleteClientEmailAction(clientId: string, id: string) {
+  await requireOwner();
   const back = `/clients/${clientId}`;
   const { error } = await createClient().from("client_emails").delete().eq("id", id);
   if (error) flash(back, "error", dbMessage(error));
@@ -74,6 +81,7 @@ export async function deleteClientEmailAction(clientId: string, id: string) {
 }
 
 export async function toggleClientEmailInvoicesAction(clientId: string, id: string, value: boolean) {
+  await requireOwner();
   const back = `/clients/${clientId}`;
   const { error } = await createClient().from("client_emails").update({ for_invoices: value }).eq("id", id);
   if (error) flash(back, "error", dbMessage(error));

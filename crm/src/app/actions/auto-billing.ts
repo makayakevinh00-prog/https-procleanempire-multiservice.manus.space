@@ -1,5 +1,6 @@
 "use server";
 
+import { requireOwner } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { automationClient, automationSecret } from "@/lib/automation/deps";
@@ -13,6 +14,7 @@ import { logEmail } from "@/lib/email-log";
 
 /** Prépare MAINTENANT les factures brouillon du mois (jamais validées ni envoyées ici). */
 export async function generateDraftsNowAction(month: string) {
+  await requireOwner();
   const sb = automationClient();
   let secret: string;
   try { secret = automationSecret(); } catch (e) { flash("/facturation-auto", "error", (e as Error).message); }
@@ -37,6 +39,7 @@ export async function generateDraftsNowAction(month: string) {
 
 /** Active / désactive l'envoi automatique pour tous les clients (contacts réservés toujours exclus). */
 export async function setAutoSendAllAction(on: boolean) {
+  await requireOwner();
   const { data, error } = await createClient().from("clients").update({ auto_send_invoices: on }).eq("is_reserved", false).neq("status", "inactif").select("id");
   if (error) flash("/facturation-auto", "error", dbMessage(error));
   revalidatePath("/facturation-auto");
@@ -45,6 +48,7 @@ export async function setAutoSendAllAction(on: boolean) {
 
 /** Envoie à l'adresse de notification un e-mail identique à celui d'une facture (PDF d'exemple) pour vérifier toute la chaîne. */
 export async function sendTestEmailAction() {
+  await requireOwner();
   const supabase = createClient();
   const settings = await getSettings(supabase);
   const to = settings.notify_email || settings.company_email;
@@ -64,6 +68,7 @@ export async function sendTestEmailAction() {
 }
 
 export async function toggleClientAutoSendAction(clientId: string, on: boolean) {
+  await requireOwner();
   const { error } = await createClient().from("clients").update({ auto_send_invoices: on }).eq("id", clientId).eq("is_reserved", false);
   if (error) flash("/facturation-auto", "error", dbMessage(error));
   revalidatePath("/facturation-auto");

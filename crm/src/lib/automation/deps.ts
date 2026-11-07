@@ -1,3 +1,4 @@
+import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import { noStoreFetch } from "@/lib/supabase/no-store";
 import { mailConfigured, sendMail } from "@/lib/mail";

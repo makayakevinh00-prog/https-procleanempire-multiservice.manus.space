@@ -1,10 +1,12 @@
 "use server";
 
+import { requireOwner } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { checked, dbMessage, flash, numField, str } from "@/lib/data";
 
 export async function saveSettingsAction(fd: FormData) {
+  await requireOwner();
   const n = (k: string, fallback: number) => numField(fd, k) ?? fallback;
   const green = n("recruit_green_max_hours", 30);
   const orange = n("recruit_orange_max_hours", 35);

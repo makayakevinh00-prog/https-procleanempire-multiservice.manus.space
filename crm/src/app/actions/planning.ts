@@ -1,5 +1,6 @@
 "use server";
 
+import { requireOwner } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { checked, dbMessage, flash, numField, str } from "@/lib/data";
@@ -9,6 +10,7 @@ import { monthBounds, monthOf, parisToday } from "@/lib/domain/dates";
 const back = (month: string) => `/planning?mois=${month}`;
 
 export async function addInterventionAction(fd: FormData) {
+  await requireOwner();
   const date = str(fd, "scheduled_date");
   const clientId = str(fd, "client_id");
   const month = date ? monthOf(date) : monthOf(parisToday());
@@ -36,6 +38,7 @@ export async function addInterventionAction(fd: FormData) {
 }
 
 export async function setInterventionStatusAction(id: string, status: "planifie" | "realise" | "annule", month: string) {
+  await requireOwner();
   const { error } = await createClient().from("interventions").update({ status }).eq("id", id);
   if (error) flash(back(month), "error", dbMessage(error));
   revalidatePath("/planning");
@@ -43,6 +46,7 @@ export async function setInterventionStatusAction(id: string, status: "planifie"
 }
 
 export async function deleteInterventionAction(id: string, month: string) {
+  await requireOwner();
   const { error } = await createClient().from("interventions").delete().eq("id", id);
   if (error) flash(back(month), "error", dbMessage(error));
   revalidatePath("/planning");
@@ -51,6 +55,7 @@ export async function deleteInterventionAction(id: string, month: string) {
 
 /** Crée les passages du mois d'après les jours de la semaine des contrats actifs (sans doublon). */
 export async function generateFromContractsAction(month: string) {
+  await requireOwner();
   const supabase = createClient();
   const { data: contracts, error } = await supabase.from("contracts").select("*").eq("status", "actif").not("weekdays", "is", null);
   if (error) flash(back(month), "error", dbMessage(error));
@@ -67,6 +72,7 @@ export async function generateFromContractsAction(month: string) {
 
 /** Confirme en bloc les passages planifiés dont la date est passée. */
 export async function markPastDoneAction(month: string) {
+  await requireOwner();
   const { start, end } = monthBounds(month);
   const today = parisToday();
   const upto = end < today ? end : today;
