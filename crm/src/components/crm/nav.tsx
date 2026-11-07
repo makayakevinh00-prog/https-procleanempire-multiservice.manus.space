@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Home, ListChecks, Users, MapPin, ClipboardList, FileText, Receipt, UserCog, Package, Settings, LogOut, Bell, Search, X, LayoutGrid, Truck } from "lucide-react";
+import { Home, ListChecks, Users, MapPin, ClipboardList, FileText, Receipt, UserCog, Package, Settings, LogOut, Bell, Search, X, LayoutGrid, Truck, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Item = { href: string; label: string; icon: any; color: string; children?: { href: string; label: string }[] };
@@ -15,6 +15,9 @@ const GROUPS: Group[] = [
   { items: [
     { href: "/", label: "Accueil", icon: Home, color: "text-sky-400" },
     { href: "/actions", label: "Actions à faire", icon: ListChecks, color: "text-amber-400" }
+  ] },
+  { title: "Direction", items: [
+    { href: "/jarvis", label: "JARVIS", icon: Bot, color: "text-fuchsia-400" }
   ] },
   { title: "Commercial", items: [
     { href: "/clients", label: "Clients", icon: Users, color: "text-violet-400", children: [{ href: "/demandes", label: "Demandes du site" }] },
