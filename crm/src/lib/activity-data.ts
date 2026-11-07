@@ -11,11 +11,15 @@ export async function selectResilient<T = any>(run: (cols: string) => PromiseLik
 
 const num = (v: unknown) => (v === null || v === undefined ? 0 : Number(v));
 /** Montant mensuel HT d'un contrat : mensuel, ou prix par passage × fréquence × 52 / 12. */
-export const monthlyOf = (k: any) => (k.monthly_amount_ht != null ? num(k.monthly_amount_ht) : k.per_visit_amount_ht != null && k.visits_per_week != null ? (num(k.per_visit_amount_ht) * num(k.visits_per_week) * 52) / 12 : 0);
+export const monthlyOf = (k: any) =>
+  k.monthly_amount_ht != null ? num(k.monthly_amount_ht)
+  : k.per_visit_amount_ht != null && k.visits_per_week != null ? (num(k.per_visit_amount_ht) * num(k.visits_per_week) * 52) / 12
+  : k.commission_pct != null && k.commission_base_ht != null ? (num(k.commission_pct) / 100) * num(k.commission_base_ht)   // gestion : commission × revenus locatifs estimés
+  : 0;
 
 /** Contrats avec leur famille (enregistrée ou déduite) et les tables de correspondance client → famille, contrat → famille. */
 export async function loadActivityModel(sb: SupabaseClient) {
-  const r = await selectResilient<any>((cols) => sb.from("contracts").select(cols), "id, client_id, label, terms, status, billing_mode, monthly_amount_ht, per_visit_amount_ht, visits_per_week, weekly_hours, clients(name)");
+  const r = { ...(await sb.from("contracts").select("*, clients(name)")), ready: true as boolean };   // « * » : prend les colonnes présentes (activity, commission) sans dépendre des migrations
   if (r.error) throw new Error(r.error.message);
   const contracts = (r.data ?? []).map((k: any) => {
     const ac: ActivityContract = { clientId: k.client_id, activity: isActivity(k.activity) ? k.activity : null, label: k.label, terms: k.terms, clientName: k.clients?.name ?? null, monthly: monthlyOf(k) };
@@ -23,7 +27,7 @@ export async function loadActivityModel(sb: SupabaseClient) {
   });
   const active = contracts.filter((c) => c.k.status !== "resilie");
   return {
-    ready: r.ready, contracts,
+    ready: (r.data ?? []).length === 0 || (r.data ?? []).some((k: any) => "activity" in k), contracts,
     byClient: clientActivityMap(active.map((c) => c.ac)),
     byContract: new Map<string, Activity>(contracts.map((c) => [c.k.id as string, c.family]))
   };

@@ -83,6 +83,8 @@ export interface Contract {
   notes: string | null;
   weekdays?: number[] | null;
   activity?: string | null;
+  commission_pct?: number | null;
+  commission_base_ht?: number | null;
   start_time?: string | null;
   assignee?: string | null;
 }

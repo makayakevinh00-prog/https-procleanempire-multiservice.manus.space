@@ -34,7 +34,23 @@ export default async function ActivitiesPage() {
     const billed = invs.reduce((t: number, i: any) => t + num(i.total_ht), 0);
     const open = invs.filter((i: any) => ["envoye", "en_retard"].includes(i.status)).reduce((t: number, i: any) => t + num(i.total_ttc) - num(i.paid_amount), 0);
     const missions = (mis.data ?? []).filter((m: any) => missionActivity({ activity: isActivity(m.activity) ? (m.activity as Activity) : null, contractId: m.contract_id, title: m.title, clientName: m.clients?.name ?? null }, model.byContract) === a.key).length;
-    return { a, contracts: ks.length, monthly, weekly, billed, open, missions, p: profitability(monthly, weekly, hourly) };
+    const avg = (xs: number[]) => (xs.length ? xs.reduce((t, x) => t + x, 0) / xs.length : null);
+    const special: { label: string; value: string; hint?: string }[] = [];
+    if (a.key === "nettoyage_airbnb") {
+      const prices = ks.map((c) => c.k.per_visit_amount_ht).filter((v) => v != null).map(Number);
+      const passages = ks.reduce((t, c) => t + (c.k.visits_per_week != null ? (num(c.k.visits_per_week) * 52) / 12 : 0), 0);
+      special.push({ label: "Prix moyen / passage (HT)", value: avg(prices) != null ? eur0(avg(prices)!) : "—" }, { label: "Passages prévus / mois", value: passages ? String(Math.round(passages)) : "—", hint: "d'après la fréquence des contrats" });
+    } else if (a.key === "gestion_locative") {
+      const pcts = ks.map((c) => c.k.commission_pct).filter((v) => v != null).map(Number);
+      const base = ks.reduce((t, c) => t + num(c.k.commission_base_ht), 0);
+      special.push({ label: "Commission moyenne", value: avg(pcts) != null ? `${avg(pcts)!.toFixed(1).replace(".", ",")} %` : "—" }, { label: "Revenus gérés / mois (HT)", value: base ? eur0(base) : "—", hint: "estimation saisie dans les contrats" });
+    } else if (a.key === "nettoyage_pro") {
+      const fixed = ks.map((c) => c.k.monthly_amount_ht).filter((v) => v != null).map(Number);
+      special.push({ label: "Forfait moyen / mois (HT)", value: avg(fixed) != null ? eur0(avg(fixed)!) : "—" });
+    } else {
+      special.push({ label: "Facture moyenne (HT)", value: invs.length ? eur0(billed / invs.length) : "—" }, { label: "Factures sur 12 mois", value: String(invs.length), hint: "chaque prestation est facturée à l'unité" });
+    }
+    return { a, contracts: ks.length, monthly, weekly, billed, open, missions, special, p: profitability(monthly, weekly, hourly) };
   });
   const totalBilled = stats.reduce((t, s) => t + s.billed, 0) || 1;
   const guessed = model.contracts.filter((c) => !c.saved).length;
@@ -50,16 +66,17 @@ export default async function ActivitiesPage() {
       )}
 
       <div className="grid gap-4 md:grid-cols-2">
-        {stats.map(({ a, contracts, monthly, weekly, billed, open, missions, p }) => (
+        {stats.map(({ a, contracts, monthly, weekly, billed, open, missions, special, p }) => (
           <Card key={a.key}>
             <CardHeader><div><ActivityChip a={a.key} /><p className="mt-1.5 text-[13px] text-muted-foreground">{a.hint}</p></div></CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
                 <Fig label="Contrats actifs" value={String(contracts)} href={`/contrats?famille=${a.key}`} />
-                <Fig label="Récurrent / mois (HT)" value={eur0(monthly)} />
+                <Fig label={a.key === "nettoyage_airbnb" ? "Estimé / mois (HT)" : a.key === "gestion_locative" ? "Commission / mois (HT)" : "Récurrent / mois (HT)"} value={eur0(monthly)} hint={a.key === "nettoyage_airbnb" ? "prix par passage × fréquence" : a.key === "gestion_locative" ? "% × revenus estimés" : undefined} />
                 <Fig label="Heures / semaine" value={weekly ? formatHours(weekly) : "—"} />
                 <Fig label="CA par heure" value={p.revenuePerHour != null ? `${p.revenuePerHour.toFixed(0)} €` : "—"} hint="récurrent ÷ heures prévues" />
                 <Fig label="Marge estimée / mois" value={p.marginMonthly != null ? eur0(p.marginMonthly) : "—"} hint={p.marginPct != null ? `${Math.round(p.marginPct)} % · estimation` : undefined} tone={p.marginMonthly != null && p.marginMonthly < 0 ? "err" : undefined} />
+                {special.map((f) => <Fig key={f.label} label={f.label} value={f.value} hint={f.hint} />)}
                 <Fig label="Missions 30 prochains jours" value={String(missions)} href={`/missions?famille=${a.key}`} />
               </div>
               <div className="border-t border-border/70 pt-3">

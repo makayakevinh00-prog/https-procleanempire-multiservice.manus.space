@@ -9,6 +9,8 @@ export interface ContractLike {
   site_address: string | null;
   assignee?: string | null;
   start_date: string | null;
+  /** Gestion locative : commission en % des revenus de location (pas de passages ni d'heures à planifier). */
+  commission_pct?: number | null;
 }
 
 export interface ContractIssues {
@@ -25,7 +27,13 @@ export function contractIssues(k: ContractLike): ContractIssues {
   const warnings: string[] = [];
   if (k.billing_mode === "mensuel" && !filled(k.monthly_amount_ht)) blocking.push("montant mensuel");
   if (k.billing_mode === "passage" && !filled(k.per_visit_amount_ht)) blocking.push("prix par passage");
-  if (k.billing_mode === "autre" && !filled(k.terms)) blocking.push("conditions de facturation");
+  const commission = k.billing_mode === "autre" && filled(k.commission_pct);
+  if (k.billing_mode === "autre" && !commission && !filled(k.terms)) blocking.push("conditions de facturation");
+  if (commission) {   // gestion à pourcentage : rien à planifier, seules l'adresse et la date de début comptent
+    if (!filled(k.site_address)) warnings.push("adresse du site");
+    if (!filled(k.start_date)) warnings.push("date de début");
+    return { blocking, warnings };
+  }
   const hasDays = (k.weekdays?.length ?? 0) > 0;
   if (!hasDays && !filled(k.visits_per_week)) blocking.push("fréquence ou jours de passage");
   if (!hasDays) warnings.push("jours de passage (planning automatique impossible)");

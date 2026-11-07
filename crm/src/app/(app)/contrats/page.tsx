@@ -63,7 +63,7 @@ export default async function ContractsPage({ searchParams }: { searchParams: { 
       <Card>
         {!shown.length ? <Empty>Aucun contrat.</Empty> : (
           <Table>
-            <thead><tr><Th>Client</Th><Th>Contrat</Th><Th>Montant HT</Th><Th>Période</Th><Th>Jours · durée</Th><Th>Heures / sem</Th><Th>Statut</Th></tr></thead>
+            <thead><tr><Th>Client</Th><Th>Contrat</Th><Th>Tarif HT</Th><Th>Période</Th><Th>Jours · durée</Th><Th>Heures / sem</Th><Th>Statut</Th></tr></thead>
             <tbody>
               {shown.map(({ k, issues, incomplete, family }) => (
                 <Tr key={k.id}>
@@ -77,7 +77,7 @@ export default async function ContractsPage({ searchParams }: { searchParams: { 
                       </Link>
                     )}
                   </Td>
-                  <Td>{k.monthly_amount_ht != null ? `${formatEUR(k.monthly_amount_ht)} / mois` : k.per_visit_amount_ht != null ? `${formatEUR(k.per_visit_amount_ht)} / passage` : <Badge tone="red">à renseigner</Badge>}</Td>
+                  <Td>{k.monthly_amount_ht != null ? `${formatEUR(k.monthly_amount_ht)} / mois` : k.per_visit_amount_ht != null ? `${formatEUR(k.per_visit_amount_ht)} / passage` : k.commission_pct != null ? <>{String(k.commission_pct).replace(".", ",")} % des revenus{k.commission_base_ht != null && <span className="block text-xs text-muted-foreground">≈ {formatEUR(Number(k.commission_pct) / 100 * Number(k.commission_base_ht))} / mois</span>}</> : <Badge tone="red">à renseigner</Badge>}</Td>
                   <Td className="whitespace-nowrap">{k.start_date ? formatDate(k.start_date) : "—"} → {k.end_date ? formatDate(k.end_date) : "—"}</Td>
                   <Td className="text-xs">
                     {k.weekdays?.length ? WEEKDAYS.filter(([n]) => k.weekdays.includes(n)).map(([, l]) => l).join(" · ") : k.visits_per_week != null ? `${k.visits_per_week}×/sem` : "—"}

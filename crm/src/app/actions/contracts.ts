@@ -23,6 +23,9 @@ function payload(fd: FormData, back: string) {
     client_id: clientId!, label: label!, billing_mode: mode,
     monthly_amount_ht: mode === "mensuel" ? numField(fd, "monthly_amount_ht") : null,
     per_visit_amount_ht: mode === "passage" ? numField(fd, "per_visit_amount_ht") : null,
+    // Gestion à pourcentage : les colonnes n'existent qu'après la migration 0026, donc envoyées seulement si elles sont remplies.
+    ...(mode === "autre" && numField(fd, "commission_pct") ? { commission_pct: numField(fd, "commission_pct") } : {}),
+    ...(mode === "autre" && numField(fd, "commission_base_ht") ? { commission_base_ht: numField(fd, "commission_base_ht") } : {}),
     terms: str(fd, "terms"), start_date: start, end_date: end, status: str(fd, "status") ?? "en_cours",
     hours_per_visit: hours, visits_per_week: visits, site_address: str(fd, "site_address"), notes: str(fd, "notes"),
     weekdays: weekdays.length ? weekdays : null, start_time: str(fd, "start_time"), assignee: str(fd, "assignee"),

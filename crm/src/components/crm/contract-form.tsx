@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ACTIVITIES } from "@/lib/domain/activity";
+import { PricingFields } from "@/components/crm/contract-pricing";
 import { Field, Input, Select, Textarea } from "@/components/ui/form";
 import type { Contract } from "@/lib/domain/types";
 import { WEEKDAYS } from "@/lib/domain/schedule";
@@ -29,25 +29,13 @@ export function ContractForm({ action, clients, contract, defaultClient, submitL
       </Field>
       <Field label="Intitulé *"><Input name="label" required defaultValue={contract?.label} placeholder="Entretien bureaux…" /></Field>
 
-      <Field label="Famille d'activité" hint="Pour trier et mesurer ce qui rapporte">
-        <Select name="activity" defaultValue={contract?.activity ?? ""}>
-          <option value="">Automatique (selon l&apos;intitulé)</option>
-          {ACTIVITIES.map((a) => <option key={a.key} value={a.key}>{a.label}</option>)}
-        </Select>
-      </Field>
-      <Field label="Facturation">
-        <Select name="billing_mode" defaultValue={contract?.billing_mode ?? "mensuel"}>
-          <option value="mensuel">Montant mensuel</option><option value="passage">Prix par passage</option><option value="autre">Autre (voir conditions)</option>
-        </Select>
-      </Field>
+      <PricingFields contract={contract} />
       <Field label="Statut">
         <Select name="status" defaultValue={contract?.status ?? "en_cours"}>
           <option value="en_cours">En cours</option><option value="actif">Actif</option><option value="resilie">Résilié</option>
         </Select>
-        <p className="mt-1 text-xs text-muted-foreground">« Actif » exige : montant (ou prix par passage) et fréquence ou jours de passage.</p>
+        <p className="mt-1 text-xs text-muted-foreground">« Actif » exige : le tarif (mensuel, par passage ou pourcentage) et, sauf gestion à pourcentage, la fréquence ou les jours de passage.</p>
       </Field>
-      <Field label="Montant HT / mois" hint="Si facturation mensuelle"><Input name="monthly_amount_ht" inputMode="decimal" defaultValue={contract?.monthly_amount_ht ?? ""} /></Field>
-      <Field label="Montant HT / passage" hint="Si facturation au passage"><Input name="per_visit_amount_ht" inputMode="decimal" defaultValue={contract?.per_visit_amount_ht ?? ""} /></Field>
 
       <Field label="Heures par intervention" hint="Ex. 2,5"><Input name="hours_per_visit" inputMode="decimal" defaultValue={contract?.hours_per_visit ?? ""} /></Field>
       <Field label="Fréquence hebdomadaire">

@@ -36,3 +36,19 @@ describe("familles d'activité", () => {
   });
   it("valide les clés", () => { expect(isActivity("ponctuel")).toBe(true); expect(isActivity("nimporte")).toBe(false); });
 });
+
+import { monthlyOf } from "../src/lib/activity-data";
+import { contractIssues } from "../src/lib/domain/contract-check";
+describe("tarifs par famille", () => {
+  it("mensuel, par passage et pourcentage donnent un montant mensuel comparable", () => {
+    expect(monthlyOf({ monthly_amount_ht: 450 })).toBe(450);
+    expect(Math.round(monthlyOf({ per_visit_amount_ht: 40, visits_per_week: 2 }))).toBe(347);   // 40 € × 2 × 52 / 12
+    expect(monthlyOf({ commission_pct: 20, commission_base_ht: 1500 })).toBe(300);
+    expect(monthlyOf({ commission_pct: 20 })).toBe(0);   // sans revenus estimés : rien d'inventé
+  });
+  it("une gestion à pourcentage n'exige ni jours de passage ni durée, mais un pourcentage", () => {
+    const base = { billing_mode: "autre" as const, monthly_amount_ht: null, per_visit_amount_ht: null, terms: null, visits_per_week: null, hours_per_visit: null, site_address: "1 rue Exemple", start_date: "2026-01-01" };
+    expect(contractIssues({ ...base, commission_pct: 20 })).toEqual({ blocking: [], warnings: [] });
+    expect(contractIssues({ ...base }).blocking).toEqual(["conditions de facturation", "fréquence ou jours de passage"]);
+  });
+});
