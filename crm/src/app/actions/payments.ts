@@ -62,9 +62,11 @@ export async function addManualPaymentAction(fd: FormData) {
 
 /** Synchronisation silencieuse (appelée à l'ouverture de la page et toutes les 5 minutes tant qu'elle reste ouverte). Ne produit aucun message. */
 export async function syncQontoQuietAction(): Promise<{ ok: boolean; inserted: number; error?: string }> {
-  await requireOwner();
+  const supabase = createClient();
+  const { data: owner } = await supabase.rpc("is_owner");
+  if (!owner) return { ok: false, inserted: 0, error: "Accès refusé." };
   try {
-    const r = await syncQonto(createClient());
+    const r = await syncQonto(supabase);
     if (r.inserted > 0) { revalidatePath("/paiements"); revalidatePath("/"); }
     return { ok: true, inserted: r.inserted };
   } catch (e) {
