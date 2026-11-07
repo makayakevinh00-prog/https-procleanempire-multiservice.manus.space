@@ -55,9 +55,9 @@ async function allActions() {
 }
 
 describe("actions serveur appelées directement", () => {
-  it("un compte connecté qui n'est PAS le dirigeant est refusé par chacune des 76 actions, sans aucun accès aux données", async () => {
+  it("un compte connecté qui n'est PAS le dirigeant est refusé par CHAQUE action du CRM, sans aucun accès aux données", async () => {
     const actions = (await allActions()).filter((a) => a.file !== "agent.ts");
-    expect(actions.length).toBeGreaterThanOrEqual(75);
+    expect(actions.length).toBeGreaterThanOrEqual(80); // 75 du CRM + 5 de JARVIS : le test ne doit jamais se vider
     const fuites: string[] = [];
     for (const a of actions) {
       h.calls = []; h.adminUsed = false;
