@@ -27,3 +27,8 @@
   :focus-visible { outline-color: hsl(var(--ring)); }
   @media (max-width: 767px) { input, select, textarea { font-size: 16px !important; } }
 }
+
+/* Open space JARVIS : flux animé entre deux postes qui collaborent (coupé si l'utilisateur demande moins d'animations). */
+@keyframes jarvis-flow { to { stroke-dashoffset: -16; } }
+.jarvis-flow { stroke-dasharray: 4 4; animation: jarvis-flow 1s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .jarvis-flow { animation: none; } }

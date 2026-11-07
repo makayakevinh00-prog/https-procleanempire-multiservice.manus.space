@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SeverityBadge, SEVERITY_RANK, fmtDateTime, NotInstalled, isMissingTable } from "@/components/crm/jarvis";
 import { AGENT_BY_KEY } from "@/lib/jarvis/registry";
+import { ROADMAP } from "@/lib/jarvis/roadmap";
 import type { AgentKey } from "@/lib/jarvis/types";
 
 export const dynamic = "force-dynamic";
@@ -70,6 +71,20 @@ export default async function AgentPage({ params }: { params: { agent: string } 
       <Card className="mb-4"><CardHeader><CardTitle>Automatisations</CardTitle></CardHeader><CardContent>
         <ul className="space-y-1.5 text-sm">{a.automations.map((x) => <li key={x.label} className="flex items-start gap-2"><Badge tone={x.state === "construit" ? "green" : "gray"}>{x.state === "construit" ? "Construit" : "Prévu"}</Badge><span className="text-slate-700">{x.label}</span></li>)}</ul>
       </CardContent></Card>
+
+      {(() => {
+        const r = ROADMAP[a.key];
+        return (
+          <Card className="mb-4"><CardHeader><CardTitle>Feuille de route</CardTitle><Badge tone="blue">{r.window}</Badge></CardHeader><CardContent className="grid gap-4 text-sm lg:grid-cols-2">
+            <div><div className="mb-1 font-semibold">Décisions qui vous reviennent avant de démarrer</div><List items={r.gates} /></div>
+            <div><div className="mb-1 font-semibold">Résultats vérifiables (« fait » = tout est réuni)</div><List items={r.proof} /></div>
+            <div><div className="mb-1 font-semibold">Compétences à acquérir</div><List items={r.skills} /></div>
+            <div><div className="mb-1 font-semibold">Livrables</div><List items={r.deliverables} /></div>
+            <div><div className="mb-1 font-semibold">Outils</div><List items={r.tools} /></div>
+            <div><div className="mb-1 font-semibold">Mémoire</div><List items={r.memory} /><p className="mt-3 text-slate-500"><b>Coût :</b> {r.cost}</p></div>
+          </CardContent></Card>
+        );
+      })()}
 
       {a.status === "actif" && !missing && (
         <>

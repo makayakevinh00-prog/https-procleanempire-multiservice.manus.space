@@ -17,7 +17,7 @@ const GROUPS: Group[] = [
     { href: "/actions", label: "Actions à faire", icon: ListChecks, color: "text-amber-400" }
   ] },
   { title: "Direction", items: [
-    { href: "/jarvis", label: "JARVIS", icon: Bot, color: "text-fuchsia-400" }
+    { href: "/jarvis", label: "JARVIS", icon: Bot, color: "text-fuchsia-400", children: [{ href: "/jarvis/openspace", label: "Open space" }] }
   ] },
   { title: "Commercial", items: [
     { href: "/clients", label: "Clients", icon: Users, color: "text-violet-400", children: [{ href: "/demandes", label: "Demandes du site" }] },

@@ -76,6 +76,11 @@ describe("agent Finance — délais, annulations, contrats, brouillons, cohéren
     expect(r.actions.map((a) => a.kind)).toEqual(["issue_credit_note"]);
     expect(r.events).toEqual([expect.objectContaining({ type: "invoice.cancelled_after_sent", target_agent: "juridique" })]);
   });
+  it("le motif d'annulation saisi est repris dans l'alerte ; son absence est signalée", () => {
+    const avec = analyseFinance(snap({ invoices: [inv({ id: "x", status: "annule", cancel_reason: "Dates incorrectes, remplacée" })] })).alerts[0];
+    expect(avec.detail).toContain("Motif saisi : « Dates incorrectes, remplacée »");
+    expect(analyseFinance(snap({ invoices: [inv({ id: "y", status: "annule" })] })).alerts[0].detail).toContain("Aucun motif saisi");
+  });
   it("une facture annulée AVANT envoi n'est pas une anomalie", () => {
     expect(analyseFinance(snap({ invoices: [inv({ id: "x", status: "annule", sent_at: null })] })).alerts).toEqual([]);
   });

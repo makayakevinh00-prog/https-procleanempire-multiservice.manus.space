@@ -3,6 +3,7 @@
 drop function if exists jarvis_decide_action(uuid, text, text);
 drop function if exists jarvis_record_run(text, text, jsonb);
 drop table if exists jarvis_memory;
+drop table if exists jarvis_instructions;
 drop table if exists jarvis_events;
 drop table if exists jarvis_tasks;
 drop table if exists jarvis_actions;

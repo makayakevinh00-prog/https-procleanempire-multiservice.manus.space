@@ -7,9 +7,7 @@ import { checked, dbMessage, flash, numField, str } from "@/lib/data";
 import { syncQonto } from "@/lib/qonto";
 
 export async function syncQontoAction() {
-  const supabase = createClient();
-  const { data: owner } = await supabase.rpc("is_owner");
-  if (!owner) flash("/paiements", "error", "Accès refusé.");
+  await requireOwner();
   let msg: string;
   try {
     const r = await syncQonto(createAdmin());

@@ -139,14 +139,18 @@ export async function resendInvoiceAction(id: string, fd: FormData) {
 
 /** Actualise les virements Qonto depuis la fiche de la facture, pour retrouver un paiement récent. */
 export async function syncQontoForInvoiceAction(id: string) {
+  await requireOwner();
   const back = `/factures/${id}`;
+  let inserted = 0, failure: string | null = null;
   try {
-    const r = await syncQonto(createAdmin());
-    revalidatePath(back); revalidatePath("/paiements");
-    flash(back, "ok", `Qonto actualisé : ${r.inserted} nouveau(x) virement(s) lu(s).`);
+    inserted = (await syncQonto(createAdmin())).inserted;
   } catch (e) {
-    flash(back, "error", (e as Error).message);
+    failure = (e as Error).message;
   }
+  // flash() redirige en levant une exception : il ne doit JAMAIS être appelé dans le try (sinon la réussite s'affichait comme une erreur « NEXT_REDIRECT »).
+  if (failure) flash(back, "error", failure);
+  revalidatePath(back); revalidatePath("/paiements");
+  flash(back, "ok", `Qonto actualisé : ${inserted} nouveau(x) virement(s) lu(s).`);
 }
 
 export async function cancelInvoiceAction(id: string, fd: FormData) {

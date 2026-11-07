@@ -121,6 +121,23 @@ create table jarvis_events (
 );
 create unique index jarvis_events_live on jarvis_events (type, target_agent, dedupe_key) where status = 'pending';
 
+-- Instructions données par le patron à un agent. Une « commande » est structurée et exécutable (ex. lancer un passage) ;
+-- un texte « libre » est conservé tel quel, en attente : aucun agent n'interprète encore le langage libre (aucune IA connectée).
+create table jarvis_instructions (
+  id uuid primary key default gen_random_uuid(),
+  agent_key text not null references jarvis_agents(key),
+  kind text not null check (kind in ('commande', 'libre')),
+  command text check (command in ('run')),
+  body text,
+  status text not null default 'en_attente' check (status in ('en_attente', 'executee', 'refusee')),
+  result text,
+  created_by uuid default auth.uid(),
+  created_at timestamptz not null default now(),
+  handled_at timestamptz,
+  constraint jarvis_instruction_shape check ((kind = 'commande' and command is not null) or (kind = 'libre' and body is not null and length(btrim(body)) > 0))
+);
+create index jarvis_instructions_agent on jarvis_instructions (agent_key, status, created_at desc);
+
 create table jarvis_memory (
   id uuid primary key default gen_random_uuid(),
   key text not null references jarvis_memory_keys(key),
@@ -135,7 +152,7 @@ create unique index jarvis_memory_one on jarvis_memory (key, coalesce(agent_key,
 
 -- ── Accès : patron seulement, aucun droit inutile ──────────────────────────────────────────────
 do $$ declare t text; begin
-  foreach t in array array['jarvis_agents', 'jarvis_action_kinds', 'jarvis_memory_keys', 'jarvis_runs', 'jarvis_alerts', 'jarvis_actions', 'jarvis_tasks', 'jarvis_events', 'jarvis_memory'] loop
+  foreach t in array array['jarvis_agents', 'jarvis_action_kinds', 'jarvis_memory_keys', 'jarvis_runs', 'jarvis_alerts', 'jarvis_actions', 'jarvis_tasks', 'jarvis_events', 'jarvis_instructions', 'jarvis_memory'] loop
     execute format('alter table %I enable row level security', t);
     execute format('create policy %I on %I for all to authenticated using (is_owner()) with check (is_owner())', t || '_owner', t);
     execute format('revoke all on %I from anon', t);
@@ -152,7 +169,7 @@ revoke insert, update, delete on jarvis_action_kinds, jarvis_memory_keys from au
 
 -- Traçabilité : les écritures sont journalisées dans change_log comme le reste du CRM.
 do $$ declare t text; begin
-  foreach t in array array['jarvis_actions', 'jarvis_tasks'] loop
+  foreach t in array array['jarvis_actions', 'jarvis_tasks', 'jarvis_instructions'] loop
     execute format('create trigger %I after insert or update or delete on %I for each row execute function audit_row()', t || '_audit', t);
   end loop;
 end $$;

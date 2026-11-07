@@ -8,6 +8,8 @@ export interface FinanceInvoice {
   status: "brouillon" | "envoye" | "paye" | "en_retard" | "annule";
   issue_date: string | null; due_date: string | null; total_ttc: number; paid_amount: number; paid_at: string | null;
   sent_at: string | null; reminder_count: number; created_at: string;
+  /** Motif saisi lors de l'annulation, s'il existe. */
+  cancel_reason?: string | null;
 }
 export interface FinanceContract {
   id: string; client_id: string; client_name: string; label: string; status: string;
@@ -87,7 +89,7 @@ export function analyseFinance(s: FinanceSnapshot): AgentResult {
       alerts.push({
         dedupe_key: `cancelled:${i.id}`, severity: "urgent",
         title: `${name(i)} — ${i.client_name} : annulée après envoi, sans avoir`,
-        detail: "Une facture envoyée avec TVA est en principe régularisée par un avoir plutôt qu'annulée : à confirmer avec l'expert-comptable.",
+        detail: `${i.cancel_reason ? `Motif saisi : « ${i.cancel_reason} ». ` : "Aucun motif saisi. "}Une facture envoyée avec TVA est en principe régularisée par un avoir plutôt qu'annulée : à confirmer avec l'expert-comptable.`,
         entity_type: "invoice", entity_id: i.id, href
       });
       actions.push({

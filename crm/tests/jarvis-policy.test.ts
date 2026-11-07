@@ -83,3 +83,35 @@ describe("JARVIS Core — contrôle avant enregistrement", () => {
     expect(() => prepare(empty({ events: [{ type: "paiement.recu", target_agent: "finance", dedupe_key: "k" }] }))).toThrow(/sans destinataire/);
   });
 });
+
+import { ROADMAP, ORDERED_AGENTS } from "@/lib/jarvis/roadmap";
+describe("calendrier de construction", () => {
+  it("chaque agent a une feuille de route complète avec des preuves mesurables et des décisions explicites", () => {
+    for (const a of AGENTS) {
+      const r = ROADMAP[a.key];
+      expect(r, a.key).toBeDefined();
+      expect(r.window, a.key).toMatch(/^S\d+/);
+      for (const champ of ["gates", "skills", "tools", "memory", "deliverables", "proof"] as const) expect(r[champ].length, `${a.key}.${champ}`).toBeGreaterThan(0);
+      expect(r.proof.length, a.key).toBeGreaterThanOrEqual(3);
+      expect(r.cost.length, a.key).toBeGreaterThan(2);
+    }
+  });
+  it("les ordres sont uniques et les agents non construits sont tous planifiés", () => {
+    expect(new Set(Object.values(ROADMAP).map((r) => r.order)).size).toBe(9);
+    expect(ORDERED_AGENTS).toHaveLength(9);
+  });
+  it("aucun agent n'est promis avant d'avoir ses prérequis : chaque étape qui dépend d'un service payant ou externe le dit dans « gates »", () => {
+    const externes = /Claude|WhatsApp|Metricool|Microsoft|Qonto|clé/i;
+    for (const a of AGENTS) {
+      const r = ROADMAP[a.key];
+      if (r.tools.some((t) => externes.test(t))) expect(r.gates.some((g) => externes.test(g) || /accord|décision|autorisation/i.test(g)), a.key).toBe(true);
+    }
+  });
+});
+
+describe("code envoyé au navigateur", () => {
+  it("les fiches des agents (affichées côté navigateur) ne nomment aucun secret ni détail d'accès interne", () => {
+    const texte = JSON.stringify([AGENTS, ROADMAP]);
+    expect(texte).not.toMatch(/service_role|SERVICE_ROLE|automation_secret|CRON_SECRET|INBOUND_SECRET|RESEND_API|QONTO_/);
+  });
+});

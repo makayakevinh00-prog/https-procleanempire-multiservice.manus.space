@@ -13,11 +13,7 @@ const read = (p: string) => readFileSync(path.join(root, p), "utf8");
  */
 const SANS_GARDE: Record<string, string> = {
   "agent.ts":
-    "Application des agents : accès par lien privé (jeton), pas de session du patron.",
-  "payments.ts#syncQontoAction":
-    "Vérifie déjà is_owner() elle-même ; synchronisation Qonto hors périmètre de la phase 1 (décision du dirigeant).",
-  "invoices.ts#syncQontoForInvoiceAction":
-    "Synchronisation Qonto hors périmètre de la phase 1 (décision du dirigeant) : à garder à la phase suivante.",
+    "Application des agents : accès par lien privé (jeton), pas de session du patron. Refus d'un jeton invalide vérifié par direct-access.test.ts.",
 };
 
 function actions(file: string) {

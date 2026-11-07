@@ -214,7 +214,7 @@ describe("accès : le patron seulement", () => {
   it("tout autre compte connecté ne voit aucune ligne JARVIS", async () => {
     await asOther();
     try {
-      for (const t of ["jarvis_agents", "jarvis_alerts", "jarvis_actions", "jarvis_tasks", "jarvis_events", "jarvis_runs", "jarvis_memory", "jarvis_action_kinds", "jarvis_memory_keys"])
+      for (const t of ["jarvis_agents", "jarvis_alerts", "jarvis_actions", "jarvis_tasks", "jarvis_events", "jarvis_runs", "jarvis_memory", "jarvis_instructions", "jarvis_action_kinds", "jarvis_memory_keys"])
         expect((await q(`select count(*)::int n from ${t}`))[0].n, t).toBe(0);
     } finally { await asAdmin(); }
   });
@@ -236,6 +236,35 @@ describe("accès : le patron seulement", () => {
   });
   it("les écritures sensibles sont tracées dans le journal des modifications", async () => {
     expect((await q("select count(*)::int n from change_log where table_name in ('jarvis_actions','jarvis_tasks')"))[0].n).toBeGreaterThan(0);
+  });
+});
+
+describe("instructions du patron", () => {
+  it("une commande « run » est valide ; un texte libre exige du contenu", async () => {
+    await q("insert into jarvis_instructions(agent_key, kind, command) values ('finance','commande','run')");
+    await q("insert into jarvis_instructions(agent_key, kind, body) values ('finance','libre','surveille SWYFO')");
+    await fails("insert into jarvis_instructions(agent_key, kind, body) values ('finance','libre','   ')", [], /jarvis_instruction_shape/);
+    await fails("insert into jarvis_instructions(agent_key, kind) values ('finance','libre')", [], /jarvis_instruction_shape/);
+    await fails("insert into jarvis_instructions(agent_key, kind) values ('finance','commande')", [], /jarvis_instruction_shape/);
+  });
+  it("seules les commandes connues existent (aucune commande libre déguisée)", async () => {
+    await fails("insert into jarvis_instructions(agent_key, kind, command) values ('finance','commande','supprimer_facture')", [], /check/);
+    await fails("insert into jarvis_instructions(agent_key, kind, body, status) values ('finance','libre','x y z','traitee')", [], /check/);
+  });
+  it("l'agent doit exister ; une instruction reste en attente par défaut", async () => {
+    await fails("insert into jarvis_instructions(agent_key, kind, body) values ('pirate','libre','abc')", [], /foreign key/);
+    expect((await q("select status from jarvis_instructions where body='surveille SWYFO'"))[0].status).toBe("en_attente");
+  });
+  it("réservées au patron : un autre compte ne lit ni n'écrit", async () => {
+    await asOther();
+    try {
+      expect((await q("select count(*)::int n from jarvis_instructions"))[0].n).toBe(0);
+      await expect(db.query("insert into jarvis_instructions(agent_key, kind, body) values ('finance','libre','intrus')")).rejects.toThrow(/row-level security|permission/);
+    } finally { await asAdmin(); }
+  });
+  it("les instructions n'ont aucun lien avec les données du CRM : aucune clé étrangère vers une table existante", async () => {
+    const refs = await q("select confrelid::regclass::text t from pg_constraint where conrelid='jarvis_instructions'::regclass and contype='f'");
+    expect(refs.map((r: any) => r.t)).toEqual(["jarvis_agents"]);
   });
 });
 
