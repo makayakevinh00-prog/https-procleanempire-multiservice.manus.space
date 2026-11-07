@@ -128,7 +128,7 @@ export function Sidebar({ signOut, counts }: { signOut: () => Promise<void>; cou
   return (
     <>
       {/* Ordinateur : menu fin, repliable */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[var(--nav-w)] flex-col overflow-y-auto border-r border-border bg-[#fbfaf8] px-4 py-5 transition-[width] duration-200 md:flex">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[var(--nav-w)] flex-col overflow-y-auto border-r border-border bg-[#fbfaf8] px-4 pb-5 pt-12 transition-[width] duration-200 md:flex">
         <div className={cn("mb-6", slim ? "flex justify-center" : "px-1")}><Brand slim={slim} /></div>
         <Links counts={counts} slim={slim} />
         <div className="mt-auto flex flex-col gap-0.5 border-t border-border pt-3">

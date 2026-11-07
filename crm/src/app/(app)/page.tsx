@@ -16,6 +16,8 @@ import type { Contract } from "@/lib/domain/types";
 
 const MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
 
+const eur0 = (n: number) => `${Math.round(n).toLocaleString("fr-FR")} €`;
+
 export default async function Dashboard({ searchParams }: { searchParams?: { vue?: string } }) {
   const supabase = createClient();
   await supabase.rpc("refresh_overdue");
@@ -105,14 +107,14 @@ export default async function Dashboard({ searchParams }: { searchParams?: { vue
       )}
 
       <section aria-label="Indicateurs" className="mt-9 grid grid-cols-2 border-t border-border sm:grid-cols-3 sm:divide-x sm:divide-border xl:grid-cols-5">
-        <Stat label="CA récurrent par mois" value={formatEUR(mrr)} unit="HT" href="/contrats" hint={`${rows.length} contrat${rows.length > 1 ? "s" : ""} actif${rows.length > 1 ? "s" : ""}`} />
-        <Stat label={`Facturé en ${monthName(prevMonth)}`} value={formatEUR(billedPrev)} unit="HT" href="/factures"
+        <Stat label="CA récurrent par mois" value={eur0(mrr)} unit="HT" href="/contrats" hint={`${rows.length} contrat${rows.length > 1 ? "s" : ""} actif${rows.length > 1 ? "s" : ""}`} />
+        <Stat label={`Facturé en ${monthName(prevMonth)}`} value={eur0(billedPrev)} unit="HT" href="/factures"
           tone={billedTrend ? (billedTrend.pct >= 0 ? "ok" : "err") : undefined}
-          hint={billedTrend ? `${billedTrend.pct >= 0 ? "+" : ""}${billedTrend.pct} % · ${monthName(month)} : ${formatEUR(billedMonth)}` : `${monthName(month)} : ${formatEUR(billedMonth)}`}>
+          hint={billedTrend ? `${billedTrend.pct >= 0 ? "+" : ""}${billedTrend.pct} % · ${monthName(month)} : ${eur0(billedMonth)}` : `${monthName(month)} : ${eur0(billedMonth)}`}>
           <Sparkline values={monthlySeries} label="Facturation des 12 derniers mois" />
         </Stat>
-        <Stat label="À encaisser" value={formatEUR(outstanding)} unit="TTC" href="/factures?statut=en_retard" tone={late.length ? "err" : undefined}
-          hint={late.length ? `dont ${formatEUR(lateAmount)} en retard (${late.length})` : "aucun retard"} />
+        <Stat label="À encaisser" value={eur0(outstanding)} unit="TTC" href="/factures?statut=en_retard" tone={late.length ? "err" : undefined}
+          hint={late.length ? `dont ${eur0(lateAmount)} en retard (${late.length})` : "aucun retard"} />
         {rec.sitesWithHours === 0 && rows.length > 0 ? (
           <Stat label="Heures par semaine" value="—" href="/contrats?filtre=incomplets" tone="warn" hint={`${rec.sitesMissingHours} site(s) sans heures renseignées`} />
         ) : (
