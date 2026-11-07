@@ -4,25 +4,28 @@
 
 @layer base {
   :root {
-    --background: 214 32% 96%;
-    --foreground: 222 30% 12%;
+    --background: 45 14% 96%;
+    --foreground: 220 8% 7%;
     --card: 0 0% 100%;
-    --card-foreground: 222 30% 12%;
-    --primary: 217 78% 48%;
+    --card-foreground: 220 8% 7%;
+    --primary: 215 50% 33%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 16% 92%;
-    --secondary-foreground: 222 30% 18%;
-    --muted: 220 16% 94%;
-    --muted-foreground: 220 9% 42%;
-    --destructive: 0 78% 46%;
+    --secondary: 45 8% 92%;
+    --secondary-foreground: 220 8% 20%;
+    --muted: 45 8% 93%;
+    --muted-foreground: 220 7% 44%;
+    --destructive: 5 61% 44%;
     --destructive-foreground: 0 0% 100%;
-    --success: 152 60% 30%;
-    --warning: 32 92% 40%;
-    --border: 220 14% 87%;
-    --ring: 217 78% 48%;
+    --success: 150 44% 33%;
+    --warning: 36 75% 41%;
+    --border: 45 12% 88%;
+    --ring: 215 50% 33%;
+    --nav-w: 248px;
   }
+  html[data-nav="slim"] { --nav-w: 76px; }
   * { @apply border-border; }
-  body { @apply bg-background text-foreground antialiased; font-size: 15px; line-height: 1.55; }
+  body { @apply bg-background text-foreground antialiased; font-size: 15px; line-height: 1.55; font-feature-settings: "cv11", "ss01"; letter-spacing: -0.003em; }
+  .num { font-variant-numeric: tabular-nums; }
   html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
   :focus-visible { outline-color: hsl(var(--ring)); }
   @media (max-width: 767px) { input, select, textarea { font-size: 16px !important; } }

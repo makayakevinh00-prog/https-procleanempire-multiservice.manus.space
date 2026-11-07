@@ -1,56 +1,22 @@
 import Link from "next/link";
-import { AlertTriangle, Lock, UserPlus, FilePlus, CalendarPlus, CalendarCheck, Zap, Mail, Siren, TrendingUp, TrendingDown, Repeat, Receipt, Wallet, Clock, ChevronRight } from "lucide-react";
+import { Lock, ArrowRight, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getSettings, num, numOrNull } from "@/lib/data";
 import { menuCountsFrom } from "@/lib/actions";
 import { loadActionsCached } from "@/lib/actions-request";
 import { monthlyRevenueHt, summarize, weeklyHours, weeklyRevenueHt, type SiteRow } from "@/lib/domain/recruitment";
 import { parisToday } from "@/lib/domain/dates";
-import { PageHeader, Empty } from "@/components/crm/page-header";
+import { Empty } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Table, Td, Tr } from "@/components/ui/table";
 import { ClientName } from "@/components/crm/client-name";
 import { MonthlyBars, Donut, RankBars } from "@/components/crm/charts";
+import { Row, Seg, Sparkline, Stat } from "@/components/crm/home-kit";
 import { daysBetween, formatDate, formatEUR, formatHours, round2 } from "@/lib/utils";
 import type { Contract } from "@/lib/domain/types";
 
 const MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
 
-function Kpi({ label, value, sub, href, icon: Icon, accent, trend }: {
-  label: string; value: string; sub?: React.ReactNode; href: string; icon: any;
-  accent: "emerald" | "blue" | "orange" | "violet" | "amber" | "red"; trend?: { pct: number; hint: string } | null;
-}) {
-  const a = {
-    emerald: ["bg-emerald-50 text-emerald-600", "bg-emerald-500"], blue: ["bg-blue-50 text-blue-600", "bg-blue-500"],
-    orange: ["bg-orange-50 text-orange-600", "bg-orange-500"], violet: ["bg-violet-50 text-violet-600", "bg-violet-500"],
-    amber: ["bg-amber-50 text-amber-600", "bg-amber-500"], red: ["bg-red-50 text-red-600", "bg-red-500"]
-  }[accent];
-  return (
-    <Link href={href} className="group block">
-      <Card className="relative h-full overflow-hidden transition-all group-hover:-translate-y-0.5 group-hover:shadow-lg">
-        <span className={`absolute inset-x-0 top-0 h-1 ${a[1]}`} aria-hidden />
-        <CardContent className="p-5">
-          <div className="flex items-start justify-between gap-2">
-            <div className="text-[13px] font-medium text-slate-500">{label}</div>
-            <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${a[0]}`}><Icon className="h-[18px] w-[18px]" /></span>
-          </div>
-          <div className="mt-2 text-[34px] font-bold leading-none tracking-tight text-slate-900 xl:text-[40px]">{value}</div>
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-            {trend && (
-              <span title={trend.hint} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-semibold ${trend.pct >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
-                {trend.pct >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}{trend.pct >= 0 ? "+" : ""}{trend.pct} %
-              </span>
-            )}
-            {sub}
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
-  );
-}
-
-export default async function Dashboard() {
+export default async function Dashboard({ searchParams }: { searchParams?: { vue?: string } }) {
   const supabase = createClient();
   await supabase.rpc("refresh_overdue");
   const [settings, contracts, invoices, quotes, payments, reserved, actions, clients] = await Promise.all([
@@ -108,131 +74,129 @@ export default async function Dashboard() {
   const mrr = round2(rows.reduce((a, r) => a + (monthlyRevenueHt(r.contract) ?? 0), 0));
   const lateAmount = round2(late.reduce((a, i) => a + num(i.total_ttc) - num(i.paid_amount), 0));
 
+  const vue = ["afaire", "retard", "valider"].includes(searchParams?.vue ?? "") ? (searchParams!.vue as string) : "afaire";
+  const actionsCount = menuCountsFrom(actions)["/actions"] ?? 0;
+  const toValidate = drafts.length + toInvoice.length;
+  const bits = [
+    late.length ? `${late.length} facture${late.length > 1 ? "s" : ""} en retard` : "aucun impayé en retard",
+    drafts.length ? `${drafts.length} facture${drafts.length > 1 ? "s" : ""} à valider` : null,
+    toInvoice.length ? `${toInvoice.length} devis accepté${toInvoice.length > 1 ? "s" : ""} à facturer` : null
+  ].filter(Boolean) as string[];
+  const dateLabel = new Date().toLocaleDateString("fr-FR", { timeZone: "Europe/Paris", weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const monthlySeries = series.map((d) => d.value);
+  const ordered = [...actions.filter((a) => a.count === undefined), ...actions.filter((a) => a.count !== undefined)];
+
   return (
     <>
-      <PageHeader title="Bonjour 👋" subtitle={`ProClean Empire — ${new Date().toLocaleDateString("fr-FR", { timeZone: "Europe/Paris", weekday: "long", day: "numeric", month: "long", year: "numeric" })}`} />
+      <header className="mb-2">
+        <h1 className="text-[clamp(28px,4vw,38px)] font-semibold leading-[1.15] tracking-[-0.025em] text-foreground">Bonjour</h1>
+        <p className="mt-1 text-[15px] text-muted-foreground">{dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1)}</p>
+        <p className="mt-3 max-w-[62ch] text-[15px] text-secondary-foreground">
+          <b className="font-medium text-foreground">{actionsCount} point{actionsCount > 1 ? "s" : ""} à traiter</b>, {bits.join(", ")}.
+        </p>
+      </header>
 
       {(reserved.data?.length ?? 0) > 0 && (
-        <div className="mb-5 flex flex-wrap items-center gap-2 rounded-xl border border-red-200 border-l-4 border-l-red-600 bg-red-50 px-4 py-3 text-sm text-red-900 shadow-sm">
-          <Lock className="h-4 w-4" /> <b>Contacts réservés :</b>
-          {reserved.data!.map((c) => <Link key={c.id} href={`/clients/${c.id}`} className="font-medium underline">{c.name}</Link>)}
-          <span className="text-red-700">— aucune action automatique.</span>
+        <div className="mt-5 flex flex-wrap items-center gap-2 rounded-xl bg-[#f6e4e1] px-4 py-3 text-sm text-[#7d261d]">
+          <Lock className="h-4 w-4" /> <b className="font-medium">Contacts réservés :</b>
+          {reserved.data!.map((c) => <Link key={c.id} href={`/clients/${c.id}`} className="underline">{c.name}</Link>)}
+          <span>aucune action automatique.</span>
         </div>
       )}
 
-      <div className="mb-6 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-        {([
-          ["/clients/new", UserPlus, "Ajouter un client", "bg-emerald-600 hover:bg-emerald-700"],
-          ["/devis/new", FilePlus, "Créer un devis", "bg-emerald-600 hover:bg-emerald-700"],
-          ["/planning", CalendarPlus, "Planifier une mission", "bg-blue-600 hover:bg-blue-700"],
-          ["/planning", CalendarCheck, "Générer le planning", "bg-blue-600 hover:bg-blue-700"],
-          ["/facturation-auto", Zap, "Préparer les factures", "bg-orange-500 hover:bg-orange-600"],
-          ["/factures?statut=en_retard", Mail, "Relancer les clients", "bg-violet-600 hover:bg-violet-700"],
-          ["/actions", Siren, "Voir les urgences", "bg-red-600 hover:bg-red-700"]
-        ] as const).map(([href, Icon, label, color]) => (
-          <Link key={label} href={href} className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] font-semibold text-white shadow-sm transition-colors sm:px-3.5 sm:text-sm ${color}`}>
-            <Icon className="h-4 w-4" /> {label}
-          </Link>
-        ))}
-      </div>
-
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Kpi label="CA récurrent / mois (HT)" value={formatEUR(mrr)} icon={Repeat} accent="emerald" href="/contrats" sub={<span>{rows.length} contrat(s) actif(s)</span>} />
-        <Kpi label={`Facturé en ${monthName(prevMonth)} (HT)`} value={formatEUR(billedPrev)} icon={Receipt} accent="blue" href="/factures" trend={billedTrend}
-          sub={<span>{billedTrend ? `vs ${monthName(prev2Month)} · ` : ""}{monthName(month)} en cours : {formatEUR(billedMonth)}</span>} />
-        <Kpi label="Encours à encaisser (TTC)" value={formatEUR(outstanding)} icon={Wallet} accent={late.length ? "red" : "orange"} href="/factures?statut=en_retard"
-          sub={late.length ? <span className="font-medium text-red-700">dont {formatEUR(lateAmount)} en retard ({late.length})</span> : <span>aucun retard</span>} />
+      <section aria-label="Indicateurs" className="mt-9 grid grid-cols-2 border-t border-border sm:grid-cols-3 sm:divide-x sm:divide-border xl:grid-cols-5">
+        <Stat label="CA récurrent par mois" value={formatEUR(mrr)} unit="HT" href="/contrats" hint={`${rows.length} contrat${rows.length > 1 ? "s" : ""} actif${rows.length > 1 ? "s" : ""}`} />
+        <Stat label={`Facturé en ${monthName(prevMonth)}`} value={formatEUR(billedPrev)} unit="HT" href="/factures"
+          tone={billedTrend ? (billedTrend.pct >= 0 ? "ok" : "err") : undefined}
+          hint={billedTrend ? `${billedTrend.pct >= 0 ? "+" : ""}${billedTrend.pct} % · ${monthName(month)} : ${formatEUR(billedMonth)}` : `${monthName(month)} : ${formatEUR(billedMonth)}`}>
+          <Sparkline values={monthlySeries} label="Facturation des 12 derniers mois" />
+        </Stat>
+        <Stat label="À encaisser" value={formatEUR(outstanding)} unit="TTC" href="/factures?statut=en_retard" tone={late.length ? "err" : undefined}
+          hint={late.length ? `dont ${formatEUR(lateAmount)} en retard (${late.length})` : "aucun retard"} />
         {rec.sitesWithHours === 0 && rows.length > 0 ? (
-          <Kpi label="Heures hebdo" value="—" icon={Clock} accent="amber" href="/contrats?filtre=incomplets" sub={<span className="text-amber-700">⚠ {rec.sitesMissingHours} site(s) sans heures renseignées</span>} />
+          <Stat label="Heures par semaine" value="—" href="/contrats?filtre=incomplets" tone="warn" hint={`${rec.sitesMissingHours} site(s) sans heures renseignées`} />
         ) : (
-          <Kpi label="Heures hebdo" value={formatHours(rec.totalHours)} icon={Clock} accent="violet" href="/recrutement"
-            sub={<span>Recrutement : <b>{rec.level.toUpperCase()}</b>{rec.sitesMissingHours ? ` · ⚠ ${rec.sitesMissingHours} site(s) sans heures` : ""}</span>} />
+          <Stat label="Heures par semaine" value={formatHours(rec.totalHours)} href="/recrutement" hint={`Recrutement : ${rec.level.toUpperCase()}${rec.sitesMissingHours ? ` · ${rec.sitesMissingHours} site(s) sans heures` : ""}`} />
         )}
+        <Stat label="Clients actifs" value={String(activeClients.length)} href="/clients"
+          hint={`${cl.filter((c) => c.status === "prospect").length} prospect(s)`} />
+      </section>
+
+      <div className="mt-10">
+        <Seg items={[
+          { href: "/?vue=afaire", label: "À faire maintenant", count: actionsCount, active: vue === "afaire" },
+          { href: "/?vue=retard", label: "Factures en retard", count: late.length, active: vue === "retard", alert: true },
+          { href: "/?vue=valider", label: "À valider", count: toValidate, active: vue === "valider" }
+        ]} />
       </div>
 
-      <Card className="mb-6" id="alertes">
-        <CardHeader><CardTitle className="flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-amber-500" /> À faire maintenant</CardTitle>
-          <Link href="/actions" className="text-xs font-semibold text-primary hover:underline">Tout voir ({menuCountsFrom(actions)["/actions"]})</Link></CardHeader>
-        {!actions.length ? <Empty>Rien à faire : tout est à jour.</Empty> : (
-          <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[...actions.filter((a) => a.count === undefined).slice(0, 3), ...actions.filter((a) => a.count !== undefined).slice(0, 9)].map((a) => (
-              <Link key={a.key} href={a.href}
-                className={`group flex items-center gap-3 rounded-lg border border-slate-200 border-l-[5px] bg-white p-3 text-sm shadow-sm transition-shadow hover:shadow-md ${a.tone === "red" ? "border-l-red-600" : a.tone === "orange" ? "border-l-orange-500" : "border-l-blue-500"}`}>
-                {a.count !== undefined && <span className="text-[26px] font-bold leading-none text-slate-900">{a.count}</span>}
-                <span className="flex-1 leading-snug text-slate-600">{a.label}</span>
-                <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-500" />
-              </Link>
-            ))}
-          </div>
-        )}
+      <Card className="mt-4 overflow-hidden" id="alertes">
+        <div className="py-1.5">
+          {vue === "afaire" && (!actions.length ? <Empty>Rien à faire : tout est à jour.</Empty> : (
+            <>
+              {ordered.slice(0, 12).map((a) => (
+                <Row key={a.key} href={a.href} lead={a.count !== undefined ? a.count : ""} dot={a.count === undefined ? (a.tone === "red" ? "err" : a.tone === "orange" ? "warn" : undefined) : undefined}
+                  title={a.label} right={<ArrowRight className="h-4 w-4" />} />
+              ))}
+              <div className="px-6 py-3 text-[13px]"><Link href="/actions" className="font-medium text-primary hover:underline">Tout voir ({actionsCount})</Link></div>
+            </>
+          ))}
+          {vue === "retard" && (!late.length ? <Empty>Aucun impayé en retard.</Empty> : late.map((i) => (
+            <Row key={i.id} href={`/factures/${i.id}`} lead={`${daysBetween(i.due_date)} j`} dot="err"
+              title={<>{i.number} · <ClientName name={i.clients.name} reserved={i.clients.is_reserved} link={false} /></>}
+              sub={i.reminder_count ? `${i.reminder_count} relance(s), dernière ${formatDate(i.last_reminder_at)}` : "jamais relancée"}
+              right={formatEUR(num(i.total_ttc) - num(i.paid_amount))} />
+          )))}
+          {vue === "valider" && (!drafts.length && !toInvoice.length && !payments.count ? <Empty>Rien en attente de validation.</Empty> : (
+            <>
+              {drafts.map((i) => (
+                <Row key={i.id} href={`/factures/${i.id}`} lead="Facture" title={<ClientName id={i.clients.id} name={i.clients.name} reserved={i.clients.is_reserved} link={false} />}
+                  sub="Brouillon à relire et valider" right={`${formatEUR(i.total_ht)} HT`} />
+              ))}
+              {toInvoice.map((q) => (
+                <Row key={q.id} href={`/devis/${q.id}`} lead="Devis" title={<>{q.number} · <ClientName name={q.clients.name} reserved={q.clients.is_reserved} link={false} /></>}
+                  sub="Accepté, à facturer" right={`${formatEUR(q.total_ht)} HT`} />
+              ))}
+              {!!payments.count && <Row href="/paiements" lead={payments.count} title="virement(s) à rapprocher" right={<ArrowRight className="h-4 w-4" />} />}
+            </>
+          ))}
+        </div>
       </Card>
 
-      <div className="mb-6 grid gap-4 lg:grid-cols-3">
+      <Link href="/jarvis/openspace" className="mt-6 flex items-center gap-4 rounded-2xl bg-card px-5 py-4 text-[15px] text-secondary-foreground shadow-[0_1px_2px_rgba(17,18,20,0.04),0_8px_24px_rgba(17,18,20,0.04)] transition-colors hover:bg-secondary/40">
+        <Sparkles className="h-5 w-5 text-primary" strokeWidth={1.5} />
+        <span><b className="font-medium text-foreground">JARVIS</b> · vos agents et leurs alertes</span>
+        <span className="ml-auto inline-flex items-center gap-1 text-[13px] font-medium text-primary">Entrer dans les locaux <ArrowRight className="h-4 w-4" /></span>
+      </Link>
+
+      <div className="mt-10 grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Chiffre d&apos;affaires facturé par mois (HT)</CardTitle>
-            <span className="text-xs text-slate-500">12 mois : <b className="text-slate-900">{formatEUR(total12)}</b></span>
+            <span className="text-xs text-muted-foreground">12 mois : <b className="num font-medium text-foreground">{formatEUR(total12)}</b></span>
           </CardHeader>
           <CardContent className="pt-3">
             <MonthlyBars data={series} />
-            <p className="mt-2 text-xs text-slate-400">Mois en cours en plus clair (incomplet). {firstData && firstData.key !== series[0].key ? `Historique disponible à partir de ${firstData.label} (factures reprises d'Axonaut).` : ""} Survolez une barre pour le montant exact.</p>
+            <p className="mt-2 text-xs text-muted-foreground">Mois en cours en plus clair (incomplet). {firstData && firstData.key !== series[0].key ? `Historique disponible à partir de ${firstData.label} (factures reprises d'Axonaut).` : ""} Survolez une barre pour le montant exact.</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle>Clients</CardTitle><Link href="/clients" className="text-xs font-semibold text-primary hover:underline">Voir</Link></CardHeader>
+          <CardHeader><CardTitle>Clients</CardTitle><Link href="/clients" className="text-xs font-medium text-primary hover:underline">Voir</Link></CardHeader>
           <CardContent className="space-y-5">
             <Donut center={String(activeClients.length)} sub="clients actifs"
               parts={[{ label: "Entreprises", value: activeClients.filter((c) => c.kind === "entreprise").length }, { label: "Particuliers", value: activeClients.filter((c) => c.kind !== "entreprise").length }]} />
-            <div className="flex gap-4 border-t border-slate-100 pt-3 text-xs text-slate-500">
-              <span>Prospects : <b className="text-slate-900">{cl.filter((c) => c.status === "prospect").length}</b></span>
-              <span>Inactifs : <b className="text-slate-900">{cl.filter((c) => c.status === "inactif").length}</b></span>
+            <div className="flex gap-4 border-t border-border/70 pt-3 text-xs text-muted-foreground">
+              <span>Prospects : <b className="num font-medium text-foreground">{cl.filter((c) => c.status === "prospect").length}</b></span>
+              <span>Inactifs : <b className="num font-medium text-foreground">{cl.filter((c) => c.status === "inactif").length}</b></span>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader><CardTitle>Meilleurs clients (12 mois, HT)</CardTitle></CardHeader>
-          <CardContent>{topClients.length ? <RankBars rows={topClients} /> : <Empty>Aucune facture émise.</Empty>}</CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader><CardTitle>Factures en retard ({late.length})</CardTitle></CardHeader>
-          {!late.length ? <Empty>Aucun impayé en retard.</Empty> : (
-            <Table><tbody>{late.map((i) => (
-              <Tr key={i.id}><Td><Link href={`/factures/${i.id}`} className="font-semibold hover:underline">{i.number}</Link></Td>
-                <Td><ClientName name={i.clients.name} reserved={i.clients.is_reserved} link={false} /></Td>
-                <Td className="font-medium text-red-700">{daysBetween(i.due_date)} j</Td>
-                <Td className="text-xs text-muted-foreground">{i.reminder_count ? `${i.reminder_count} relance(s), dernière ${formatDate(i.last_reminder_at)}` : "jamais relancée"}</Td></Tr>
-            ))}</tbody></Table>
-          )}
-        </Card>
-
-        <Card>
-          <CardHeader><CardTitle>Factures à valider ({drafts.length})</CardTitle></CardHeader>
-          {!drafts.length ? <Empty>Aucun brouillon en attente.</Empty> : (
-            <Table><tbody>{drafts.map((i) => (
-              <Tr key={i.id}><Td><ClientName id={i.clients.id} name={i.clients.name} reserved={i.clients.is_reserved} link={false} /></Td>
-                <Td className="whitespace-nowrap">{formatEUR(i.total_ht)} HT</Td><Td className="whitespace-nowrap"><Link href={`/factures/${i.id}`} className="font-medium text-primary hover:underline">Relire & valider</Link></Td></Tr>
-            ))}</tbody></Table>
-          )}
-        </Card>
-
-        <Card>
-          <CardHeader><CardTitle>Devis acceptés à facturer ({toInvoice.length})</CardTitle></CardHeader>
-          {!toInvoice.length ? <Empty>Rien en attente.</Empty> : (
-            <Table><tbody>{toInvoice.map((q) => (
-              <Tr key={q.id}><Td><Link href={`/devis/${q.id}`} className="font-semibold hover:underline">{q.number}</Link></Td>
-                <Td><ClientName name={q.clients.name} reserved={q.clients.is_reserved} link={false} /></Td>
-                <Td className="whitespace-nowrap text-right">{formatEUR(q.total_ht)} HT</Td></Tr>
-            ))}</tbody></Table>
-          )}
-          <div className="border-t border-slate-100 px-5 py-3 text-sm text-slate-600">
-            {payments.count ? <><Badge tone="orange">{payments.count}</Badge> virement(s) à rapprocher — <Link href="/paiements" className="text-primary hover:underline">ouvrir</Link></> : "Tous les paiements sont rapprochés."}
-          </div>
-        </Card>
-      </div>
+      <Card className="mt-4">
+        <CardHeader><CardTitle>Meilleurs clients (12 mois, HT)</CardTitle></CardHeader>
+        <CardContent>{topClients.length ? <RankBars rows={topClients} /> : <Empty>Aucune facture émise.</Empty>}</CardContent>
+      </Card>
     </>
   );
 }

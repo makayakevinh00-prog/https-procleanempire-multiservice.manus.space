@@ -1,7 +1,7 @@
 import { formatEUR } from "@/lib/utils";
 
 /** Palette validée (CVD) : bleu ProClean, aqua. Texte toujours en encre neutre. */
-export const SERIES = ["#2a78d6", "#1baf7a"] as const;
+export const SERIES = ["#2b4c7e", "#9aa3b2"] as const;
 
 const short = (n: number) => (n >= 1000 ? `${(n / 1000).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} k€` : `${Math.round(n)} €`);
 
@@ -19,7 +19,7 @@ export function MonthlyBars({ data }: { data: { label: string; value: number; cu
     <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label="Chiffre d'affaires facturé par mois (HT)">
       {ticks.map((t) => (
         <g key={t}>
-          <line x1={padL} x2={W} y1={y(t)} y2={y(t)} stroke="#e2e8f0" strokeDasharray={t ? "3 3" : undefined} />
+          <line x1={padL} x2={W} y1={y(t)} y2={y(t)} stroke="#e6e4de" strokeDasharray={t ? "3 3" : undefined} />
           <text x={padL - 6} y={y(t) + 4} textAnchor="end" className="fill-slate-400 text-[11px]">{short(t)}</text>
         </g>
       ))}
@@ -33,7 +33,7 @@ export function MonthlyBars({ data }: { data: { label: string; value: number; cu
               fill={SERIES[0]} opacity={d.current ? 0.55 : 1} className="transition-opacity group-hover:opacity-80" />}
             <text x={x + bw / 2} y={H - 8} textAnchor="middle" className={`text-[11px] ${d.current ? "fill-slate-700 font-semibold" : "fill-slate-500"}`}>{d.label}</text>
             <g className="pointer-events-none opacity-0 transition-opacity group-hover:opacity-100">
-              <rect x={x + bw / 2 - 42} y={Math.max(y(d.value) - 26, 0)} width={84} height={20} rx={4} fill="#0f172a" />
+              <rect x={x + bw / 2 - 42} y={Math.max(y(d.value) - 26, 0)} width={84} height={20} rx={4} fill="#111214" />
               <text x={x + bw / 2} y={Math.max(y(d.value) - 12, 14)} textAnchor="middle" className="fill-white text-[11px] font-semibold">{formatEUR(d.value)}</text>
             </g>
             <title>{`${d.label} : ${formatEUR(d.value)} HT${d.current ? " (mois en cours)" : ""}`}</title>
