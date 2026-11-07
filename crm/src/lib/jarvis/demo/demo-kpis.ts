@@ -28,3 +28,9 @@ export function demoKpiSet(now: Date = new Date()): KpiSet {
     ]
   };
 }
+
+import type { AlertSummary } from "../alerts";
+/** RÉSUMÉ D'ALERTES FICTIF pour la démonstration. */
+export function demoAlertSummary(): AlertSummary {
+  return { open: 7, priority: 2, inProgress: 1, resolved: 4, tracking: true, byAgent: { finance: { open: 3, priority: 1, inProgress: 1, resolved: 2 }, operations: { open: 2, priority: 1, inProgress: 0, resolved: 1 }, commercial: { open: 2, priority: 0, inProgress: 0, resolved: 1 } } };
+}

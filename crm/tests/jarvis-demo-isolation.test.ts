@@ -26,7 +26,7 @@ describe("séparation stricte démonstration / réel", () => {
     for (const f of AUTORISES) expect(readFileSync(path.join(root, f), "utf8")).toMatch(/\/demo\//);
   });
   it("les modules du mode réel n'importent aucune donnée fictive", () => {
-    for (const f of ["src/lib/jarvis/kpis.ts", "src/lib/jarvis/load-kpis.ts", "src/lib/jarvis/openspace.ts", "src/lib/jarvis/load-openspace.ts", "src/components/crm/pilotage.tsx", "src/components/crm/openspace.tsx", "src/app/api/jarvis/kpis/route.ts", "src/app/api/jarvis/openspace/route.ts"])
+    for (const f of ["src/lib/jarvis/kpis.ts", "src/lib/jarvis/load-kpis.ts", "src/lib/jarvis/openspace.ts", "src/lib/jarvis/load-openspace.ts", "src/components/crm/pilotage.tsx", "src/components/crm/openspace.tsx", "src/components/crm/hq/office.tsx", "src/components/crm/hq/scene.tsx", "src/components/crm/hq/parts.tsx", "src/lib/jarvis/hq/layout.ts", "src/app/api/jarvis/alerts/route.ts", "src/app/api/jarvis/kpis/route.ts", "src/app/api/jarvis/openspace/route.ts"])
       expect(readFileSync(path.join(root, f), "utf8"), f).not.toMatch(/demo-state|demo-kpis|demoState|demoKpiSet/);
   });
   it("le composant du plateau ne contient plus le scénario fictif : il le reçoit de l'enveloppe de démonstration", () => {
@@ -40,6 +40,6 @@ describe("séparation stricte démonstration / réel", () => {
   });
   it("la page de démonstration n'appelle jamais le chargeur réel des indicateurs", () => {
     const src = readFileSync(path.join(root, "src/app/(app)/jarvis/openspace/page.tsx"), "utf8");
-    expect(src).toMatch(/wantDemo \? demoKpiSet\(\) : await loadKpis/);
+    expect(src).toMatch(/wantDemo\s*\?\s*\[demoKpiSet\(\), null\]\s*:\s*await Promise\.all\(\[\s*loadKpis/);
   });
 });
