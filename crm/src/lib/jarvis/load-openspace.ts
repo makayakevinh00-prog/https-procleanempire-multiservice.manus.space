@@ -16,10 +16,13 @@ export async function loadOpenSpaceState(sb: Supa, now: Date = new Date()): Prom
     sb.from("jarvis_runs").select("id, agent_key, started_at, finished_at, ok, summary, trigger").order("started_at", { ascending: false }).limit(40),
     sb.from("jarvis_instructions").select("id, agent_key, kind, command, body, status, result, created_at").order("created_at", { ascending: false }).limit(40)
   ]);
+  // Moteur de missions (0022) : facultatif. Absent = on garde la lecture par passages ; jamais une erreur.
+  const lv = await sb.from("jarvis_agent_live").select("agent_key, travaille, validations_en_attente, en_difficulte, collaborations");
+  const live = lv.error ? undefined : (lv.data as any);
   const all = [ag, al, ac, tk, ev, rn, ins];
   if (all.some((r) => missing(r.error))) return buildOpenSpaceState({ agents: [], alerts: [], actions: [], tasks: [], events: [], runs: [], instructions: [] }, now, false);
   const failed = all.find((r) => r.error);
   if (failed?.error) throw new Error(failed.error.message);
-  const rows: Rows = { agents: ag.data as any, alerts: al.data as any, actions: ac.data as any, tasks: tk.data as any, events: ev.data as any, runs: rn.data as any, instructions: ins.data as any };
+  const rows: Rows = { agents: ag.data as any, alerts: al.data as any, actions: ac.data as any, tasks: tk.data as any, events: ev.data as any, runs: rn.data as any, instructions: ins.data as any, live };
   return buildOpenSpaceState(rows, now, true);
 }

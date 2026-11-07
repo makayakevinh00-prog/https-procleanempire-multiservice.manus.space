@@ -5,7 +5,7 @@ import path from "node:path";
 
 const root = path.join(__dirname, "..");
 const read = (p: string) => readFileSync(path.join(root, p), "utf8");
-const MIG = readdirSync(path.join(root, "supabase/migrations")).filter((x) => x.endsWith(".sql") && !x.endsWith("_down.sql")).sort();
+const MIG = readdirSync(path.join(root, "supabase/migrations")).filter((x) => x.endsWith(".sql") && !x.endsWith("_down.sql") && x < "0022").sort(); // ce fichier teste 0021 : les migrations suivantes ont leurs propres tests
 const BEFORE = MIG.filter((f) => f < "0021");
 
 async function build(files: string[], opts: { seed?: boolean } = {}) {

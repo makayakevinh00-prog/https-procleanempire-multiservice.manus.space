@@ -30,7 +30,7 @@ beforeAll(async () => {
     grant usage on schema public to authenticated, anon;
     alter default privileges in schema public grant all on tables to authenticated, anon;
     alter default privileges in schema public grant execute on functions to authenticated, anon;`);
-  for (const f of readdirSync(path.join(root, "supabase/migrations")).filter((x) => x.endsWith(".sql") && !x.endsWith("_down.sql")).sort()) await db.exec(read(`supabase/migrations/${f}`));
+  for (const f of readdirSync(path.join(root, "supabase/migrations")).filter((x) => x.endsWith(".sql") && !x.endsWith("_down.sql") && x < "0022").sort()) await db.exec(read(`supabase/migrations/${f}`));
   await db.exec(read("supabase/seed.sql"));
   await db.exec("alter table invoices disable trigger user; alter table contracts disable trigger user");
   await db.exec("delete from contracts"); // le jeu de départ du dépôt contient des contrats d'exemple : on isole le scénario

@@ -1,0 +1,24 @@
+-- Retour arrière de 0022_jarvis_missions.sql : supprime uniquement les objets du moteur de missions. Aucune table du CRM n'est touchée.
+drop view if exists jarvis_agent_live;
+drop function if exists jarvis_budget_ok(text, bigint);
+drop function if exists jarvis_cancel_mission(uuid, text);
+drop function if exists jarvis_decide_validation(uuid, boolean, text);
+drop function if exists jarvis_request_validation(uuid, uuid, text, text, jsonb);
+drop function if exists jarvis_handle_message(uuid);
+drop function if exists jarvis_send_message(uuid, text, text, text, jsonb);
+drop function if exists jarvis_step_fail(uuid, text, int);
+drop function if exists jarvis_step_finish(uuid, jsonb, text, int, int, bigint);
+drop function if exists jarvis_step_start(uuid, text);
+drop function if exists jarvis_claim_next(text, int);
+drop function if exists jarvis_ask_clarification(uuid, text, text);
+drop function if exists jarvis_plan_mission(uuid, text, jsonb);
+drop function if exists jarvis_enqueue_mission(text, text, text, text, text, int, text);
+drop function if exists jarvis_log(uuid, uuid, text, text, jsonb);
+drop table if exists jarvis_budgets;
+drop table if exists jarvis_llm_calls;
+drop table if exists jarvis_validations;
+drop table if exists jarvis_agent_messages;
+drop table if exists jarvis_mission_events;
+drop table if exists jarvis_mission_steps;
+drop table if exists jarvis_missions;
+drop function if exists jarvis_events_append_only();

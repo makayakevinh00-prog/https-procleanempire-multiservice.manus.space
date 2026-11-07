@@ -32,7 +32,10 @@ export interface Rows {
   events: { id: string; type: string; source_agent: string; target_agent: string; status: string; payload: any; created_at: string; handled_at: string | null }[];
   runs: { id: string; agent_key: string; started_at: string; finished_at: string | null; ok: boolean; summary: string | null; trigger: string }[];
   instructions: DeskInstruction[] & { agent_key: string }[] | any[];
+  /** Vue jarvis_agent_live du moteur de missions (si installé) : source d'attitude prioritaire, déduite des exécutions en cours. */
+  live?: LiveRow[];
 }
+export interface LiveRow { agent_key: string; travaille: boolean; validations_en_attente: number | string; en_difficulte: boolean; collaborations: number | string }
 
 export const EVENT_LABEL: Record<string, string> = {
   "contract.incomplete": "contrat actif incomplet à compléter",
@@ -55,10 +58,18 @@ export function buildOpenSpaceState(rows: Rows, now: Date, installed = true): Op
     const tasks = rows.tasks.filter((x) => x.agent_key === a.key && x.status === "todo");
     const runs = rows.runs.filter((x) => x.agent_key === a.key).sort((x, y) => y.started_at.localeCompare(x.started_at));
     const last = runs[0];
+    const live = rows.live?.find((x) => x.agent_key === a.key);
     const recent = !!last && ago(last.finished_at ?? last.started_at, t) < RECENT_MS;
     let activity: Activity; let label: string;
     if (a.status === "prevu") { activity = "absent"; label = "Pas encore construit"; }
     else if (db && db.enabled === false) { activity = "repos"; label = "Désactivé par vous"; }
+    else if (live) {
+      // Moteur de missions installé : l'activité vient UNIQUEMENT des exécutions enregistrées (étape en cours, validation en attente, échec récent).
+      if (live.travaille) { activity = "travaille"; label = "Exécute une mission"; }
+      else if (Number(live.validations_en_attente) > 0) { activity = "attend_validation"; label = `${live.validations_en_attente} validation(s) attendue(s)`; }
+      else if (live.en_difficulte || alerts.some((x) => x.severity === "urgent")) { activity = "alerte"; label = live.en_difficulte ? "Une mission a échoué" : "Alerte urgente ouverte"; }
+      else { activity = "repos"; label = "En attente d'une instruction"; }
+    }
     else if (recent) { activity = "travaille"; label = "Vient de travailler"; }
     else if (pending.length) { activity = "attend_validation"; label = `${pending.length} proposition(s) à valider`; }
     else if (alerts.some((x) => x.severity === "urgent")) { activity = "alerte"; label = "Alerte urgente ouverte"; }

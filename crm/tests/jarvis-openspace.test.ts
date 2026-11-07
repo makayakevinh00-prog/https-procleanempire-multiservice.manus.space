@@ -97,3 +97,22 @@ describe("relTime", () => {
     expect(relTime(ago(-50), t)).toBe("à l'instant");
   });
 });
+
+describe("open space : moteur de missions (vue jarvis_agent_live) = source d'attitude prioritaire", () => {
+  const live = (o: object) => ({ agent_key: "finance", travaille: false, validations_en_attente: 0, en_difficulte: false, collaborations: 0, ...o });
+  const withLive = (l: object, extra: Partial<Rows> = {}) => buildOpenSpaceState(rows({ live: [live(l)] as any, ...extra }), NOW);
+  it("« travaille » seulement si le moteur déclare une étape en cours ; un passage récent ne suffit plus", () => {
+    const run = { id: "r", agent_key: "finance", started_at: ago(31), finished_at: ago(30), ok: true, summary: "x", trigger: "manuel" };
+    expect(desk(withLive({}, { runs: [run] }), "finance").activity).toBe("repos");
+    expect(desk(withLive({ travaille: true }), "finance")).toMatchObject({ activity: "travaille", label: "Exécute une mission" });
+  });
+  it("validation en attente → documents ; mission échouée → difficulté ; sinon attente d'instruction", () => {
+    expect(desk(withLive({ validations_en_attente: "2" }), "finance")).toMatchObject({ activity: "attend_validation" });
+    expect(desk(withLive({ en_difficulte: true }), "finance")).toMatchObject({ activity: "alerte", label: "Une mission a échoué" });
+    expect(desk(withLive({}), "finance")).toMatchObject({ activity: "repos", label: "En attente d'une instruction" });
+  });
+  it("un agent prévu reste absent même si le moteur renvoie une ligne pour lui", () => {
+    const s = buildOpenSpaceState(rows({ live: [live({ agent_key: "operations", travaille: true })] as any }), NOW);
+    expect(desk(s, "operations").activity).toBe("absent");
+  });
+});
