@@ -26,6 +26,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
   return (
     <div className="min-h-screen">
+      {process.env.VERCEL_ENV === "preview" && (
+        <div role="note" className="sticky top-0 z-50 bg-amber-300 px-4 py-1 text-center text-xs font-bold text-slate-900">
+          BASE DE TEST · données fictives, aucun e-mail réel, aucun accès à la production
+        </div>
+      )}
       <SidebarLive signOut={signOut} />
       <div className="md:ml-64">
         <TopbarLive signOut={signOut} />
