@@ -101,6 +101,7 @@ describe("routes appelées directement", () => {
     ["factures pdf", () => import("../src/app/api/factures/[id]/pdf/route")],
     ["devis pdf", () => import("../src/app/api/devis/[id]/pdf/route")],
     ["contrats pdf", () => import("../src/app/api/contrats/[id]/pdf/route")],
+    ["export comptable", () => import("../src/app/api/comptabilite/export/route")],
     ["photos de mission", () => import("../src/app/api/missions/photo/[id]/route")],
     ["open space (état en direct)", () => import("../src/app/api/jarvis/openspace/route")]
   ];

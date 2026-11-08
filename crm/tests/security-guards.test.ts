@@ -60,6 +60,7 @@ describe("garde de rôle sur les actions serveur", () => {
       "src/app/api/devis/[id]/pdf/route.ts",
       "src/app/api/contrats/[id]/pdf/route.ts",
       "src/app/api/missions/photo/[id]/route.ts",
+      "src/app/api/comptabilite/export/route.ts",
     ]) {
       expect(read(p), p).toMatch(/await isOwner\(\)/);
     }
