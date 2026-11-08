@@ -11,6 +11,7 @@ import { Field, Input, Select, Textarea } from "@/components/ui/form";
 import { Badge, ReservedBadge } from "@/components/ui/badge";
 import { addInterventionAction, deleteInterventionAction, generateFromContractsAction, markPastDoneAction, setInterventionStatusAction } from "@/app/actions/planning";
 import { formatEUR } from "@/lib/utils";
+import { MissionCalendar } from "@/components/crm/mission-calendar";
 
 const DAYS = ["", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
 const shift = (month: string, n: number) => {
@@ -79,6 +80,11 @@ export default async function PlanningPage({ searchParams }: { searchParams: { m
         <Card><CardContent className="p-3"><div className="text-xl font-bold">{hours ? `${hours.toLocaleString("fr-FR")} h` : "—"}</div><div className="text-xs text-muted-foreground">heures prévues</div></CardContent></Card>
         <Card><CardContent className="p-3"><div className="text-xl font-bold">{formatEUR(billable)}</div><div className="text-xs text-muted-foreground">au passage (HT)</div></CardContent></Card>
       </div>
+
+      {!filtre && (
+        <MissionCalendar rows={items} month={month} gridStart={addDays(start, 1 - isoWeekday(start))} gridEnd={addDays(end, 7 - isoWeekday(end))} today={today}
+          dayHref={(d) => `/missions?vue=jour&date=${d}`} />
+      )}
 
       <Card className="mb-4">
         <CardHeader><CardTitle>Ajouter une intervention</CardTitle></CardHeader>

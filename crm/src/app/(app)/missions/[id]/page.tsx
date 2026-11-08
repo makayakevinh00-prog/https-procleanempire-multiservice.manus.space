@@ -83,6 +83,14 @@ export default async function MissionPage({ params }: { params: { id: string } }
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
           <ReportCard r={report} />
+          <div className="flex flex-wrap items-center gap-2">
+            {!locked && ["terminee", "a_verifier"].includes(m.stage) && (<>
+              <form action={setStageAction.bind(null, m.id)}><input type="hidden" name="stage" value="validee" /><input type="hidden" name="back" value={back} /><Button disabled={report.verdict === "non_conforme"}>Valider l&apos;intervention</Button></form>
+              <form action={setStageAction.bind(null, m.id)}><input type="hidden" name="stage" value="en_cours" /><input type="hidden" name="back" value={back} /><Button variant="outline">Renvoyer à l&apos;agente</Button></form>
+              {report.verdict === "non_conforme" && <span className="text-[13px] text-destructive">Non conforme : corrigez ou traitez les anomalies avant de valider.</span>}
+            </>)}
+            <Link href={`/missions/${m.id}/rapport`} target="_blank" className="ml-auto text-[13px] font-medium text-primary hover:underline">Rapport PDF</Link>
+          </div>
           <InsightsCard a={analysis} />
           <Card>
             <CardHeader><CardTitle>Avancement</CardTitle></CardHeader>

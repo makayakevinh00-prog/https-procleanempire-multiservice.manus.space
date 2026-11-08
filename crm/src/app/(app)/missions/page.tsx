@@ -13,24 +13,30 @@ import { ActivityTabs } from "@/components/crm/activity-ui";
 import { MissionsTabs } from "@/components/crm/missions-tabs";
 import { isActivity, missionActivity, type Activity } from "@/lib/domain/activity";
 import { loadActivityModel, selectResilient } from "@/lib/activity-data";
+import { MissionCalendar } from "@/components/crm/mission-calendar";
+import { StageBadge } from "@/components/crm/mission";
+import { loadVerdicts } from "@/lib/mission-verdicts";
+import { getSettings } from "@/lib/data";
+import { Search } from "lucide-react";
 
-const VIEWS = [["calendrier", "Calendrier"], ["jour", "Aujourd'hui"], ["semaine", "Semaine"], ["mois", "Mois"], ["agent", "Par agent"], ["site", "Par site"], ["statut", "Par statut"]] as const;
+const VERDICT = { conforme: "bg-[#e6f1ea] text-[#2f7a55]", a_verifier: "bg-[#f7ecdb] text-[#8f5a12]", non_conforme: "bg-[#f6e4e1] text-[#b3382c]", en_attente: "bg-secondary text-muted-foreground" } as const;
+const VIEWS = [["liste", "Liste"], ["calendrier", "Calendrier"], ["jour", "Aujourd'hui"], ["semaine", "Semaine"], ["mois", "Mois"], ["agent", "Par agent"], ["site", "Par site"], ["statut", "Par statut"]] as const;
 type View = (typeof VIEWS)[number][0];
 const DAY = ["", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
 
-export default async function MissionsPage({ searchParams }: { searchParams: { vue?: string; date?: string; agent?: string; site?: string; etape?: string; famille?: string } }) {
+export default async function MissionsPage({ searchParams }: { searchParams: { q?: string; vue?: string; date?: string; agent?: string; site?: string; etape?: string; famille?: string } }) {
   const today = parisToday();
-  const view: View = (VIEWS.map((v) => v[0]) as string[]).includes(searchParams.vue ?? "") ? (searchParams.vue as View) : "calendrier";
+  const view: View = (VIEWS.map((v) => v[0]) as string[]).includes(searchParams.vue ?? "") ? (searchParams.vue as View) : "liste";
   const anchor = /^\d{4}-\d{2}-\d{2}$/.test(searchParams.date ?? "") ? searchParams.date! : today;
   // Période affichée : jour, semaine (lundi → dimanche) ou mois ; les vues « par … » couvrent la semaine.
   const monday = addDays(anchor, 1 - isoWeekday(anchor));
-  const isMonth = view === "mois" || view === "calendrier";
+  const isMonth = view === "mois" || view === "calendrier" || view === "liste";
   const mb = monthBounds(anchor.slice(0, 7));
   // Calendrier : la grille va du lundi qui précède le 1er au dimanche qui suit le dernier jour du mois.
   const gridStart = addDays(mb.start, 1 - isoWeekday(mb.start)), gridEnd = addDays(mb.end, 7 - isoWeekday(mb.end));
   const range = view === "jour" ? { start: anchor, end: anchor }
     : view === "calendrier" ? { start: gridStart, end: gridEnd }
-    : view === "mois" ? mb : { start: monday, end: addDays(monday, 6) };
+    : view === "mois" || view === "liste" ? mb : { start: monday, end: addDays(monday, 6) };
   const step = view === "jour" ? 1 : isMonth ? 31 : 7;
   const prev = isMonth ? `${monthBounds(addDays(mb.start, -1).slice(0, 7)).start}` : addDays(anchor, -step);
   const next = isMonth ? addDays(mb.end, 1) : addDays(anchor, step);
@@ -57,11 +63,14 @@ export default async function MissionsPage({ searchParams }: { searchParams: { v
   for (const x of withFam) if (x.m.stage !== "annulee") famCounts[x.fam] = (famCounts[x.fam] ?? 0) + 1;
   const famSel = isActivity(searchParams.famille) ? (searchParams.famille as Activity) : "";
   const famOf = new Map<string, Activity>(withFam.map((x) => [x.m.id as string, x.fam]));
-  const rows = withFam.filter((x) => !famSel || x.fam === famSel).map((x) => x.m) as any[];
+  const needle = (searchParams.q ?? "").trim().toLowerCase();
+  const rows = withFam.filter((x) => !famSel || x.fam === famSel).map((x) => x.m)
+    .filter((m: any) => !needle || [m.clients?.name, m.sites?.name, m.site_address, m.assignee, m.title].some((v) => String(v ?? "").toLowerCase().includes(needle))) as any[];
+  const verdicts = view === "liste" ? await loadVerdicts(supabase, rows.filter((r) => r.stage !== "planifiee"), Number((await getSettings(supabase)).indep_hourly_cost ?? 0)) : new Map();
 
   const params = (over: Record<string, string | undefined>) => {
     const p = new URLSearchParams();
-    const all = { vue: view, date: anchor, agent: searchParams.agent, site: searchParams.site, etape: searchParams.etape, famille: famSel || undefined, ...over };
+    const all = { q: searchParams.q || undefined, vue: view, date: anchor, agent: searchParams.agent, site: searchParams.site, etape: searchParams.etape, famille: famSel || undefined, ...over };
     for (const [k, v] of Object.entries(all)) if (v) p.set(k, v);
     return `/missions?${p.toString()}`;
   };
@@ -113,6 +122,7 @@ export default async function MissionsPage({ searchParams }: { searchParams: { v
         {anchor !== today && <Link href={params({ date: today })} className="text-sm text-primary hover:underline">Aujourd&apos;hui</Link>}
         <form className="ml-auto flex flex-wrap gap-2" action="/missions">
           <input type="hidden" name="vue" value={view} /><input type="hidden" name="date" value={anchor} />
+          <div className="relative"><Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><input name="q" defaultValue={searchParams.q ?? ""} placeholder="Site, agent, client…" className="h-9 w-48 rounded-lg border bg-card pl-8 pr-2 text-sm" /></div>
           <Select name="agent" defaultValue={searchParams.agent ?? ""} className="h-9 w-44"><option value="">Tous les agents</option><option value="aucun">Sans intervenant</option>{staff?.map((s) => <option key={s.id} value={s.id}>{s.full_name}</option>)}</Select>
           <Select name="site" defaultValue={searchParams.site ?? ""} className="h-9 w-44"><option value="">Tous les sites</option>{sites?.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</Select>
           <Select name="etape" defaultValue={searchParams.etape ?? ""} className="h-9 w-40"><option value="">Toutes les étapes</option>{STAGES.map(([s, l]) => <option key={s} value={s}>{l}</option>)}</Select>
@@ -128,48 +138,40 @@ export default async function MissionsPage({ searchParams }: { searchParams: { v
         })}
       </div>
 
-      {view === "calendrier" && (() => {
-        const byDay = new Map<string, any[]>();
-        for (const r of rows) if (r.stage !== "annulee") byDay.set(r.scheduled_date, [...(byDay.get(r.scheduled_date) ?? []), r]);
-        const days: string[] = []; for (let d = gridStart; d <= gridEnd; d = addDays(d, 1)) days.push(d);
-        const month = anchor.slice(0, 7);
-        return (
-          <Card className="overflow-hidden">
-            <div className="grid grid-cols-7 border-b border-border/70 text-center text-[12px] font-medium uppercase tracking-wider text-muted-foreground">
-              {["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."].map((d) => <div key={d} className="py-2.5">{d}</div>)}
-            </div>
-            <div className="grid grid-cols-7">
-              {days.map((d, i) => {
-                const list = byDay.get(d) ?? [];
-                const inMonth = d.startsWith(month);
+      {view === "calendrier" && <MissionCalendar rows={rows.filter((r) => r.stage !== "annulee")} month={anchor.slice(0, 7)} gridStart={gridStart} gridEnd={gridEnd} today={today} dayHref={(d) => params({ vue: "jour", date: d })} />}
+
+      {view === "liste" && (!rows.length ? (
+        <Card><Empty>Aucune mission sur cette période. Les missions se créent depuis les contrats (« Générer le planning ») ou à l&apos;unité depuis le planning.</Empty></Card>
+      ) : (
+        <Card className="overflow-x-auto">
+          <table className="w-full min-w-[820px] text-left text-[14px]">
+            <thead><tr className="border-b border-border/70 text-[12px] font-medium uppercase tracking-wider text-muted-foreground">
+              {["Site", "Agent", "Début", "Fin", "Statut", "Contrôle", ""].map((h) => <th key={h} className="px-5 py-3 font-medium">{h}</th>)}
+            </tr></thead>
+            <tbody>
+              {rows.map((m) => {
+                const v = verdicts.get(m.id) as any;
+                const fmt = (iso: string | null) => iso ? new Date(iso).toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris", hour: "2-digit", minute: "2-digit" }) : null;
+                const endPlanned = m.start_time && m.duration_hours ? (() => { const [h, mi] = String(m.start_time).split(":").map(Number); const t = h * 60 + mi + Math.round(Number(m.duration_hours) * 60); return `${String(Math.floor(t / 60) % 24).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`; })() : null;
                 return (
-                  <div key={d} className={`min-h-[92px] border-b border-r border-border/60 p-1.5 sm:min-h-[118px] ${(i + 1) % 7 === 0 ? "border-r-0" : ""} ${inMonth ? "" : "bg-secondary/40"}`}>
-                    <Link href={params({ vue: "jour", date: d })} className={`num mb-1 inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-[13px] ${d === today ? "bg-foreground font-semibold text-background" : inMonth ? "text-foreground hover:bg-secondary" : "text-muted-foreground"}`}>{Number(d.slice(8))}</Link>
-                    <ul className="space-y-1">
-                      {list.slice(0, 3).map((m) => {
-                        const none = !m.assignee && !m.staff_id;
-                        const done = ["terminee", "validee", "facturable", "facturee"].includes(m.stage);
-                        return (
-                          <li key={m.id}>
-                            <Link href={`/missions/${m.id}`} title={`${m.clients?.name ?? ""} · ${m.title}${none ? " · sans intervenant" : ` · ${m.assignee ?? ""}`}`}
-                              className={`block truncate rounded-md px-1.5 py-0.5 text-[11.5px] leading-snug ${none ? "bg-[#f7ecdb] text-[#8f5a12]" : done ? "bg-secondary text-muted-foreground" : "bg-[#e8edf5] text-[#2b4c7e]"} hover:opacity-80`}>
-                              <span className="num font-medium">{m.start_time ? m.start_time.slice(0, 5) : ""}</span> {m.clients?.name ?? m.title}
-                            </Link>
-                          </li>
-                        );
-                      })}
-                      {list.length > 3 && <li><Link href={params({ vue: "jour", date: d })} className="px-1.5 text-[11.5px] text-muted-foreground hover:text-foreground">+{list.length - 3} autre(s)</Link></li>}
-                    </ul>
-                  </div>
+                  <tr key={m.id} className="border-b border-border/50 last:border-0 hover:bg-secondary/40">
+                    <td className="px-5 py-3.5"><Link href={`/missions/${m.id}`} className="font-semibold text-foreground hover:underline">{m.sites?.name ?? m.clients?.name ?? "—"}</Link>
+                      <div className="text-[12.5px] text-muted-foreground">{m.sites?.name ? `${m.clients?.name ?? ""} · ` : ""}{m.title}{m.sites?.city ? ` · ${m.sites.city}` : ""}</div></td>
+                    <td className={`px-5 py-3.5 ${m.assignee ? "" : "font-medium text-[#8f5a12]"}`}>{m.assignee ?? "Sans agent"}</td>
+                    <td className="num px-5 py-3.5 whitespace-nowrap">{formatDate(m.scheduled_date)}<div className="text-[12.5px] text-muted-foreground">{m.start_time ? m.start_time.slice(0, 5) : "—"}{m.arrived_at ? ` · arrivée ${fmt(m.arrived_at)}` : ""}</div></td>
+                    <td className="num px-5 py-3.5 whitespace-nowrap">{endPlanned ?? "—"}<div className="text-[12.5px] text-muted-foreground">{m.departed_at ? `départ ${fmt(m.departed_at)}` : ""}</div></td>
+                    <td className="px-5 py-3.5"><StageBadge stage={m.stage} /></td>
+                    <td className="px-5 py-3.5">{v ? <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${VERDICT[v.r.verdict as keyof typeof VERDICT]}`}>{v.r.verdictLabel}</span> : <span className="text-muted-foreground">—</span>}</td>
+                    <td className="px-5 py-3.5 text-right"><Link href={`/missions/${m.id}`} className="text-[13px] font-medium text-primary hover:underline">Ouvrir</Link></td>
+                  </tr>
                 );
               })}
-            </div>
-            <p className="px-4 py-2.5 text-xs text-muted-foreground">Bleu : mission affectée · ambre : sans intervenant · gris : terminée. Cliquez sur un jour pour le détail, sur une mission pour l&apos;ouvrir.</p>
-          </Card>
-        );
-      })()}
+            </tbody>
+          </table>
+        </Card>
+      ))}
 
-      {view !== "calendrier" && (!rows.length ? (
+      {!["calendrier", "liste"].includes(view) && (!rows.length ? (
         <Card><Empty>Aucune mission sur cette période. Les missions se créent depuis les contrats (« Générer le planning ») ou à l&apos;unité depuis le planning.</Empty></Card>
       ) : (
         <div className="space-y-4">
