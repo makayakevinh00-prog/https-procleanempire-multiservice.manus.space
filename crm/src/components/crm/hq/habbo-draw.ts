@@ -303,7 +303,7 @@ export function drawProp(
         c.fillStyle = "#713f12";
         c.font = "bold 8px sans-serif";
         c.textAlign = "center";
-        c.fillText("BIENTÔT", sx, sy + 1);
+        c.fillText("À CONNECTER", sx, sy + 1);
         c.textAlign = "left";
       }
       break;

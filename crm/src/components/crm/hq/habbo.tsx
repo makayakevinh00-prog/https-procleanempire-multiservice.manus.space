@@ -470,7 +470,7 @@ export function HabboOffice({
           ctx,
           pj.chair[0],
           pj.chair[1],
-          `${AGENT_BY_KEY[hov as AgentKey].name.split(" ")[0]} · bientôt`,
+          `${AGENT_BY_KEY[hov as AgentKey].name.split(" ")[0]} · à connecter`,
           false,
         );
     };
