@@ -46,7 +46,7 @@ describe("serveur MCP", () => {
 import { noOAuth } from "../src/lib/mcp/no-oauth";
 describe("découverte OAuth : réponse nette", () => {
   it("renvoie un 404 JSON (jamais une redirection ni du HTML)", async () => {
-    const r = noOAuth();
+    const r = noOAuth(new Request("https://exemple.test/.well-known/oauth-authorization-server"));
     expect(r.status).toBe(404); expect(r.headers.get("content-type")).toContain("application/json");
     expect((await r.json()).error).toBe("not_found");
   });
