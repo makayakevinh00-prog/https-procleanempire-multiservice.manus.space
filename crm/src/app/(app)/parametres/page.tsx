@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/form";
 import { cookies } from "next/headers";
-import { saveSettingsAction, generateCalendarLinkAction, revokeCalendarLinkAction, createAgentConnectorAction, revokeAgentConnectorAction } from "@/app/actions/settings";
+import { saveSettingsAction, generateCalendarLinkAction, revokeCalendarLinkAction, createAgentConnectorAction, revokeAgentConnectorAction, inviteAccountantAction, revokeAccountantAction } from "@/app/actions/settings";
 import { AGENTS } from "@/lib/jarvis/registry";
 import { Select } from "@/components/ui/form";
 import { ConfirmAction } from "@/components/crm/confirm-action";
@@ -15,6 +15,9 @@ export default async function SettingsPage() {
   const s = await getSettings(supabase);
   const feed = await supabase.from("calendar_feed").select("set_at").eq("id", 1).maybeSingle();
   const conns = await supabase.from("agent_connectors").select("id, agent_key, label, created_at, last_used_at, revoked_at").order("created_at", { ascending: false });
+  const accs = await supabase.from("accountants").select("id, email, label, created_at, claimed_at, revoked_at, code_expires_at").order("created_at", { ascending: false });
+  let freshAcc: { email: string; code: string; url: string } | null = null;
+  try { freshAcc = JSON.parse(decodeURIComponent(cookies().get("accountant_invite")?.value ?? "null")); } catch { freshAcc = null; }
   let freshAgent: { agent: string; url: string } | null = null;
   try { freshAgent = JSON.parse(decodeURIComponent(cookies().get("agent_mcp")?.value ?? "null")); } catch { freshAgent = null; }
   let fresh: { url: string } | null = null;
@@ -49,6 +52,36 @@ export default async function SettingsPage() {
           <ConfirmAction action={createAgentConnectorAction} label="Créer un lien pour un agent" variant="outline" size="sm" title="Créer un lien pour un agent" confirmLabel="Générer le lien"
             description="Le lien est secret et s'affiche une seule fois."
             extra={<div className="space-y-3"><Field label="Agent"><Select name="agent_key" defaultValue="finance">{AGENTS.map((a) => <option key={a.key} value={a.key}>{a.name}</option>)}</Select></Field><Field label="Nom (facultatif)"><Input name="label" placeholder="ex. Cowork de Kevinh" /></Field></div>} />
+        </CardContent>
+      </Card>
+      <Card className="mb-4">
+        <CardHeader><CardTitle>Accès comptable (votre expert-comptable)</CardTitle></CardHeader>
+        <CardContent className="space-y-3 text-sm text-secondary-foreground">
+          <p>Votre comptable a son propre compte, en <b className="font-medium text-foreground">lecture seule</b> : il voit uniquement la page Comptabilité (factures émises, TVA, virements, paiements fournisseurs) et télécharge les exports CSV. Il ne voit ni vos missions, ni les fiches clients, ni JARVIS, et ne peut rien modifier. Vous pouvez couper son accès en un clic.</p>
+          {freshAcc && (
+            <div className="space-y-2 rounded-xl bg-secondary p-4">
+              <div className="font-medium text-foreground">Invitation pour {freshAcc.email} : affichée une seule fois</div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div><div className="mb-1 text-[12px] text-muted-foreground">Adresse de connexion</div><input readOnly value={freshAcc.url} aria-label="Adresse d'activation" className="w-full select-all rounded-md border bg-white px-3 py-2 font-mono text-xs" /></div>
+                <div><div className="mb-1 text-[12px] text-muted-foreground">Code d&apos;invitation (valable 7 jours)</div><input readOnly value={freshAcc.code} aria-label="Code d'invitation" className="w-full select-all rounded-md border bg-white px-3 py-2 font-mono text-sm tracking-widest" /></div>
+              </div>
+              <p className="text-[13px] text-muted-foreground">Il ouvre l&apos;adresse, crée son compte avec <b>cette adresse e-mail</b>, puis saisit le code. Transmettez le code par un autre canal que l&apos;adresse (SMS, téléphone).</p>
+            </div>
+          )}
+          {(accs.data ?? []).length > 0 && (
+            <ul className="divide-y divide-border/70 rounded-xl border border-border/70">
+              {(accs.data ?? []).map((a: any) => (
+                <li key={a.id} className="flex flex-wrap items-center gap-3 px-4 py-2.5">
+                  <span className="font-medium text-foreground">{a.email}</span>{a.label && <span className="text-muted-foreground">{a.label}</span>}
+                  <span className="text-[13px] text-muted-foreground">{a.revoked_at ? `révoqué le ${new Date(a.revoked_at).toLocaleDateString("fr-FR")}` : a.claimed_at ? `accès actif depuis le ${new Date(a.claimed_at).toLocaleDateString("fr-FR")}` : `invitation en attente (jusqu'au ${new Date(a.code_expires_at).toLocaleDateString("fr-FR")})`}</span>
+                  {!a.revoked_at && <span className="ml-auto"><ConfirmAction action={revokeAccountantAction.bind(null, a.id)} label="Révoquer" variant="outline" size="sm" title="Révoquer l'accès du comptable ?" description="Il n'aura plus accès à rien. Vous pourrez l'inviter à nouveau." confirmLabel="Révoquer" /></span>}
+                </li>
+              ))}
+            </ul>
+          )}
+          <ConfirmAction action={inviteAccountantAction} label="Inviter mon comptable" variant="outline" size="sm" title="Inviter votre comptable" confirmLabel="Créer l'invitation"
+            description="Un code d'invitation est généré et s'affiche une seule fois ; une nouvelle invitation remplace la précédente pour la même adresse."
+            extra={<div className="space-y-3"><Field label="Adresse e-mail du comptable"><Input name="email" type="email" required placeholder="comptable@cabinet.fr" /></Field><Field label="Nom (facultatif)"><Input name="label" placeholder="ex. Cabinet Dupont" /></Field></div>} />
         </CardContent>
       </Card>
       <Card className="mb-4">

@@ -21,3 +21,12 @@ export const isOwner = requestCache(checkOwner);
 export async function requireOwner(): Promise<void> {
   if (!(await isOwner())) throw new Error("ACCES_REFUSE");
 }
+
+async function checkAccountant(): Promise<boolean> {
+  const { data, error } = await createClient().rpc("is_accountant");
+  return !error && data === true;
+}
+/** Vrai pour le compte comptable invité par le patron (accès en lecture seule à la comptabilité, jamais au reste). */
+export const isAccountant = requestCache(checkAccountant);
+/** Peut voir la page Comptabilité : le patron ou son comptable. */
+export async function canViewAccounting(): Promise<boolean> { return (await isOwner()) || (await isAccountant()); }

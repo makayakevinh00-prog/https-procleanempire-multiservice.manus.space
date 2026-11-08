@@ -85,3 +85,26 @@ export async function revokeAgentConnectorAction(id: string) {
   revalidatePath("/parametres");
   flash("/parametres", "ok", "Lien révoqué : l'agent n'a plus accès au CRM.");
 }
+
+/** Invite le comptable : un code à lui transmettre (affiché une seule fois). Seule l'empreinte du code est enregistrée. */
+export async function inviteAccountantAction(fd: FormData) {
+  await requireOwner();
+  const email = (str(fd, "email") ?? "").toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) flash("/parametres", "error", "Adresse e-mail du comptable invalide.");
+  const code = randomBytes(5).toString("hex").toUpperCase();
+  const { error } = await createClient().rpc("accountant_invite", { p_email: email, p_label: str(fd, "label"), p_code_hash: createHash("sha256").update(code).digest("hex") });
+  if (error) flash("/parametres", "error", /does not exist|PGRST202/.test(error.message) ? "L'accès comptable n'est pas encore installé sur cette base (migration 0029)." : dbMessage(error));
+  const h = headers();
+  const origin = `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`;
+  cookies().set("accountant_invite", JSON.stringify({ email, code, url: `${origin}/compta/activer` }), { httpOnly: true, secure: true, sameSite: "strict", path: "/parametres", maxAge: 120 });
+  revalidatePath("/parametres");
+  flash("/parametres", "ok", "Invitation créée : transmettez-lui l'adresse et le code ci-dessous (affichés une seule fois).");
+}
+
+export async function revokeAccountantAction(id: string) {
+  await requireOwner();
+  const { error } = await createClient().from("accountants").update({ revoked_at: new Date().toISOString() }).eq("id", id).is("revoked_at", null);
+  if (error) flash("/parametres", "error", dbMessage(error));
+  revalidatePath("/parametres");
+  flash("/parametres", "ok", "Accès comptable révoqué : le comptable n'a plus accès à rien.");
+}

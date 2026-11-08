@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
  * Accès DIRECTS, sans interface : on appelle les actions serveur, les routes, le middleware et la mise en page comme le ferait un
  * client HTTP malveillant qui connaît les adresses. La base est simulée : on enregistre tout ce qui lui est demandé.
  */
-const h = vi.hoisted(() => ({ owner: false, user: true as boolean, calls: [] as string[], adminUsed: false }));
+const h = vi.hoisted(() => ({ accountant: false, owner: false, user: true as boolean, calls: [] as string[], adminUsed: false }));
 
 vi.mock("@/lib/supabase/server", () => {
   const chain = (): any => new Proxy(() => {}, {
@@ -15,6 +15,7 @@ vi.mock("@/lib/supabase/server", () => {
   const client = {
     rpc: async (name: string) => {
       if (name === "is_owner") return { data: h.owner, error: null };
+      if (name === "is_accountant") return { data: h.accountant, error: null };
       h.calls.push(`rpc:${name}`);
       return { data: null, error: { message: "mock" } };
     },
@@ -27,7 +28,7 @@ vi.mock("@/lib/supabase/server", () => {
 vi.mock("@supabase/ssr", () => ({
   createServerClient: () => ({
     auth: { getUser: async () => ({ data: { user: h.user ? { email: "x@y.fr" } : null } }) },
-    rpc: async (name: string) => (name === "is_owner" ? { data: h.owner, error: null } : { data: null, error: { message: "mock" } })
+    rpc: async (name: string) => (name === "is_owner" ? { data: h.owner, error: null } : name === "is_accountant" ? { data: h.accountant, error: null } : { data: null, error: { message: "mock" } })
   })
 }));
 vi.mock("next/cache", () => ({ revalidatePath: () => {}, revalidateTag: () => {} }));
@@ -42,7 +43,7 @@ const actionLoaders = import.meta.glob("../src/app/actions/*.ts");
 const argsFor = (fn: Function) => [UUID, new FormData(), new FormData(), new FormData()].slice(0, Math.max(fn.length, 1));
 const run = async (fn: Function) => { try { await fn(...argsFor(fn)); return null; } catch (e) { return (e as Error).message; } };
 
-beforeEach(() => { h.owner = false; h.user = true; h.calls = []; h.adminUsed = false; });
+beforeEach(() => { h.accountant = false; h.owner = false; h.user = true; h.calls = []; h.adminUsed = false; });
 
 async function allActions() {
   const out: { file: string; name: string; fn: Function }[] = [];
@@ -101,7 +102,7 @@ describe("routes appelées directement", () => {
     ["factures pdf", () => import("../src/app/api/factures/[id]/pdf/route")],
     ["devis pdf", () => import("../src/app/api/devis/[id]/pdf/route")],
     ["contrats pdf", () => import("../src/app/api/contrats/[id]/pdf/route")],
-    ["export comptable", () => import("../src/app/api/comptabilite/export/route")],
+    ["export comptable", () => import("../src/app/api/compta/export/route")],
     ["photos de mission", () => import("../src/app/api/missions/photo/[id]/route")],
     ["open space (état en direct)", () => import("../src/app/api/jarvis/openspace/route")]
   ];
@@ -150,6 +151,30 @@ describe("middleware : point de contrôle de toutes les requêtes", () => {
       expect(r.status, path).toBe(200);
       expect(r.headers.get("x-middleware-next"), path).toBe("1");
     }
+  });
+  it("comptable invité : n'atteint QUE /compta et ses exports ; tout le reste est renvoyé vers /compta, jamais de données du CRM", async () => {
+    h.accountant = true;
+    for (const path of ["/compta", "/compta?mois=2026-11", "/api/compta/export?type=ventes&mois=2026-11"]) {
+      const r = await call(path);
+      expect(r.status, path).toBe(200);
+      expect(r.headers.get("x-middleware-next"), path).toBe("1");
+    }
+    for (const [path, method] of [["/", "GET"], ["/factures", "GET"], ["/clients", "GET"], ["/jarvis", "GET"], ["/api/factures/abc/pdf", "GET"], ["/factures/abc", "POST"], ["/comptabilite", "GET"], ["/parametres", "GET"]] as const) {
+      const r = await call(path, { method });
+      expect(r.status, `${method} ${path}`).toBe(307);
+      expect(new URL(r.headers.get("location")!).pathname, path).toBe("/compta");
+    }
+  });
+  it("autre compte (ni patron ni comptable) : 403 aussi sur /compta et ses exports", async () => {
+    for (const path of ["/compta", "/api/compta/export?type=ventes&mois=2026-11"]) {
+      const r = await call(path);
+      expect(r.status, path).toBe(403);
+    }
+  });
+  it("l'activation de l'accès comptable est joignable sans session (création de compte), sans ouvrir le reste", async () => {
+    h.user = false;
+    expect((await call("/compta/activer")).headers.get("x-middleware-next")).toBe("1");
+    expect((await call("/compta")).status).toBe(307);
   });
   it("le dirigeant connecté qui ouvre /login est renvoyé à l'accueil", async () => {
     h.owner = true;

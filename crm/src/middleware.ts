@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Les routes cron s'authentifient elles-mêmes (CRON_SECRET) ; tout le reste exige une session.
-const PUBLIC = ["/login", "/acces-refuse", "/api/cron/", "/api/qonto/sync", "/api/inbound/", "/agent/", "/api/agent/", "/suivi/", "/api/public/", "/api/calendrier/", "/api/mcp", "/.well-known/", "/register", "/authorize", "/token"];
+const PUBLIC = ["/login", "/acces-refuse", "/api/cron/", "/api/qonto/sync", "/api/inbound/", "/agent/", "/api/agent/", "/suivi/", "/api/public/", "/api/calendrier/", "/api/mcp", "/.well-known/", "/register", "/authorize", "/token", "/compta/activer"];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -28,10 +28,18 @@ export async function middleware(request: NextRequest) {
   }
   // Point de contrôle UNIQUE de tout l'espace patron : pages, routes API ET actions serveur (un POST sur une page) passent ici.
   // Une page peut être demandée sans sa mise en page : le contrôle de layout.tsx ne suffit donc pas. La base reste la référence (is_owner()).
-  // À l'ouverture d'un espace comptable, seules ses routes /compta/** seront exemptées de cette exigence.
+  // Espace comptable : seules les routes /compta/** et /api/compta/** sont ouvertes au comptable invité (voir plus bas).
   if (data.user && !isPublic) {
     const { data: owner, error } = await supabase.rpc("is_owner");
     if (error || owner !== true) {
+      // Espace comptable : le comptable invité (is_accountant, côté base) ne voit QUE /compta/** et ses exports ; tout le reste lui est refusé.
+      const accountantArea = pathname === "/compta" || pathname.startsWith("/compta/") || pathname.startsWith("/api/compta/");
+      const { data: acc } = await supabase.rpc("is_accountant");
+      if (acc === true) {
+        if (accountantArea) return response;
+        const url = request.nextUrl.clone(); url.pathname = "/compta"; url.search = "";
+        return NextResponse.redirect(url);
+      }
       const denied = NextResponse.rewrite(new URL("/acces-refuse", request.url), { status: 403 });
       response.cookies.getAll().forEach((c) => denied.cookies.set(c));
       return denied;
