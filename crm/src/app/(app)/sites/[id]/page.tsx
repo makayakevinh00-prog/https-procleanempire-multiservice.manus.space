@@ -32,6 +32,29 @@ export default async function SitePage({ params }: { params: { id: string } }) {
           <ConfirmAction action={deleteSiteAction.bind(null, s.id)} label="Supprimer le site" variant="outline" size="sm" className="border-red-300 text-red-700 hover:bg-red-50"
             title={`Supprimer « ${s.name} » ?`} description="Le site est supprimé ; ses missions et contrats sont conservés, simplement sans site. Définitif." confirmLabel="Oui, supprimer" reservedName={s.clients.is_reserved ? s.clients.name : null} /></>} />
       <div className="mb-4 flex items-center gap-2 text-sm">Client : <Link href={`/clients/${s.clients.id}`} className="font-semibold text-primary hover:underline">{s.clients.name}</Link>{s.clients.is_reserved && <ReservedBadge />}</div>
+      {(s.frequency || s.access_notes || (s.specifics ?? []).length > 0) && (
+        <Card className="mb-4"><CardContent className="grid gap-4 py-5 sm:grid-cols-2">
+          {s.frequency && <div><div className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">Fréquence de nettoyage</div><div className="mt-1 text-[15px]">{s.frequency}</div></div>}
+          {s.access_notes && <div><div className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">Accès</div><div className="mt-1 whitespace-pre-line text-[15px]">{s.access_notes}</div></div>}
+          {(s.specifics ?? []).length > 0 && <div className="sm:col-span-2"><div className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">Éléments spécifiques</div>
+            <div className="mt-1.5 flex flex-wrap gap-2">{(s.specifics as string[]).map((t) => <span key={t} className="rounded-full bg-[#e8edf5] px-3 py-1 text-[13px] font-medium text-[#2b4c7e]">{t}</span>)}</div></div>}
+        </CardContent></Card>
+      )}
+      {Array.isArray(s.zones) && s.zones.length > 0 && (
+        <div className="mb-4">
+          <h2 className="mb-2 text-[15px] font-semibold">Zones ({s.zones.length})</h2>
+          <div className="grid gap-3 md:grid-cols-2">
+            {(s.zones as { name: string; tasks: string[]; attention: string[] }[]).map((z) => (
+              <Card key={z.name}><CardContent className="space-y-3 py-4">
+                <div className="text-[16px] font-semibold">{z.name}</div>
+                {z.tasks.length > 0 && <div><div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Tâches</div><ul className="mt-1 space-y-1 text-[14px]">{z.tasks.map((t) => <li key={t}>• {t}</li>)}</ul></div>}
+                {z.attention.length > 0 && <div><div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Points d&apos;attention</div><ul className="mt-1 space-y-1 text-[14px] text-[#b3552c]">{z.attention.map((t) => <li key={t}>• {t}</li>)}</ul></div>}
+              </CardContent></Card>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">Chaque nouvelle mission de ce site reçoit cette check-list, pièce par pièce.</p>
+        </div>
+      )}
       {s.lat != null && s.lng != null ? (
         <Card className="mb-4 p-3"><SiteMapLazy pins={[{ lat: s.lat, lng: s.lng, title: s.name, sub: [s.address, s.postal_code, s.city].filter(Boolean).join(" "), color: "blue" }]} height={240} /><p className="mt-2 px-1 text-xs text-slate-500">Position GPS trouvée automatiquement à partir de l&apos;adresse. Pointage des agents accepté dans un rayon de {s.geofence_m} m.</p></Card>
       ) : (

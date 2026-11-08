@@ -1,4 +1,5 @@
 "use server";
+import { parseSpecifics, parseZones } from "@/lib/domain/site-zones";
 
 import { requireOwner } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
@@ -27,11 +28,13 @@ export async function saveSiteAction(fd: FormData) {
   const row = {
     client_id: clientId, name, address: str(fd, "address"), postal_code: str(fd, "postal_code"), city: str(fd, "city"),
     access_notes: str(fd, "access_notes"), contact_name: str(fd, "contact_name"), contact_phone: str(fd, "contact_phone"),
-    checklist: lines(str(fd, "checklist")), notes: str(fd, "notes"), status: str(fd, "status") === "inactif" ? "inactif" : "actif"
+    checklist: lines(str(fd, "checklist")), frequency: str(fd, "frequency"), specifics: parseSpecifics(str(fd, "specifics")), zones: parseZones(str(fd, "zones")), notes: str(fd, "notes"), status: str(fd, "status") === "inactif" ? "inactif" : "actif"
   };
   const supabase = createClient();
-  const res = id ? await supabase.from("sites").update(row).eq("id", id).select("id").single()
-                 : await supabase.from("sites").insert(row).select("id").single();
+  const write = (r: Record<string, unknown>) => id ? supabase.from("sites").update(r).eq("id", id).select("id").single() : supabase.from("sites").insert(r).select("id").single();
+  let res = await write(row);
+  // Base pas encore migrée (0028) : on enregistre le reste de la fiche plutôt que d'échouer.
+  if (res.error && /frequency|specifics|zones/.test(res.error.message)) { const { frequency: _f, specifics: _s, zones: _z, ...base } = row; res = await write(base); }
   if (res.error) flash(back, "error", dbMessage(res.error));
   // Position GPS automatique à partir de l'adresse (sert au pointage des agents et à la carte).
   const geo = await geocodeAddress(row.address ?? null, row.postal_code ?? null, row.city ?? null);

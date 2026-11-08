@@ -8,13 +8,14 @@ const FREQ = [
   [0.5, "1 semaine sur 2"], [1, "1×/sem"], [2, "2×/sem"], [3, "3×/sem"], [4, "4×/sem"], [5, "5×/sem"], [6, "6×/sem"], [7, "7×/sem"]
 ] as const;
 
-export function ContractForm({ action, clients, contract, defaultClient, submitLabel, staff, sites }: {
+export function ContractForm({ action, clients, contract, defaultClient, defaultActivity, submitLabel, staff, sites }: {
   action: (fd: FormData) => void | Promise<void>;
   clients: { id: string; name: string; is_reserved: boolean }[];
   contract?: Partial<Contract> & { staff_id?: string | null; site_id?: string | null };
   staff?: { id: string; full_name: string }[];
   sites?: { id: string; name: string; client_id: string }[];
   defaultClient?: string;
+  defaultActivity?: string;
   submitLabel: string;
 }) {
   const freqValue = contract?.visits_per_week != null ? Number(contract.visits_per_week) : undefined;
@@ -29,7 +30,7 @@ export function ContractForm({ action, clients, contract, defaultClient, submitL
       </Field>
       <Field label="Intitulé *"><Input name="label" required defaultValue={contract?.label} placeholder="Entretien bureaux…" /></Field>
 
-      <PricingFields contract={contract} />
+      <PricingFields contract={contract ?? (defaultActivity ? { activity: defaultActivity } : undefined)} />
       <Field label="Statut">
         <Select name="status" defaultValue={contract?.status ?? "en_cours"}>
           <option value="en_cours">En cours</option><option value="actif">Actif</option><option value="resilie">Résilié</option>

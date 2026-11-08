@@ -57,7 +57,16 @@ export default async function ActivitiesPage() {
 
   return (
     <>
-      <PageHeader title="Activités" subtitle="Ce qui rapporte, famille par famille : contrats, heures, facturé sur 12 mois, à encaisser." />
+      <PageHeader title="Activités" subtitle="Ce qui rapporte, famille par famille : contrats, heures, facturé sur 12 mois, à encaisser."
+        actions={
+          <details className="relative">
+            <summary className="inline-flex h-10 cursor-pointer list-none items-center gap-2 rounded-lg bg-foreground px-4 text-sm font-medium text-background">+ Ajouter une activité</summary>
+            <div className="absolute right-0 z-20 mt-2 w-72 rounded-xl border bg-card p-1.5 shadow-lg">
+              <p className="px-3 py-1.5 text-xs text-muted-foreground">Choisissez le type d&apos;activité : le nouveau contrat est créé dans cette famille.</p>
+              {ACTIVITIES.map((x) => <Link key={x.key} href={`/contrats/new?activite=${x.key}`} className="block rounded-lg px-3 py-2 text-sm hover:bg-secondary"><span className="font-medium">{x.label}</span><span className="block text-xs text-muted-foreground">{x.hint}</span></Link>)}
+            </div>
+          </details>
+        } />
       {(guessed > 0 || !model.ready) && (
         <div className="mb-5 rounded-xl bg-secondary px-4 py-3 text-sm text-secondary-foreground">
           {!model.ready ? "Les familles sont déduites des intitulés (l'enregistrement n'est pas encore activé)." : `${guessed} contrat(s) ont une famille devinée, non enregistrée.`}{" "}
@@ -88,6 +97,7 @@ export default async function ActivitiesPage() {
                 <Link href={`/contrats?famille=${a.key}`} className="font-medium text-primary hover:underline">Contrats</Link>
                 <Link href={`/missions?famille=${a.key}`} className="font-medium text-primary hover:underline">Missions</Link>
                 <Link href={`/factures?famille=${a.key}`} className="font-medium text-primary hover:underline">Factures</Link>
+                <Link href={`/contrats/new?activite=${a.key}`} className="ml-auto font-medium text-primary hover:underline">+ Nouveau contrat</Link>
               </div>
             </CardContent>
           </Card>
