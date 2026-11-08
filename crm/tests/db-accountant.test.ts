@@ -107,6 +107,16 @@ describe("0029 — accès comptable en lecture seule", () => {
     expect((await q("select is_accountant() a"))[0].a).toBe(false);
     await expect(db.query("select compta_data('2026-11')")).rejects.toThrow(/ACCES_REFUSE/);
   });
+  it("ré-inviter un comptable déjà activé (après révocation) fonctionne : même identifiant, nouveau code", async () => {
+    await as(OWNER, U_OWN);
+    await q("select accountant_invite($1,'Cabinet Test',$2)", [ACC, hash("NOUVEAUCODE")]);
+    await as(ACC, U_ACC);
+    expect((await q("select is_accountant() a"))[0].a).toBe(false);        // l'ancienne ligne est révoquée, la nouvelle n'est pas réclamée
+    expect((await q("select accountant_claim('NOUVEAUCODE') ok"))[0].ok).toBe(true);
+    expect((await q("select is_accountant() a"))[0].a).toBe(true);
+    await as(OWNER, U_OWN);
+    await q("update accountants set revoked_at = now() where lower(email)=$1 and revoked_at is null", [ACC]);
+  });
   it("retour arrière propre", async () => {
     await admin(); await db.exec(read("supabase/migrations/0029_down.sql"));
     expect((await q("select count(*)::int n from pg_proc where proname in ('compta_data','is_accountant','accountant_claim','accountant_invite')"))[0].n).toBe(0);

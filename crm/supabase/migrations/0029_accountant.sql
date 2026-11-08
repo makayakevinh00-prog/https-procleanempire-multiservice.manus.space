@@ -9,12 +9,13 @@ create table if not exists accountants (
   code_hash text,
   code_expires_at timestamptz,
   claim_attempts int not null default 0,
-  user_id uuid unique,
+  user_id uuid,
   claimed_at timestamptz,
   revoked_at timestamptz,
   created_at timestamptz not null default now()
 );
 create unique index if not exists accountants_email_active on accountants (lower(email)) where revoked_at is null;
+create unique index if not exists accountants_user_active on accountants (user_id) where revoked_at is null and user_id is not null;
 alter table accountants enable row level security;
 drop policy if exists accountants_owner on accountants;
 create policy accountants_owner on accountants for all to authenticated using (is_owner()) with check (is_owner());
