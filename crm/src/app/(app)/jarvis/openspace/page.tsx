@@ -4,7 +4,9 @@ import { requireOwner } from "@/lib/auth";
 import { PageHeader } from "@/components/crm/page-header";
 import { OpenSpace } from "@/components/crm/openspace";
 import { HqOffice } from "@/components/crm/hq/office";
+import { HabboOffice } from "@/components/crm/hq/habbo";
 import {
+  HabboOfficeDemo,
   HqOfficeDemo,
   OpenSpaceDemo,
 } from "@/components/crm/demo/openspace-demo";
@@ -25,7 +27,8 @@ export default async function OpenSpacePage({
 }) {
   await requireOwner();
   const wantDemo = searchParams.demo === "1",
-    classic = searchParams.vue === "classique";
+    classic = searchParams.vue === "classique",
+    bureau = searchParams.vue === "bureau";
   const sb = createClient();
   const real = wantDemo ? null : await loadOpenSpaceState(sb);
   const forcedDemo = !wantDemo && real !== null && !real.installed;
@@ -52,7 +55,7 @@ export default async function OpenSpacePage({
     <>
       <PageHeader
         title="Locaux ProClean Empire"
-        subtitle="Le siège virtuel : vos agents à leur poste, l'espace de collaboration, les écrans muraux branchés sur le CRM. En test : rien n'est modifié dans vos données."
+        subtitle="Le siège virtuel en direct : vos agents à leur poste, qui marchent, se parlent et reçoivent les consignes de JARVIS. Cliquez sur quelqu'un."
         actions={
           <>
             <Link
@@ -72,6 +75,12 @@ export default async function OpenSpacePage({
               className="text-sm font-semibold text-primary underline"
             >
               {classic ? "Vue des locaux" : "Ancienne vue (grille)"}
+            </Link>
+            <Link
+              href={q({ vue: bureau ? undefined : "bureau" })}
+              className="text-sm font-semibold text-primary underline"
+            >
+              {bureau ? "Vue animée" : "Vue détaillée (écrans)"}
             </Link>
             <Link
               href={q({ demo: wantDemo ? undefined : "1" })}
@@ -96,6 +105,12 @@ export default async function OpenSpacePage({
             initial={real!}
             selectedKey={searchParams.agent}
           />
+        )
+      ) : !bureau ? (
+        showDemo ? (
+          <HabboOfficeDemo key="demo" initial={demoState(0, new Date())} selectedKey={searchParams.agent} forcedDemo={forcedDemo} />
+        ) : (
+          <HabboOffice key="reel" initial={real!} initialAgent={searchParams.agent} />
         )
       ) : showDemo ? (
         <HqOfficeDemo

@@ -2,6 +2,7 @@
 
 import { OpenSpace } from "@/components/crm/openspace";
 import { HqOffice } from "@/components/crm/hq/office";
+import { HabboOffice } from "@/components/crm/hq/habbo";
 import { demoState } from "@/lib/jarvis/demo/demo-state";
 import { demoAlertSummary, demoKpiSet } from "@/lib/jarvis/demo/demo-kpis";
 import type { OpenSpaceState } from "@/lib/jarvis/openspace";
@@ -45,4 +46,8 @@ export function HqOfficeDemo({
       initialAgent={selectedKey}
     />
   );
+}
+
+export function HabboOfficeDemo({ initial, selectedKey, forcedDemo }: { initial: OpenSpaceState; selectedKey?: string; forcedDemo?: boolean }) {
+  return <HabboOffice initial={initial} demo demoNext={demoState} initialAgent={selectedKey} forcedDemo={forcedDemo} />;
 }
