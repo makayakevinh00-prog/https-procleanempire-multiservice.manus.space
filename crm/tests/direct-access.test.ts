@@ -165,11 +165,14 @@ describe("middleware : point de contrôle de toutes les requêtes", () => {
       expect(new URL(r.headers.get("location")!).pathname, path).toBe("/compta");
     }
   });
-  it("autre compte (ni patron ni comptable) : 403 aussi sur /compta et ses exports", async () => {
-    for (const path of ["/compta", "/api/compta/export?type=ventes&mois=2026-11"]) {
+  it("autre compte (ni patron ni comptable) : 403 sur les exports et sous-pages ; /compta mène seulement à la saisie du code", async () => {
+    for (const path of ["/compta/autre", "/api/compta/export?type=ventes&mois=2026-11"]) {
       const r = await call(path);
       expect(r.status, path).toBe(403);
     }
+    const r = await call("/compta");
+    expect(r.status).toBe(307);
+    expect(new URL(r.headers.get("location")!).pathname).toBe("/compta/activer");
   });
   it("l'activation de l'accès comptable est joignable sans session (création de compte), sans ouvrir le reste", async () => {
     h.user = false;

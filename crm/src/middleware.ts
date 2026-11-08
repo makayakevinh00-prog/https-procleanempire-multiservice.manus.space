@@ -40,6 +40,8 @@ export async function middleware(request: NextRequest) {
         const url = request.nextUrl.clone(); url.pathname = "/compta"; url.search = "";
         return NextResponse.redirect(url);
       }
+      // Compte connecté qui n'a pas (encore) activé l'accès comptable : on le guide vers la saisie du code plutôt que d'afficher un refus.
+      if (pathname === "/compta") { const url = request.nextUrl.clone(); url.pathname = "/compta/activer"; url.search = ""; return NextResponse.redirect(url); }
       const denied = NextResponse.rewrite(new URL("/acces-refuse", request.url), { status: 403 });
       response.cookies.getAll().forEach((c) => denied.cookies.set(c));
       return denied;
