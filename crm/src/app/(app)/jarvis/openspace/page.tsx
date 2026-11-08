@@ -133,6 +133,7 @@ export default async function OpenSpacePage({
         key={wantDemo ? "demo" : "reel"}
         initial={kpis}
         demo={wantDemo}
+        startCollapsed={!bureau && !classic}
       />
     </>
   );

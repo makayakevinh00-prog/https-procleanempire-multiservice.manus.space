@@ -589,7 +589,7 @@ export function HabboOffice({
         />
 
         {selected && (
-          <div className="absolute bottom-3 left-3 right-3 z-10 max-w-sm rounded-2xl border border-white/15 bg-[#0b1220]/95 p-3.5 shadow-2xl backdrop-blur sm:right-auto">
+          <div className="absolute left-3 right-3 top-3 z-10 max-w-sm rounded-2xl border border-white/15 bg-[#0b1220]/95 p-3.5 shadow-2xl backdrop-blur sm:right-auto">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <div className="truncate text-[15px] font-extrabold text-white">

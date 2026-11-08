@@ -42,12 +42,12 @@ function Tile({ k, demo, now, computedAt, open, onToggle }: { k: Kpi; demo: bool
 }
 
 /** Tableau de pilotage. Réel : lit /api/jarvis/kpis (CRM, lecture seule). Démonstration : affiche le jeu fourni, jamais mélangé aux vrais chiffres. */
-export function Pilotage({ initial, demo }: { initial: KpiSet | null; demo: boolean }) {
+export function Pilotage({ initial, demo, startCollapsed }: { initial: KpiSet | null; demo: boolean; startCollapsed?: boolean }) {
   const [set, setSet] = useState<KpiSet | null>(initial);
   const [now, setNow] = useState(() => Date.now());
   const [online, setOnline] = useState(true);
   const [openId, setOpenId] = useState<string | null>(null);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(!!startCollapsed);
 
   useEffect(() => { const c = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(c); }, []);
   useEffect(() => {
