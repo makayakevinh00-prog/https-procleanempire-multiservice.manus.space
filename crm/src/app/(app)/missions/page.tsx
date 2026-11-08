@@ -95,7 +95,7 @@ export default async function MissionsPage({ searchParams }: { searchParams: { q
   }
 
   const unassigned = rows.filter((r) => !r.assignee && !["annulee", "facturee", "terminee", "validee", "facturable"].includes(r.stage)).length;
-  const toCheck = rows.filter((r) => r.stage === "a_verifier").length;
+  const toCheck = rows.filter((r) => ["terminee", "a_verifier"].includes(r.stage) && !r.invoice_id).length;
   const label = view === "jour" ? formatDate(anchor) : isMonth ? monthLabel(anchor.slice(0, 7)) : `semaine du ${formatDate(range.start)}`;
 
   return (
