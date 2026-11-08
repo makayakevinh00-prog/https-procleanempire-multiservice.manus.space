@@ -125,8 +125,9 @@ export async function addChecklistItemAction(id: string, fd: FormData) {
   if (!label) flash(back, "error", "Indiquez le point à contrôler.");
   const supabase = createClient();
   const { data: m } = await supabase.from("interventions").select("checklist").eq("id", id).maybeSingle();
-  const list = (Array.isArray(m?.checklist) ? m!.checklist : []) as { label: string; done: boolean }[];
-  const { error } = await supabase.from("interventions").update({ checklist: [...list, { label, done: false }] }).eq("id", id);
+  const list = (Array.isArray(m?.checklist) ? m!.checklist : []) as { label: string; done: boolean; room?: string }[];
+  const room = str(fd, "room");
+  const { error } = await supabase.from("interventions").update({ checklist: [...list, { label, done: false, ...(room ? { room: room.slice(0, 40) } : {}) }] }).eq("id", id);
   if (error) flash(back, "error", dbMessage(error));
   revalidatePath(`/missions/${id}`);
   flash(back, "ok", "Point ajouté à la check-list.");

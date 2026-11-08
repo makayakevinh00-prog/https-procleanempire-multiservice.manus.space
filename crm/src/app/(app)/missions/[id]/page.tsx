@@ -15,6 +15,9 @@ import { formatDate, formatEUR } from "@/lib/utils";
 import { ConfirmAction } from "@/components/crm/confirm-action";
 import { deleteMissionAction, updateMissionAction } from "@/app/actions/manage";
 import { Field } from "@/components/ui/form";
+import { analyseMission, buildTimeline, interventionReport, type MissionFacts } from "@/lib/domain/mission-analysis";
+import { InsightsCard, ReportCard, TimelineCard } from "@/components/crm/mission-insights";
+import { getSettings } from "@/lib/data";
 
 const FIELD: Record<string, string> = { stage: "Étape", status: "Statut", staff_id: "Intervenant", assignee: "Intervenant", scheduled_date: "Date", start_time: "Heure", checklist: "Check-list", notes: "Notes", invoice_id: "Facture", unit_price_ht: "Prix", duration_hours: "Durée", site_id: "Site" };
 const show = (k: string, v: unknown) => {
@@ -41,10 +44,26 @@ export default async function MissionPage({ params }: { params: { id: string } }
     supabase.from("sites").select("id, name").eq("client_id", m.client_id).order("name")
   ]);
 
+  const settings = await getSettings(supabase);
+  const hourly = Number(settings.indep_hourly_cost ?? 0);
+  const photoRows = ((await supabase.from("mission_photos").select("kind, taken_at").eq("intervention_id", m.id)).data ?? []) as { kind: string; taken_at: string }[];
+  const facts: MissionFacts = {
+    date: m.scheduled_date, startTime: m.start_time, plannedHours: m.duration_hours != null ? Number(m.duration_hours) : null, stage: m.stage, hasAssignee: !!(m.staff_id || m.assignee),
+    arrivedAt: m.arrived_at ?? null, departedAt: m.departed_at ?? null, arrivedVerified: m.arrived_verified ?? null, arrivedDistanceM: m.arrived_distance_m ?? null,
+    checklist: (m.checklist ?? []) as MissionFacts["checklist"], photos: photoRows.map((p) => ({ kind: p.kind, at: p.taken_at })), openIssues: (issues ?? []).filter((i: any) => i.status === "ouverte").length,
+    priceHt: m.unit_price_ht != null ? Number(m.unit_price_ht) * Number(m.quantity ?? 1) : null, billable: !!m.billable
+  };
+  const analysis = analyseMission(facts, new Date(), hourly);
+  const report = interventionReport(facts, analysis, { title: m.title, site: m.sites?.name ?? null, agent: m.assignee ?? null });
+  const timeline = buildTimeline({
+    arrivedAt: facts.arrivedAt, departedAt: facts.departedAt, arrivedVerified: facts.arrivedVerified, arrivedDistanceM: facts.arrivedDistanceM, photos: facts.photos,
+    issues: (issues ?? []).map((i: any) => ({ at: i.created_at, description: i.description, severity: i.severity, kind: i.kind })),
+    history: (history ?? []).map((h: any) => ({ at: h.at, actor: h.actor, stage: h.changes?.stage ?? null })), stageLabel: (s) => STAGE_LABEL[s as Stage] ?? s
+  });
   const back = `/missions/${m.id}`;
   const locked = !!m.invoice_id;
   const next = locked ? null : nextStage(m.stage as Stage);
-  const list = (m.checklist ?? []) as { label: string; done: boolean }[];
+  const list = (m.checklist ?? []) as { label: string; done: boolean; room?: string | null }[];
   const num = (v: any) => (v === null || v === undefined ? null : Number(v));
   const suggestions = suggestAgents(
     { id: m.id, staff_id: m.staff_id, site_id: m.site_id, scheduled_date: m.scheduled_date, start_time: m.start_time, duration_hours: num(m.duration_hours), stage: m.stage, city: m.sites?.city ?? m.site_address },
@@ -63,6 +82,8 @@ export default async function MissionPage({ params }: { params: { id: string } }
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
+          <ReportCard r={report} />
+          <InsightsCard a={analysis} />
           <Card>
             <CardHeader><CardTitle>Avancement</CardTitle></CardHeader>
             <CardContent className="flex flex-wrap items-center gap-3">
@@ -86,20 +107,31 @@ export default async function MissionPage({ params }: { params: { id: string } }
           <Card>
             <CardHeader><CardTitle>Check-list ({list.filter((c) => c.done).length}/{list.length})</CardTitle></CardHeader>
             {!list.length ? <Empty>Aucun point de contrôle. Ajoutez-en ici, ou sur la fiche du site pour toutes ses missions.</Empty> : (
-              <ul className="divide-y divide-slate-100">{list.map((c, i) => (
-                <li key={i}>
-                  <form action={toggleChecklistAction.bind(null, m.id, i)}><input type="hidden" name="back" value={back} />
-                    <button className="flex w-full items-center gap-3 px-5 py-2.5 text-left text-sm hover:bg-slate-50" disabled={locked}>
-                      {c.done ? <CheckSquare className="h-5 w-5 text-emerald-600" /> : <Square className="h-5 w-5 text-slate-400" />}
-                      <span className={c.done ? "text-slate-500 line-through" : "text-slate-800"}>{c.label}</span>
-                    </button>
-                  </form>
-                </li>
-              ))}</ul>
+              <div>{[...new Set(list.map((c) => c.room || "Général"))].map((room) => {
+                const items = list.map((c, i) => ({ c, i })).filter((x) => (x.c.room || "Général") === room);
+                const d = items.filter((x) => x.c.done).length;
+                return (
+                  <section key={room}>
+                    <div className="flex items-center justify-between border-y border-border/60 bg-secondary/50 px-5 py-1.5 text-[12px] font-medium uppercase tracking-wide text-muted-foreground"><span>{room}</span><span className="num">{d}/{items.length}</span></div>
+                    <ul className="divide-y divide-slate-100">{items.map(({ c, i }) => (
+                      <li key={i}>
+                        <form action={toggleChecklistAction.bind(null, m.id, i)}><input type="hidden" name="back" value={back} />
+                          <button className="flex w-full items-center gap-3 px-5 py-2.5 text-left text-sm hover:bg-slate-50" disabled={locked}>
+                            {c.done ? <CheckSquare className="h-5 w-5 text-emerald-600" /> : <Square className="h-5 w-5 text-slate-400" />}
+                            <span className={c.done ? "text-slate-500 line-through" : "text-slate-800"}>{c.label}</span>
+                          </button>
+                        </form>
+                      </li>
+                    ))}</ul>
+                  </section>
+                );
+              })}</div>
             )}
             {!locked && (
               <form action={addChecklistItemAction.bind(null, m.id)} className="flex gap-2 border-t border-slate-100 p-4">
                 <input type="hidden" name="back" value={back} />
+                <Input name="room" list="rooms" placeholder="Pièce (ex. Cuisine)" className="w-40" />
+                <datalist id="rooms">{[...new Set(list.map((c) => c.room).filter(Boolean))].map((r) => <option key={r as string} value={r as string} />)}<option value="Cuisine" /><option value="Salle de bain" /><option value="Chambre" /><option value="Salon" /><option value="WC" /><option value="Entrée" /></datalist>
                 <Input name="label" placeholder="Ajouter un point (ex. : nettoyer les vitres)" className="flex-1" />
                 <Button variant="outline">Ajouter</Button>
               </form>
@@ -162,20 +194,29 @@ export default async function MissionPage({ params }: { params: { id: string } }
           <Card>
             <CardHeader><CardTitle>Photos ({(photos ?? []).length})</CardTitle><span className="text-xs text-slate-500">envoyées par l&apos;agent depuis son téléphone</span></CardHeader>
             {!(photos ?? []).length ? <Empty>Aucune photo pour cette mission.</Empty> : (
-              <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3">
-                {(photos ?? []).map((p: any) => (
-                  <figure key={p.id} className="space-y-1">
-                    <a href={`/api/missions/photo/${p.id}`} target="_blank" rel="noopener noreferrer">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={`/api/missions/photo/${p.id}`} alt={`Photo ${p.kind}`} loading="lazy" className="aspect-square w-full rounded-lg border object-cover" />
-                    </a>
-                    <figcaption className="flex items-center justify-between gap-1 text-xs text-slate-500">
-                      <span><b className="capitalize text-slate-700">{p.kind === "apres" ? "après" : p.kind}</b> · {new Date(p.taken_at).toLocaleString("fr-FR", { timeZone: "Europe/Paris", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}{p.staff?.full_name ? ` · ${p.staff.full_name}` : ""}</span>
-                      <form action={deletePhotoAction.bind(null, p.id)}><input type="hidden" name="back" value={back} /><button className="text-red-700 hover:underline">Suppr.</button></form>
-                    </figcaption>
-                  </figure>
-                ))}
-              </div>
+              <div className="space-y-4 p-4">{[["avant", "Avant"], ["apres", "Après"], ["anomalie", "Problèmes signalés"]].map(([kind, title]) => {
+                const ps = (photos ?? []).filter((p: any) => p.kind === kind);
+                if (!ps.length) return null;
+                return (
+                  <section key={kind}>
+                    <h3 className="mb-2 text-[12px] font-medium uppercase tracking-wide text-muted-foreground">{title} ({ps.length})</h3>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                      {ps.map((p: any) => (
+                        <figure key={p.id} className="space-y-1">
+                          <a href={`/api/missions/photo/${p.id}`} target="_blank" rel="noopener noreferrer">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={`/api/missions/photo/${p.id}`} alt={`Photo ${title}`} loading="lazy" className="aspect-square w-full rounded-lg border object-cover" />
+                          </a>
+                          <figcaption className="flex items-center justify-between gap-1 text-xs text-slate-500">
+                            <span>{new Date(p.taken_at).toLocaleString("fr-FR", { timeZone: "Europe/Paris", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}{p.staff?.full_name ? ` · ${p.staff.full_name}` : ""}</span>
+                            <form action={deletePhotoAction.bind(null, p.id)}><input type="hidden" name="back" value={back} /><button className="text-red-700 hover:underline">Suppr.</button></form>
+                          </figcaption>
+                        </figure>
+                      ))}
+                    </div>
+                  </section>
+                );
+              })}</div>
             )}
           </Card>
 
@@ -228,6 +269,8 @@ export default async function MissionPage({ params }: { params: { id: string } }
               {!m.billable && <div className="text-xs text-slate-500">Couverte par le forfait mensuel du contrat.</div>}
             </CardContent>
           </Card>
+
+          <TimelineCard events={timeline} />
 
           <Card>
             <CardHeader><CardTitle className="flex items-center gap-2"><History className="h-4 w-4 text-slate-500" /> Historique</CardTitle></CardHeader>
