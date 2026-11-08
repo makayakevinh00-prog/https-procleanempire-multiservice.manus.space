@@ -1,6 +1,4 @@
-import { noOAuth } from "@/lib/mcp/no-oauth";
-
 export const dynamic = "force-dynamic";
-export const GET = noOAuth;
-export const POST = noOAuth;
-export const OPTIONS = noOAuth;
+const nope = () => Response.json({ error: "not_found" }, { status: 404, headers: { "cache-control": "no-store" } });
+export const GET = nope;
+export const POST = nope;

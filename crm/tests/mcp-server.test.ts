@@ -43,11 +43,25 @@ describe("serveur MCP", () => {
   });
 });
 
-import { noOAuth } from "../src/lib/mcp/no-oauth";
-describe("découverte OAuth : réponse nette", () => {
-  it("renvoie un 404 JSON (jamais une redirection ni du HTML)", async () => {
-    const r = noOAuth(new Request("https://exemple.test/.well-known/oauth-authorization-server"));
-    expect(r.status).toBe(404); expect(r.headers.get("content-type")).toContain("application/json");
-    expect((await r.json()).error).toBe("not_found");
+import { s256, sha256Hex, validVerifier, validChallenge, allowedRedirect, authServerMetadata, protectedResourceMetadata, resourceMetadataUrl } from "../src/lib/oauth";
+describe("OAuth : briques pures", () => {
+  it("PKCE S256 conforme à l'exemple de la RFC 7636", () => {
+    expect(s256("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk")).toBe("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM");
+    expect(validChallenge("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM")).toBe(true);
+    expect(validVerifier("court")).toBe(false); expect(validChallenge("x")).toBe(false);
+    expect(sha256Hex("a")).toHaveLength(64);
+  });
+  it("n'accepte que Claude et localhost comme adresse de retour", () => {
+    expect(allowedRedirect("https://claude.ai/api/mcp/auth_callback")).toBe(true);
+    expect(allowedRedirect("http://localhost:54321/callback")).toBe(true);
+    for (const u of ["https://claude.ai.evil.example/cb", "https://evil.example/claude.ai", "http://claude.ai/cb", "javascript:alert(1)", "https://claude.aievil.com/"]) expect(allowedRedirect(u)).toBe(false);
+  });
+  it("métadonnées de découverte cohérentes", () => {
+    const o = "https://crm.example";
+    expect(protectedResourceMetadata(o).resource).toBe("https://crm.example/api/mcp");
+    const m = authServerMetadata(o);
+    expect(m.code_challenge_methods_supported).toEqual(["S256"]); expect(m.token_endpoint_auth_methods_supported).toEqual(["none"]);
+    expect(m.registration_endpoint).toBe("https://crm.example/register");
+    expect(resourceMetadataUrl(o)).toContain("/.well-known/oauth-protected-resource");
   });
 });

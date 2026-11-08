@@ -44,13 +44,21 @@ describe("approbation d'un e-mail proposé par un agent", () => {
   });
 });
 
-describe("routes publiques de découverte OAuth", () => {
-  it("sont déclarées publiques dans le middleware et ne touchent ni base ni envoi", () => {
+describe("connexion OAuth des connecteurs", () => {
+  it("les routes publiques ne servent qu'à la découverte, à l'inscription et à l'échange : aucune clé privilégiée, aucun envoi", () => {
     const mw = code("src/middleware.ts");
-    for (const p of ["/.well-known/", "/register", "/authorize", "/token"]) expect(mw).toContain(`"${p}"`);
-    for (const f of ["src/app/.well-known/[...path]/route.ts", "src/app/register/route.ts", "src/app/authorize/route.ts", "src/app/token/route.ts", "src/app/api/mcp/[token]/[...rest]/route.ts", "src/lib/mcp/no-oauth.ts"]) {
+    for (const p of ["/.well-known/", "/register", "/authorize", "/token", "/api/mcp"]) expect(mw).toContain(`"${p}"`);
+    for (const f of ["src/app/.well-known/[...path]/route.ts", "src/app/register/route.ts", "src/app/token/route.ts", "src/lib/oauth.ts"]) {
       const src = code(f);
-      expect(src, f).not.toMatch(/supabase|createClient|sendMail|createAdmin|\.rpc\(/);
+      expect(src, f).not.toMatch(/createAdmin|SERVICE_ROLE|sendMail|@\/lib\/mail/);
+      for (const m of src.matchAll(/\.rpc\(\s*["'`]([a-z_]+)["'`]/g)) expect(["oauth_register_client", "oauth_exchange"], f).toContain(m[1]);
+      expect(src, f).not.toMatch(/\.from\(/);
     }
+  });
+  it("l'autorisation est réservée au patron, vérifie l'adresse de retour inscrite et exige PKCE", () => {
+    const src = code("src/app/actions/oauth.ts"), chk = code("src/lib/oauth-check.ts");
+    expect(src.match(/await requireOwner\(\)/g)?.length).toBe(2);   // approuver ET refuser
+    expect(src).toMatch(/checkAuthRequest/); expect(src).toMatch(/agent_key: "core"/);
+    expect(chk).toMatch(/S256/); expect(chk).toMatch(/redirect_uris/); expect(chk).toMatch(/allowedRedirect/);
   });
 });
