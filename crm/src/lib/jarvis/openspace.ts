@@ -34,6 +34,8 @@ export interface Rows {
   instructions: DeskInstruction[] & { agent_key: string }[] | any[];
   /** Vue jarvis_agent_live du moteur de missions (si installé) : source d'attitude prioritaire, déduite des exécutions en cours. */
   live?: LiveRow[];
+  /** Présence des agents Cowork (0030) : dernier appel au CRM, par agent. Facultatif. */
+  presence?: { agent_key: string; last_seen_at: string; last_op: string | null; calls: number | string }[];
 }
 export interface LiveRow { agent_key: string; travaille: boolean; validations_en_attente: number | string; en_difficulte: boolean; collaborations: number | string }
 
@@ -61,7 +63,12 @@ export function buildOpenSpaceState(rows: Rows, now: Date, installed = true): Op
     const live = rows.live?.find((x) => x.agent_key === a.key);
     const recent = !!last && ago(last.finished_at ?? last.started_at, t) < RECENT_MS;
     let activity: Activity; let label: string;
-    if (a.status === "prevu") { activity = "absent"; label = "Pas encore construit"; }
+    // Agent Cowork : présent dès qu'il a appelé le CRM (même si sa logique n'est pas « construite » ici) ; au travail s'il l'a fait il y a moins de 2 minutes.
+    const seen = rows.presence?.find((x) => x.agent_key === a.key);
+    const cowork = !!seen;
+    const coworkNow = !!seen && ago(seen.last_seen_at, t) < RECENT_MS;
+    if (a.status === "prevu" && !cowork) { activity = "absent"; label = "Pas encore connecté"; }
+    else if (coworkNow) { activity = "travaille"; label = "Travaille dans Cowork"; }
     else if (db && db.enabled === false) { activity = "repos"; label = "Désactivé par vous"; }
     else if (live) {
       // Moteur de missions installé : l'activité vient UNIQUEMENT des exécutions enregistrées (étape en cours, validation en attente, échec récent).
@@ -73,7 +80,7 @@ export function buildOpenSpaceState(rows: Rows, now: Date, installed = true): Op
     else if (recent) { activity = "travaille"; label = "Vient de travailler"; }
     else if (pending.length) { activity = "attend_validation"; label = `${pending.length} proposition(s) à valider`; }
     else if (alerts.some((x) => x.severity === "urgent")) { activity = "alerte"; label = "Alerte urgente ouverte"; }
-    else { activity = "repos"; label = last ? "Au repos" : "Aucun passage encore"; }
+    else { activity = "repos"; label = cowork ? "Connecté à Cowork" : last ? "Au repos" : "Aucun passage encore"; }
     return {
       key: a.key, name: a.name, status: a.status, activity, label,
       alerts: alerts.length, urgent: alerts.filter((x) => x.severity === "urgent").length, pending: pending.length, blocked: blocked.length, tasks: tasks.length,

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { handleMcp, TOOLS } from "../src/lib/mcp/server";
 
 const calls: any[] = [];
-const call = async (op: string, args: any) => { calls.push({ op, args }); if (op === "boom") throw new Error("x"); return { ok: true, op }; };
+const call = async (op: string, args: any, meta?: any) => { calls.push({ op, args, meta }); if (op === "boom") throw new Error("x"); return { ok: true, op }; };
 
 describe("serveur MCP", () => {
   it("initialize : négocie la version et annonce les outils", async () => {
@@ -63,5 +63,21 @@ describe("OAuth : briques pures", () => {
     expect(m.code_challenge_methods_supported).toEqual(["S256"]); expect(m.token_endpoint_auth_methods_supported).toEqual(["none"]);
     expect(m.registration_endpoint).toBe("https://crm.example/register");
     expect(resourceMetadataUrl(o)).toContain("/.well-known/oauth-protected-resource");
+  });
+});
+
+describe("présence de l'agent (Open space)", () => {
+  it("chaque outil accepte « agent » ; il est transmis à part et jamais mélangé aux arguments des données", async () => {
+    const list = (await handleMcp({ jsonrpc: "2.0", id: 1, method: "tools/list" }, call)).json!.result.tools;
+    for (const t of list) expect(t.inputSchema.properties.agent, t.name).toBeTruthy();
+    calls.length = 0;
+    await handleMcp({ jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "factures_ouvertes", arguments: { limit: 5, agent: "finance" } } }, call);
+    expect(calls[0]).toMatchObject({ op: "open_invoices", args: { limit: 5 }, meta: { agent: "finance" } });
+    expect("agent" in calls[0].args).toBe(false);
+  });
+  it("un nom d'agent invalide est ignoré", async () => {
+    calls.length = 0;
+    await handleMcp({ jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "crm_apercu", arguments: { agent: "Robert'); drop table x;--" } } }, call);
+    expect(calls[0].meta.agent).toBeUndefined();
   });
 });

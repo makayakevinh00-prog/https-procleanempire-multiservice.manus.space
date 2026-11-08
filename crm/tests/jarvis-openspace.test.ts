@@ -12,13 +12,20 @@ describe("open space — état réel", () => {
   it("9 postes ; les agents prévus sont « absents », jamais montrés en activité", () => {
     const s = buildOpenSpaceState(rows(), NOW);
     expect(s.desks).toHaveLength(9);
-    for (const a of AGENTS.filter((x) => x.status === "prevu")) expect(desk(s, a.key)).toMatchObject({ activity: "absent", label: "Pas encore construit" });
+    for (const a of AGENTS.filter((x) => x.status === "prevu")) expect(desk(s, a.key)).toMatchObject({ activity: "absent", label: "Pas encore connecté" });
   });
   it("« travaille » seulement après un passage terminé il y a moins de 2 minutes, sinon repos : aucune activité sans trace", () => {
     const run = (sec: number) => ({ id: "r", agent_key: "finance", started_at: ago(sec + 1), finished_at: ago(sec), ok: true, summary: "x", trigger: "manuel" });
     expect(desk(buildOpenSpaceState(rows({ runs: [run(30)] }), NOW), "finance").activity).toBe("travaille");
     expect(desk(buildOpenSpaceState(rows({ runs: [run(RECENT_MS / 1000 + 60)] }), NOW), "finance").activity).toBe("repos");
     expect(desk(buildOpenSpaceState(rows(), NOW), "finance")).toMatchObject({ activity: "repos", label: "Aucun passage encore" });
+  });
+  it("agent Cowork : présent dès son premier appel au CRM, au travail seulement s'il a appelé il y a moins de 2 minutes", () => {
+    const seen = (sec: number) => [{ agent_key: "commercial", last_seen_at: ago(sec), last_op: "overview", calls: 3 }];
+    expect(desk(buildOpenSpaceState(rows(), NOW), "commercial").activity).toBe("absent");                                  // aucun appel : toujours absent
+    expect(desk(buildOpenSpaceState(rows({ presence: seen(20) }), NOW), "commercial")).toMatchObject({ activity: "travaille", label: "Travaille dans Cowork" });
+    expect(desk(buildOpenSpaceState(rows({ presence: seen(RECENT_MS / 1000 + 600) }), NOW), "commercial")).toMatchObject({ activity: "repos", label: "Connecté à Cowork" });
+    expect(desk(buildOpenSpaceState(rows({ presence: seen(20) }), NOW), "marketing").activity).toBe("absent");             // un autre agent n'est pas touché
   });
   it("priorité d'affichage : propositions à valider, puis alerte urgente", () => {
     const action = { id: "a", agent_key: "finance", kind: "contact_client", level: "L2", status: "proposed", title: "t", created_at: ago(900), decided_at: null };

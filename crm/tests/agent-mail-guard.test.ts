@@ -20,7 +20,7 @@ describe("connecteur des agents", () => {
       const src = code(f);
       expect(src, f).not.toMatch(/sendMail|@\/lib\/mail|createAdmin|SERVICE_ROLE|syncQonto|@\/lib\/qonto/);
       expect(src, f).not.toMatch(/\.from\(/);
-      for (const m of src.matchAll(/\.rpc\(\s*["'`]([a-z_]+)["'`]/g)) expect(m[1], f).toBe("agent_api");
+      for (const m of src.matchAll(/\.rpc\(\s*["'`]([a-z_]+)["'`]/g)) expect(["agent_api", "agent_presence_touch"], f).toContain(m[1]);   // agent_presence_touch : présence pour l'Open space, lien secret vérifié par la base
     }
   });
 });
