@@ -43,3 +43,14 @@ describe("approbation d'un e-mail proposé par un agent", () => {
     expect(users).toEqual(["src/app/(app)/jarvis/page.tsx"]);
   });
 });
+
+describe("routes publiques de découverte OAuth", () => {
+  it("sont déclarées publiques dans le middleware et ne touchent ni base ni envoi", () => {
+    const mw = code("src/middleware.ts");
+    for (const p of ["/.well-known/", "/register", "/authorize", "/token"]) expect(mw).toContain(`"${p}"`);
+    for (const f of ["src/app/.well-known/[...path]/route.ts", "src/app/register/route.ts", "src/app/authorize/route.ts", "src/app/token/route.ts", "src/app/api/mcp/[token]/[...rest]/route.ts", "src/lib/mcp/no-oauth.ts"]) {
+      const src = code(f);
+      expect(src, f).not.toMatch(/supabase|createClient|sendMail|createAdmin|\.rpc\(/);
+    }
+  });
+});

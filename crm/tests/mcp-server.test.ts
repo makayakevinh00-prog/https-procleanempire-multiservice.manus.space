@@ -42,3 +42,12 @@ describe("serveur MCP", () => {
     expect((await handleMcp({ jsonrpc: "2.0", id: 10, method: "tools/call", params: { name: "creer_tache", arguments: { title: "x".repeat(30_000) } } }, call)).json!.error.code).toBe(-32602);
   });
 });
+
+import { noOAuth } from "../src/lib/mcp/no-oauth";
+describe("découverte OAuth : réponse nette", () => {
+  it("renvoie un 404 JSON (jamais une redirection ni du HTML)", async () => {
+    const r = noOAuth();
+    expect(r.status).toBe(404); expect(r.headers.get("content-type")).toContain("application/json");
+    expect((await r.json()).error).toBe("not_found");
+  });
+});
