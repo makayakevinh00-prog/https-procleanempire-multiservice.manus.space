@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { resolveIssueAction } from "@/app/actions/missions";
 import { PageHeader, Empty } from "@/components/crm/page-header";
+import { MissionsTabs } from "@/components/crm/missions-tabs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/form";
@@ -20,6 +21,7 @@ export default async function IssuesPage({ searchParams }: { searchParams: { tou
     <>
       <PageHeader title="Anomalies & réclamations" subtitle="Les problèmes signalés sur les missions. Une mission ne peut pas être validée tant qu'un problème y est ouvert."
         actions={<Link href={searchParams.tout ? "/missions/problemes" : "/missions/problemes?tout=1"} className="text-sm text-primary hover:underline">{searchParams.tout ? "Seulement les ouverts" : "Voir aussi les réglés"}</Link>} />
+      <MissionsTabs active="anomalies" />
       <Card>
         {!data?.length ? <Empty>Aucun problème ouvert.</Empty> : (
           <ul className="divide-y divide-slate-100">{data.map((i: any) => (

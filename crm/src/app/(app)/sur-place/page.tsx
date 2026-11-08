@@ -3,6 +3,7 @@ import { MapPin, Clock, CheckCircle2, AlertTriangle, UserX } from "lucide-react"
 import { createClient } from "@/lib/supabase/server";
 import { parisToday } from "@/lib/domain/dates";
 import { PageHeader, Empty } from "@/components/crm/page-header";
+import { MissionsTabs } from "@/components/crm/missions-tabs";
 import { Card } from "@/components/ui/card";
 import { Stat } from "@/components/ui/stat";
 import { SiteMapLazy } from "@/components/crm/site-map-lazy";
@@ -46,6 +47,7 @@ export default async function OnSitePage() {
   return (
     <>
       <PageHeader title="Sur place" subtitle="Où sont vos agents aujourd'hui : heure d'arrivée relevée par GPS (au moment du pointage), heure de départ et durée réelle. Rien n'est suivi en continu." />
+      <MissionsTabs active="direct" />
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="Sur place" value={count("sur_place")} tone="green" icon={MapPin} />
         <Stat label="Attendus" value={count("attendu")} tone="blue" icon={Clock} />

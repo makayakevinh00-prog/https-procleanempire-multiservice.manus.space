@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { MissionRow } from "@/components/crm/mission";
 import { formatDate } from "@/lib/utils";
 import { ActivityTabs } from "@/components/crm/activity-ui";
+import { MissionsTabs } from "@/components/crm/missions-tabs";
 import { isActivity, missionActivity, type Activity } from "@/lib/domain/activity";
 import { loadActivityModel, selectResilient } from "@/lib/activity-data";
 
@@ -93,6 +94,7 @@ export default async function MissionsPage({ searchParams }: { searchParams: { v
       <PageHeader title="Missions" subtitle="Chaque passage chez un client, de la planification à la facture."
         actions={<Link href="/planning"><Button variant="outline"><CalendarPlus className="h-4 w-4" /> Générer / ajouter (planning)</Button></Link>} />
 
+      <MissionsTabs active="missions" counts={{ verifier: rows.filter((r) => ["terminee", "a_verifier"].includes(r.stage) && !r.invoice_id).length, anomalies: openIssues ?? 0 }} />
       <ActivityTabs current={famSel} counts={famCounts} href={(k) => params({ famille: k || undefined })} />
 
       <div className="mb-4 flex flex-wrap gap-2">

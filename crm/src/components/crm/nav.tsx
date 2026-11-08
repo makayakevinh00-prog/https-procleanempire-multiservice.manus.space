@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Home, ListChecks, Users, MapPin, ClipboardList, FileText, Receipt, UserCog, Package, Settings, LogOut, Bell, Search, X, LayoutGrid, Truck, Bot, ChevronsLeft, PieChart } from "lucide-react";
+import { Home, ListChecks, Users, MapPin, ClipboardList, FileText, Receipt, UserCog, Package, Settings, LogOut, Bell, Search, X, LayoutGrid, Truck, Bot, ChevronsLeft, PieChart, Repeat, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Item = { href: string; label: string; icon: any; children?: { href: string; label: string }[] };
@@ -22,11 +22,13 @@ const GROUPS: Group[] = [
   { title: "Commercial", items: [
     { href: "/clients", label: "Clients", icon: Users, children: [{ href: "/demandes", label: "Demandes du site" }] },
     { href: "/devis", label: "Devis", icon: FileText },
+    { href: "/contrats", label: "Contrats", icon: Repeat },
     { href: "/activites", label: "Activités", icon: PieChart }
   ] },
   { title: "Opérations", items: [
-    { href: "/sites", label: "Sites", icon: MapPin, children: [{ href: "/contrats", label: "Contrats" }] },
-    { href: "/missions", label: "Missions", icon: ClipboardList, children: [{ href: "/sur-place", label: "Sur place (GPS)" }, { href: "/missions/problemes", label: "Anomalies & réclamations" }, { href: "/planning", label: "Planning du mois" }] },
+    { href: "/missions", label: "Missions", icon: ClipboardList },
+    { href: "/planning", label: "Planning", icon: CalendarDays },
+    { href: "/sites", label: "Sites", icon: MapPin },
     { href: "/equipe", label: "Équipe", icon: UserCog, children: [{ href: "/recrutement", label: "Recrutement" }] }
   ] },
   { title: "Finance", items: [
