@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getSettings } from "@/lib/data";
 import { PageHeader } from "@/components/crm/page-header";
@@ -26,6 +27,17 @@ export default async function SettingsPage() {
   return (
     <>
       <PageHeader title="Paramètres" />
+      <Card className="mb-4">
+        <CardHeader><CardTitle>Agents JARVIS</CardTitle></CardHeader>
+        <CardContent className="space-y-2 text-sm text-secondary-foreground">
+          <p>La supervision de vos agents (validation des e-mails proposés, alertes) et l&apos;Open space animé ne sont plus dans le menu. Ils restent disponibles ici.</p>
+          <div className="flex flex-wrap gap-3 font-medium">
+            <Link href="/jarvis" className="text-primary hover:underline">Supervision JARVIS</Link>
+            <Link href="/jarvis/alertes" className="text-primary hover:underline">Alertes</Link>
+            <Link href="/jarvis/openspace" className="text-primary hover:underline">Open space</Link>
+          </div>
+        </CardContent>
+      </Card>
       <Card className="mb-4">
         <CardHeader><CardTitle>Agents Claude Cowork (connecteur MCP)</CardTitle></CardHeader>
         <CardContent className="space-y-3 text-sm text-secondary-foreground">
