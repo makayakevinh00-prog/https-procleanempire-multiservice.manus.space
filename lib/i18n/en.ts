@@ -10,13 +10,14 @@ export const en: Dictionary = {
     airbnb: "Airbnb cleaning",
     offices: "Offices & shops",
     concierge: "Corporate concierge",
+    detailing: "Car & aircraft",
     contact: "Contact",
     mainLabel: "Main navigation",
     mobileLabel: "Mobile navigation",
     openMenu: "Open menu",
     closeMenu: "Close menu",
     homeLabel: "ProClean Empire — home",
-    skipToContent: "Skip to content"
+    skipToContent: "Skip to content",
   },
   cta: {
     booking: "Book now",
@@ -25,9 +26,9 @@ export const en: Dictionary = {
     whatsapp: "WhatsApp",
     quote: "Request a quote",
     review: "Leave a review",
-    quickContact: "Quick contact"
+    quickContact: "Quick contact",
   },
   common: {
-    logoAlt: "ProClean Empire logo"
-  }
+    logoAlt: "ProClean Empire logo",
+  },
 };

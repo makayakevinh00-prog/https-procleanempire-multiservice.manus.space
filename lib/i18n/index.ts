@@ -19,6 +19,7 @@ export function getNavLinks(locale: Locale = defaultLocale) {
     { label: t.airbnb, href: "/menage-airbnb" },
     { label: t.offices, href: "/nettoyage-bureaux" },
     { label: t.concierge, href: "/conciergerie-entreprise" },
-    { label: t.contact, href: "/contact" }
+    { label: t.detailing, href: "/nettoyage-automobile" },
+    { label: t.contact, href: "/contact" },
   ];
 }
