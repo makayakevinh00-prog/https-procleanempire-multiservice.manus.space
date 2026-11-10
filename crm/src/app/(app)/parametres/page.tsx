@@ -69,7 +69,8 @@ export default async function SettingsPage() {
       <Card className="mb-4">
         <CardHeader><CardTitle>Accès comptable (votre expert-comptable)</CardTitle></CardHeader>
         <CardContent className="space-y-3 text-sm text-secondary-foreground">
-          <p>Votre comptable a son propre compte, en <b className="font-medium text-foreground">lecture seule</b> : il voit uniquement la page Comptabilité (factures émises, TVA, virements, paiements fournisseurs) et télécharge les exports CSV. Il ne voit ni vos missions, ni les fiches clients, ni JARVIS, et ne peut rien modifier. Vous pouvez couper son accès en un clic.</p>
+          <p>Votre comptable a son propre compte, en <b className="font-medium text-foreground">lecture seule</b> : il voit uniquement la page Comptabilité (factures émises, TVA, virements, paiements fournisseurs) et télécharge les factures en PDF (au mois, au trimestre ou à l&apos;année), les exports CSV et un FEC partiel (ventes et encaissements), ainsi que les justificatifs que vous joignez aux paiements fournisseurs. Il ne voit ni vos missions, ni les fiches clients, ni JARVIS, et ne peut rien modifier. Vous pouvez couper son accès en un clic.</p>
+          <p><b className="font-medium text-foreground">À savoir :</b> pour les achats, le plus simple est de lui ouvrir aussi Qonto (accès comptable de la banque), où les factures sont déjà jointes aux transactions. Demandez-lui s&apos;il veut un fichier au format du fisc (FEC) ou si les CSV lui suffisent.</p>
           {freshAcc && (
             <div className="space-y-2 rounded-xl bg-secondary p-4">
               <div className="font-medium text-foreground">Invitation pour {freshAcc.email} : affichée une seule fois</div>

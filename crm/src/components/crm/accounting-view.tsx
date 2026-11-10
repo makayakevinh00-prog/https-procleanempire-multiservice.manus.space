@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight, Download, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { monthLabel, monthOf, parisToday } from "@/lib/domain/dates";
 import { numberingGaps } from "@/lib/domain/accounting";
+import { quarterOf } from "@/lib/compta/period";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate, formatEUR } from "@/lib/utils";
 
@@ -10,7 +11,7 @@ export interface ComptaData {
   invoices: { id: string | null; number: string; issue_date: string; due_date: string | null; status: string; total_ht: number; total_vat: number; total_ttc: number; paid_at: string | null; client: string }[];
   vat: { rate: number; base: number; vat: number }[];
   payments: { received_at: string; amount: number; counterparty: string | null; label: string | null; match_status: string; invoice: string | null }[];
-  supplier_payments: { paid_on: string; amount: number; label: string | null; supplier: string }[];
+  supplier_payments: { id?: string; has_doc?: boolean; paid_on: string; amount: number; label: string | null; supplier: string }[];
   open_total: number; late_count: number; late_total: number; unmatched: number; numbers: string[];
 }
 
@@ -37,8 +38,7 @@ export function AccountingView({ data, basePath, owner }: { data: ComptaData; ba
   const cashIn = sum(data.payments, "amount"), cashOut = sum(data.supplier_payments, "amount");
   const gaps = numberingGaps(data.numbers);
   const nav = (m: string) => `${basePath}?mois=${m}`;
-  const exp = (t: string) => `/api/compta/export?type=${t}&mois=${month}`;
-  const checks: { ok: boolean; text: string; href?: string }[] = [
+    const checks: { ok: boolean; text: string; href?: string }[] = [
     { ok: !data.unmatched, text: data.unmatched ? `${data.unmatched} virement(s) reçu(s) pas encore rapproché(s) d'une facture` : "Tous les virements reçus sont rapprochés", href: owner ? "/paiements" : undefined },
     { ok: !data.late_count, text: data.late_count ? `${data.late_count} facture(s) en retard de paiement (${formatEUR(Number(data.late_total))} TTC)` : "Aucune facture en retard", href: owner ? "/factures" : undefined },
     { ok: !gaps.length, text: gaps.length ? `Numérotation : numéro(s) manquant(s) ${gaps.slice(0, 5).join(", ")}${gaps.length > 5 ? "…" : ""}` : "Numérotation des factures continue, sans trou" }
@@ -52,11 +52,20 @@ export function AccountingView({ data, basePath, owner }: { data: ComptaData; ba
           <Link href={nav(shift(month, 1))} className="p-2 hover:bg-muted" aria-label="Mois suivant"><ChevronRight className="h-4 w-4" /></Link>
         </div>
         {month !== monthOf(today) && <Link href={nav(monthOf(today))} className="text-sm text-primary hover:underline">Mois en cours</Link>}
-        <div className="ml-auto flex flex-wrap gap-2">
-          {([["ventes", "Journal des ventes"], ["encaissements", "Encaissements"], ["fournisseurs", "Paiements fournisseurs"]] as const).map(([t, l]) => (
-            <a key={t} href={exp(t)} className="inline-flex h-9 items-center gap-1.5 rounded-lg border bg-card px-3 text-[13px] font-medium hover:bg-muted"><Download className="h-3.5 w-3.5" /> {l} (CSV)</a>
-          ))}
-        </div>
+        <details className="ml-auto rounded-lg border bg-card shadow-sm">
+          <summary className="inline-flex h-9 cursor-pointer list-none items-center gap-1.5 px-3 text-[13px] font-medium hover:bg-muted"><Download className="h-3.5 w-3.5" /> Exports et documents</summary>
+          <div className="space-y-3 border-t p-3 text-[13px]">
+            {([[monthLabel(month), month], [`Trimestre ${quarterOf(month).slice(-2)}`, quarterOf(month)], [`Année ${month.slice(0, 4)}`, month.slice(0, 4)]] as const).map(([label, per]) => (
+              <div key={per} className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span className="w-32 font-medium capitalize">{label}</span>
+                {([["ventes", "Ventes"], ["encaissements", "Encaissements"], ["fournisseurs", "Fournisseurs"]] as const).map(([t, l]) => <a key={t} href={`/api/compta/export?type=${t}&periode=${per}`} className="text-primary hover:underline">{l} (CSV)</a>)}
+                <a href={`/api/compta/export?type=fec&periode=${per}`} className="text-primary hover:underline">FEC partiel</a>
+                <a href={`/api/compta/factures-pdf?periode=${per}`} className="text-primary hover:underline">Factures (PDF)</a>
+              </div>
+            ))}
+            <p className="max-w-md text-[12px] text-muted-foreground">Le FEC contient les ventes et les encaissements ; les achats et la TVA déductible restent à compléter par l&apos;expert-comptable.</p>
+          </div>
+        </details>
       </div>
 
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
@@ -101,7 +110,7 @@ export function AccountingView({ data, basePath, owner }: { data: ComptaData; ba
                 <td className="px-5 py-2.5">{owner && i.id ? <Link href={`/factures/${i.id}`} className="font-medium hover:underline">{i.number}</Link> : <span className="font-medium">{i.number}</span>}</td>
                 <td className="num px-5 py-2.5">{formatDate(i.issue_date)}</td><td className="px-5 py-2.5">{i.client}</td>
                 <td className="num px-5 py-2.5 text-right">{formatEUR(Number(i.total_ht))}</td><td className="num px-5 py-2.5 text-right">{formatEUR(Number(i.total_vat))}</td><td className="num px-5 py-2.5 text-right font-medium">{formatEUR(Number(i.total_ttc))}</td>
-                <td className="px-5 py-2.5">{STATUS[i.status] ?? i.status}{i.paid_at ? ` · ${formatDate(i.paid_at.slice(0, 10))}` : ""}</td>
+                <td className="px-5 py-2.5">{STATUS[i.status] ?? i.status}{i.paid_at ? ` · ${formatDate(i.paid_at.slice(0, 10))}` : ""} · <a href={`/api/compta/facture/${encodeURIComponent(i.number)}`} className="text-primary hover:underline">PDF</a></td>
               </tr>
             ))}
           </tbody>
@@ -121,14 +130,14 @@ export function AccountingView({ data, basePath, owner }: { data: ComptaData; ba
           <CardHeader><CardTitle>Paiements fournisseurs du mois</CardTitle>{owner && <Link href="/fournisseurs" className="text-xs font-semibold text-primary hover:underline">Fournisseurs</Link>}</CardHeader>
           <ul className="divide-y divide-border/50 text-[14px]">
             {!data.supplier_payments.length ? <li className="px-5 py-5 text-muted-foreground">Aucun paiement fournisseur enregistré ce mois-ci.</li> : data.supplier_payments.map((p, k) => (
-              <li key={k} className="flex items-center justify-between gap-3 px-5 py-2.5"><span className="min-w-0"><span className="block truncate font-medium">{p.supplier}</span><span className="text-[12.5px] text-muted-foreground">{formatDate(p.paid_on)}{p.label ? ` · ${p.label}` : ""}</span></span><b className="num">{formatEUR(Number(p.amount))}</b></li>
+              <li key={k} className="flex items-center justify-between gap-3 px-5 py-2.5"><span className="min-w-0"><span className="block truncate font-medium">{p.supplier}</span><span className="text-[12.5px] text-muted-foreground">{formatDate(p.paid_on)}{p.label ? ` · ${p.label}` : ""} · {p.has_doc && p.id ? <a href={`/api/compta/justificatif/${p.id}`} target="_blank" rel="noreferrer" className="font-medium text-primary hover:underline">Justificatif</a> : "sans justificatif"}</span></span><b className="num">{formatEUR(Number(p.amount))}</b></li>
             ))}
           </ul>
         </Card>
       </div>
 
       <p className="mt-5 max-w-3xl text-xs text-muted-foreground">
-        Limites : la TVA affichée est la TVA <b className="font-medium">collectée</b> d&apos;après les lignes de factures ; la TVA déductible et les justificatifs d&apos;achats ne sont pas suivis ici. Les dépenses sont les paiements fournisseurs enregistrés dans le CRM. Ces chiffres préparent le travail de l&apos;expert-comptable, ils ne remplacent pas un logiciel comptable.
+        Limites : la TVA affichée est la TVA <b className="font-medium">collectée</b> d&apos;après les lignes de factures ; la TVA déductible n&apos;est pas suivie ici ; les justificatifs d&apos;achats sont ceux que le patron a joints aux paiements (sinon à demander, ou à retrouver dans Qonto). Les dépenses sont les paiements fournisseurs enregistrés dans le CRM. Ces chiffres préparent le travail de l&apos;expert-comptable, ils ne remplacent pas un logiciel comptable.
       </p>
     </>
   );

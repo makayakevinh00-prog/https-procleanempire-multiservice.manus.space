@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { dbMessage, flash, numField, str } from "@/lib/data";
 import { parsePrices } from "@/lib/supplier-prices";
+import { JUSTIF_MAX, JUSTIF_TYPES, safeFileName } from "@/lib/compta/period";
 
 export async function saveSupplierAction(id: string | null, fd: FormData) {
   await requireOwner();
@@ -55,4 +56,38 @@ export async function deleteSupplierPaymentAction(supplierId: string, paymentId:
   if (error) flash(`/fournisseurs/${supplierId}`, "error", dbMessage(error));
   revalidatePath(`/fournisseurs/${supplierId}`);
   flash(`/fournisseurs/${supplierId}`, "ok", "Paiement supprimé.");
+}
+
+/** Joint (ou remplace) le justificatif d'un paiement fournisseur : PDF ou image, 10 Mo maximum, visible du comptable invité. */
+export async function attachPaymentDocumentAction(supplierId: string, paymentId: string, fd: FormData) {
+  await requireOwner();
+  const back = `/fournisseurs/${supplierId}`;
+  const f = fd.get("file");
+  if (!(f instanceof File) || f.size === 0) flash(back, "error", "Choisissez un fichier.");
+  const file = f as File;
+  if (!JUSTIF_TYPES.includes(file.type)) flash(back, "error", "Format accepté : PDF, JPEG, PNG ou WebP.");
+  if (file.size > JUSTIF_MAX) flash(back, "error", "Fichier trop lourd (10 Mo maximum).");
+  const sb = createClient();
+  const { data: old } = await sb.from("supplier_payments").select("document_path").eq("id", paymentId).eq("supplier_id", supplierId).maybeSingle();
+  if (!old) flash(back, "error", "Paiement introuvable.");
+  const path = `${paymentId}/${Date.now()}-${safeFileName(file.name)}`;
+  const up = await sb.storage.from("justificatifs").upload(path, file, { contentType: file.type, upsert: false });
+  if (up.error) flash(back, "error", `Envoi impossible : ${up.error.message}`);
+  const { error } = await sb.from("supplier_payments").update({ document_path: path }).eq("id", paymentId);
+  if (error) { await sb.storage.from("justificatifs").remove([path]); flash(back, "error", dbMessage(error)); }
+  if ((old as any).document_path) await sb.storage.from("justificatifs").remove([(old as any).document_path]);
+  revalidatePath(back);
+  flash(back, "ok", "Justificatif joint.");
+}
+
+export async function removePaymentDocumentAction(supplierId: string, paymentId: string) {
+  await requireOwner();
+  const back = `/fournisseurs/${supplierId}`;
+  const sb = createClient();
+  const { data: old } = await sb.from("supplier_payments").select("document_path").eq("id", paymentId).eq("supplier_id", supplierId).maybeSingle();
+  const { error } = await sb.from("supplier_payments").update({ document_path: null }).eq("id", paymentId);
+  if (error) flash(back, "error", dbMessage(error));
+  if ((old as any)?.document_path) await sb.storage.from("justificatifs").remove([(old as any).document_path]);
+  revalidatePath(back);
+  flash(back, "ok", "Justificatif retiré.");
 }

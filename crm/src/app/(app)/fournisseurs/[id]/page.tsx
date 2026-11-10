@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { addSupplierPaymentAction, deleteSupplierAction, deleteSupplierPaymentAction, saveSupplierAction } from "@/app/actions/suppliers";
+import { attachPaymentDocumentAction, removePaymentDocumentAction, addSupplierPaymentAction, deleteSupplierAction, deleteSupplierPaymentAction, saveSupplierAction } from "@/app/actions/suppliers";
 import { PageHeader } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,12 +48,25 @@ export default async function SupplierPage({ params }: { params: { id: string } 
         {!pays?.length ? <p className="text-sm text-slate-500">Aucun paiement enregistré.</p> : (
           <div className="divide-y rounded-lg border">
             {pays.map((p: any) => (
-              <div key={p.id} className="flex items-center gap-3 px-3 py-2 text-sm">
+              <div key={p.id} className="flex flex-wrap items-center gap-3 px-3 py-2 text-sm">
                 <span className="w-24 text-slate-600">{new Date(p.paid_on + "T12:00:00").toLocaleDateString("fr-FR")}</span>
                 <span className="flex-1 truncate text-slate-700">{p.label ?? ""}</span>
                 <Badge tone={p.source === "qonto" ? "blue" : "gray"}>{p.source === "qonto" ? "Qonto" : "Manuel"}</Badge>
                 <span className="w-24 text-right font-semibold">{formatEUR(p.amount)}</span>
                 <form action={deleteSupplierPaymentAction.bind(null, s.id, p.id)}><button className="text-xs text-red-700 hover:underline" aria-label="Supprimer ce paiement">Supprimer</button></form>
+                <div className="basis-full pl-24 text-xs">
+                  {p.document_path ? (
+                    <span className="flex flex-wrap items-center gap-3">
+                      <a href={`/api/compta/justificatif/${p.id}`} target="_blank" rel="noreferrer" className="font-medium text-primary hover:underline">Voir le justificatif</a>
+                      <form action={removePaymentDocumentAction.bind(null, s.id, p.id)}><button className="text-slate-500 hover:underline">Retirer</button></form>
+                    </span>
+                  ) : (
+                    <form action={attachPaymentDocumentAction.bind(null, s.id, p.id)} className="flex flex-wrap items-center gap-2">
+                      <input type="file" name="file" accept="application/pdf,image/jpeg,image/png,image/webp" required className="max-w-[16rem] text-xs" aria-label="Justificatif (PDF ou image)" />
+                      <button className="text-primary hover:underline">Joindre le justificatif</button>
+                    </form>
+                  )}
+                </div>
               </div>
             ))}
           </div>
