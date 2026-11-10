@@ -8,7 +8,11 @@
 --  * les règles de la base (déclencheurs, contraintes, factures émises figées) restent appliquées.
 -- L'envoi d'e-mails aux clients reste une PROPOSITION validée par le patron (proposer_email_client).
 
-alter table agent_connectors add column if not exists full_access boolean not null default false;
+do $$ begin
+  if to_regclass('public.agent_connectors') is not null then
+    alter table agent_connectors add column if not exists full_access boolean not null default false;
+  end if;
+end $$;
 
 create or replace function agent_table_ok(p_table text, p_write boolean) returns boolean language sql stable set search_path = public as $$
   select p_table is not null
@@ -47,7 +51,7 @@ end $$;
 create or replace function agent_admin_api(p_token text, p_op text, p_args jsonb default '{}'::jsonb) returns jsonb
 language plpgsql security definer set search_path = public as $$
 declare
-  c agent_connectors; t text := p_args->>'table'; w text; ord text := ''; v jsonb; vals jsonb; act text; n int; k text; cols text; sets text;
+  c record; t text := p_args->>'table'; w text; ord text := ''; v jsonb; vals jsonb; act text; n int; k text; cols text; sets text;
   lim int := least(greatest(coalesce((p_args->>'limit')::int, 50), 1), 200); off int := greatest(coalesce((p_args->>'offset')::int, 0), 0);
   v_id uuid;
 begin
@@ -113,4 +117,8 @@ grant execute on function agent_admin_api(text, text, jsonb) to anon, authentica
 revoke execute on function agent_table_ok(text, boolean), agent_col_ok(text, text), agent_where(text, jsonb, text) from public, anon, authenticated;
 
 -- Les liens actifs de l'assistant principal (« core ») reçoivent l'accès complet ; les autres agents restent limités.
-update agent_connectors set full_access = true where agent_key = 'core' and revoked_at is null;
+do $$ begin
+  if to_regclass('public.agent_connectors') is not null then
+    update agent_connectors set full_access = true where agent_key = 'core' and revoked_at is null;
+  end if;
+end $$;
