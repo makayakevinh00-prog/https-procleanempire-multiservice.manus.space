@@ -15,7 +15,10 @@ import {
   buildAlerts,
   commissionOf,
   monthLabel,
+  occupancy,
+  occupancyDays,
   type Alert,
+  type Stay,
 } from "@/lib/concierge/plan";
 import {
   createCommissionDraftAction,
@@ -41,6 +44,7 @@ export const dynamic = "force-dynamic";
 const TABS = [
   ["apercu", "Vue d'ensemble"],
   ["planning", "Planning"],
+  ["calendrier", "Calendrier"],
   ["logements", "Logements"],
   ["revenus", "Revenus et commission"],
   ["automatisations", "Automatisations"],
@@ -96,8 +100,8 @@ export default async function ConciergeriePage({
       sb
         .from("concierge_stays")
         .select("id, listing_id, check_in, check_out, cancelled")
-        .gte("check_out", today)
-        .lte("check_out", addDays(today, 60)),
+        .gte("check_out", addDays(today, -30))
+        .lte("check_in", addDays(today, 60)),
       sb
         .from("interventions")
         .select(
@@ -411,6 +415,63 @@ export default async function ConciergeriePage({
         </>
       )}
 
+      {tab === "calendrier" && (() => {
+        const all = ((stays.data ?? []) as Stay[]);
+        const days = 30;
+        return (
+          <>
+            <Card className="overflow-x-auto">
+              <CardContent className="min-w-[760px] p-4">
+                {!listings.length ? <Empty icon={KeyRound}>Aucun logement : ajoutez-en un pour voir son occupation.</Empty> : (
+                  <div className="space-y-3">
+                    <div className="grid items-end gap-px text-center text-[10px] text-muted-foreground" style={{ gridTemplateColumns: `200px repeat(${days}, minmax(0, 1fr))` }}>
+                      <span />
+                      {Array.from({ length: days }, (_, k) => { const d = addDays(today, k); return <span key={d} className={d === today ? "font-bold text-foreground" : ""}>{Number(d.slice(8))}</span>; })}
+                    </div>
+                    {listings.map((l) => {
+                      const mine = all.filter((x) => x.listing_id === l.id);
+                      const cells = occupancyDays(mine, today, days);
+                      const next30 = occupancy(mine, today, 30), last30 = occupancy(mine, addDays(today, -30), 30);
+                      return (
+                        <div key={l.id} className="grid items-center gap-px" style={{ gridTemplateColumns: `200px repeat(${days}, minmax(0, 1fr))` }}>
+                          <div className="pr-3"><div className="truncate text-sm font-medium text-foreground">{l.name}</div>
+                            <div className="text-[11px] text-muted-foreground">{l.ical_url ? `${next30.pct} % à venir · ${last30.pct} % passé` : "sans calendrier"}</div></div>
+                          {cells.map((c) => (
+                            <span key={c.date} title={`${formatDate(c.date)} · ${c.busy ? "occupé" : "libre"}${c.in ? " · arrivée" : ""}${c.out ? " · départ (ménage)" : ""}`}
+                              className={`h-7 rounded-[3px] ${c.busy ? "bg-[#2b4c7e]" : "bg-secondary"} ${c.out ? "border-l-2 border-[#c98a2b]" : ""} ${c.date === today ? "ring-1 ring-foreground/60" : ""}`} />
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            <div className="mt-3 flex flex-wrap gap-5 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5"><span className="inline-block h-3 w-4 rounded-sm bg-[#2b4c7e]" /> nuit occupée</span>
+              <span className="flex items-center gap-1.5"><span className="inline-block h-3 w-4 rounded-sm bg-secondary" /> libre</span>
+              <span className="flex items-center gap-1.5"><span className="inline-block h-3 w-4 border-l-2 border-[#c98a2b] bg-secondary" /> départ : ménage</span>
+            </div>
+            {listings.some((l) => l.ical_url) && (
+              <Card className="mt-4 overflow-hidden">
+                <CardHeader><CardTitle>Statistiques par logement</CardTitle><span className="text-xs text-muted-foreground">30 jours à venir</span></CardHeader>
+                <div className="divide-y">
+                  {listings.filter((l) => l.ical_url).map((l) => { const o = occupancy(all.filter((x) => x.listing_id === l.id), today, 30); return (
+                    <div key={l.id} className="flex flex-wrap items-center gap-x-6 gap-y-1 px-6 py-3 text-sm">
+                      <span className="min-w-0 flex-1 font-medium">{l.name}</span>
+                      <span><b className="num font-semibold">{o.pct} %</b> <span className="text-muted-foreground">d&apos;occupation ({o.nights} nuits)</span></span>
+                      <span><b className="num font-semibold">{o.stays}</b> <span className="text-muted-foreground">séjour{o.stays > 1 ? "s" : ""}</span></span>
+                      <span className="text-muted-foreground">{o.avgNights != null ? `${o.avgNights} nuits en moyenne` : "aucun séjour"}</span>
+                    </div>
+                  ); })}
+                </div>
+              </Card>
+            )}
+            <p className="mt-4 text-xs text-muted-foreground">La frise vient des calendriers reliés : elle montre les dates occupées, pas les voyageurs ni les montants. Sans lien officiel avec les plateformes, elle ne remplace pas la protection contre les doubles réservations d&apos;un gestionnaire de canaux.</p>
+          </>
+        );
+      })()}
+
       {tab === "logements" && (
         <>
           <Card className="mb-4 overflow-hidden">
@@ -552,7 +613,8 @@ export default async function ConciergeriePage({
                           {k.clients?.name}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {k.label} · commission {pct} %
+                          {k.label} · commission {pct} % ·{" "}
+                          <Link href={`/conciergerie/releve?client=${k.client_id}&m=${month}`} className="text-primary hover:underline">Relevé propriétaire</Link>
                         </div>
                       </div>
                       <form

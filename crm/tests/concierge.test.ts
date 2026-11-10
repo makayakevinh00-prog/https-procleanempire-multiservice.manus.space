@@ -77,3 +77,28 @@ describe("commission, messages et alertes", () => {
   });
   it("addDays traverse les fins de mois et d'année", () => { expect(addDays("2026-12-30", 3)).toBe("2027-01-02"); expect(addDays("2026-03-01", -1)).toBe("2026-02-28"); });
 });
+
+import { nightsIn, occupancy, occupancyDays, statement } from "../src/lib/concierge/plan";
+
+describe("occupation et relevé", () => {
+  const T = (id: string, a: string, b: string, cancelled = false): Stay => ({ id, listing_id: "L1", check_in: a, check_out: b, cancelled, intervention_id: null });
+  it("compte les nuits : arrivée incluse, départ exclu, séjour coupé par la période", () => {
+    expect(nightsIn({ check_in: "2026-11-12", check_out: "2026-11-15" }, "2026-11-01", "2026-12-01")).toBe(3);
+    expect(nightsIn({ check_in: "2026-10-28", check_out: "2026-11-03" }, "2026-11-01", "2026-12-01")).toBe(2);
+    expect(nightsIn({ check_in: "2026-12-30", check_out: "2027-01-04" }, "2026-12-01", "2027-01-01")).toBe(2);
+    expect(nightsIn({ check_in: "2026-11-12", check_out: "2026-11-12" }, "2026-11-01", "2026-12-01")).toBe(0);
+  });
+  it("taux d'occupation, séjours et durée moyenne ; un séjour annulé ne compte pas", () => {
+    const o = occupancy([T("a", "2026-11-02", "2026-11-05"), T("b", "2026-11-10", "2026-11-17"), T("c", "2026-11-20", "2026-11-25", true)], "2026-11-01", 30);
+    expect(o).toEqual({ nights: 10, days: 30, pct: 33.3, stays: 2, avgNights: 5 });
+    expect(occupancy([], "2026-11-01", 30)).toEqual({ nights: 0, days: 30, pct: 0, stays: 0, avgNights: null });
+  });
+  it("frise : occupé cette nuit-là, départ et arrivée le même jour repérés", () => {
+    const d = occupancyDays([T("a", "2026-11-02", "2026-11-04"), T("b", "2026-11-04", "2026-11-06")], "2026-11-02", 5);
+    expect(d.map((x) => [x.busy, x.out, x.in])).toEqual([[true, false, true], [true, false, false], [true, true, true], [true, false, false], [false, true, false]]);
+  });
+  it("relevé : commission, ménages et reste à verser", () => {
+    expect(statement([{ revenue: 1800, pct: 9 }, { revenue: 600, pct: 12 }], { count: 8, amount: 440 })).toEqual({ revenue: 2400, commission: 234, cleanings: 8, cleaningsAmount: 440, net: 1726 });
+    expect(statement([], { count: 0, amount: 0 }).net).toBe(0);
+  });
+});

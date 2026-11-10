@@ -215,3 +215,36 @@ export function diffCleanings(existing: ExistingCleaning[], desired: Desired[], 
   const cancel = cancelledKeys.map((k) => byKey.get(k)).filter((e): e is ExistingCleaning => !!e && PLANNED_STAGES.includes(e.stage ?? "planifiee")).map((e) => e.id);
   return { insert, update, cancel };
 }
+
+const nightsBetween = (a: string, b: string) => Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 864e5);
+
+/** Nuits occupées d'un séjour dans la période [from, to[ : l'arrivée compte, le départ non. */
+export function nightsIn(stay: { check_in: string; check_out: string }, from: string, to: string): number {
+  const a = stay.check_in > from ? stay.check_in : from, b = stay.check_out < to ? stay.check_out : to;
+  return Math.max(nightsBetween(a, b), 0);
+}
+
+/** Occupation d'un logement sur `days` jours à partir de `from` : nuits occupées, taux, nombre de séjours et durée moyenne. */
+export function occupancy(stays: Stay[], from: string, days: number) {
+  const to = addDays(from, days), live = stays.filter((s) => !s.cancelled);
+  const nights = live.reduce((t, s) => t + nightsIn(s, from, to), 0);
+  const inRange = live.filter((s) => nightsIn(s, from, to) > 0);
+  const avg = inRange.length ? Math.round((inRange.reduce((t, s) => t + nightsBetween(s.check_in, s.check_out), 0) / inRange.length) * 10) / 10 : null;
+  return { nights, days, pct: Math.round((nights / days) * 1000) / 10, stays: inRange.length, avgNights: avg };
+}
+
+/** Une case par jour pour la frise : logement occupé cette nuit-là, départ ou arrivée ce jour-là. */
+export function occupancyDays(stays: Stay[], from: string, days: number) {
+  const live = stays.filter((s) => !s.cancelled);
+  return Array.from({ length: days }, (_, k) => {
+    const d = addDays(from, k);
+    return { date: d, busy: live.some((s) => s.check_in <= d && d < s.check_out), out: live.some((s) => s.check_out === d && s.check_out > s.check_in), in: live.some((s) => s.check_in === d && s.check_out > s.check_in) };
+  });
+}
+
+/** Relevé propriétaire : revenus, commission, ménages réalisés ; le reste à verser suppose les ménages à la charge du propriétaire. */
+export function statement(revenues: { revenue: number; pct: number }[], cleanings: { count: number; amount: number }) {
+  const revenue = round2(revenues.reduce((t, r) => t + r.revenue, 0));
+  const commission = round2(revenues.reduce((t, r) => t + commissionOf(r.revenue, r.pct), 0));
+  return { revenue, commission, cleanings: cleanings.count, cleaningsAmount: round2(cleanings.amount), net: round2(revenue - commission - cleanings.amount) };
+}
