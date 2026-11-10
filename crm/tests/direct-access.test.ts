@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
  * Accès DIRECTS, sans interface : on appelle les actions serveur, les routes, le middleware et la mise en page comme le ferait un
  * client HTTP malveillant qui connaît les adresses. La base est simulée : on enregistre tout ce qui lui est demandé.
  */
-const h = vi.hoisted(() => ({ accountant: false, owner: false, user: true as boolean, calls: [] as string[], adminUsed: false }));
+const h = vi.hoisted(() => ({ team: null as null | Record<string, string>, accountant: false, owner: false, user: true as boolean, calls: [] as string[], adminUsed: false }));
 
 vi.mock("@/lib/supabase/server", () => {
   const chain = (): any => new Proxy(() => {}, {
@@ -16,6 +16,7 @@ vi.mock("@/lib/supabase/server", () => {
     rpc: async (name: string) => {
       if (name === "is_owner") return { data: h.owner, error: null };
       if (name === "is_accountant") return { data: h.accountant, error: null };
+      if (name === "my_access") return { data: h.owner ? { kind: "owner" } : h.team ? { kind: "team", role: "commercial", label: null, perms: h.team } : h.accountant ? { kind: "accountant" } : { kind: "none" }, error: null };
       h.calls.push(`rpc:${name}`);
       return { data: null, error: { message: "mock" } };
     },
@@ -28,7 +29,7 @@ vi.mock("@/lib/supabase/server", () => {
 vi.mock("@supabase/ssr", () => ({
   createServerClient: () => ({
     auth: { getUser: async () => ({ data: { user: h.user ? { email: "x@y.fr" } : null } }) },
-    rpc: async (name: string) => (name === "is_owner" ? { data: h.owner, error: null } : name === "is_accountant" ? { data: h.accountant, error: null } : { data: null, error: { message: "mock" } })
+    rpc: async (name: string) => (name === "is_owner" ? { data: h.owner, error: null } : name === "my_access" ? { data: h.team ? { kind: "team", role: "commercial", perms: h.team } : { kind: "none" }, error: null } : name === "is_accountant" ? { data: h.accountant, error: null } : { data: null, error: { message: "mock" } })
   })
 }));
 vi.mock("next/cache", () => ({ revalidatePath: () => {}, revalidateTag: () => {} }));
@@ -43,7 +44,7 @@ const actionLoaders = import.meta.glob("../src/app/actions/*.ts");
 const argsFor = (fn: Function) => [UUID, new FormData(), new FormData(), new FormData()].slice(0, Math.max(fn.length, 1));
 const run = async (fn: Function) => { try { await fn(...argsFor(fn)); return null; } catch (e) { return (e as Error).message; } };
 
-beforeEach(() => { h.accountant = false; h.owner = false; h.user = true; h.calls = []; h.adminUsed = false; });
+beforeEach(() => { h.team = null; h.accountant = false; h.owner = false; h.user = true; h.calls = []; h.adminUsed = false; });
 
 async function allActions() {
   const out: { file: string; name: string; fn: Function }[] = [];
@@ -203,5 +204,52 @@ describe("mise en page de l'espace patron", () => {
     const el = await Layout({ children: null });
     expect(JSON.stringify(el)).toContain("Accès refusé");
     expect(h.calls.filter((c) => !c.startsWith("rpc:is_owner"))).toEqual([]);
+  });
+});
+
+describe("équipe : membre invité avec des droits limités", () => {
+  const call = async (path: string, init: RequestInit = {}) => {
+    const { middleware } = await import("../src/middleware");
+    const { NextRequest } = await import("next/server");
+    return middleware(new NextRequest(`https://crm.test${path}`, init as any));
+  };
+  it("passe uniquement sur les sections ouvertes ; le reste est renvoyé vers son espace, jamais de données", async () => {
+    h.team = { clients: "read", devis: "write" };
+    for (const path of ["/clients", "/clients/abc", "/devis", "/api/devis/abc/pdf", "/bienvenue"]) {
+      const r = await call(path);
+      expect(r.status, path).toBe(200);
+      expect(r.headers.get("x-middleware-next"), path).toBe("1");
+    }
+    for (const [path, method] of [["/", "GET"], ["/factures", "GET"], ["/parametres", "GET"], ["/jarvis", "GET"], ["/api/factures/abc/pdf", "GET"], ["/api/compta/export?type=ventes&mois=2026-11", "GET"], ["/api/mcp", "POST"], ["/factures/abc", "POST"], ["/contrats", "GET"], ["/catalogue", "GET"]] as const) {
+      const r = await call(path, { method });
+      if (path === "/api/mcp") continue; // route publique : elle vérifie son propre jeton
+      expect(r.status, `${method} ${path}`).toBe(307);
+      expect(new URL(r.headers.get("location")!).pathname, path).toBe("/bienvenue");
+    }
+  });
+  it("lecture seule : chaque action de modification est refusée avant tout accès à la base", async () => {
+    h.team = { clients: "read" };
+    const mod: any = await import("../src/app/actions/clients");
+    for (const name of ["createClientAction", "updateClientAction", "addInteractionAction", "setPipelineAction"]) {
+      h.calls = [];
+      expect(await run(mod[name]), name).toContain("ACCES_REFUSE");
+      expect(h.calls.filter((c) => !c.startsWith("rpc:"))).toEqual([]);
+    }
+  });
+  it("sans le droit sur la section, même la lecture seule d'une autre section ne donne pas la modification", async () => {
+    h.team = { devis: "write" };
+    const mod: any = await import("../src/app/actions/invoices");
+    for (const name of ["createInvoiceAction", "validateInvoiceAction", "resendInvoiceAction", "remindInvoiceAction"]) expect(await run(mod[name]), name).toContain("ACCES_REFUSE");
+    const t: any = await import("../src/app/actions/team");
+    for (const name of ["inviteTeamAction", "updateTeamMemberAction", "revokeTeamMemberAction", "reinviteTeamMemberAction"]) expect(await run(t[name]), name).toContain("ACCES_REFUSE");
+  });
+  it("actions réservées au patron même avec le droit d'écriture sur la section (envoi d'e-mails aux clients, jetons)", async () => {
+    h.team = { devis: "write", finances: "write", missions: "write" };
+    const q: any = await import("../src/app/actions/quotes");
+    for (const name of ["sendQuoteEmailAction", "followupQuoteNowAction", "convertQuoteAction"]) expect(await run(q[name]), name).toContain("ACCES_REFUSE");
+    const m: any = await import("../src/app/actions/missions");
+    for (const name of ["generateAgentLinkAction", "revokeAgentLinkAction"]) expect(await run(m[name]), name).toContain("ACCES_REFUSE");
+    const i: any = await import("../src/app/actions/invoices");
+    for (const name of ["validateInvoiceAction", "resendInvoiceAction", "remindInvoiceAction", "sendMandateInvoiceAction", "cancelInvoiceAction"]) expect(await run(i[name]), name).toContain("ACCES_REFUSE");
   });
 });

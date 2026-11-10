@@ -11,8 +11,11 @@ export const SETTINGS_COLUMNS =
 
 export async function getSettings(supabase: Supa): Promise<Settings> {
   const { data, error } = await supabase.from("app_settings").select(SETTINGS_COLUMNS).single();
-  if (error || !data) throw new Error(`Paramètres introuvables : ${error?.message ?? "table vide"}`);
-  return data as unknown as Settings;
+  if (!error && data) return data as unknown as Settings;
+  // Membre de l'équipe : la table des paramètres reste réservée au patron ; il lit une copie sans secret (team_settings, migration 0040).
+  const t = await supabase.rpc("team_settings");
+  if (!t.error && t.data) return t.data as unknown as Settings;
+  throw new Error(`Paramètres introuvables : ${error?.message ?? "table vide"}`);
 }
 
 /** Numériques Postgres → nombres JS (PostgREST renvoie parfois des chaînes). */

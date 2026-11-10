@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Home, ListChecks, Users, MapPin, ClipboardList, FileText, Receipt, UserCog, Package, Settings, LogOut, Bell, Search, X, LayoutGrid, Truck, ChevronsLeft, PieChart, Calculator, Repeat, CalendarDays, Radar, TrendingUp, BarChart3, KeyRound } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { pathAllowed, type Perms } from "@/lib/team";
 
 type Item = { href: string; label: string; icon: any; children?: { href: string; label: string }[] };
 type Group = { title?: string; items: Item[] };
@@ -48,11 +49,22 @@ function isActive(path: string, href: string) {
   return href === "/" ? path === "/" : path === href || path.startsWith(href + "/");
 }
 
-function Links({ counts = {}, onNavigate, slim = false }: { counts?: Record<string, number>; onNavigate?: () => void; slim?: boolean }) {
+/** Menu d'une personne de l'équipe : son accueil et les seules sections ouvertes par le patron (null = patron, tout le menu). */
+function groupsFor(perms: Perms | null | undefined): Group[] {
+  if (!perms) return GROUPS;
+  const home: Group = { items: [{ href: "/bienvenue", label: "Mon espace", icon: Home }] };
+  const kept = GROUPS.map((g) => ({
+    ...g,
+    items: g.items.filter((i) => pathAllowed(perms, i.href) && i.href !== "/").map((i) => ({ ...i, children: i.children?.filter((c) => pathAllowed(perms, c.href)) }))
+  })).filter((g) => g.items.length);
+  return [home, ...kept];
+}
+
+function Links({ counts = {}, onNavigate, slim = false, perms = null }: { counts?: Record<string, number>; onNavigate?: () => void; slim?: boolean; perms?: Perms | null }) {
   const path = usePathname();
   return (
     <nav className="flex flex-col gap-3">
-      {GROUPS.map((g, gi) => (
+      {groupsFor(perms).map((g, gi) => (
         <div key={gi} className="flex flex-col gap-0.5">
           {g.title && !slim && <div className="px-3 pb-1 pt-2 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">{g.title}</div>}
           {g.title && slim && <div className="mx-3 my-1 border-t border-border" aria-hidden />}
@@ -113,7 +125,7 @@ const TABBAR = [
   { href: "/factures", label: "Factures", icon: Receipt }
 ];
 
-export function Sidebar({ signOut, counts }: { signOut: () => Promise<void>; counts?: Record<string, number> }) {
+export function Sidebar({ signOut, counts, perms = null }: { signOut: () => Promise<void>; counts?: Record<string, number>; perms?: Perms | null }) {
   const [open, setOpen] = useState(false);
   const [slim, setSlim] = useState(false);
   const path = usePathname();
@@ -135,7 +147,7 @@ export function Sidebar({ signOut, counts }: { signOut: () => Promise<void>; cou
       {/* Ordinateur : menu fin, repliable */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[var(--nav-w)] flex-col overflow-y-auto border-r border-border bg-[#fbfaf8] px-4 pb-5 pt-12 transition-[width] duration-200 md:flex">
         <div className={cn("mb-6", slim ? "flex justify-center" : "px-1")}><Brand slim={slim} /></div>
-        <Links counts={counts} slim={slim} />
+        <Links counts={counts} slim={slim} perms={perms} />
         <div className="mt-auto flex flex-col gap-0.5 border-t border-border pt-3">
           {logout(slim)}
           <button onClick={toggle} aria-label={slim ? "Développer le menu" : "Réduire le menu"} title={slim ? "Développer le menu" : "Réduire le menu"}
@@ -159,7 +171,7 @@ export function Sidebar({ signOut, counts }: { signOut: () => Promise<void>; cou
       {/* Téléphone : barre du bas, comme une application */}
       <nav aria-label="Navigation principale" className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
         <div className="mx-auto grid max-w-md grid-cols-5">
-          {TABBAR.map(({ href, label, icon: Icon }) => {
+          {(perms ? [{ href: "/bienvenue", label: "Mon espace", icon: Home }, ...TABBAR.filter((t) => t.href !== "/" && pathAllowed(perms, t.href))] : TABBAR).map(({ href, label, icon: Icon }) => {
             const on = isActive(path, href);
             return (
               <Link key={href} href={href} className={cn("flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium", on ? "text-foreground" : "text-muted-foreground")}>
@@ -178,7 +190,7 @@ export function Sidebar({ signOut, counts }: { signOut: () => Promise<void>; cou
           <button className="absolute inset-0 bg-foreground/40" aria-label="Fermer" onClick={() => setOpen(false)} />
           <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-3xl bg-[#fbfaf8] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
             <div className="mb-3 flex items-center justify-between"><Brand compact /><button onClick={() => setOpen(false)} className="rounded-lg p-2 text-muted-foreground" aria-label="Fermer"><X className="h-6 w-6" /></button></div>
-            <Links counts={counts} onNavigate={() => setOpen(false)} />
+            <Links counts={counts} onNavigate={() => setOpen(false)} perms={perms} />
             <div className="mt-3 border-t border-border pt-3">{logout(false)}</div>
           </div>
         </div>

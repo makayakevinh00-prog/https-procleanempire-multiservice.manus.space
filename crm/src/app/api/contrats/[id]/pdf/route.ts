@@ -1,4 +1,4 @@
-import { isOwner } from "@/lib/auth";
+import { canRead } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getSettings } from "@/lib/data";
 import { pdfResponse } from "@/lib/pdf/load";
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 /** Contrat de prestation en PDF. ?type=airbnb|bureaux|commerce (par défaut : déduit du contrat). */
 export async function GET(req: Request, { params }: { params: { id: string } }) {
-  if (!(await isOwner())) return new Response("Accès refusé", { status: 403 });
+  if (!(await canRead("contrats"))) return new Response("Accès refusé", { status: 403 });
   const supabase = createClient();
   const { data: k } = await supabase.from("contracts").select("*, clients(name, kind, address, postal_code, city, phone, email, siret), sites(name, address)").eq("id", params.id).maybeSingle();
   if (!k) return new Response("Contrat introuvable", { status: 404 });

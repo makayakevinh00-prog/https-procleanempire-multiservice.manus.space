@@ -5,6 +5,7 @@ import { loadActionsCached } from "@/lib/actions-request";
 import { menuCountsFrom } from "@/lib/actions";
 import { Sidebar } from "@/components/crm/nav";
 import { Topbar } from "@/components/crm/topbar";
+import type { Perms } from "@/lib/team";
 
 type SignOut = () => Promise<void>;
 
@@ -17,15 +18,20 @@ const email = requestCache(async (): Promise<string> => {
 });
 
 /** Menu : s'affiche tout de suite, les pastilles de comptage arrivent ensuite (la page n'attend pas ces requêtes). */
-export function SidebarLive({ signOut }: { signOut: SignOut }) {
+export function SidebarLive({ signOut, perms = null }: { signOut: SignOut; perms?: Perms | null }) {
+  // Équipe : pas de pastilles (elles comptent des données que la personne ne voit pas toutes) ; menu limité à ses sections.
+  if (perms) return <Sidebar signOut={signOut} counts={{}} perms={perms} />;
   return <Suspense fallback={<Sidebar signOut={signOut} counts={{}} />}><SidebarCounts signOut={signOut} /></Suspense>;
 }
 export async function SidebarCounts({ signOut }: { signOut: SignOut }) { return <Sidebar signOut={signOut} counts={await counts()} />; }
 
-export function TopbarLive({ signOut }: { signOut: SignOut }) {
+export function TopbarLive({ signOut, team = false }: { signOut: SignOut; team?: boolean }) {
+  if (team) return <TopbarTeam signOut={signOut} />;
   return <Suspense fallback={<Topbar actionsCount={0} email="" signOut={signOut} />}><TopbarCounts signOut={signOut} /></Suspense>;
 }
 export async function TopbarCounts({ signOut }: { signOut: SignOut }) {
   const [c, e] = await Promise.all([counts(), email()]);
   return <Topbar actionsCount={c["/actions"] ?? 0} email={e} signOut={signOut} />;
 }
+
+async function TopbarTeam({ signOut }: { signOut: SignOut }) { return <Topbar actionsCount={0} email={await email()} signOut={signOut} team />; }

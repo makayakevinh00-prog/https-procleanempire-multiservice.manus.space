@@ -30,7 +30,7 @@ describe("garde de rôle sur les actions serveur", () => {
     f.endsWith(".ts"),
   );
 
-  it("chaque action exportée commence par requireOwner(), sauf exceptions justifiées", () => {
+  it("chaque action exportée commence par requireOwner() (ou requireAccess d'une section connue), sauf exceptions justifiées", () => {
     const manquantes: string[] = [];
     let controlees = 0;
     for (const f of files) {
@@ -38,7 +38,7 @@ describe("garde de rôle sur les actions serveur", () => {
       for (const a of actions(f)) {
         if (SANS_GARDE[`${f}#${a.name}`]) continue;
         controlees++;
-        if (a.firstStatement !== "await requireOwner();")
+        if (a.firstStatement !== "await requireOwner();" && !/^await requireAccess\("(clients|devis|contrats|missions|rh|conciergerie|veille|catalogue|finances)"(, "(read|write)")?\);$/.test(a.firstStatement))
           manquantes.push(`${f}#${a.name}`);
       }
     }
@@ -62,12 +62,12 @@ describe("garde de rôle sur les actions serveur", () => {
       "src/app/api/missions/photo/[id]/route.ts",
       "src/app/api/compta/export/route.ts",
     ]) {
-      expect(read(p), p).toMatch(/await isOwner\(\)/);
+      expect(read(p), p).toMatch(/await (isOwner|canRead\("[a-z]+"\)|isAccountant)\(?\)?/);
     }
   });
 
   it("la mise en page de l'espace patron refuse tout autre compte", () => {
-    expect(read("src/app/(app)/layout.tsx")).toMatch(/!\(await isOwner\(\)\)/);
+    expect(read("src/app/(app)/layout.tsx")).toMatch(/access\.kind !== "owner" && access\.kind !== "team"/);
   });
 });
 

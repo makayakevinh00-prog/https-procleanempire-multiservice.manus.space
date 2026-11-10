@@ -1,6 +1,6 @@
 "use server";
 
-import { requireOwner } from "@/lib/auth";
+import { requireAccess, requireOwner } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { checked, dbMessage, flash, getSettings, str } from "@/lib/data";
@@ -16,7 +16,7 @@ import { syncQonto } from "@/lib/qonto";
 import { createAdmin } from "@/lib/supabase/server";
 
 export async function createInvoiceAction(fd: FormData) {
-  await requireOwner();
+  await requireAccess("finances");
   const back = "/factures/new";
   const clientId = str(fd, "client_id");
   if (!clientId) flash(back, "error", "Choisissez un client.");
@@ -38,7 +38,7 @@ export async function createInvoiceAction(fd: FormData) {
 }
 
 export async function updateInvoiceAction(id: string, fd: FormData) {
-  await requireOwner();
+  await requireAccess("finances");
   const back = `/factures/${id}/edit`;
   const supabase = createClient();
   const { data: cur } = await supabase.from("invoices").select("status, client_id").eq("id", id).single();
@@ -56,7 +56,7 @@ export async function updateInvoiceAction(id: string, fd: FormData) {
 }
 
 export async function deleteDraftAction(id: string) {
-  await requireOwner();
+  await requireAccess("finances");
   const { error } = await createClient().from("invoices").delete().eq("id", id);
   if (error) flash(`/factures/${id}`, "error", dbMessage(error));
   revalidatePath("/factures");

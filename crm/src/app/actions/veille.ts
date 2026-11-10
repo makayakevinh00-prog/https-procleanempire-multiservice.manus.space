@@ -1,6 +1,6 @@
 "use server";
 
-import { requireOwner } from "@/lib/auth";
+import { requireAccess } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { dbMessage, flash, numField, str } from "@/lib/data";
@@ -51,7 +51,7 @@ function competitorRow(fd: FormData) {
 }
 
 export async function saveCompetitorAction(id: string | null, fd: FormData) {
-  await requireOwner();
+  await requireAccess("veille");
   const name = str(fd, "name");
   const back = id ? `${BACK}/${id}` : `${BACK}?tab=concurrents`;
   if (!name) flash(back, "error", "Le nom est obligatoire.");
@@ -108,7 +108,7 @@ export async function saveCompetitorAction(id: string | null, fd: FormData) {
 
 /** « Suivre » un résultat de l'annuaire officiel : les champs viennent du formulaire caché, validés comme le reste. */
 export async function followCompetitorAction(fd: FormData) {
-  await requireOwner();
+  await requireAccess("veille");
   const name = str(fd, "name");
   if (!name) flash(`${BACK}?tab=decouvrir`, "error", "Entreprise introuvable.");
   const { data, error } = await createClient()
@@ -136,7 +136,7 @@ export async function followCompetitorAction(fd: FormData) {
 }
 
 export async function deleteCompetitorAction(id: string) {
-  await requireOwner();
+  await requireAccess("veille");
   const { error } = await createClient()
     .from("competitors")
     .delete()
@@ -149,7 +149,7 @@ export async function saveWatchAction(
   competitorId: string | null,
   fd: FormData,
 ) {
-  await requireOwner();
+  await requireAccess("veille");
   const back = competitorId ? `${BACK}/${competitorId}` : `${BACK}?tab=veille`;
   const title = str(fd, "title");
   if (!title) flash(back, "error", "Le titre est obligatoire.");
@@ -173,14 +173,14 @@ export async function saveWatchAction(
 }
 
 export async function toggleWatchDoneAction(id: string, back: string, fd: FormData) {
-  await requireOwner();
+  await requireAccess("veille");
   const { error } = await createClient().from("watch_items").update({ done: fd.get("value") === "1" }).eq("id", id);
   if (error) flash(back, "error", dbMessage(error));
   done(back, "Mis à jour.");
 }
 
 export async function deleteWatchAction(id: string, back: string) {
-  await requireOwner();
+  await requireAccess("veille");
   const { error } = await createClient()
     .from("watch_items")
     .delete()
@@ -190,7 +190,7 @@ export async function deleteWatchAction(id: string, back: string) {
 }
 
 export async function saveCertificationAction(id: string | null, fd: FormData) {
-  await requireOwner();
+  await requireAccess("veille");
   const back = `${BACK}?tab=formations`;
   const name = str(fd, "name");
   if (!name) flash(back, "error", "Le nom est obligatoire.");
@@ -232,7 +232,7 @@ export async function saveCertificationAction(id: string | null, fd: FormData) {
 }
 
 export async function setCertificationStatusAction(id: string, fd: FormData) {
-  await requireOwner();
+  await requireAccess("veille");
   const status = pick(str(fd, "status"), CERT_STATUS, "a_envisager");
   const { error } = await createClient()
     .from("certifications")
@@ -248,7 +248,7 @@ export async function setCertificationStatusAction(id: string, fd: FormData) {
 }
 
 export async function deleteCertificationAction(id: string) {
-  await requireOwner();
+  await requireAccess("veille");
   const { error } = await createClient()
     .from("certifications")
     .delete()

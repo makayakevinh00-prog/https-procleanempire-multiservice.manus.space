@@ -10,6 +10,7 @@ import { saveSettingsAction, generateCalendarLinkAction, revokeCalendarLinkActio
 import { AGENTS } from "@/lib/jarvis/registry";
 import { Select } from "@/components/ui/form";
 import { ConfirmAction } from "@/components/crm/confirm-action";
+import { TeamCard } from "@/components/crm/team-card";
 
 export default async function SettingsPage() {
   const supabase = createClient();
@@ -17,6 +18,9 @@ export default async function SettingsPage() {
   const feed = await supabase.from("calendar_feed").select("set_at").eq("id", 1).maybeSingle();
   const conns = await supabase.from("agent_connectors").select("id, agent_key, label, created_at, last_used_at, revoked_at").order("created_at", { ascending: false });
   const accs = await supabase.from("accountants").select("id, email, label, created_at, claimed_at, revoked_at, code_expires_at").order("created_at", { ascending: false });
+  const team = await supabase.from("team_members").select("id, email, label, role, perms, created_at, claimed_at, revoked_at, code_expires_at").order("created_at", { ascending: false });
+  let freshTeam: { email: string; code: string; url: string; mailed?: boolean } | null = null;
+  try { freshTeam = JSON.parse(decodeURIComponent(cookies().get("team_invite")?.value ?? "null")); } catch { freshTeam = null; }
   let freshAcc: { email: string; code: string; url: string } | null = null;
   try { freshAcc = JSON.parse(decodeURIComponent(cookies().get("accountant_invite")?.value ?? "null")); } catch { freshAcc = null; }
   let freshAgent: { agent: string; url: string } | null = null;
@@ -66,6 +70,7 @@ export default async function SettingsPage() {
             extra={<div className="space-y-3"><Field label="Agent"><Select name="agent_key" defaultValue="finance">{AGENTS.map((a) => <option key={a.key} value={a.key}>{a.name}</option>)}</Select></Field><Field label="Nom (facultatif)"><Input name="label" placeholder="ex. Cowork de Kevinh" /></Field></div>} />
         </CardContent>
       </Card>
+      <TeamCard members={(team.data ?? []) as any[]} fresh={freshTeam} />
       <Card className="mb-4">
         <CardHeader><CardTitle>Accès comptable (votre expert-comptable)</CardTitle></CardHeader>
         <CardContent className="space-y-3 text-sm text-secondary-foreground">

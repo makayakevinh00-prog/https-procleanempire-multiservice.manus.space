@@ -1,7 +1,7 @@
 "use server";
 import { parseSpecifics, parseZones } from "@/lib/domain/site-zones";
 
-import { requireOwner } from "@/lib/auth";
+import { requireAccess, requireOwner } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { createHash, randomBytes } from "node:crypto";
@@ -20,7 +20,7 @@ const lines = (v: string | null) => (v ?? "").split("\n").map((l) => l.trim()).f
 
 // ───────────── Sites ─────────────
 export async function saveSiteAction(fd: FormData) {
-  await requireOwner();
+  await requireAccess("missions");
   const id = str(fd, "id");
   const back = backOf(fd, id ? `/sites/${id}` : "/sites");
   const name = str(fd, "name"), clientId = str(fd, "client_id");
@@ -44,7 +44,7 @@ export async function saveSiteAction(fd: FormData) {
 }
 
 export async function linkContractSiteAction(contractId: string, fd: FormData) {
-  await requireOwner();
+  await requireAccess("missions");
   const siteId = str(fd, "site_id");
   const { error } = await createClient().from("contracts").update({ site_id: siteId }).eq("id", contractId);
   if (error) flash(`/contrats/${contractId}`, "error", dbMessage(error));
@@ -54,7 +54,7 @@ export async function linkContractSiteAction(contractId: string, fd: FormData) {
 
 // ───────────── Équipe ─────────────
 export async function saveStaffAction(fd: FormData) {
-  await requireOwner();
+  await requireAccess("rh");
   const id = str(fd, "id");
   const back = backOf(fd, "/equipe");
   const fullName = str(fd, "full_name");
@@ -75,7 +75,7 @@ export async function saveStaffAction(fd: FormData) {
 
 // ───────────── Missions ─────────────
 export async function setStageAction(id: string, fd: FormData) {
-  await requireOwner();
+  await requireAccess("missions");
   const back = backOf(fd, `/missions/${id}`);
   const stage = str(fd, "stage");
   if (!isStage(stage) || !MANUAL_STAGES.includes(stage)) flash(back, "error", "Étape invalide (« Facturée » est posée uniquement par la facturation).");
@@ -94,7 +94,7 @@ export async function setStageAction(id: string, fd: FormData) {
 }
 
 export async function assignStaffAction(id: string, fd: FormData) {
-  await requireOwner();
+  await requireAccess("missions");
   const back = backOf(fd, `/missions/${id}`);
   const staffId = str(fd, "staff_id");
   const supabase = createClient();
@@ -107,7 +107,7 @@ export async function assignStaffAction(id: string, fd: FormData) {
 }
 
 export async function toggleChecklistAction(id: string, index: number, fd: FormData) {
-  await requireOwner();
+  await requireAccess("missions");
   const back = backOf(fd, `/missions/${id}`);
   const supabase = createClient();
   const { data: m, error: e1 } = await supabase.from("interventions").select("checklist").eq("id", id).maybeSingle();
@@ -122,7 +122,7 @@ export async function toggleChecklistAction(id: string, index: number, fd: FormD
 }
 
 export async function addChecklistItemAction(id: string, fd: FormData) {
-  await requireOwner();
+  await requireAccess("missions");
   const back = backOf(fd, `/missions/${id}`);
   const label = str(fd, "label");
   if (!label) flash(back, "error", "Indiquez le point à contrôler.");
@@ -137,7 +137,7 @@ export async function addChecklistItemAction(id: string, fd: FormData) {
 }
 
 export async function saveMissionNotesAction(id: string, fd: FormData) {
-  await requireOwner();
+  await requireAccess("missions");
   const back = backOf(fd, `/missions/${id}`);
   const { error } = await createClient().from("interventions").update({ notes: str(fd, "notes") }).eq("id", id);
   if (error) flash(back, "error", dbMessage(error));
@@ -147,7 +147,7 @@ export async function saveMissionNotesAction(id: string, fd: FormData) {
 
 // ───────────── Anomalies & réclamations ─────────────
 export async function addIssueAction(fd: FormData) {
-  await requireOwner();
+  await requireAccess("missions");
   const back = backOf(fd, "/missions");
   const kind = str(fd, "kind") === "reclamation" ? "reclamation" : "anomalie";
   const description = str(fd, "description");
@@ -164,7 +164,7 @@ export async function addIssueAction(fd: FormData) {
 }
 
 export async function resolveIssueAction(issueId: string, fd: FormData) {
-  await requireOwner();
+  await requireAccess("missions");
   const back = backOf(fd, "/missions");
   const resolution = str(fd, "resolution");
   if (!resolution) flash(back, "error", "Indiquez comment le problème a été réglé.");
@@ -206,7 +206,7 @@ export async function revokeAgentLinkAction(staffId: string) {
 }
 
 export async function deletePhotoAction(photoId: string, fd: FormData) {
-  await requireOwner();
+  await requireAccess("missions");
   const back = backOf(fd, "/missions");
   const { error } = await createClient().from("mission_photos").delete().eq("id", photoId);
   if (error) flash(back, "error", dbMessage(error));

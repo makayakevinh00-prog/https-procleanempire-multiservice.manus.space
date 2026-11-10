@@ -1,6 +1,6 @@
 "use server";
 
-import { requireOwner } from "@/lib/auth";
+import { requireAccess } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { dbMessage, flash, getSettings } from "@/lib/data";
@@ -8,7 +8,7 @@ import { addDays, parisToday } from "@/lib/domain/dates";
 
 /** Crée (ou retrouve) la fiche client et un devis brouillon pré-rempli à partir d'une demande du site. */
 export async function createQuoteFromRequestAction(id: string) {
-  await requireOwner();
+  await requireAccess("clients");
   const supabase = createClient();
   const { data: r } = await supabase.from("quote_requests").select("*").eq("id", id).maybeSingle();
   if (!r) flash("/demandes", "error", "Demande introuvable.");
@@ -49,7 +49,7 @@ export async function createQuoteFromRequestAction(id: string) {
 }
 
 export async function setRequestStatusAction(id: string, status: "nouvelle" | "traitee" | "ignoree") {
-  await requireOwner();
+  await requireAccess("clients");
   const { error } = await createClient().from("quote_requests").update({ status }).eq("id", id);
   if (error) flash("/demandes", "error", dbMessage(error));
   revalidatePath("/demandes");

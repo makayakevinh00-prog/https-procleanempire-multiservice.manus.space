@@ -1,6 +1,6 @@
 "use server";
 
-import { requireOwner } from "@/lib/auth";
+import { requireAccess } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { dbMessage, flash, numField, str } from "@/lib/data";
@@ -8,7 +8,7 @@ import { parsePrices } from "@/lib/supplier-prices";
 import { JUSTIF_MAX, JUSTIF_TYPES, safeFileName } from "@/lib/compta/period";
 
 export async function saveSupplierAction(id: string | null, fd: FormData) {
-  await requireOwner();
+  await requireAccess("finances");
   const name = str(fd, "name");
   const back = id ? `/fournisseurs/${id}` : "/fournisseurs";
   if (!name) flash(back, "error", "Le nom est obligatoire.");
@@ -31,7 +31,7 @@ export async function saveSupplierAction(id: string | null, fd: FormData) {
 }
 
 export async function deleteSupplierAction(id: string) {
-  await requireOwner();
+  await requireAccess("finances");
   const { error } = await createClient().from("suppliers").delete().eq("id", id);
   if (error) flash(`/fournisseurs/${id}`, "error", dbMessage(error));
   revalidatePath("/fournisseurs");
@@ -39,7 +39,7 @@ export async function deleteSupplierAction(id: string) {
 }
 
 export async function addSupplierPaymentAction(id: string, fd: FormData) {
-  await requireOwner();
+  await requireAccess("finances");
   const back = `/fournisseurs/${id}`;
   const amount = numField(fd, "amount");
   const paid_on = str(fd, "paid_on");
@@ -51,7 +51,7 @@ export async function addSupplierPaymentAction(id: string, fd: FormData) {
 }
 
 export async function deleteSupplierPaymentAction(supplierId: string, paymentId: string) {
-  await requireOwner();
+  await requireAccess("finances");
   const { error } = await createClient().from("supplier_payments").delete().eq("id", paymentId);
   if (error) flash(`/fournisseurs/${supplierId}`, "error", dbMessage(error));
   revalidatePath(`/fournisseurs/${supplierId}`);
@@ -60,7 +60,7 @@ export async function deleteSupplierPaymentAction(supplierId: string, paymentId:
 
 /** Joint (ou remplace) le justificatif d'un paiement fournisseur : PDF ou image, 10 Mo maximum, visible du comptable invité. */
 export async function attachPaymentDocumentAction(supplierId: string, paymentId: string, fd: FormData) {
-  await requireOwner();
+  await requireAccess("finances");
   const back = `/fournisseurs/${supplierId}`;
   const f = fd.get("file");
   if (!(f instanceof File) || f.size === 0) flash(back, "error", "Choisissez un fichier.");
@@ -81,7 +81,7 @@ export async function attachPaymentDocumentAction(supplierId: string, paymentId:
 }
 
 export async function removePaymentDocumentAction(supplierId: string, paymentId: string) {
-  await requireOwner();
+  await requireAccess("finances");
   const back = `/fournisseurs/${supplierId}`;
   const sb = createClient();
   const { data: old } = await sb.from("supplier_payments").select("document_path").eq("id", paymentId).eq("supplier_id", supplierId).maybeSingle();

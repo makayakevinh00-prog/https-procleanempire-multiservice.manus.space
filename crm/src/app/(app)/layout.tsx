@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { isOwner } from "@/lib/auth";
+import { getAccess } from "@/lib/auth";
 import { SidebarLive, TopbarLive } from "@/components/crm/shell-live";
 import { Flash } from "@/components/crm/flash";
 import { QontoAutoSync } from "@/components/crm/qonto-auto";
@@ -14,7 +14,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     redirect("/login");
   }
   // Porte d'entrée : tout autre compte que celui du patron n'obtient aucune page ni aucun chiffre (la base refuse déjà ses lectures).
-  if (!(await isOwner())) {
+  const access = await getAccess();
+  if (access.kind !== "owner" && access.kind !== "team") {
     return (
       <main className="mx-auto max-w-md px-6 py-24 text-center">
         <h1 className="text-xl font-bold">Accès refusé</h1>
@@ -32,10 +33,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           BASE DE TEST · données fictives, aucun e-mail réel, aucun accès à la production
         </div>
       )}
-      {(process.env.QONTO_ACCESS_TOKEN || (process.env.QONTO_ORGANIZATION_SLUG && process.env.QONTO_SECRET_KEY)) && <QontoAutoSync />}
-      <SidebarLive signOut={signOut} />
+      {access.kind === "owner" && (process.env.QONTO_ACCESS_TOKEN || (process.env.QONTO_ORGANIZATION_SLUG && process.env.QONTO_SECRET_KEY)) && <QontoAutoSync />}
+      <SidebarLive signOut={signOut} perms={access.kind === "team" ? access.perms : null} />
       <div className="transition-[margin] duration-200 md:ml-[var(--nav-w)]">
-        <TopbarLive signOut={signOut} />
+        <TopbarLive signOut={signOut} team={access.kind === "team"} />
         <main className="mx-auto max-w-[1400px] px-4 pb-28 pt-6 md:px-10 md:pb-12 md:pt-8">
           <Flash />
           {children}

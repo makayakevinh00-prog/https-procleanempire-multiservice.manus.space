@@ -1,6 +1,6 @@
 "use server";
 
-import { requireOwner } from "@/lib/auth";
+import { requireAccess } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { checked, dbMessage, flash, numField, str } from "@/lib/data";
@@ -20,7 +20,7 @@ const done = (tab: string, msg: string) => {
 };
 
 export async function saveListingAction(id: string | null, fd: FormData) {
-  await requireOwner();
+  await requireAccess("conciergerie");
   const name = str(fd, "name"),
     clientId = str(fd, "client_id");
   if (!name || !clientId)
@@ -83,7 +83,7 @@ export async function saveListingAction(id: string | null, fd: FormData) {
 
 /** Supprime le logement ; ses ménages à venir encore non commencés sont annulés pour ne pas rester orphelins au planning. */
 export async function deleteListingAction(id: string) {
-  await requireOwner();
+  await requireAccess("conciergerie");
   const sb = createClient();
   const { data: stays } = await sb
     .from("concierge_stays")
@@ -106,7 +106,7 @@ export async function deleteListingAction(id: string) {
 }
 
 export async function syncListingNowAction(id: string) {
-  await requireOwner();
+  await requireAccess("conciergerie");
   const sb = createClient();
   const { data: l } = await sb
     .from("concierge_listings")
@@ -130,7 +130,7 @@ export async function syncListingNowAction(id: string) {
 }
 
 export async function runAllAction() {
-  await requireOwner();
+  await requireAccess("conciergerie");
   const r: any = await runConcierge(createClient(), parisToday());
   if (r.skipped)
     flash(
@@ -151,7 +151,7 @@ export async function runAllAction() {
 }
 
 export async function toggleAutomationAction(key: string, enabled: boolean) {
-  await requireOwner();
+  await requireAccess("conciergerie");
   if (!["menages", "facturation", "messages"].includes(key))
     flash(back("automatisations"), "error", "Automatisation inconnue.");
   const { error } = await createClient()
@@ -170,7 +170,7 @@ export async function saveRevenueAction(
   month: string,
   fd: FormData,
 ) {
-  await requireOwner();
+  await requireAccess("conciergerie");
   const v = numField(fd, "revenue_ht");
   if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))
     flash(back("revenus"), "error", "Mois invalide.");
@@ -205,7 +205,7 @@ export async function createCommissionDraftAction(
   contractId: string,
   month: string,
 ) {
-  await requireOwner();
+  await requireAccess("conciergerie");
   const r = await createCommissionDraft(createClient(), contractId, month);
   if (!r.ok) flash(`/conciergerie?tab=revenus&m=${month}`, "error", r.error);
   revalidatePath("/conciergerie");

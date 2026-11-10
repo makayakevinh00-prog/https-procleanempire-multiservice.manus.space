@@ -1,13 +1,13 @@
 "use server";
 
-import { requireOwner } from "@/lib/auth";
+import { requireAccess, requireOwner } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { checked, dbMessage, flash, numField, str } from "@/lib/data";
 import { ACTIVITY, CATEGORY } from "@/lib/prix";
 
 export async function saveServiceAction(id: string | null, fd: FormData) {
-  await requireOwner();
+  await requireAccess("catalogue");
   const name = str(fd, "name");
   const price = numField(fd, "unit_price_ht");
   if (!name) flash("/catalogue", "error", "Le nom est obligatoire.");
@@ -33,7 +33,7 @@ export async function saveServiceAction(id: string | null, fd: FormData) {
 }
 
 export async function toggleServiceAction(id: string, active: boolean) {
-  await requireOwner();
+  await requireAccess("catalogue");
   const { error } = await createClient().from("services").update({ active }).eq("id", id);
   if (error) flash("/catalogue", "error", dbMessage(error));
   revalidatePath("/catalogue");
@@ -42,7 +42,7 @@ export async function toggleServiceAction(id: string, active: boolean) {
 
 /** Applique le prix conseillé calculé à partir du coût et de la marge cible. */
 export async function applySuggestedPriceAction(id: string, price: number) {
-  await requireOwner();
+  await requireAccess("catalogue");
   if (!Number.isFinite(price) || price <= 0) flash("/catalogue", "error", "Prix conseillé invalide.");
   const { error } = await createClient().from("services").update({ unit_price_ht: price, updated_at: new Date().toISOString() }).eq("id", id);
   if (error) flash("/catalogue", "error", dbMessage(error));

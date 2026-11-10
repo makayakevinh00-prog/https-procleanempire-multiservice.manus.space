@@ -1,6 +1,6 @@
 "use server";
 
-import { requireOwner } from "@/lib/auth";
+import { requireAccess, requireOwner } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { checked, dbMessage, flash, str } from "@/lib/data";
@@ -16,7 +16,7 @@ import { formatEUR, formatDate } from "@/lib/utils";
 import { contractIssues } from "@/lib/domain/contract-check";
 
 export async function createQuoteAction(fd: FormData) {
-  await requireOwner();
+  await requireAccess("devis");
   const back = "/devis/new";
   const clientId = str(fd, "client_id");
   if (!clientId) flash(back, "error", "Choisissez un client.");
@@ -39,7 +39,7 @@ export async function createQuoteAction(fd: FormData) {
 }
 
 export async function updateQuoteAction(id: string, fd: FormData) {
-  await requireOwner();
+  await requireAccess("devis");
   const back = `/devis/${id}/edit`;
   const supabase = createClient();
   const { data: cur } = await supabase.from("quotes").select("status, invoice_id, client_id").eq("id", id).single();
@@ -59,7 +59,7 @@ export async function updateQuoteAction(id: string, fd: FormData) {
 }
 
 export async function setQuoteStatusAction(id: string, status: "envoye" | "accepte" | "refuse" | "brouillon" | "expire", fd: FormData) {
-  await requireOwner();
+  await requireAccess("devis");
   const back = `/devis/${id}`;
   const supabase = createClient();
   const { data: q } = await supabase.from("quotes").select("client_id, invoice_id").eq("id", id).single();
@@ -163,7 +163,7 @@ export async function createContractFromQuoteAction(id: string, fd: FormData) {
  * Contact réservé : confirmation explicite. La ligne complète reste consultable dans le journal des modifications.
  */
 export async function deleteQuoteAction(id: string, fd: FormData) {
-  await requireOwner();
+  await requireAccess("devis");
   const back = `/devis/${id}`;
   const supabase = createClient();
   const { data: q } = await supabase.from("quotes").select("number, client_id, status, invoice_id, invoices:invoice_id(status, number)").eq("id", id).maybeSingle();
