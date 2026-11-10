@@ -27,11 +27,11 @@ export default async function AuthorizePage({ searchParams }: { searchParams: P 
           </div>
           <p className="text-[15px] text-secondary-foreground">Cette application demande à utiliser votre CRM comme agent <b className="font-medium text-foreground">JARVIS Core</b>. Elle pourra :</p>
           <ul className="space-y-1.5 text-[14px] text-secondary-foreground">
-            <li>• lire un aperçu limité : factures ouvertes, paiements à rapprocher, missions, demandes du site ;</li>
+            <li>• <b className="font-medium text-foreground">lire et modifier toutes les données du CRM</b> : clients, devis, factures, catalogue de prix, missions, équipe… ;</li>
             <li>• créer des tâches pour vous ;</li>
             <li>• <b className="font-medium text-foreground">proposer</b> des e-mails : rien ne part sans votre validation dans JARVIS.</li>
           </ul>
-          <p className="text-[13px] text-muted-foreground">Aucun montant détaillé, aucune coordonnée, aucun contact réservé. Vous pourrez retirer l&apos;accès à tout moment dans Paramètres &gt; Agents.</p>
+          <p className="text-[13px] text-muted-foreground">Accès complet réservé à votre assistant : chaque modification est enregistrée dans le journal, et les factures déjà émises restent protégées. Vous pourrez retirer l&apos;accès à tout moment dans Paramètres &gt; Agents.</p>
           <div className="flex gap-3">
             <form action={approveOAuthAction} className="flex-1">{hidden}<Button className="w-full">Autoriser</Button></form>
             <form action={denyOAuthAction} className="flex-1">{hidden}<Button variant="outline" className="w-full">Refuser</Button></form>
