@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { siteConfig } from "@/lib/site";
 import { createHmac, randomUUID } from "node:crypto";
-import { deliverLead, deliveryConfigured, isDuplicate, type Lead } from "@/lib/server/lead-delivery";
+import {
+  deliverLead,
+  deliveryConfigured,
+  isDuplicate,
+  type Lead,
+} from "@/lib/server/lead-delivery";
 import { quoteServices } from "@/lib/quote-services";
 
 export const dynamic = "force-dynamic";
@@ -9,33 +14,105 @@ export const dynamic = "force-dynamic";
 /** Transmet la demande au CRM (non bloquant — un échec ne bloque pas la réponse au visiteur). */
 type CrmResult = { ok: boolean; reference?: string; acknowledgement?: boolean };
 
-async function forwardToCrm(lead: Lead, details: Array<[string, string]>): Promise<CrmResult> {
+async function forwardToCrm(
+  lead: Lead,
+  details: Array<[string, string]>,
+): Promise<CrmResult> {
   const url = process.env.CRM_INBOUND_URL;
   const secret = process.env.CRM_INBOUND_SECRET;
   if (!url || !secret) {
-    console.warn("[devis→crm] CRM_INBOUND_URL / CRM_INBOUND_SECRET absents : demande non transmise au CRM");
+    console.warn(
+      "[devis→crm] CRM_INBOUND_URL / CRM_INBOUND_SECRET absents : demande non transmise au CRM",
+    );
     return { ok: false };
   }
   try {
     const body = JSON.stringify({ ...lead, details });
     const ts = Math.floor(Date.now() / 1000).toString();
-    const sig = createHmac("sha256", secret).update(`${ts}.${body}`).digest("hex");
+    const sig = createHmac("sha256", secret)
+      .update(`${ts}.${body}`)
+      .digest("hex");
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "x-timestamp": ts, "x-signature": sig },
+      headers: {
+        "Content-Type": "application/json",
+        "x-timestamp": ts,
+        "x-signature": sig,
+      },
       body,
       signal: AbortSignal.timeout(8_000),
     });
     if (!res.ok) {
-      console.warn("[devis→crm] Erreur HTTP", res.status, await res.text().catch(() => ""));
+      console.warn(
+        "[devis→crm] Erreur HTTP",
+        res.status,
+        await res.text().catch(() => ""),
+      );
       return { ok: false };
     }
-    const json = (await res.json()) as { request_number?: string; acknowledged?: boolean };
-    console.log("[devis→crm] Transmis au CRM", JSON.stringify({ id: lead.id, crm_ref: json.request_number }));
-    return { ok: true, reference: json.request_number, acknowledgement: json.acknowledged === true };
+    const json = (await res.json()) as {
+      request_number?: string;
+      acknowledged?: boolean;
+    };
+    console.log(
+      "[devis→crm] Transmis au CRM",
+      JSON.stringify({ id: lead.id, crm_ref: json.request_number }),
+    );
+    return {
+      ok: true,
+      reference: json.request_number,
+      acknowledgement: json.acknowledged === true,
+    };
   } catch (err) {
-    console.warn("[devis→crm] Échec de transmission (non bloquant)", String(err));
+    console.warn(
+      "[devis→crm] Échec de transmission (non bloquant)",
+      String(err),
+    );
     return { ok: false };
+  }
+}
+
+/** Transmet la demande au workflow n8n (non bloquant — un échec ne bloque pas la réponse au visiteur). */
+async function forwardToN8n(lead: Lead): Promise<void> {
+  const N8N_WEBHOOK =
+    "https://procleanempire.app.n8n.cloud/webhook/quote-request";
+  try {
+    const payload = {
+      name: lead.name,
+      email: lead.email,
+      phone: lead.phone,
+      company: lead.company,
+      address: lead.address,
+      postcode: lead.postcode,
+      city: lead.city,
+      service: lead.service,
+      message: lead.comments,
+      start_date: lead.startDate,
+      request_type: lead.service,
+    };
+    const res = await fetch(N8N_WEBHOOK, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) {
+      console.warn(
+        "[devis→n8n] Erreur HTTP",
+        res.status,
+        await res.text().catch(() => ""),
+      );
+    } else {
+      console.log(
+        "[devis→n8n] Transmis au workflow n8n",
+        JSON.stringify({ id: lead.id }),
+      );
+    }
+  } catch (err) {
+    console.warn(
+      "[devis→n8n] Échec de transmission (non bloquant)",
+      String(err),
+    );
   }
 }
 
@@ -50,7 +127,9 @@ const recentByIp = new Map<string, number[]>();
 
 function rateLimited(ip: string) {
   const now = Date.now();
-  const hits = (recentByIp.get(ip) ?? []).filter((time) => now - time < RATE_LIMIT.windowMs);
+  const hits = (recentByIp.get(ip) ?? []).filter(
+    (time) => now - time < RATE_LIMIT.windowMs,
+  );
   hits.push(now);
   recentByIp.set(ip, hits);
   if (recentByIp.size > 5_000) recentByIp.clear();
@@ -59,7 +138,10 @@ function rateLimited(ip: string) {
 
 function sanitize(value: unknown, maxLength = 500): string {
   if (typeof value !== "string") return "";
-  return value.replace(/[\r\n]+/g, " ").trim().slice(0, maxLength);
+  return value
+    .replace(/[\r\n]+/g, " ")
+    .trim()
+    .slice(0, maxLength);
 }
 
 /**
@@ -69,12 +151,16 @@ function sanitize(value: unknown, maxLength = 500): string {
  * Chaque demande est aussi écrite en entier dans les logs Vercel ([devis] …) pour ne jamais la perdre.
  */
 export async function POST(request: NextRequest) {
-  const ip = (request.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || "inconnue";
+  const ip =
+    (request.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() ||
+    "inconnue";
   if (rateLimited(ip)) {
     console.warn("[devis] Trop de demandes depuis la même adresse", ip);
     return NextResponse.json(
-      { error: `Trop de demandes en peu de temps. Merci de réessayer dans quelques minutes ou de nous appeler au ${siteConfig.phone}.` },
-      { status: 429 }
+      {
+        error: `Trop de demandes en peu de temps. Merci de réessayer dans quelques minutes ou de nous appeler au ${siteConfig.phone}.`,
+      },
+      { status: 429 },
     );
   }
 
@@ -82,7 +168,10 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Corps de requête invalide." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Corps de requête invalide." },
+      { status: 400 },
+    );
   }
 
   const data = {
@@ -101,12 +190,14 @@ export async function POST(request: NextRequest) {
     source: sanitize(body.source, 120) || "Inconnue",
     landingPage: sanitize(body.landingPage, 300),
     referrer: sanitize(body.referrer, 300),
-    consent: body.consent === true
+    consent: body.consent === true,
   };
 
   const details: Array<[string, string]> = [];
   if (body.details && typeof body.details === "object") {
-    for (const [key, value] of Object.entries(body.details as Record<string, unknown>).slice(0, 15)) {
+    for (const [key, value] of Object.entries(
+      body.details as Record<string, unknown>,
+    ).slice(0, 15)) {
       const cleanValue = sanitize(value, 300);
       if (cleanValue) details.push([sanitize(key, 80), cleanValue]);
     }
@@ -116,28 +207,51 @@ export async function POST(request: NextRequest) {
   // Contenu journalisé quand même : un éventuel faux positif reste récupérable dans les logs.
   const elapsedMs = typeof body.elapsedMs === "number" ? body.elapsedMs : 0;
   if (sanitize(body.website, 200) || elapsedMs < MIN_FILL_MS) {
-    console.warn("[devis] Envoi automatique bloqué", JSON.stringify({ ip, elapsedMs, trap: Boolean(body.website), ...data }));
+    console.warn(
+      "[devis] Envoi automatique bloqué",
+      JSON.stringify({ ip, elapsedMs, trap: Boolean(body.website), ...data }),
+    );
     return NextResponse.json({ ok: true });
   }
 
-  const missing = (["service", "name", "phone", "email", "city"] as const).find((field) => !data[field]);
+  const missing = (["service", "name", "phone", "email", "city"] as const).find(
+    (field) => !data[field],
+  );
   if (missing) {
-    return NextResponse.json({ error: `Champ manquant : ${missing}` }, { status: 400 });
+    return NextResponse.json(
+      { error: `Champ manquant : ${missing}` },
+      { status: 400 },
+    );
   }
   if (!SERVICE_LABELS.has(data.service)) {
-    return NextResponse.json({ error: "Prestation inconnue : merci de la choisir dans la liste." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Prestation inconnue : merci de la choisir dans la liste." },
+      { status: 400 },
+    );
   }
   if (data.name.length < 2) {
-    return NextResponse.json({ error: "Merci d'indiquer votre nom." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Merci d'indiquer votre nom." },
+      { status: 400 },
+    );
   }
   if (data.phone.replace(/\D/g, "").length < 9) {
-    return NextResponse.json({ error: "Numéro de téléphone invalide." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Numéro de téléphone invalide." },
+      { status: 400 },
+    );
   }
   if (!EMAIL_RE.test(data.email)) {
-    return NextResponse.json({ error: "Adresse e-mail invalide." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Adresse e-mail invalide." },
+      { status: 400 },
+    );
   }
   if (!data.consent) {
-    return NextResponse.json({ error: "Merci d'accepter d'être recontacté." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Merci d'accepter d'être recontacté." },
+      { status: 400 },
+    );
   }
 
   const lead: Lead = {
@@ -157,7 +271,7 @@ export async function POST(request: NextRequest) {
     source: data.source,
     landingPage: data.landingPage,
     referrer: data.referrer,
-    sourceUrl: data.sourceUrl || siteConfig.url
+    sourceUrl: data.sourceUrl || siteConfig.url,
   };
 
   // Trace complète de la demande, quoi qu'il arrive ensuite (logs Vercel).
@@ -167,20 +281,33 @@ export async function POST(request: NextRequest) {
   // dès que la réponse part). Un échec n'empêche pas le reste du traitement.
   const crm = await forwardToCrm(lead, details);
 
+  // Transmission au workflow n8n « Demandes du site » (non bloquant).
+  await forwardToN8n(lead);
+
   const config = deliveryConfigured();
   if (!config.storage && !config.email) {
     if (crm.ok) {
       // La demande est dans le CRM : le visiteur n'a rien à envoyer lui-même.
-      return NextResponse.json({ ok: true, reference: crm.reference ?? lead.id, acknowledgement: crm.acknowledgement === true });
+      return NextResponse.json({
+        ok: true,
+        reference: crm.reference ?? lead.id,
+        acknowledgement: crm.acknowledgement === true,
+      });
     }
     // Rien de configuré sur Vercel : le visiteur transmet sa demande en un clic (e-mail pré-rempli ou WhatsApp).
-    console.log("[devis] Transmission directe par le visiteur (e-mail / WhatsApp)", JSON.stringify({ id: lead.id }));
+    console.log(
+      "[devis] Transmission directe par le visiteur (e-mail / WhatsApp)",
+      JSON.stringify({ id: lead.id }),
+    );
     return NextResponse.json({ ok: true, handoff: true });
   }
 
   try {
     if (await isDuplicate(lead)) {
-      console.log("[devis] Doublon ignoré (même e-mail et même prestation < 10 min)", JSON.stringify({ email: lead.email }));
+      console.log(
+        "[devis] Doublon ignoré (même e-mail et même prestation < 10 min)",
+        JSON.stringify({ email: lead.email }),
+      );
       return NextResponse.json({ ok: true, duplicate: true });
     }
   } catch (error) {
@@ -190,8 +317,19 @@ export async function POST(request: NextRequest) {
   const report = await deliverLead(lead);
   console.log("[devis] Livraison", JSON.stringify({ id: lead.id, ...report }));
   if (report.stored || report.internalEmail || crm.ok) {
-    return NextResponse.json({ ok: true, reference: crm.reference ?? lead.id, acknowledgement: report.clientEmail === true || crm.acknowledgement === true });
+    return NextResponse.json({
+      ok: true,
+      reference: crm.reference ?? lead.id,
+      acknowledgement:
+        report.clientEmail === true || crm.acknowledgement === true,
+    });
   }
-  console.error("[devis] ÉCHEC de livraison — demande à ressaisir à la main depuis ce log", JSON.stringify(lead));
-  return NextResponse.json({ error: FAILURE_MESSAGE, code: "ENVOI_IMPOSSIBLE", fallback: true }, { status: 502 });
+  console.error(
+    "[devis] ÉCHEC de livraison — demande à ressaisir à la main depuis ce log",
+    JSON.stringify(lead),
+  );
+  return NextResponse.json(
+    { error: FAILURE_MESSAGE, code: "ENVOI_IMPOSSIBLE", fallback: true },
+    { status: 502 },
+  );
 }
