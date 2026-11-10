@@ -1,0 +1,11 @@
+drop index if exists clients_siren_idx;
+alter table clients drop constraint if exists clients_registry_status_check;
+alter table clients drop constraint if exists clients_siren_check;
+alter table clients drop column if exists siren;
+alter table clients drop column if exists vat_number;
+alter table clients drop column if exists naf_code;
+alter table clients drop column if exists legal_form;
+alter table clients drop column if exists creation_date;
+alter table clients drop column if exists manager;
+alter table clients drop column if exists registry_status;
+alter table clients drop column if exists registry_checked_at;

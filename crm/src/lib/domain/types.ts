@@ -63,6 +63,14 @@ export interface Client {
   is_reserved: boolean;
   reserved_reason: string | null;
   auto_send_invoices?: boolean;
+  siren?: string | null;
+  vat_number?: string | null;
+  naf_code?: string | null;
+  legal_form?: string | null;
+  creation_date?: string | null;
+  manager?: string | null;
+  registry_status?: "actif" | "cesse" | null;
+  registry_checked_at?: string | null;
 }
 
 export interface Contract {

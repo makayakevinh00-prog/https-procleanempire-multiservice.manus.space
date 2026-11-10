@@ -103,6 +103,13 @@ export default async function ClientPage({ params, searchParams }: { params: { i
               <div><div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Téléphone</div>{c.phone ?? "—"}</div>
               <div><div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Adresse</div>{address || "—"}</div>
               <div><div className="text-xs font-semibold uppercase tracking-wide text-slate-400">SIRET</div>{c.siret ?? "—"}</div>
+              {c.siren && <div><div className="text-xs font-semibold uppercase tracking-wide text-slate-400">SIREN</div>{c.siren}</div>}
+              {c.vat_number && <div><div className="text-xs font-semibold uppercase tracking-wide text-slate-400">N° de TVA</div>{c.vat_number}</div>}
+              {c.naf_code && <div><div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Code NAF</div>{c.naf_code}</div>}
+              {c.legal_form && <div><div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Forme juridique</div>{c.legal_form}</div>}
+              {c.creation_date && <div><div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Création</div>{formatDate(c.creation_date)}</div>}
+              {c.manager && <div><div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Dirigeant</div>{c.manager}</div>}
+              {c.registry_status && <div><div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Statut officiel</div>{c.registry_status === "cesse" ? <span className="font-semibold text-red-700">Entreprise cessée</span> : "En activité"}{c.registry_checked_at ? <span className="text-xs text-slate-400"> · vérifié le {formatDate(c.registry_checked_at)}</span> : null}</div>}
               {c.notes && <p className="whitespace-pre-wrap rounded-xl bg-slate-50 p-4 sm:col-span-2">{c.notes}</p>}
             </CardContent>
           </Card>

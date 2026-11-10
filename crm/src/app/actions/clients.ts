@@ -11,7 +11,17 @@ function payload(fd: FormData) {
   const siret = str(fd, "siret")?.replace(/\s/g, "") ?? null;
   if (siret && !/^\d{14}$/.test(siret)) flash("/clients/new", "error", "Le SIRET doit contenir 14 chiffres.");
   const reserved = checked(fd, "is_reserved");
+  const sirenRaw = str(fd, "siren")?.replace(/\s/g, "") ?? null;
+  const siren = sirenRaw && /^\d{9}$/.test(sirenRaw) ? sirenRaw : (siret ? siret.slice(0, 9) : null);
+  const vat = str(fd, "vat_number")?.replace(/\s/g, "").toUpperCase() ?? null;
+  const naf = str(fd, "naf_code");
+  const created = str(fd, "creation_date");
+  const status = str(fd, "registry_status");
   return {
+    siren, vat_number: vat && /^[A-Z]{2}[A-Z0-9]{2,12}$/.test(vat) ? vat : null, naf_code: naf && /^\d{2}\.\d{2}[A-Z]$/.test(naf) ? naf : null,
+    legal_form: str(fd, "legal_form"), creation_date: created && /^\d{4}-\d{2}-\d{2}$/.test(created) ? created : null, manager: str(fd, "manager"),
+    registry_status: status === "actif" || status === "cesse" ? status : null,
+    ...(str(fd, "registry_checked") === "1" ? { registry_checked_at: new Date().toISOString() } : {}),
     name: name!, kind: str(fd, "kind") ?? "entreprise", status: str(fd, "status") ?? "actif",
     address: str(fd, "address"), postal_code: str(fd, "postal_code"), city: str(fd, "city"),
     email: str(fd, "email"), phone: str(fd, "phone"), siret, notes: str(fd, "notes"),

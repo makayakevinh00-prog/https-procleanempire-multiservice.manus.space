@@ -1,10 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/form";
 import type { Client } from "@/lib/domain/types";
+import { CompanyLookup } from "@/components/crm/company-lookup";
 
 export function ClientForm({ action, client, submitLabel }: { action: (fd: FormData) => void | Promise<void>; client?: Partial<Client>; submitLabel: string }) {
   return (
     <form action={action} className="grid gap-4 sm:grid-cols-2">
+      <CompanyLookup client={client} />
       <Field label="Nom *" className="sm:col-span-2"><Input name="name" required defaultValue={client?.name} /></Field>
       <Field label="Type">
         <Select name="kind" defaultValue={client?.kind ?? "entreprise"}>
