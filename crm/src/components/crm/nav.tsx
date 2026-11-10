@@ -175,7 +175,7 @@ function Links({
       {groups.map((g, gi) => (
         <div key={gi} className="flex flex-col gap-0.5">
           {g.title && (
-            <div className="px-3 pb-1 pt-1 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">
+            <div className="px-3 pb-1 pt-1 text-[10.5px] font-bold uppercase tracking-[0.14em] text-slate-400/80">
               {g.title}
             </div>
           )}
@@ -301,13 +301,13 @@ export function Sidebar({
   return (
     <>
       {/* Ordinateur */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col overflow-y-auto bg-[#0f172a] p-4 md:flex">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col overflow-y-auto bg-gradient-to-b from-[#0d1a28] via-[#0b1e22] to-[#091c1e] p-4 md:flex">
         <div className="mb-6 px-1 pt-1">
           <Brand />
         </div>
         <Links counts={counts} isComptable={isComptable} />
         {isComptable && (
-          <div className="mt-2 rounded-lg bg-white/5 px-3 py-2 text-[11px] text-slate-400">
+          <div className="mt-2 rounded-lg bg-white/5 px-3 py-2 text-[11px] text-teal-400/70">
             Accès comptable — lecture seule
           </div>
         )}
@@ -315,7 +315,7 @@ export function Sidebar({
       </aside>
 
       {/* Téléphone : barre du haut */}
-      <header className="sticky top-0 z-30 flex items-center justify-between bg-[#0f172a] px-4 py-2.5 md:hidden">
+      <header className="sticky top-0 z-30 flex items-center justify-between bg-gradient-to-r from-[#0d1a28] to-[#091c1e] px-4 py-2.5 md:hidden">
         <Brand compact />
         <div className="flex items-center gap-1">
           <Link
@@ -385,7 +385,7 @@ export function Sidebar({
             aria-label="Fermer"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-3xl bg-[#0f172a] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+          <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-3xl bg-gradient-to-b from-[#0d1a28] to-[#091c1e] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
             <div className="mb-3 flex items-center justify-between">
               <Brand compact />
               <button
