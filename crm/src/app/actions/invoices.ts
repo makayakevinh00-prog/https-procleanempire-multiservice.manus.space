@@ -8,7 +8,6 @@ import { buildPdf } from "@/lib/pdf/load";
 import { sendMail } from "@/lib/mail";
 import { formatEUR, formatDate } from "@/lib/utils";
 import { logEmail } from "@/lib/email-log";
-import { createAndFinalizeQontoInvoice } from "@/lib/qonto";
 
 export async function createInvoiceAction(fd: FormData) {
   const back = "/factures/new";
@@ -94,65 +93,6 @@ export async function validateInvoiceAction(id: string, fd: FormData) {
   if (error) flash(back, "error", dbMessage(error));
   revalidatePath("/factures");
   revalidatePath("/");
-
-  // Sync Qonto — non-blocking: a Qonto failure must not prevent CRM validation
-  try {
-    const { data: lines } = await supabase
-      .from("invoice_lines")
-      .select("description, quantity, unit_price_ht, vat_rate")
-      .eq("invoice_id", id);
-    const { data: clientRow } = await supabase
-      .from("clients")
-      .select("qonto_id")
-      .eq("id", inv.client_id)
-      .single();
-
-    if (clientRow?.qonto_id && lines?.length) {
-      // Performance period = first and last day of the invoice month
-      const issueDate = new Date(inv.issue_date);
-      const perfStart = new Date(
-        issueDate.getFullYear(),
-        issueDate.getMonth(),
-        1,
-      )
-        .toISOString()
-        .slice(0, 10);
-      const perfEnd = new Date(
-        issueDate.getFullYear(),
-        issueDate.getMonth() + 1,
-        0,
-      )
-        .toISOString()
-        .slice(0, 10);
-
-      const qonto = await createAndFinalizeQontoInvoice({
-        qonto_client_id: clientRow.qonto_id,
-        issue_date: inv.issue_date,
-        due_date: inv.due_date,
-        perf_start: perfStart,
-        perf_end: perfEnd,
-        lines: lines.map((l) => ({
-          description: l.description,
-          quantity: l.quantity,
-          unit_price_ht: Math.round(l.unit_price_ht * 100), // euros → centimes
-          vat_rate: l.vat_rate,
-        })),
-      });
-
-      await supabase
-        .from("invoices")
-        .update({
-          qonto_invoice_id: qonto.id,
-          qonto_invoice_number: qonto.number,
-        })
-        .eq("id", id);
-    }
-  } catch (err) {
-    console.error(
-      "[Qonto sync] Erreur lors de la création de la facture :",
-      err,
-    );
-  }
 
   if (!checked(fd, "send_email")) {
     flash(back, "ok", `Facture ${inv.number} validée (aucun e-mail envoyé).`);
