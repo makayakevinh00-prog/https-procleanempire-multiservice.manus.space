@@ -5,6 +5,7 @@ export const CATEGORY: Record<string, string> = {
   vehicules: "Véhicules et flottes",
   specialites: "Prestations spécialisées",
   options: "Options et compléments",
+  conciergerie: "Conciergerie (Airbnb, gestion locative)",
 };
 export const CATEGORY_ORDER = [
   "bureaux",
@@ -13,6 +14,7 @@ export const CATEGORY_ORDER = [
   "vehicules",
   "specialites",
   "options",
+  "conciergerie",
 ];
 export const ACTIVITY: Record<string, string> = {
   nettoyage_pro: "Nettoyage professionnel",

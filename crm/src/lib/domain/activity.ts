@@ -9,6 +9,9 @@ export const ACTIVITIES = [
   { key: "ponctuel", label: "Prestations ponctuelles", short: "Ponctuel", hint: "Interventions uniques, sans contrat récurrent", tone: "bg-[#f7ecdb] text-[#8f5a12]" }
 ] as const;
 export type Activity = (typeof ACTIVITIES)[number]["key"];
+/** Deux pôles : le nettoyage (bureaux, commerces, ponctuel) et la conciergerie (Airbnb, gestion locative), qui a sa propre page. */
+export const CONCIERGE_ACTIVITIES: readonly string[] = ["nettoyage_airbnb", "gestion_locative"];
+export const isConcierge = (a: unknown) => typeof a === "string" && CONCIERGE_ACTIVITIES.includes(a);
 export const ACTIVITY_KEYS: Activity[] = ACTIVITIES.map((a) => a.key);
 export const ACTIVITY = Object.fromEntries(ACTIVITIES.map((a) => [a.key, a])) as Record<Activity, (typeof ACTIVITIES)[number]>;
 export const isActivity = (v: unknown): v is Activity => typeof v === "string" && (ACTIVITY_KEYS as string[]).includes(v);

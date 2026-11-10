@@ -2,6 +2,8 @@ import { realDeps } from "@/lib/automation/deps";
 import { runDaily } from "@/lib/automation/run";
 import { syncQonto } from "@/lib/qonto";
 import { createAdmin } from "@/lib/supabase/server";
+import { runConcierge } from "@/lib/concierge/run";
+import { parisToday } from "@/lib/domain/dates";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -31,5 +33,9 @@ export async function GET(req: Request) {
   if (!opts.dryRun && process.env.SUPABASE_SERVICE_ROLE_KEY && (process.env.QONTO_ACCESS_TOKEN || process.env.QONTO_SECRET_KEY)) {
     try { qonto = await syncQonto(createAdmin()); } catch (e) { qonto = { error: (e as Error).message }; }
   }
-  return Response.json({ automation, qonto });
+  let concierge: unknown = "non configuré";
+  if (!opts.dryRun && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    try { concierge = await runConcierge(createAdmin(), parisToday()); } catch (e) { concierge = { error: (e as Error).message }; }
+  }
+  return Response.json({ automation, qonto, concierge });
 }

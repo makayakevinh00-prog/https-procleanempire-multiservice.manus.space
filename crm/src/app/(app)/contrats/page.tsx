@@ -12,7 +12,7 @@ import { WEEKDAYS } from "@/lib/domain/schedule";
 import { formatDate, formatEUR, formatHours } from "@/lib/utils";
 import { numOrNull } from "@/lib/data";
 import { ActivityChip, ActivityTabs } from "@/components/crm/activity-ui";
-import { ACTIVITIES, contractActivity, isActivity, type Activity } from "@/lib/domain/activity";
+import { ACTIVITIES, contractActivity, isActivity, isConcierge, type Activity } from "@/lib/domain/activity";
 import { monthlyOf } from "@/lib/activity-data";
 import { classifyContractsAction } from "@/app/actions/activity";
 
@@ -34,13 +34,13 @@ export default async function ContractsPage({ searchParams }: { searchParams: { 
   const famMonthly = (a: string) => rows.filter((r) => r.family === a && r.k.status === "actif").reduce((t, r) => t + monthlyOf(r.k), 0);
   const href = (key: string) => { const p = new URLSearchParams(); if (key) p.set("famille", key); if (searchParams.filtre) p.set("filtre", searchParams.filtre); const q = p.toString(); return `/contrats${q ? `?${q}` : ""}`; };
   const incompleteCount = rows.filter((r) => r.incomplete).length;
-  const shown = (searchParams.filtre === "incomplets" ? rows.filter((r) => r.incomplete) : rows).filter((r) => !fam || r.family === fam);
+  const shown = (searchParams.filtre === "incomplets" ? rows.filter((r) => r.incomplete) : rows).filter((r) => (fam ? r.family === fam : !isConcierge(r.family)));
 
   return (
     <>
-      <PageHeader title="Contrats récurrents" subtitle={`${rows.length} contrat(s)`}
+      <PageHeader title="Contrats récurrents" subtitle={`${rows.filter((r) => !isConcierge(r.family)).length} contrat(s) de nettoyage · la conciergerie a sa propre page`}
         actions={<Link href="/contrats/new"><Button><Plus className="h-4 w-4" /> Nouveau contrat</Button></Link>} />
-      <ActivityTabs current={fam} counts={famCounts} href={href} />
+      <ActivityTabs pole="nettoyage" current={fam} counts={famCounts} href={href} />
       {fam && <p className="-mt-2 mb-4 text-sm text-muted-foreground">{ACTIVITIES.find((a) => a.key === fam)!.hint} · <b className="num font-medium text-foreground">{formatEUR(famMonthly(fam))}</b> HT par mois en contrats actifs. <Link href="/activites" className="font-medium text-primary hover:underline">Voir la rentabilité</Link></p>}
       {unsaved > 0 && (
         <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl bg-secondary px-4 py-3 text-sm text-secondary-foreground">
