@@ -191,7 +191,7 @@ export default async function Dashboard({ searchParams }: { searchParams?: { vue
           </CardHeader>
           <CardContent className="pt-3">
             <MonthlyBars data={series} />
-            <p className="mt-2 text-xs text-muted-foreground">Mois en cours en plus clair (incomplet). {firstData && firstData.key !== series[0].key ? `Historique disponible à partir de ${firstData.label} (factures reprises d'Axonaut).` : ""} Survolez une barre pour le montant exact, cliquez pour voir les clients.</p>
+            <p className="mt-2 text-xs text-muted-foreground">Mois en cours en plus clair (incomplet). {firstData && firstData.key !== series[0].key ? `Historique disponible à partir de ${firstData.label} (factures reprises d'Axonaut).` : ""} Survolez une barre pour le montant exact, cliquez pour voir les clients. <Link href="/analyses" className="font-medium text-primary hover:underline">Toutes les analyses</Link></p>
             {picked && (
               <div id="detail-mois" className="mt-4 rounded-xl bg-secondary/50 p-4">
                 <div className="mb-3 flex items-baseline justify-between gap-3">

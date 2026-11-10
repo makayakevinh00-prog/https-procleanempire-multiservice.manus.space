@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Home, ListChecks, Users, MapPin, ClipboardList, FileText, Receipt, UserCog, Package, Settings, LogOut, Bell, Search, X, LayoutGrid, Truck, ChevronsLeft, PieChart, Calculator, Repeat, CalendarDays, Radar, TrendingUp } from "lucide-react";
+import { Home, ListChecks, Users, MapPin, ClipboardList, FileText, Receipt, UserCog, Package, Settings, LogOut, Bell, Search, X, LayoutGrid, Truck, ChevronsLeft, PieChart, Calculator, Repeat, CalendarDays, Radar, TrendingUp, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Item = { href: string; label: string; icon: any; children?: { href: string; label: string }[] };
@@ -32,6 +32,7 @@ const GROUPS: Group[] = [
   ] },
   { title: "Finance", items: [
     { href: "/comptabilite", label: "Comptabilité", icon: Calculator },
+    { href: "/analyses", label: "Analyses", icon: BarChart3 },
     { href: "/factures", label: "Factures", icon: Receipt, children: [{ href: "/facturation-auto", label: "Facturation automatique" }, { href: "/paiements", label: "Paiements" }] }
   ] },
   { title: "Gestion", items: [
