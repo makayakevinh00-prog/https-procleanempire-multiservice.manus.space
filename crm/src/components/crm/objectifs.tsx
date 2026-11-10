@@ -58,7 +58,7 @@ export async function Objectives({ today }: { today: string }) {
   const p = pace(today);
   const month = p.month,
     prev = shiftMonth(month, -1);
-  const [goals, inv, pay, cl, qt, ct, req, plan, unmatched, prospects] =
+  const [goals, inv, pay, cl, qt, ct, req, plan, unmatched, prospects, activeCl] =
     await Promise.all([
       sb
         .from("monthly_goals")
@@ -100,6 +100,10 @@ export async function Objectives({ today }: { today: string }) {
         .from("clients")
         .select("id", { count: "exact", head: true })
         .eq("status", "prospect"),
+      sb
+        .from("clients")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "actif"),
     ]);
   if (goals.error) return null; // base pas encore migrée : l'accueil reste intact
   for (const r of [inv, pay, cl, qt, ct])
@@ -173,6 +177,35 @@ export async function Objectives({ today }: { today: string }) {
     now.ca_facture + draftsAmt + acceptedAmt + unbilledAmt,
   );
 
+  // Objectifs suggérés d'après les vrais chiffres, tant que rien n'est fixé : la carte n'est jamais vide.
+  const mrrAll = round2(
+    ((ct.data ?? []) as any[])
+      .map((k) =>
+        monthlyRevenueHt({
+          ...k,
+          monthly_amount_ht: numOrNull(k.monthly_amount_ht),
+          per_visit_amount_ht: numOrNull(k.per_visit_amount_ht),
+          visits_per_week: numOrNull(k.visits_per_week),
+        } as Contract),
+      )
+      .filter((v): v is number => v != null)
+      .reduce((a, b) => a + b, 0),
+  );
+  const base = Math.max(before.ca_facture, mrrAll);
+  const sugCa = base > 0 ? Math.ceil((base * 1.05) / 100) * 100 : null;
+  const sugNew = Math.max(1, Math.ceil((activeCl.count ?? 0) * 0.1));
+  const suggested: Record<GoalKind, number | null> = {
+    ca_facture: sugCa,
+    encaisse: sugCa ? Math.ceil((sugCa * 1.2) / 100) * 100 : null,
+    nouveaux_clients: sugNew,
+    devis_envoyes: sugNew * 2,
+  };
+  const why: Record<GoalKind, string> = {
+    ca_facture: `${eur0(base)} ${before.ca_facture >= mrrAll ? "facturés le mois dernier" : "de contrats récurrents"}, plus 5 %`,
+    encaisse: "le CA suggéré avec 20 % de TVA",
+    nouveaux_clients: `10 % de vos ${activeCl.count ?? 0} clients actifs`,
+    devis_envoyes: "en comptant 1 devis accepté sur 2",
+  };
   const rows = (goals.data ?? []) as {
     month: string;
     kind: GoalKind;
@@ -182,7 +215,10 @@ export async function Objectives({ today }: { today: string }) {
     const g = rows.find((r) => r.month === m && r.kind === k);
     return g ? num(g.target) : null;
   };
-  const active = GOAL_ORDER.filter((k) => target(month, k) != null);
+  const saved = GOAL_ORDER.filter((k) => target(month, k) != null);
+  const isSuggested = saved.length === 0;
+  const tgt = (k: GoalKind) => (isSuggested ? suggested[k] : target(month, k));
+  const active = GOAL_ORDER.filter((k) => tgt(k) != null);
   const levers = buildLevers({
     drafts: { n: drafts.length, amount: draftsAmt },
     acceptedToInvoice: { n: accepted.length, amount: acceptedAmt },
@@ -199,16 +235,14 @@ export async function Objectives({ today }: { today: string }) {
     prospects: prospects.count ?? 0,
     requests: req.count ?? 0,
   });
-  const caTarget = target(month, "ca_facture");
+  const caTarget = tgt("ca_facture");
   const missing = caTarget != null ? Math.max(caTarget - now.ca_facture, 0) : 0;
   const pipe = round2(draftsAmt + acceptedAmt + unbilledAmt);
   const monthLabel = MONTH_NAMES[Number(month.slice(5)) - 1];
   const form = (
-    <details className="group" open={!active.length}>
+    <details className="group">
       <summary className="cursor-pointer list-none text-[13px] font-medium text-primary hover:underline">
-        {active.length
-          ? "Modifier les objectifs"
-          : "Fixer mes objectifs du mois"}
+        {isSuggested ? "Ajuster les objectifs avant de les adopter" : "Modifier les objectifs"}
       </summary>
       <form
         action={saveGoalsAction.bind(null, month)}
@@ -220,7 +254,7 @@ export async function Objectives({ today }: { today: string }) {
             <Input
               name={`goal_${k}`}
               inputMode="decimal"
-              defaultValue={target(month, k) ?? target(prev, k) ?? ""}
+              defaultValue={target(month, k) ?? target(prev, k) ?? suggested[k] ?? ""}
               placeholder="Non suivi"
               className="mt-1.5 h-10"
             />
@@ -232,8 +266,8 @@ export async function Objectives({ today }: { today: string }) {
         <div className="sm:col-span-2 lg:col-span-4">
           <Button size="sm">Enregistrer</Button>{" "}
           <span className="ml-2 text-xs text-muted-foreground">
-            Un champ vide = indicateur non suivi. Préremplis avec le mois
-            dernier.
+            Un champ vide = indicateur non suivi. Préremplis avec les objectifs
+            suggérés ou ceux du mois dernier.
           </span>
         </div>
       </form>
@@ -252,10 +286,24 @@ export async function Objectives({ today }: { today: string }) {
         </span>
       </div>
       <div className="px-6 py-5">
+        {isSuggested && active.length > 0 && (
+          <div className="mb-5 flex flex-wrap items-center gap-3 rounded-lg bg-secondary/60 px-4 py-3 text-[13px] text-secondary-foreground">
+            <span>
+              <b className="font-medium text-foreground">Objectifs suggérés</b>{" "}
+              d&apos;après vos chiffres. Adoptez-les pour suivre le mois, ou ajustez-les.
+            </span>
+            <form action={saveGoalsAction.bind(null, month)} className="ml-auto">
+              {active.map((k) => (
+                <input key={k} type="hidden" name={`goal_${k}`} value={suggested[k]!} />
+              ))}
+              <Button size="sm">Adopter ces objectifs</Button>
+            </form>
+          </div>
+        )}
         {active.length > 0 && (
           <div className="grid gap-x-8 gap-y-6 md:grid-cols-2">
             {active.map((k) => {
-              const t = target(month, k)!,
+              const t = tgt(k)!,
                 v = now[k];
               const st: Status =
                 k === "ca_facture"
@@ -325,6 +373,9 @@ export async function Objectives({ today }: { today: string }) {
                       </>
                     )}
                     mois dernier : {show(k, before[k])}
+                    {isSuggested && (
+                      <span className="mt-1 block">Suggestion : {why[k]}</span>
+                    )}
                   </p>
                 </div>
               );
@@ -374,7 +425,7 @@ export async function Objectives({ today }: { today: string }) {
             </ul>
           </details>
         )}
-        {active.length > 0 && (
+        {!isSuggested && (
           <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border/70 pt-4">
             <form action={askPlanAction.bind(null, month)}>
               <Button size="sm" variant="outline">
