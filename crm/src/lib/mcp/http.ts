@@ -22,7 +22,7 @@ export async function mcpPost(req: Request, token: string | null, via: "lien" | 
   const probe = await sb.rpc("agent_api", { p_token: token, p_op: "overview", p_args: {} });   // refuse un jeton révoqué avant toute autre réponse
   if (probe.error) { log(403, (body as any)?.method); return err(403, "Lien invalide ou révoqué."); }
   const r = await handleMcp(body, async (op, args, meta) => {
-    const { data, error } = await sb.rpc("agent_api", { p_token: token, p_op: op, p_args: args });
+    const { data, error } = await sb.rpc(op.startsWith("db_") ? "agent_admin_api" : "agent_api", { p_token: token, p_op: op, p_args: args });
     if (error) throw new Error(error.message);
     // Présence pour l'Open space : au mieux, jamais bloquant (base pas encore migrée = on ignore).
     try { await sb.rpc("agent_presence_touch", { p_token: token, p_agent: meta?.agent ?? null, p_op: op }); } catch { /* sans effet sur la réponse */ }

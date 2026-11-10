@@ -15,10 +15,10 @@ describe("serveur MCP", () => {
     expect((await handleMcp({ jsonrpc: "2.0", id: 3, method: "ping" }, call)).json!.result).toEqual({});
     expect((await handleMcp({ jsonrpc: "2.0", id: 4, method: "resources/list" }, call)).json!.error.code).toBe(-32601);
   });
-  it("tools/list : 8 outils décrits, schémas valides, aucun outil d'envoi direct", async () => {
+  it("tools/list : 11 outils décrits, schémas valides, aucun outil d'envoi direct", async () => {
     const r = await handleMcp({ jsonrpc: "2.0", id: 5, method: "tools/list" }, call);
     const names = r.json!.result.tools.map((t: any) => t.name);
-    expect(names).toEqual(TOOLS.map((t) => t.name)); expect(names).toHaveLength(8);
+    expect(names).toEqual(TOOLS.map((t) => t.name)); expect(names).toHaveLength(11);
     for (const t of r.json!.result.tools) { expect(t.description.length).toBeGreaterThan(20); expect(t.inputSchema.type).toBe("object"); }
     expect(names.join(" ")).not.toMatch(/envoyer|send|supprimer|delete/);
   });
@@ -79,5 +79,22 @@ describe("présence de l'agent (Open space)", () => {
     calls.length = 0;
     await handleMcp({ jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "crm_apercu", arguments: { agent: "Robert'); drop table x;--" } } }, call);
     expect(calls[0].meta.agent).toBeUndefined();
+  });
+});
+
+describe("accès complet de l'assistant", () => {
+  it("crm_tables / crm_lire / crm_ecrire transmettent des opérations db_* sans toucher aux arguments", async () => {
+    const seen: { op: string; args: any }[] = [];
+    const call = async (op: string, args: any) => { seen.push({ op, args }); return { ok: true }; };
+    await handleMcp({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "crm_tables", arguments: {} } }, call);
+    await handleMcp({ jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "crm_lire", arguments: { table: "services", filters: { code: "AIR-PAR-T2" }, agent: "core" } } }, call);
+    await handleMcp({ jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "crm_ecrire", arguments: { table: "services", action: "update", filters: { code: "AIR-PAR-T2" }, values: { unit_price_ht: 85 } } } }, call);
+    expect(seen.map((x) => x.op)).toEqual(["db_schema", "db_read", "db_write"]);
+    expect(seen[1].args).toEqual({ table: "services", filters: { code: "AIR-PAR-T2" } });
+    expect(seen[2].args.values.unit_price_ht).toBe(85);
+  });
+  it("l'e-mail client reste une proposition : aucun outil d'envoi direct", () => {
+    expect(TOOLS.map((t) => t.name)).not.toContain("envoyer_email_client");
+    expect(TOOLS.find((t) => t.name === "proposer_email_client")!.op).toBe("propose_action");
   });
 });
