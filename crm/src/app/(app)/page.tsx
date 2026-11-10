@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ClientName } from "@/components/crm/client-name";
 import { MonthlyBars, Donut, RankBars } from "@/components/crm/charts";
 import { Row, Seg, Sparkline, Stat } from "@/components/crm/home-kit";
+import { Objectives } from "@/components/crm/objectifs";
 import { daysBetween, formatDate, formatEUR, formatHours, round2 } from "@/lib/utils";
 import type { Contract } from "@/lib/domain/types";
 
@@ -18,7 +19,7 @@ const MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "aoû
 
 const eur0 = (n: number) => `${Math.round(n).toLocaleString("fr-FR")} €`;
 
-export default async function Dashboard({ searchParams }: { searchParams?: { vue?: string } }) {
+export default async function Dashboard({ searchParams }: { searchParams?: { vue?: string; mois?: string } }) {
   const supabase = createClient();
   await supabase.rpc("refresh_overdue");
   const [settings, contracts, invoices, quotes, payments, reserved, actions, clients] = await Promise.all([
@@ -53,7 +54,7 @@ export default async function Dashboard({ searchParams }: { searchParams?: { vue
   const monthName = (key: string) => ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"][Number(key.slice(5)) - 1];
   const series = Array.from({ length: 12 }, (_, k) => {
     const key = ym(ty, tm - 11 + k);
-    return { label: MONTHS[Number(key.slice(5)) - 1], value: sumWhere((i) => i.issue_date.startsWith(key)), current: key === month, key };
+    return { label: MONTHS[Number(key.slice(5)) - 1], value: sumWhere((i) => i.issue_date.startsWith(key)), current: key === month, key, href: `/?mois=${key}#detail-mois`, selected: key === searchParams?.mois };
   });
   const total12 = round2(series.reduce((a, d) => a + d.value, 0));
   const firstData = series.find((d) => d.value > 0);
@@ -76,6 +77,15 @@ export default async function Dashboard({ searchParams }: { searchParams?: { vue
   const mrr = round2(rows.reduce((a, r) => a + (monthlyRevenueHt(r.contract) ?? 0), 0));
   const lateAmount = round2(late.reduce((a, i) => a + num(i.total_ttc) - num(i.paid_amount), 0));
 
+  const picked = series.find((d) => d.key === searchParams?.mois);
+  const pickedRows = picked ? (() => {
+    const m = new Map<string, { label: string; value: number; n: number; href: string }>();
+    for (const i of issued.filter((i) => i.issue_date.startsWith(picked.key))) {
+      const c = m.get(i.clients.id) ?? { label: i.clients.name, value: 0, n: 0, href: `/clients/${i.clients.id}` };
+      c.value = round2(c.value + num(i.total_ht)); c.n += 1; m.set(i.clients.id, c);
+    }
+    return [...m.values()].sort((a, b) => b.value - a.value);
+  })() : [];
   const vue = ["afaire", "retard", "valider"].includes(searchParams?.vue ?? "") ? (searchParams!.vue as string) : "afaire";
   const actionsCount = menuCountsFrom(actions)["/actions"] ?? 0;
   const toValidate = drafts.length + toInvoice.length;
@@ -123,6 +133,8 @@ export default async function Dashboard({ searchParams }: { searchParams?: { vue
         <Stat label="Clients actifs" value={String(activeClients.length)} href="/clients"
           hint={`${cl.filter((c) => c.status === "prospect").length} prospect(s)`} />
       </section>
+
+      <Objectives today={today} />
 
       <div className="mt-10">
         <Seg items={[
@@ -179,7 +191,21 @@ export default async function Dashboard({ searchParams }: { searchParams?: { vue
           </CardHeader>
           <CardContent className="pt-3">
             <MonthlyBars data={series} />
-            <p className="mt-2 text-xs text-muted-foreground">Mois en cours en plus clair (incomplet). {firstData && firstData.key !== series[0].key ? `Historique disponible à partir de ${firstData.label} (factures reprises d'Axonaut).` : ""} Survolez une barre pour le montant exact.</p>
+            <p className="mt-2 text-xs text-muted-foreground">Mois en cours en plus clair (incomplet). {firstData && firstData.key !== series[0].key ? `Historique disponible à partir de ${firstData.label} (factures reprises d'Axonaut).` : ""} Survolez une barre pour le montant exact, cliquez pour voir les clients.</p>
+            {picked && (
+              <div id="detail-mois" className="mt-4 rounded-xl bg-secondary/50 p-4">
+                <div className="mb-3 flex items-baseline justify-between gap-3">
+                  <span className="text-sm font-semibold text-foreground">{monthName(picked.key).charAt(0).toUpperCase() + monthName(picked.key).slice(1)} : qui a fait le chiffre</span>
+                  <Link href="/" scroll={false} className="text-xs font-medium text-primary hover:underline">Fermer</Link>
+                </div>
+                {pickedRows.length ? (
+                  <>
+                    <RankBars rows={pickedRows.map((r) => ({ label: `${r.label} · ${r.n} facture${r.n > 1 ? "s" : ""} · ${Math.round((r.value / (picked.value || 1)) * 100)} %`, value: r.value, href: r.href }))} />
+                    <p className="mt-3 text-xs text-muted-foreground">Total {formatEUR(picked.value)} HT, {pickedRows.length} client{pickedRows.length > 1 ? "s" : ""}.</p>
+                  </>
+                ) : <p className="text-sm text-muted-foreground">Aucune facture émise ce mois-là.</p>}
+              </div>
+            )}
           </CardContent>
         </Card>
         <Card>

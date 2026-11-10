@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { formatEUR } from "@/lib/utils";
 
 /** Palette validée (CVD) : bleu ProClean, aqua. Texte toujours en encre neutre. */
@@ -6,7 +7,7 @@ export const SERIES = ["#2b4c7e", "#9aa3b2"] as const;
 const short = (n: number) => (n >= 1000 ? `${(n / 1000).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} k€` : `${Math.round(n)} €`);
 
 /** Barres verticales, une seule série (le titre de la carte la nomme). Survol : valeur exacte. */
-export function MonthlyBars({ data }: { data: { label: string; value: number; current?: boolean }[] }) {
+export function MonthlyBars({ data }: { data: { label: string; value: number; current?: boolean; href?: string; selected?: boolean }[] }) {
   const W = 640, H = 220, padL = 44, padB = 26, padT = 18;
   const max = Math.max(...data.map((d) => d.value), 1);
   const nice = Math.pow(10, Math.floor(Math.log10(max)));
@@ -26,18 +27,23 @@ export function MonthlyBars({ data }: { data: { label: string; value: number; cu
       {data.map((d, i) => {
         const x = padL + i * slot + (slot - bw) / 2;
         const h = Math.max(H - padB - y(d.value), d.value > 0 ? 2 : 0);
-        return (
-          <g key={d.label} className="group">
+        const bar = (
+          <g className="group">
             <rect x={padL + i * slot} y={padT} width={slot} height={H - padB - padT} fill="transparent" />
             {h > 0 && <path d={`M${x},${H - padB} V${H - padB - h + 4} q0,-4 4,-4 h${bw - 8} q4,0 4,4 V${H - padB} Z`}
               fill={SERIES[0]} opacity={d.current ? 0.55 : 1} className="transition-opacity group-hover:opacity-80" />}
-            <text x={x + bw / 2} y={H - 8} textAnchor="middle" className={`text-[11px] ${d.current ? "fill-slate-700 font-semibold" : "fill-slate-500"}`}>{d.label}</text>
+            <text x={x + bw / 2} y={H - 8} textAnchor="middle" className={`text-[11px] ${d.selected ? "fill-slate-900 font-bold underline" : d.current ? "fill-slate-700 font-semibold" : "fill-slate-500"}`}>{d.label}</text>
             <g className="pointer-events-none opacity-0 transition-opacity group-hover:opacity-100">
               <rect x={x + bw / 2 - 42} y={Math.max(y(d.value) - 26, 0)} width={84} height={20} rx={4} fill="#111214" />
               <text x={x + bw / 2} y={Math.max(y(d.value) - 12, 14)} textAnchor="middle" className="fill-white text-[11px] font-semibold">{formatEUR(d.value)}</text>
             </g>
             <title>{`${d.label} : ${formatEUR(d.value)} HT${d.current ? " (mois en cours)" : ""}`}</title>
           </g>
+        );
+        return d.href ? (
+          <Link key={d.label} href={d.href} scroll={false} aria-label={`Voir les clients de ${d.label}`} className="cursor-pointer">{bar}</Link>
+        ) : (
+          <g key={d.label}>{bar}</g>
         );
       })}
     </svg>
@@ -88,7 +94,7 @@ export function RankBars({ rows }: { rows: { label: string; value: number; href?
     <ul className="space-y-3">
       {rows.map((r) => (
         <li key={r.label} className="text-sm">
-          <div className="mb-1 flex justify-between gap-2"><span className="truncate text-slate-700">{r.label}</span><span className="font-semibold text-slate-900">{formatEUR(r.value)}</span></div>
+          <div className="mb-1 flex justify-between gap-2">{r.href ? <Link href={r.href} className="truncate text-slate-700 hover:text-primary hover:underline">{r.label}</Link> : <span className="truncate text-slate-700">{r.label}</span>}<span className="font-semibold text-slate-900">{formatEUR(r.value)}</span></div>
           <div className="h-2 rounded-full bg-slate-100"><div className="h-2 rounded-full" style={{ width: `${(r.value / max) * 100}%`, background: SERIES[0] }} /></div>
         </li>
       ))}
