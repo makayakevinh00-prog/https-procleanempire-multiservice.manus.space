@@ -1,0 +1,11 @@
+alter table app_settings drop column if exists default_target_margin_pct;
+alter table services drop constraint if exists services_category_check;
+alter table services drop constraint if exists services_duration_check;
+alter table services drop constraint if exists services_target_margin_check;
+alter table services drop column if exists complements;
+alter table services drop column if exists season_months;
+alter table services drop column if exists target_margin_pct;
+alter table services drop column if exists materials_cost_ht;
+alter table services drop column if exists duration_estimated;
+alter table services drop column if exists duration_hours;
+alter table services drop column if exists category;
