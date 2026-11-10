@@ -27,7 +27,7 @@ export async function mcpPost(req: Request, token: string | null, via: "lien" | 
     // Présence pour l'Open space : au mieux, jamais bloquant (base pas encore migrée = on ignore).
     try { await sb.rpc("agent_presence_touch", { p_token: token, p_agent: meta?.agent ?? null, p_op: op }); } catch { /* sans effet sur la réponse */ }
     return data;
-  });
+  }, origin);
   log(r.status, (body as any)?.method);
   if (r.status === 202) return new Response(null, { status: 202, headers: H });
   return Response.json(r.json, { status: r.status, headers: H });

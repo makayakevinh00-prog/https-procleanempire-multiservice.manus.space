@@ -98,3 +98,12 @@ describe("accès complet de l'assistant", () => {
     expect(TOOLS.find((t) => t.name === "proposer_email_client")!.op).toBe("propose_action");
   });
 });
+
+describe("icône du connecteur", () => {
+  it("initialize annonce le logo quand l'adresse du CRM est connue", async () => {
+    const r = await handleMcp({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18" } }, async () => ({}), "https://crm.example");
+    expect(r.json!.result.serverInfo.icons[0].src).toBe("https://crm.example/icons/connector-256.png");
+    const sans = await handleMcp({ jsonrpc: "2.0", id: 2, method: "initialize", params: {} }, async () => ({}));
+    expect(sans.json!.result.serverInfo.icons).toBeUndefined();
+  });
+});

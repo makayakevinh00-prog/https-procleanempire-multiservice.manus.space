@@ -28,7 +28,7 @@ const ok = (id: unknown, result: Json) => ({ jsonrpc: "2.0", id, result });
 const err = (id: unknown, code: number, message: string) => ({ jsonrpc: "2.0", id: id ?? null, error: { code, message } });
 const clean = (m: string) => { const x = /^([A-Z_]{4,}):\s*(.*)$/s.exec(m.trim()); return x ? `${x[1]} : ${x[2]}` : "Erreur interne : réessayez ou prévenez Kevinh."; };
 
-export async function handleMcp(body: unknown, call: CallFn): Promise<{ status: number; json?: Json }> {
+export async function handleMcp(body: unknown, call: CallFn, origin?: string): Promise<{ status: number; json?: Json }> {
   if (!body || typeof body !== "object" || Array.isArray(body)) return { status: 400, json: err(null, -32600, "Requête JSON-RPC invalide (un objet est attendu).") };
   const { id, method, params } = body as Json;
   if (typeof method !== "string") return { status: 400, json: err(id, -32600, "Méthode absente.") };
@@ -36,7 +36,7 @@ export async function handleMcp(body: unknown, call: CallFn): Promise<{ status: 
   switch (method) {
     case "initialize": {
       const asked = params?.protocolVersion;
-      return { status: 200, json: ok(id, { protocolVersion: SUPPORTED.includes(asked) ? asked : SUPPORTED[1], capabilities: { tools: {} }, serverInfo: SERVER_INFO,
+      return { status: 200, json: ok(id, { protocolVersion: SUPPORTED.includes(asked) ? asked : SUPPORTED[1], capabilities: { tools: {} }, serverInfo: origin ? { ...SERVER_INFO, icons: [{ src: `${origin}/icons/connector-256.png`, mimeType: "image/png", sizes: ["256x256"] }] } : SERVER_INFO,
         instructions: "Connecteur ProClean Empire. Agents : vous lisez des données limitées et vous PROPOSEZ (tâches, e-mails) ; rien n'est envoyé sans la validation de Kevinh et les contacts réservés sont exclus. Assistant principal (lien à accès complet) : crm_tables, crm_lire et crm_ecrire donnent la main sur toutes les données du CRM ; les e-mails aux clients restent des propositions." }) };
     }
     case "ping": return { status: 200, json: ok(id, {}) };
