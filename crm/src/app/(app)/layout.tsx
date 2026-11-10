@@ -16,18 +16,43 @@ async function menuCounts(): Promise<Record<string, number>> {
   }
 }
 
-export default async function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function AppLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   async function signOut() {
     "use server";
     await createClient().auth.signOut();
     redirect("/login");
   }
-  const [counts, { data }] = await Promise.all([menuCounts(), createClient().auth.getUser()]);
+  const supabase = createClient();
+  const [counts, { data }] = await Promise.all([
+    menuCounts(),
+    supabase.auth.getUser(),
+  ]);
+
+  // Détection du rôle comptable : lecture de la table staff
+  let isComptable = false;
+  if (data.user) {
+    const { data: staffRow } = await supabase
+      .from("staff")
+      .select("role")
+      .eq("user_id", data.user.id)
+      .eq("role", "comptable")
+      .maybeSingle();
+    isComptable = !!staffRow;
+  }
+
   return (
     <div className="min-h-screen">
-      <Sidebar signOut={signOut} counts={counts} />
+      <Sidebar signOut={signOut} counts={counts} isComptable={isComptable} />
       <div className="md:ml-64">
-        <Topbar actionsCount={counts["/actions"] ?? 0} email={data.user?.email ?? ""} signOut={signOut} />
+        <Topbar
+          actionsCount={counts["/actions"] ?? 0}
+          email={data.user?.email ?? ""}
+          signOut={signOut}
+        />
         <main className="mx-auto max-w-[1400px] px-4 pb-28 pt-6 md:px-10 md:pb-12 md:pt-8">
           <Flash />
           {children}
