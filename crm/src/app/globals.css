@@ -4,22 +4,22 @@
 
 @layer base {
   :root {
-    --background: 210 20% 96%;
-    --foreground: 220 28% 10%;
+    --background: 210 25% 97%;
+    --foreground: 220 30% 9%;
     --card: 0 0% 100%;
-    --card-foreground: 220 28% 10%;
-    --primary: 174 58% 36%;
+    --card-foreground: 220 30% 9%;
+    --primary: 174 60% 34%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 16% 91%;
-    --secondary-foreground: 220 22% 20%;
-    --muted: 210 16% 93%;
-    --muted-foreground: 220 8% 44%;
+    --secondary: 210 18% 90%;
+    --secondary-foreground: 220 22% 18%;
+    --muted: 210 18% 94%;
+    --muted-foreground: 220 10% 42%;
     --destructive: 0 78% 46%;
     --destructive-foreground: 0 0% 100%;
     --success: 152 58% 30%;
     --warning: 32 90% 40%;
-    --border: 214 16% 86%;
-    --ring: 174 58% 36%;
+    --border: 214 18% 84%;
+    --ring: 174 60% 34%;
   }
   * {
     @apply border-border;
@@ -35,6 +35,21 @@
   }
   :focus-visible {
     outline-color: hsl(var(--ring));
+  }
+  /* Scrollbar subtile */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(214 16% 78%);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(214 16% 65%);
   }
   @media (max-width: 767px) {
     input,

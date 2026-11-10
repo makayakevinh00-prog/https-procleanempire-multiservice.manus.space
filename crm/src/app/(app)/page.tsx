@@ -253,12 +253,47 @@ export default async function Dashboard() {
     late.reduce((a, i) => a + num(i.total_ttc) - num(i.paid_amount), 0),
   );
 
+  const hour = new Date().toLocaleString("fr-FR", {
+    timeZone: "Europe/Paris",
+    hour: "numeric",
+    hour12: false,
+  });
+  const h = Number(hour);
+  const greeting = h < 12 ? "Bonjour" : h < 18 ? "Bon après-midi" : "Bonsoir";
+
   return (
     <>
-      <PageHeader
-        title="Bonjour 👋"
-        subtitle={`ProClean Empire — ${new Date().toLocaleDateString("fr-FR", { timeZone: "Europe/Paris", weekday: "long", day: "numeric", month: "long", year: "numeric" })}`}
-      />
+      {/* En-tête de bienvenue — plus visuel */}
+      <div className="mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-[#0d1a28] via-[#0b1e22] to-[#061412] px-8 py-7 shadow-lg">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-extrabold text-white md:text-3xl">
+              {greeting} 👋
+            </h1>
+            <p className="mt-1 text-sm text-slate-400">
+              {new Date().toLocaleDateString("fr-FR", {
+                timeZone: "Europe/Paris",
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+              {" — "}ProClean Empire
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {actions.length > 0 && (
+              <Link
+                href="/actions"
+                className="flex items-center gap-2 rounded-xl bg-amber-400 px-4 py-2 text-sm font-bold text-slate-900 shadow transition hover:bg-amber-300"
+              >
+                <Siren className="h-4 w-4" />
+                {menuCountsFrom(actions)["/actions"]} action(s)
+              </Link>
+            )}
+          </div>
+        </div>
+      </div>
 
       {(reserved.data?.length ?? 0) > 0 && (
         <div className="mb-5 flex flex-wrap items-center gap-2 rounded-xl border border-red-200 border-l-4 border-l-red-600 bg-red-50 px-4 py-3 text-sm text-red-900 shadow-sm">
