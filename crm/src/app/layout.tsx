@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: "ProClean CRM",
   description: "CRM interne ProClean Empire",
   robots: { index: false, follow: false },
-  icons: { icon: "/icons/icon-192.png", apple: "/icons/apple-touch-icon.png" },
+  icons: { icon: [{ url: "/favicon.ico", sizes: "any" }, { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" }, { url: "/icons/favicon-64.png", sizes: "64x64", type: "image/png" }], shortcut: "/favicon.ico", apple: "/icons/apple-touch-icon.png" },
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "ProClean", statusBarStyle: "black-translucent" }
 };
