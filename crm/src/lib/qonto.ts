@@ -1,97 +1,94 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { matchPayment, type InvoiceCandidate } from "./domain/matching";
+/**
+ * Client Qonto API — crée et finalise les factures client.
+ * Auth : Authorization: proclean-empire-8053:QONTO_API_KEY
+ */
 
 const BASE = "https://thirdparty.qonto.com/v2";
+const ORG = "proclean-empire-8053";
 
-function authHeader(): string {
-  if (process.env.QONTO_ACCESS_TOKEN) return `Bearer ${process.env.QONTO_ACCESS_TOKEN}`;
-  if (process.env.QONTO_ORGANIZATION_SLUG && process.env.QONTO_SECRET_KEY) {
-    return `${process.env.QONTO_ORGANIZATION_SLUG}:${process.env.QONTO_SECRET_KEY}`; // clé API historique
+function auth(): string {
+  const key = process.env.QONTO_API_KEY;
+  if (!key)
+    throw new Error(
+      "QONTO_API_KEY manquant dans les variables d'environnement.",
+    );
+  return `${ORG}:${key}`;
+}
+
+export interface QontoInvoiceLine {
+  description: string;
+  quantity: number;
+  unit_price_ht: number; // en centimes (integer)
+  vat_rate: number; // ex: 20 → "0.2"
+}
+
+export interface QontoInvoiceInput {
+  qonto_client_id: string;
+  issue_date: string; // YYYY-MM-DD
+  due_date: string; // YYYY-MM-DD
+  perf_start: string; // YYYY-MM-DD
+  perf_end: string; // YYYY-MM-DD
+  lines: QontoInvoiceLine[];
+}
+
+export interface QontoInvoiceResult {
+  id: string;
+  number: string;
+}
+
+export async function createAndFinalizeQontoInvoice(
+  input: QontoInvoiceInput,
+): Promise<QontoInvoiceResult> {
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: auth(),
+  };
+
+  const body = {
+    client_invoice: {
+      client_id: input.qonto_client_id,
+      issue_date: input.issue_date,
+      due_date: input.due_date,
+      performance_start_date: input.perf_start,
+      performance_end_date: input.perf_end,
+      items: input.lines.map((l) => ({
+        title: l.description,
+        description: l.description,
+        quantity: String(l.quantity),
+        unit: "forfait",
+        unit_price_cents: Math.round(l.unit_price_ht),
+        vat_rate: String(l.vat_rate / 100),
+      })),
+      discount_conditions: "Pas d'escompte pour paiement anticipé.",
+      late_payment_penalties:
+        "En cas de retard de paiement, des pénalités de retard au taux légal en vigueur seront appliquées.",
+      legal_fixed_compensation:
+        "Tout retard de paiement entraîne une indemnité forfaitaire pour frais de recouvrement de 40 €.",
+    },
+  };
+
+  // 1. Créer le brouillon
+  const createRes = await fetch(`${BASE}/client_invoices`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
+  });
+  if (!createRes.ok) {
+    const txt = await createRes.text();
+    throw new Error(`Qonto createInvoice ${createRes.status}: ${txt}`);
   }
-  throw new Error("Qonto non configuré : renseignez QONTO_ACCESS_TOKEN (ou QONTO_ORGANIZATION_SLUG + QONTO_SECRET_KEY).");
-}
+  const { client_invoice: draft } = await createRes.json();
 
-async function qonto<T>(path: string, params: URLSearchParams = new URLSearchParams()): Promise<T> {
-  const res = await fetch(`${BASE}${path}?${params}`, { headers: { Authorization: authHeader() }, cache: "no-store" });
-  if (!res.ok) throw new Error(`Qonto ${res.status} sur ${path} : ${(await res.text()).slice(0, 300)}`);
-  return res.json() as Promise<T>;
-}
-
-interface QontoTx {
-  transaction_id: string; amount: number; currency: string; side: string; status: string;
-  label: string | null; reference: string | null; settled_at: string | null; emitted_at: string | null;
-}
-
-async function bankAccountParams(): Promise<URLSearchParams> {
-  const p = new URLSearchParams();
-  if (process.env.QONTO_IBAN) { p.set("iban", process.env.QONTO_IBAN); return p; }
-  const org = await qonto<{ organization: { bank_accounts: { id: string; main?: boolean }[] } }>("/organization");
-  const accounts = org.organization.bank_accounts;
-  const main = accounts.find((a) => a.main) ?? accounts[0];
-  if (!main) throw new Error("Aucun compte bancaire Qonto trouvé.");
-  p.set("bank_account_id", main.id);
-  return p;
-}
-
-/** Virements reçus (crédits terminés) depuis `since` (ISO). Pagination protégée contre les boucles. */
-export async function fetchCredits(since: string): Promise<QontoTx[]> {
-  const base = await bankAccountParams();
-  base.set("side", "credit");
-  base.append("status[]", "completed");
-  base.set("settled_at_from", since);
-  base.set("per_page", "100");
-  base.set("sort_by", "settled_at:desc");
-
-  const seen = new Set<string>();
-  const out: QontoTx[] = [];
-  for (let page = 1; page <= 50; page++) {
-    const p = new URLSearchParams(base);
-    p.set("page", String(page));
-    const r = await qonto<{ transactions: QontoTx[]; meta: { next_page: number | null } }>("/transactions", p);
-    const fresh = r.transactions.filter((t) => !seen.has(t.transaction_id));
-    if (!fresh.length) break;
-    fresh.forEach((t) => { seen.add(t.transaction_id); out.push(t); });
-    if (!r.meta?.next_page) break;
+  // 2. Finaliser
+  const finalRes = await fetch(`${BASE}/client_invoices/${draft.id}/finalize`, {
+    method: "POST",
+    headers,
+  });
+  if (!finalRes.ok) {
+    const txt = await finalRes.text();
+    throw new Error(`Qonto finalizeInvoice ${finalRes.status}: ${txt}`);
   }
-  return out;
-}
+  const { client_invoice: final } = await finalRes.json();
 
-export interface SyncReport { fetched: number; inserted: number; autoMatched: number; proposed: number }
-
-/** Importe les virements, rapproche automatiquement SEULEMENT les cas certains (n° de facture + montant exact). */
-export async function syncQonto(db: SupabaseClient, sinceDays = 90): Promise<SyncReport> {
-  const since = new Date(Date.now() - sinceDays * 86_400_000).toISOString();
-  const txs = await fetchCredits(since);
-  const report: SyncReport = { fetched: txs.length, inserted: 0, autoMatched: 0, proposed: 0 };
-  if (!txs.length) return report;
-
-  const rows = txs.filter((t) => t.amount > 0).map((t) => ({
-    source: "qonto", qonto_transaction_id: t.transaction_id, amount: t.amount, currency: t.currency,
-    received_at: t.settled_at ?? t.emitted_at ?? new Date().toISOString(),
-    counterparty: t.label, label: t.label, reference: t.reference
-  }));
-  const { data: inserted, error } = await db.from("payments")
-    .upsert(rows, { onConflict: "qonto_transaction_id", ignoreDuplicates: true }).select("id, amount, label, reference, counterparty");
-  if (error) throw new Error(`Import des paiements : ${error.message}`);
-  report.inserted = inserted?.length ?? 0;
-  if (!inserted?.length) return report;
-
-  const { data: open } = await db.from("invoices")
-    .select("id, number, total_ttc, paid_amount, clients(name, is_reserved)").in("status", ["envoye", "en_retard"]);
-  const candidates: InvoiceCandidate[] = (open ?? []).map((i: any) => ({
-    id: i.id, number: i.number, total_ttc: Number(i.total_ttc), paid_amount: Number(i.paid_amount),
-    client_name: i.clients.name, client_is_reserved: i.clients.is_reserved
-  }));
-
-  for (const p of inserted) {
-    const m = matchPayment({ amount: Number(p.amount), label: p.label, reference: p.reference, counterparty: p.counterparty }, candidates);
-    if (!m) continue;
-    if (m.confidence === "certain") {
-      const { error: e } = await db.rpc("reconcile_payment", { p_payment_id: p.id, p_invoice_id: m.invoiceId, p_ack_reserved: false });
-      if (!e) { report.autoMatched++; continue; }
-    }
-    await db.from("payments").update({ match_status: "propose", suggested_invoice_id: m.invoiceId }).eq("id", p.id);
-    report.proposed++;
-  }
-  return report;
+  return { id: final.id, number: final.number };
 }
