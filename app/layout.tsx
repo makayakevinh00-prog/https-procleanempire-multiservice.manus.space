@@ -14,7 +14,8 @@ const googleSiteVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
 const vercelAnalyticsEnabled = process.env.NEXT_PUBLIC_VERCEL_ANALYTICS === "1";
 
 export const metadata: Metadata = {
-  title: "Entreprise de nettoyage à Pontoise, Val-d'Oise et Paris | ProClean Empire",
+  title:
+    "Entreprise de nettoyage à Pontoise, Val-d'Oise et Paris | ProClean Empire",
   description:
     "ProClean Empire, entreprise de nettoyage à Pontoise : nettoyage de bureaux, commerces, ménage Airbnb et remise en état dans le Val-d'Oise et à Paris. Devis sous 24h.",
   metadataBase: new URL(siteConfig.url),
@@ -22,14 +23,27 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     locale: ogLocale[defaultLocale],
     type: "website",
-    images: [{ url: "/media/photos/hero-showcase.jpg", width: 1600, height: 1600, alt: "ProClean Empire" }]
+    images: [
+      {
+        url: "/media/photos/hero-showcase.jpg",
+        width: 1600,
+        height: 1600,
+        alt: "ProClean Empire",
+      },
+    ],
   },
   // Google Search Console : code de validation (méthode « balise HTML ») à mettre dans Vercel,
   // variable NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION (aucun secret). Sans variable : rien n'est ajouté.
-  ...(googleSiteVerification ? { verification: { google: googleSiteVerification } } : {})
+  ...(googleSiteVerification
+    ? { verification: { google: googleSiteVerification } }
+    : {}),
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": ["LocalBusiness", "ProfessionalService"],
@@ -44,9 +58,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       "Ménage Airbnb",
       "Nettoyage de bureaux et commerces",
       "Conciergerie d'entreprise",
-      "Remise en état"
-    ].map((name) => ({ "@type": "Offer", itemOffered: { "@type": "Service", name } })),
-    areaServed: ["Pontoise", "Cergy", "Val-d'Oise", "Paris", "Seine-Saint-Denis", "Saint-Ouen-sur-Seine", "Île-de-France"].map((name) => ({ "@type": "Place", name })),
+      "Remise en état",
+    ].map((name) => ({
+      "@type": "Offer",
+      itemOffered: { "@type": "Service", name },
+    })),
+    areaServed: [
+      "Pontoise",
+      "Cergy",
+      "Val-d'Oise",
+      "Paris",
+      "Seine-Saint-Denis",
+      "Saint-Ouen-sur-Seine",
+      "Île-de-France",
+    ].map((name) => ({ "@type": "Place", name })),
     telephone: siteConfig.phoneHref.replace("tel:", ""),
     email: siteConfig.email,
     address: {
@@ -55,8 +80,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       postalCode: "95300",
       addressLocality: siteConfig.city,
       addressRegion: siteConfig.region,
-      addressCountry: "FR"
-    }
+      addressCountry: "FR",
+    },
+    // Avis Google réels (relevé du 19/10/2026, cf. siteConfig.googleRating) : rich snippet étoiles dans les résultats Google.
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: siteConfig.googleRating.value.replace(",", "."),
+      reviewCount: siteConfig.googleRating.count,
+      bestRating: "5",
+    },
   };
 
   return (
@@ -78,7 +110,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationSchema),
+          }}
         />
       </body>
     </html>
