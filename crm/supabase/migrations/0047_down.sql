@@ -1,0 +1,16 @@
+drop function if exists automation_unfilled_jobs(text, int);
+drop function if exists automation_set_job_geo(text, uuid, double precision, double precision);
+drop function if exists automation_jobs_to_geocode(text);
+drop function if exists automation_concierge_apply(text, uuid, jsonb);
+drop function if exists automation_listing_sync_error(text, uuid, text);
+drop function if exists automation_concierge_listings(text);
+drop function if exists automation_claim_sync(text, int);
+drop function if exists automation_cleaner_new_link(text, text, text);
+drop function if exists automation_cleaner_register(text, jsonb, text);
+drop function if exists cleaner_update_profile2(text, text, text, text, double precision, double precision, int, text, text);
+drop function if exists cleaner_covers(cleaners, cleaning_jobs);
+drop function if exists geo_km(double precision, double precision, double precision, double precision);
+grant execute on function cleaner_signup(jsonb) to anon, authenticated;
+alter table cleaning_jobs drop column if exists lng, drop column if exists lat;
+alter table cleaners drop column if exists radius_km, drop column if exists lng, drop column if exists lat, drop column if exists postal_code, drop column if exists address_line;
+alter table marketplace_settings drop column if exists last_sync_at;

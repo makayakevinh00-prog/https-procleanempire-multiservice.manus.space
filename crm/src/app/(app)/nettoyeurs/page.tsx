@@ -18,11 +18,11 @@ import { formatDate } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Nettoyeurs" };
 const href = (t: string) => `/nettoyeurs?tab=${t}`;
-const TABS = ["reservations", "demandes", "inscriptions", "nettoyeurs", "draps", "paiements", "reglages"];
+const TABS = ["direct", "reservations", "demandes", "inscriptions", "nettoyeurs", "draps", "paiements", "reglages"];
 
 /** Nettoyeurs indépendants : demandes à publier et à vérifier, inscriptions à valider, favoris, paiements et réglages des parts. */
 export default async function CleanersPage({ searchParams }: { searchParams: { tab?: string } }) {
-  const tab = TABS.includes(searchParams.tab ?? "") ? searchParams.tab! : "demandes";
+  const tab = TABS.includes(searchParams.tab ?? "") ? searchParams.tab! : "direct";
   const sb = createClient();
   const today = parisToday();
   const [cl, jobs, fav, pay, set, clients, pub, photos, linen, staffRes, bookRes] = await Promise.all([
@@ -56,6 +56,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
   for (const j of J.filter((x) => x.status === "validee" && !x.payout_id && x.cleaner_id)) { const e = unpaid.get(j.cleaner_id) ?? { name: j.cleaners?.full_name ?? "", iban: !!cleaners.find((c) => c.id === j.cleaner_id)?.iban, n: 0, sum: 0 }; e.n++; e.sum += Number(j.cleaner_amount ?? 0); unpaid.set(j.cleaner_id, e); }
   const toPay = ((pay.data ?? []) as any[]).filter((p) => p.status === "a_payer");
   const tabs = [
+    { href: href("direct"), label: "En direct", count: J.filter((j) => j.status === "ouverte").length || null, active: tab === "direct" },
     { href: href("reservations"), label: "Réservations", count: newBookings.length || null, active: tab === "reservations" },
     { href: href("demandes"), label: "Demandes", count: toCheck.length + toPublish.length || null, active: tab === "demandes" },
     { href: href("inscriptions"), label: "Inscriptions", count: pending.length || null, active: tab === "inscriptions" },
@@ -75,6 +76,27 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
           <input readOnly value={fresh.url} aria-label="Lien du nettoyeur" className="w-full select-all rounded-md border bg-white px-3 py-2 font-mono text-xs" />
         </div>
       )}
+
+      {tab === "direct" && (() => {
+        const openJ = J.filter((j) => j.status === "ouverte" && j.job_date >= today), accepted = J.filter((j) => ["acceptee", "a_reprendre"].includes(j.status) && j.job_date >= addDays(today, -1)), sent = J.filter((j) => j.status === "a_verifier");
+        const soon = (d: string) => d <= addDays(today, 1);
+        const col = (title: string, tone: string, rows: any[], line: (j: any) => string, empty: string) => (
+          <Card className={tone}>
+            <CardHeader><CardTitle>{title} ({rows.length})</CardTitle></CardHeader>
+            {!rows.length ? <Empty>{empty}</Empty> : <ul className="divide-y text-sm">{rows.map((j) => <li key={j.id} className="px-5 py-2.5"><b className="font-medium">{j.title}</b><span className="block text-xs text-muted-foreground">{line(j)}</span></li>)}</ul>}
+          </Card>
+        );
+        return (
+          <>
+            <p className="mb-3 text-sm text-muted-foreground">Chaque réservation Airbnb ou Booking devient un ménage proposé automatiquement aux nettoyeurs de la zone. Vous recevez un e-mail à chaque acceptation, et une alerte si personne n&apos;accepte à moins de 24 h.</p>
+            <div className="grid gap-4 lg:grid-cols-3">
+              {col("À pourvoir", openJ.some((j) => soon(j.job_date)) ? "border-red-300" : "", openJ, (j) => `${dayFr(j.job_date)} · ${j.city ?? ""} · ${eur(j.cleaner_amount)} pour le nettoyeur${soon(j.job_date) ? " · URGENT : sans nettoyeur d'ici demain" : ""}`, "Aucun ménage en attente de nettoyeur.")}
+              {col("Acceptés", "", accepted, (j) => `${dayFr(j.job_date)} · ${j.cleaners?.full_name ?? "—"}${j.status === "a_reprendre" ? " · à reprendre" : ""}`, "Aucun ménage accepté à venir.")}
+              {col("Envoyés pour vérification", sent.length ? "border-amber-300" : "", sent, (j) => `${j.cleaners?.full_name ?? ""} · ${dayFr(j.job_date)} · à valider dans l'onglet Demandes`, "Rien à vérifier.")}
+            </div>
+          </>
+        );
+      })()}
 
       {tab === "reservations" && (
         <Card>
@@ -162,7 +184,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
             <ul className="divide-y text-sm">{pending.map((c) => (
               <li key={c.id} className="space-y-2 px-5 py-3">
                 <div className="flex flex-wrap items-center gap-2"><b className="font-medium">{c.full_name}</b><span className="text-muted-foreground">{c.email}{c.phone ? ` · ${c.phone}` : ""}</span><Badge tone="gray">{({ etudiant: "Étudiant", auto_entrepreneur: "Auto-entrepreneur", entreprise: "Entreprise" } as Record<string, string>)[c.statut_pro]}</Badge></div>
-                <div className="text-xs text-muted-foreground">Départements : {c.departments.join(", ")}{c.city ? ` · ${c.city}` : ""} · SIRET : {c.siret ? <a className="inline-flex items-center gap-0.5 text-primary underline" href={`https://annuaire-entreprises.data.gouv.fr/etablissement/${c.siret}`} target="_blank" rel="noreferrer">{c.siret} <ExternalLink className="h-3 w-3" /></a> : <b className="text-amber-700">non renseigné (obligatoire pour être payé)</b>}</div>
+                <div className="text-xs text-muted-foreground">Zone : {c.lat != null ? `${c.radius_km} km autour de ${c.postal_code ?? ""}` : `département ${c.departments.join(", ")}`}{c.city ? ` · ${c.city}` : ""} · SIRET : {c.siret ? <a className="inline-flex items-center gap-0.5 text-primary underline" href={`https://annuaire-entreprises.data.gouv.fr/etablissement/${c.siret}`} target="_blank" rel="noreferrer">{c.siret} <ExternalLink className="h-3 w-3" /></a> : <b className="text-amber-700">non renseigné (obligatoire pour être payé)</b>}</div>
                 <div className="flex gap-2">
                   <ConfirmAction action={approveCleanerAction.bind(null, c.id)} label="Valider et envoyer le lien" size="sm" title={`Valider ${c.full_name} ?`} description="Vérifiez le SIRET (lien ci-dessus). Un lien personnel est créé et envoyé par e-mail." confirmLabel="Valider" />
                   <ConfirmAction action={setCleanerStatusAction.bind(null, c.id, "refuse")} label="Refuser" size="sm" variant="ghost" title="Refuser cette inscription ?" confirmLabel="Refuser" />
@@ -182,7 +204,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
                 const mine = J.filter((j) => j.cleaner_id === c.id);
                 return (
                   <li key={c.id} className="flex flex-wrap items-center gap-3 px-5 py-3">
-                    <span className="min-w-0 flex-1"><b className="font-medium">{c.full_name}</b> {c.status === "suspendu" && <Badge tone="red">Suspendu</Badge>}<span className="block text-xs text-muted-foreground">{c.email} · {c.departments.join(", ")} · {mine.filter((j) => j.status === "validee").length} validé(s) · IBAN {c.iban ? "renseigné" : <b className="text-amber-700">manquant</b>}</span></span>
+                    <span className="min-w-0 flex-1"><b className="font-medium">{c.full_name}</b> {c.status === "suspendu" && <Badge tone="red">Suspendu</Badge>}<span className="block text-xs text-muted-foreground">{c.email} · {c.lat != null ? `${c.radius_km} km autour de ${c.postal_code ?? ""}` : c.departments.join(", ")} · {mine.filter((j) => j.status === "validee").length} validé(s) · IBAN {c.iban ? "renseigné" : <b className="text-amber-700">manquant</b>}</span></span>
                     {c.status === "actif" ? (<>
                       <ConfirmAction action={renewCleanerLinkAction.bind(null, c.id)} label="Nouveau lien" size="sm" variant="outline" title="Créer un nouveau lien ?" description="L'ancien lien cesse de fonctionner. Le nouveau est envoyé par e-mail et affiché ici une fois." confirmLabel="Créer" />
                       <ConfirmAction action={setCleanerStatusAction.bind(null, c.id, "suspendu")} label="Suspendre" size="sm" variant="ghost" title={`Suspendre ${c.full_name} ?`} description="Son lien est coupé et ses ménages à venir non commencés sont remis en ligne." confirmLabel="Suspendre" />
@@ -275,7 +297,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
               <Field label="2 pièces (€ HT)"><Input name="price_t2" inputMode="decimal" defaultValue={S.price_t2} /></Field>
               <Field label="3 pièces (€ HT)"><Input name="price_t3" inputMode="decimal" defaultValue={S.price_t3} /></Field>
               <Field label="Maison (€ HT)" className="sm:col-span-3"><Input name="price_maison" inputMode="decimal" defaultValue={S.price_maison} /></Field>
-              <label className="flex items-start gap-2 text-sm sm:col-span-3"><input type="checkbox" name="auto_publish" defaultChecked={S.auto_publish} className="mt-1" /><span><b className="font-medium">Publier automatiquement</b> les ménages à venir (30 jours) qui ont un prix et une adresse, chaque jour à 18 h.</span></label>
+              <label className="flex items-start gap-2 text-sm sm:col-span-3"><input type="checkbox" name="auto_publish" defaultChecked={S.auto_publish} className="mt-1" /><span><b className="font-medium">Publier automatiquement</b> chaque ménage Airbnb / Booking dès la réservation (calendriers lus à l&apos;ouverture de l&apos;application nettoyeur, au plus toutes les 30 min, et chaque jour à 18 h) : il faut un prix et une adresse sur le logement.</span></label>
               <label className="flex items-start gap-2 text-sm sm:col-span-3"><input type="checkbox" name="auto_payout" defaultChecked={S.auto_payout} className="mt-1" /><span><b className="font-medium">Créer automatiquement les paiements</b> chaque lundi pour la semaine passée. Le virement reste à faire (ou à valider) par vous : je ne vire jamais d&apos;argent seul.</span></label>
               <label className="flex items-start gap-2 text-sm sm:col-span-3"><input type="checkbox" name="require_photos" defaultChecked={S.require_photos} className="mt-1" /><span><b className="font-medium">Exiger une photo avant et une photo après</b> pour terminer un ménage.</span></label>
               <p className="text-xs text-muted-foreground sm:col-span-3">Contrôle des photos par l&apos;IA : {aiConfigured() ? "activé." : "pas encore activé (clé ANTHROPIC_API_KEY manquante dans Vercel). Sans clé, les photos arrivent chez vous sans analyse."}</p>

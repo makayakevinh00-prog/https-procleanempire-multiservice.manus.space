@@ -6,6 +6,7 @@ import { runConcierge } from "@/lib/concierge/run";
 import { addDays, isoWeekday, parisToday } from "@/lib/domain/dates";
 import { automationClient, automationSecret } from "@/lib/automation/deps";
 import { sendMail, mailConfigured } from "@/lib/mail";
+import { syncMarketplace } from "@/lib/marketplace/sync";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -44,7 +45,7 @@ export async function GET(req: Request) {
   if (!opts.dryRun) {
     try {
       const a = automationClient(), sec = automationSecret(), today = parisToday();
-      const pub = await a.rpc("automation_publish_cleaning_jobs", { p_secret: sec });
+      const sync = await syncMarketplace({ force: true });
       let payouts: unknown = null;
       if (isoWeekday(today) === 1) {
         const mon = addDays(today, -7), sun = addDays(today, -1);
@@ -53,7 +54,11 @@ export async function GET(req: Request) {
         const d = r.data as { payouts?: number; total?: number } | null;
         if (d?.payouts && mailConfigured()) await sendMail({ to: process.env.MAIL_ADMIN ?? "contact@procleanempire.com", subject: `Paiements nettoyeurs à régler : ${d.total} €`, text: `${d.payouts} paiement(s) créé(s) pour la semaine du ${mon} au ${sun}, soit ${d.total} € au total.\n\nÀ régler par virement : CRM › Nettoyeurs › Paiements (fichier de virements prêt pour Qonto).` }).catch(() => undefined);
       }
-      nettoyeurs = { published: pub.data ?? pub.error?.message ?? null, payouts };
+      // Alerte : ménages sans nettoyeur aujourd'hui ou demain.
+      const un = await a.rpc("automation_unfilled_jobs", { p_secret: sec, p_days: 1 });
+      const left = (un.data ?? []) as { title: string; date: string; city: string | null }[];
+      if (left.length && mailConfigured()) await sendMail({ to: process.env.MAIL_ADMIN ?? "contact@procleanempire.com", subject: `${left.length} ménage(s) sans nettoyeur d'ici demain`, text: `Personne n'a encore accepté :\n\n${left.map((j) => `• ${j.date} — ${j.title}${j.city ? ` (${j.city})` : ""}`).join("\n")}\n\nÀ pourvoir vous-même ou à attribuer : CRM › Nettoyeurs.` }).catch(() => undefined);
+      nettoyeurs = { sync, unfilled: left.length, payouts };
     } catch (e) { nettoyeurs = { error: (e as Error).message }; }
   }
   return Response.json({ automation, qonto, concierge, nettoyeurs });

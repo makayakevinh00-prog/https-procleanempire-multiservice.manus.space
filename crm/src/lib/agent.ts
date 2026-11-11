@@ -45,13 +45,14 @@ export function agentPrefs(): { lang: Lang; theme: ThemePref } {
 
 export type CleanerOverview = {
   name: string; email: string; phone: string | null; departments: string[]; city: string | null; has_iban: boolean; iban_hint: string | null;
+  address_line: string | null; postal_code: string | null; radius_km: number; has_location: boolean;
   window_start: string; window_end: string; max_end: string; done: number;
   pending_amount: number; to_pay_amount: number; in_payout_amount: number; paid_amount: number;
   payouts: { period_start: string; period_end: string; amount: number; jobs: number; status: string; paid_on: string | null }[];
 };
 export type CleanerJob = {
   id: string; title: string; date: string; window_start: string; window_end: string; hours: number | null; city: string | null; postal_code: string | null;
-  amount: number; favorite?: boolean; priority_until?: string | null; address?: string | null; access_notes?: string | null; status?: string; cleaner_note?: string | null; review_note?: string | null;
+  amount: number; distance_km?: number | null; favorite?: boolean; priority_until?: string | null; address?: string | null; access_notes?: string | null; status?: string; cleaner_note?: string | null; review_note?: string | null;
   departure?: "rester" | "partir" | null; photos_before?: number; photos_after?: number;
   before_report?: { items: { zone: string; todo: string }[]; level: number | null; summary: string } | null;
   ai_status?: "ok" | "reprise" | "indisponible" | null; ai_report?: { summary?: string; cleaned?: string[]; remaining?: { zone: string; why: string }[] } | null;

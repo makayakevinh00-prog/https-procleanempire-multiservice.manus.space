@@ -31,7 +31,7 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
   const head = { count: "exact" as const, head: true };
 
   // Un SEUL lot de requêtes en parallèle (réglages, compteurs, « pas encore arrivé ») : un seul aller-retour sur le chemin critique.
-  const [settings, contracts, invoices, quotes, payments, requests, dismissals, toConfirm, unassigned, unbilledDone, noAnswer, noEmail, mailFail, unsent, claims, anomalies, toCheck, toValidate, toContact, todayRowsRes] = await Promise.all([
+  const [settings, contracts, invoices, quotes, payments, requests, dismissals, toConfirm, unassigned, unbilledDone, noAnswer, noEmail, mailFail, unsent, claims, anomalies, toCheck, toValidate, toContact, todayRowsRes, unfilledJobs] = await Promise.all([
     getSettings(supabase),
     supabase.from("contracts").select("*").eq("status", "actif"),
     supabase.from("invoices").select("id, number, status, due_date, total_ht, clients(id, name, is_reserved)").neq("status", "annule").in("status", ["brouillon", "envoye", "en_retard"]),
@@ -51,7 +51,8 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
     supabase.from("interventions").select("id", head).eq("stage", "a_verifier"),
     supabase.from("interventions").select("id", head).eq("stage", "terminee").is("invoice_id", null),
     supabase.from("clients").select("id", head).eq("pipeline", "a_contacter"),
-    supabase.from("interventions").select("start_time, arrived_at, staff_id, stage").eq("scheduled_date", today).not("staff_id", "is", null).is("arrived_at", null).in("stage", ["planifiee", "affectee", "en_route"])
+    supabase.from("interventions").select("start_time, arrived_at, staff_id, stage").eq("scheduled_date", today).not("staff_id", "is", null).is("arrived_at", null).in("stage", ["planifiee", "affectee", "en_route"]),
+    supabase.from("cleaning_jobs").select("id", head).eq("status", "ouverte").gte("job_date", today).lte("job_date", addDays(today, 1))
   ]);
   for (const r of [contracts, invoices, quotes, payments, requests, toConfirm, unassigned, unbilledDone, noAnswer, noEmail, mailFail, unsent, claims, anomalies, toCheck, toValidate, toContact, todayRowsRes]) {
     if (r.error) throw new Error(r.error.message);
@@ -77,6 +78,7 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
   // Urgent
   add({ key: "mail_fail", tone: "red", count: mailFail.count ?? 0, label: "e-mail(s) en échec ces 7 derniers jours", href: "/journal" });
   add({ key: "not_arrived", tone: "red", count: notArrived, label: "agent(s) pas encore arrivé(s) sur place (plus de 15 min après l'heure prévue)", href: "/sur-place", menu: "/missions" });
+  if (!unfilledJobs.error) add({ key: "unfilled_cleanings", tone: "red", count: unfilledJobs.count ?? 0, label: "ménage(s) Airbnb sans nettoyeur pour aujourd'hui ou demain : personne n'a accepté", href: "/nettoyeurs?tab=direct", menu: "/nettoyeurs" });
   add({ key: "claims", tone: "red", count: claims.count ?? 0, label: "réclamation(s) client ouverte(s)", href: "/missions/problemes", menu: "/missions" });
   add({ key: "req_late", tone: "red", count: reqLateCount, label: "demande(s) de devis sans traitement depuis plus de 24 h", href: "/demandes", menu: "/clients" });
 

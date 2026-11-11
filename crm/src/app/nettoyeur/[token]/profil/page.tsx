@@ -26,7 +26,12 @@ export default async function CleanerProfile({ params, searchParams }: { params:
       {searchParams.error && <div role="alert" className="mt-4 rounded-2xl bg-[var(--a-badbg)] p-3 text-sm font-semibold text-[var(--a-bad)]">{searchParams.error}</div>}
       {searchParams.ok && <div role="status" className="mt-4 rounded-2xl bg-[var(--a-okbg)] p-3 text-sm font-semibold text-[var(--a-ok)]">{searchParams.ok}</div>}
       <form action={cleanerProfileAction.bind(null, params.token)} className="mt-4 space-y-4 rounded-3xl bg-[var(--a-card)] p-4">
-        <label className="block"><span className="mb-1 block text-[14px] font-bold">Départements où vous travaillez</span><input name="departments" defaultValue={o.departments.join(", ")} className={input} placeholder="95, 78, 75" /><span className="text-xs text-[var(--a-mute)]">Vous ne voyez que les ménages de ces départements.</span></label>
+        <label className="block"><span className="mb-1 block text-[14px] font-bold">Votre adresse</span><input name="address_line" defaultValue={o.address_line ?? ""} className={input} autoComplete="street-address" /></label>
+        <div className="grid grid-cols-[110px_1fr] gap-3">
+          <label className="block"><span className="mb-1 block text-[14px] font-bold">Code postal</span><input name="postal_code" defaultValue={o.postal_code ?? ""} required inputMode="numeric" pattern="\d{5}" maxLength={5} className={input} /></label>
+          <label className="block"><span className="mb-1 block text-[14px] font-bold">Ville</span><input name="city" defaultValue={o.city ?? ""} className={input} /></label>
+        </div>
+        <label className="block"><span className="mb-1 block text-[14px] font-bold">Rayon de déplacement (km)</span><input name="radius_km" type="number" min={1} max={100} defaultValue={o.radius_km} required className={input} /><span className="text-xs text-[var(--a-mute)]">{o.has_location ? "Adresse localisée : vous voyez les ménages dans ce rayon, avec la distance." : "Adresse non localisée : vous voyez les ménages de votre département. Complétez l'adresse pour activer le rayon."}</span></label>
         <label className="block"><span className="mb-1 block text-[14px] font-bold">Téléphone</span><input name="phone" defaultValue={o.phone ?? ""} inputMode="tel" className={input} /></label>
         <label className="block"><span className="mb-1 block text-[14px] font-bold">IBAN pour vos virements</span><input name="iban" autoComplete="off" className={input} placeholder={o.has_iban ? `Enregistré (${o.iban_hint}) : saisissez pour le remplacer` : "FR76 …"} /><span className="text-xs text-[var(--a-mute)]">Il n&apos;est jamais affiché en entier, ni à vous ni aux propriétaires.</span></label>
         <button className="h-14 w-full rounded-2xl bg-[var(--a-pri)] text-lg font-extrabold text-white">Enregistrer</button>
@@ -36,6 +41,7 @@ export default async function CleanerProfile({ params, searchParams }: { params:
         <ul className="mt-2 list-disc space-y-1 pl-5">
           <li>Les ménages ont lieu entre {o.window_start.slice(0, 5).replace(":", "h")} et {o.window_end.slice(0, 5).replace(":", "h")}, jamais après {o.max_end.slice(0, 5).replace(":", "h")}.</li>
           <li>Le premier qui accepte obtient le ménage ; les favoris du propriétaire passent d&apos;abord.</li>
+          <li>Les ménages s&apos;affichent autour de votre adresse, du plus proche au plus loin.</li>
           <li>Vous travaillez en indépendant : vous choisissez vos ménages.</li>
         </ul>
       </section>
