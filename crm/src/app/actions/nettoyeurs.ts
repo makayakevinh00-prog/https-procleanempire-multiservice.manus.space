@@ -9,6 +9,7 @@ import { checked, dbMessage, flash, numField, str } from "@/lib/data";
 import { addDays, parisToday } from "@/lib/domain/dates";
 import { sendMail, mailConfigured } from "@/lib/mail";
 import { pctsValid } from "@/lib/cleaner-ui";
+import { geocode } from "@/lib/zone";
 
 const BACK = "/nettoyeurs";
 const to = (tab: string) => `${BACK}?tab=${tab}`;
@@ -273,4 +274,21 @@ export async function refuseBookingAction(id: string) {
   const { error } = await createClient().from("cleaning_bookings").update({ status: "refusee" }).eq("id", id).eq("status", "nouvelle");
   if (error) flash(to("reservations"), "error", dbMessage(error));
   done("reservations", "Réservation refusée : pensez à prévenir le client.");
+}
+
+/** Ménage ponctuel (hors calendrier Airbnb) : publié tout de suite aux nettoyeurs de la zone. */
+export async function createManualJobAction(fd: FormData) {
+  await requireOwner();
+  const sb = createClient();
+  const clientId = str(fd, "client_id"), date = str(fd, "job_date"), postal = (str(fd, "postal_code") ?? "").replace(/\s/g, ""), price = numField(fd, "price_ht");
+  if (!clientId || !/^\d{4}-\d{2}-\d{2}$/.test(date ?? "") || !/^\d{5}$/.test(postal) || price == null || !(price >= 0)) flash(to("direct"), "error", "Choisissez le client, la date, le code postal et le prix.");
+  const city = str(fd, "city") ?? "", address = str(fd, "address") ?? "";
+  const { data: set } = await sb.from("marketplace_settings").select("window_start, window_end").maybeSingle();
+  const pt = await geocode({ address, postal_code: postal, city });
+  const { error } = await sb.from("cleaning_jobs").insert({
+    client_id: clientId, title: str(fd, "title") || `Ménage — ${city || postal}`, job_date: date, window_start: String((set as any)?.window_start ?? "11:00").slice(0, 5), window_end: String((set as any)?.window_end ?? "14:00").slice(0, 5),
+    city, postal_code: postal, address, access_notes: str(fd, "access_notes") || null, price_ht: price, lat: pt?.lat ?? null, lng: pt?.lng ?? null
+  });
+  if (error) flash(to("direct"), "error", dbMessage(error));
+  done("direct", "Ménage publié : les nettoyeurs de la zone le voient maintenant.");
 }

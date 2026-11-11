@@ -6,7 +6,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { agentClient, agentMessage, isToken } from "@/lib/agent";
 import { ibanValid } from "@/lib/cleaner-ui";
-import { geocode } from "@/lib/zone";
+import { geocode, inFrance } from "@/lib/zone";
 import { checkSiret, siretValid } from "@/lib/siret";
 import { sendMail, mailConfigured } from "@/lib/mail";
 import { automationClient, automationSecret } from "@/lib/automation/deps";
@@ -89,11 +89,13 @@ export async function cleanerProfileAction(token: string, fd: FormData) {
   if (!/^\d{5}$/.test(postal)) go(token, "/profil", "error", "Indiquez le code postal de votre adresse (5 chiffres).");
   if (!(radius >= 1 && radius <= 100)) go(token, "/profil", "error", "Le rayon doit être compris entre 1 et 100 km.");
   if (iban && !ibanValid(iban)) go(token, "/profil", "error", "Cet IBAN n'est pas valide : vérifiez les chiffres.");
-  const pt = await geocode({ address, postal_code: postal, city });
+  const gl = Number(fd.get("gps_lat")), gg = Number(fd.get("gps_lng"));
+  const gps = fd.get("gps_lat") && fd.get("gps_lng") && Number.isFinite(gl) && Number.isFinite(gg) && inFrance({ lat: gl, lng: gg }) ? { lat: gl, lng: gg } : null;
+  const pt = gps ?? (await geocode({ address, postal_code: postal, city }));
   const { error } = await agentClient().rpc("cleaner_update_profile2", { p_token: token, p_address: address, p_postal: postal, p_city: city, p_lat: pt?.lat ?? null, p_lng: pt?.lng ?? null, p_radius: radius, p_phone: String(fd.get("phone") ?? ""), p_iban: iban || null });
   if (error) go(token, "/profil", "error", agentMessage(error.message));
   revalidatePath(base(token), "layout");
-  go(token, "/profil", "ok", pt ? "Profil enregistré : vous voyez les ménages dans votre rayon." : "Profil enregistré. Votre adresse n'a pas pu être localisée : vous voyez les ménages de votre département.");
+  go(token, "/profil", "ok", pt ? (gps ? "Profil enregistré avec votre position GPS : vous voyez les ménages dans votre rayon." : "Profil enregistré : vous voyez les ménages dans votre rayon.") : "Profil enregistré. Votre adresse n'a pas pu être localisée : vous voyez les ménages de votre département.");
 }
 
 const SIGNUP = "/nettoyeur/inscription";

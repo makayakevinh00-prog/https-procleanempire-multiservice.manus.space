@@ -3,6 +3,7 @@ import { agentClient, agentMessage, isToken, type CleanerOverview } from "@/lib/
 import { cleanerProfileAction } from "@/app/actions/nettoyeur";
 import { initials } from "@/lib/field-ui";
 import { Gate } from "@/components/agent/gate";
+import { GpsButton } from "@/components/nettoyeur/live";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Profil — ProClean Empire", robots: { index: false, follow: false }, referrer: "no-referrer" };
@@ -31,6 +32,7 @@ export default async function CleanerProfile({ params, searchParams }: { params:
           <label className="block"><span className="mb-1 block text-[14px] font-bold">Code postal</span><input name="postal_code" defaultValue={o.postal_code ?? ""} required inputMode="numeric" pattern="\d{5}" maxLength={5} className={input} /></label>
           <label className="block"><span className="mb-1 block text-[14px] font-bold">Ville</span><input name="city" defaultValue={o.city ?? ""} className={input} /></label>
         </div>
+        <GpsButton />
         <label className="block"><span className="mb-1 block text-[14px] font-bold">Rayon de déplacement (km)</span><input name="radius_km" type="number" min={1} max={100} defaultValue={o.radius_km} required className={input} /><span className="text-xs text-[var(--a-mute)]">{o.has_location ? "Adresse localisée : vous voyez les ménages dans ce rayon, avec la distance." : "Adresse non localisée : vous voyez les ménages de votre département. Complétez l'adresse pour activer le rayon."}</span></label>
         <label className="block"><span className="mb-1 block text-[14px] font-bold">Téléphone</span><input name="phone" defaultValue={o.phone ?? ""} inputMode="tel" className={input} /></label>
         <label className="block"><span className="mb-1 block text-[14px] font-bold">IBAN pour vos virements</span><input name="iban" autoComplete="off" className={input} placeholder={o.has_iban ? `Enregistré (${o.iban_hint}) : saisissez pour le remplacer` : "FR76 …"} /><span className="text-xs text-[var(--a-mute)]">Il n&apos;est jamais affiché en entier, ni à vous ni aux propriétaires.</span></label>

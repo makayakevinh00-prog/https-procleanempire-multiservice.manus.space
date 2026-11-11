@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Field, Input, Select } from "@/components/ui/form";
 import { Tabs } from "@/components/ui/tabs";
 import { ConfirmAction } from "@/components/crm/confirm-action";
-import { approveCleanerAction, renewCleanerLinkAction, setCleanerStatusAction, toggleFavoriteAction, publishJobAction, publishAllJobsAction, cancelJobAction, validateJobAction, requestRedoAction, saveMarketplaceSettingsAction, createPayoutsAction, markPayoutPaidAction, setDepartureAction, sendControlAction, setLinenStatusAction, acceptBookingAction, refuseBookingAction } from "@/app/actions/nettoyeurs";
+import { approveCleanerAction, renewCleanerLinkAction, setCleanerStatusAction, toggleFavoriteAction, publishJobAction, publishAllJobsAction, cancelJobAction, validateJobAction, requestRedoAction, saveMarketplaceSettingsAction, createPayoutsAction, markPayoutPaidAction, setDepartureAction, sendControlAction, setLinenStatusAction, acceptBookingAction, refuseBookingAction, createManualJobAction } from "@/app/actions/nettoyeurs";
 import { JOB_STATUS, LINEN_STEP, dayFr, eur, slot } from "@/lib/cleaner-ui";
 import { aiConfigured } from "@/lib/ai-inspect";
 import { formatDate } from "@/lib/utils";
@@ -94,6 +94,19 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
               {col("Acceptés", "", accepted, (j) => `${dayFr(j.job_date)} · ${j.cleaners?.full_name ?? "—"}${j.status === "a_reprendre" ? " · à reprendre" : ""}`, "Aucun ménage accepté à venir.")}
               {col("Envoyés pour vérification", sent.length ? "border-amber-300" : "", sent, (j) => `${j.cleaners?.full_name ?? ""} · ${dayFr(j.job_date)} · à valider dans l'onglet Demandes`, "Rien à vérifier.")}
             </div>
+            <Card className="mt-4">
+              <CardHeader><CardTitle>Publier un ménage maintenant</CardTitle></CardHeader>
+              <form action={createManualJobAction} className="grid gap-3 px-5 pb-5 sm:grid-cols-3">
+                <Field label="Client"><Select name="client_id" required defaultValue="">{<option value="" disabled>Choisir…</option>}{((clients.data ?? []) as any[]).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select></Field>
+                <Field label="Date"><Input name="job_date" type="date" required min={today} /></Field>
+                <Field label="Prix HT facturé"><Input name="price_ht" type="number" step="0.01" min="0" required /></Field>
+                <Field label="Adresse"><Input name="address" /></Field>
+                <Field label="Code postal"><Input name="postal_code" required inputMode="numeric" maxLength={5} /></Field>
+                <Field label="Ville"><Input name="city" /></Field>
+                <Field label="Consignes d'accès (visibles après acceptation)"><Input name="access_notes" /></Field>
+                <div className="flex items-end"><Button>Publier aux nettoyeurs</Button></div>
+              </form>
+            </Card>
           </>
         );
       })()}
