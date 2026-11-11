@@ -6,12 +6,30 @@ import { premiumReviewsData } from "@/lib/content/phase1";
 import { siteConfig } from "@/lib/site";
 
 type CarouselSlide =
-  | { kind: "text"; id: string; name: string; company?: string; role?: string; rating: number; text: string }
-  | { kind: "video"; id: string; title: string; description: string; youtubeUrl: string };
+  | {
+      kind: "text";
+      id: string;
+      name: string;
+      company?: string;
+      role?: string;
+      rating: number;
+      text: string;
+    }
+  | {
+      kind: "video";
+      id: string;
+      title: string;
+      description: string;
+      youtubeUrl: string;
+    };
 
 function Rating({ value }: { value: number }) {
   return (
-    <div className="flex items-center gap-1 text-[#1d6fe0]" role="img" aria-label={`Note : ${value} sur 5`}>
+    <div
+      className="flex items-center gap-1 text-[#1d6fe0]"
+      role="img"
+      aria-label={`Note : ${value} sur 5`}
+    >
       {Array.from({ length: 5 }).map((_, index) => (
         <span key={index} aria-hidden>
           {index < value ? "★" : "☆"}
@@ -25,14 +43,17 @@ const AUTOPLAY_DELAY_MS = 6000;
 
 export function ReviewsPremiumSection() {
   const slides = useMemo<CarouselSlide[]>(() => {
-    const textSlides: CarouselSlide[] = premiumReviewsData.textReviews.map((review) => ({
-      kind: "text",
-      ...review
-    }));
-    const videoSlides: CarouselSlide[] = premiumReviewsData.videoTestimonials.map((video) => ({
-      kind: "video",
-      ...video
-    }));
+    const textSlides: CarouselSlide[] = premiumReviewsData.textReviews.map(
+      (review) => ({
+        kind: "text",
+        ...review,
+      }),
+    );
+    const videoSlides: CarouselSlide[] =
+      premiumReviewsData.videoTestimonials.map((video) => ({
+        kind: "video",
+        ...video,
+      }));
     return [...textSlides, ...videoSlides];
   }, []);
 
@@ -58,7 +79,32 @@ export function ReviewsPremiumSection() {
         <p className="mt-4 max-w-3xl text-lg leading-relaxed text-slate-700">
           {premiumReviewsData.sectionDescription}
         </p>
+        <div className="mt-4 flex items-center gap-2 text-[#14213d]">
+          <Rating value={5} />
+          <span className="text-base font-semibold">
+            {siteConfig.googleRating.value}/5
+          </span>
+          <span className="text-sm text-slate-500">
+            sur {siteConfig.googleRating.count} avis Google
+          </span>
+        </div>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <a
+            href={siteConfig.googleReviewsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-pill-ghost text-[#14213d]"
+          >
+            Voir nos avis Google
+          </a>
+          <a
+            href="https://fr.trustpilot.com/review/procleanempire.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-pill-ghost text-[#14213d]"
+          >
+            Voir nos avis Trustpilot
+          </a>
           <a
             href={siteConfig.googleReviewsUrl}
             target="_blank"
@@ -107,7 +153,9 @@ export function ReviewsPremiumSection() {
                     <p className="mt-3 text-lg font-semibold text-[#14213d]">
                       {slides[activeIndex].title}
                     </p>
-                    <p className="mt-2 text-sm text-slate-600">{slides[activeIndex].description}</p>
+                    <p className="mt-2 text-sm text-slate-600">
+                      {slides[activeIndex].description}
+                    </p>
                     <a
                       href={slides[activeIndex].youtubeUrl}
                       target="_blank"
@@ -135,7 +183,9 @@ export function ReviewsPremiumSection() {
                     <span
                       aria-hidden
                       className={`block h-2 rounded-full transition-all ${
-                        index === activeIndex ? "w-6 bg-[#14213d]" : "w-2 bg-slate-400"
+                        index === activeIndex
+                          ? "w-6 bg-[#14213d]"
+                          : "w-2 bg-slate-400"
                       }`}
                     />
                   </button>

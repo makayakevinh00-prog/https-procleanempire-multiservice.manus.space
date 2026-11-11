@@ -4,7 +4,8 @@ import { Metadata } from "next";
 // (lien public Microsoft Bookings ou Cal.com, ex. https://outlook.office.com/book/ProCleanEmpire@procleanempire.com/).
 // Sans variable : les boutons « Prendre RDV » mènent aux types de rendez-vous de /contact (WhatsApp ou téléphone).
 // (Page de réservation Axonaut retirée le 19/10/2026 — bascule Axonaut → Qonto.)
-const onlineBookingUrl: string = process.env.NEXT_PUBLIC_BOOKING_URL?.trim() || "";
+const onlineBookingUrl: string =
+  process.env.NEXT_PUBLIC_BOOKING_URL?.trim() || "";
 
 export const siteConfig = {
   name: "ProClean Empire",
@@ -31,18 +32,18 @@ export const siteConfig = {
     "https://g.page/r/CXuyftubiMPuEAE",
     "https://www.facebook.com/people/Proclean-Empire/61575993812750/",
     "https://www.instagram.com/proclean_empire/",
-    "https://www.linkedin.com/company/procelan-empire",
+    "https://www.linkedin.com/company/proclean-empire",
     "https://fr.trustpilot.com/review/procleanempire.com",
     "https://www.youtube.com/@ProCleanEmpire",
-    "https://www.tiktok.com/@procleanempire"
+    "https://www.tiktok.com/@procleanempire",
   ],
-  responseDelay: "Réactivité opérationnelle sur Pontoise et l'Île-de-France"
+  responseDelay: "Réactivité opérationnelle sur Pontoise et l'Île-de-France",
 };
 
 export function buildMetadata({
   title,
   description,
-  path = "/"
+  path = "/",
 }: {
   title: string;
   description: string;
@@ -55,7 +56,7 @@ export function buildMetadata({
     title: fullTitle,
     description,
     alternates: {
-      canonical
+      canonical,
     },
     openGraph: {
       title: fullTitle,
@@ -64,13 +65,20 @@ export function buildMetadata({
       siteName: siteConfig.name,
       locale: "fr_FR",
       type: "website",
-      images: [{ url: `${siteConfig.url}/media/photos/hero-showcase.jpg`, width: 1600, height: 1600, alt: "ProClean Empire" }]
+      images: [
+        {
+          url: `${siteConfig.url}/media/photos/hero-showcase.jpg`,
+          width: 1600,
+          height: 1600,
+          alt: "ProClean Empire",
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: fullTitle,
       description,
-      images: [`${siteConfig.url}/media/photos/hero-showcase.jpg`]
-    }
+      images: [`${siteConfig.url}/media/photos/hero-showcase.jpg`],
+    },
   };
 }
