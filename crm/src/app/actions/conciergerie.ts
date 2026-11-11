@@ -21,13 +21,24 @@ const done = (tab: string, msg: string) => {
 
 export async function saveListingAction(id: string | null, fd: FormData) {
   await requireAccess("conciergerie");
-  const name = str(fd, "name"),
-    clientId = str(fd, "client_id");
+  const name = str(fd, "name");
+  let clientId = str(fd, "client_id");
+  const sb0 = createClient();
+  // Nouveau propriétaire saisi dans le même formulaire : la fiche client est créée (ou retrouvée par son nom) sans quitter la page.
+  const ownerName = str(fd, "owner_name");
+  if (!clientId && ownerName) {
+    const ins = await sb0.from("clients").insert({ name: ownerName, kind: "particulier", status: "actif", email: str(fd, "owner_email"), phone: str(fd, "owner_phone") }).select("id").single();
+    if (ins.error?.code === "23505") {
+      const ex = await sb0.from("clients").select("id").ilike("name", ownerName).maybeSingle();
+      clientId = (ex.data as any)?.id ?? null;
+    } else if (ins.error) flash(back("logements"), "error", dbMessage(ins.error));
+    else clientId = (ins.data as any).id;
+  }
   if (!name || !clientId)
     flash(
       back("logements"),
       "error",
-      "Le nom du logement et le propriétaire sont obligatoires.",
+      "Le nom du logement et le propriétaire sont obligatoires (choisissez-en un ou saisissez un nouveau nom).",
     );
   const url = str(fd, "ical_url");
   if (url) {
@@ -38,10 +49,18 @@ export async function saveListingAction(id: string | null, fd: FormData) {
   const time = str(fd, "checkout_time");
   const hours = numField(fd, "cleaning_hours"),
     price = numField(fd, "cleaning_price_ht");
+  // Commission de gestion saisie ici : un contrat à pourcentage est créé pour ce propriétaire (une seule fois).
+  let contractId = str(fd, "contract_id");
+  const pct = numField(fd, "commission_pct");
+  if (!contractId && pct != null && pct > 0 && pct <= 100) {
+    const k = await sb0.from("contracts").insert({ client_id: clientId!, label: `Gestion locative — ${name}`, billing_mode: "autre", commission_pct: pct, status: "actif", activity: "gestion_locative" }).select("id").single();
+    if (k.error) flash(back("logements"), "error", dbMessage(k.error));
+    contractId = (k.data as any).id;
+  }
   const row = {
     name: name!,
     client_id: clientId!,
-    contract_id: str(fd, "contract_id"),
+    contract_id: contractId,
     platform: platform in PLATFORMS ? platform : "airbnb",
     ical_url: url,
     checkout_time: time && /^\d{2}:\d{2}$/.test(time) ? time : "11:00",

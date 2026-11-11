@@ -1,6 +1,7 @@
 "use server";
 
 import { requireAccess } from "@/lib/auth";
+import { lookupCompany } from "@/lib/enrich";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { checked, dbMessage, flash, str } from "@/lib/data";
@@ -97,4 +98,28 @@ export async function toggleClientEmailInvoicesAction(clientId: string, id: stri
   if (error) flash(back, "error", dbMessage(error));
   revalidatePath(back);
   flash(back, "ok", value ? "Cette adresse recevra les factures par défaut." : "Cette adresse ne recevra plus les factures par défaut.");
+}
+
+/** Bouton « Enrichir » : complète la fiche depuis l'annuaire officiel (SIREN, SIRET, TVA, activité, forme juridique, dirigeant, adresse). Ne remplace jamais ce que vous avez déjà saisi. */
+export async function enrichClientAction(id: string) {
+  await requireAccess("clients");
+  const back = `/clients/${id}`;
+  const sb = createClient();
+  const { data: c } = await sb.from("clients").select("name, siren, siret, address, postal_code, city, vat_number, naf_code, legal_form, creation_date, manager").eq("id", id).maybeSingle();
+  if (!c) flash("/clients", "error", "Client introuvable.");
+  const k = c as any;
+  const hit = await lookupCompany({ siren: k.siren ?? (k.siret ? String(k.siret).slice(0, 9) : null), name: k.name, city: k.city });
+  if (!hit.rival) flash(back, "error", hit.error ?? "Rien trouvé.");
+  const r = hit.rival!;
+  const patch: Record<string, unknown> = {};
+  const fill = (col: string, v: unknown) => { if ((k[col] === null || k[col] === "") && v) patch[col] = v; };
+  fill("siren", r.siren); fill("siret", r.siret); fill("vat_number", r.vat_number); fill("naf_code", r.naf_code); fill("legal_form", r.legal_form);
+  fill("creation_date", r.creation_date); fill("manager", r.manager); fill("address", r.address); fill("postal_code", r.postal_code); fill("city", r.city);
+  patch.registry_status = r.active ? "actif" : "cesse";
+  patch.registry_checked_at = new Date().toISOString();
+  const { error } = await sb.from("clients").update(patch).eq("id", id);
+  if (error) flash(back, "error", dbMessage(error));
+  revalidatePath(back);
+  const n = Object.keys(patch).length - 2;
+  flash(back, "ok", n > 0 ? `Fiche enrichie depuis l'annuaire officiel : ${n} information${n > 1 ? "s" : ""} ajoutée${n > 1 ? "s" : ""}.` : "Rien à ajouter : la fiche est déjà complète. Statut officiel vérifié.");
 }

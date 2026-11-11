@@ -64,15 +64,17 @@ export default async function VeillePage({
     q?: string;
     staff?: string;
     page?: string;
+    tri?: string;
+    voir?: string;
   };
 }) {
-  const tab = ["concurrents", "veille", "formations", "decouvrir"].includes(
+  const tab = ["secteur", "concurrents", "veille", "formations", "decouvrir"].includes(
     searchParams.tab ?? "",
   )
     ? searchParams.tab!
-    : "concurrents";
+    : "secteur";
   const sb = createClient();
-  const [comp, certs, links, watch, settings] = await Promise.all([
+  const [comp, certs, links, watch, settings, facts] = await Promise.all([
     sb.from("competitors").select("*").order("name"),
     sb.from("certifications").select("*").order("name"),
     sb
@@ -84,6 +86,7 @@ export default async function VeillePage({
       .order("observed_on", { ascending: false })
       .limit(200),
     sb.from("app_settings").select("company_siret").maybeSingle(),
+    sb.from("sector_facts").select("*").order("sort"),
   ]);
   for (const r of [comp, certs, links, watch])
     if (r.error) throw new Error(r.error.message);
@@ -111,7 +114,14 @@ export default async function VeillePage({
       !["obtenu", "ecarte"].includes(k.status),
   );
 
+  const factRows = (facts.error ? [] : (facts.data ?? [])) as any[];
   const tabs = [
+    {
+      href: href("secteur"),
+      label: "Le secteur",
+      count: null,
+      active: tab === "secteur",
+    },
     {
       href: href("concurrents"),
       label: "Concurrents",
@@ -145,6 +155,53 @@ export default async function VeillePage({
         subtitle="Qui sont vos concurrents, ce qu'ils font, les certifications et formations à viser pour vous aligner."
       />
       <Tabs items={tabs} />
+
+      {tab === "secteur" && (
+        <>
+          <p className="mb-4 max-w-3xl text-[14px] text-secondary-foreground">
+            Le marché du nettoyage en chiffres, avec la source de chacun. Rien n&apos;est à remplir : ces chiffres sont recherchés et mis à jour à partir de publications publiques.
+          </p>
+          {!factRows.length ? (
+            <Card><Empty>Chiffres du secteur en cours d&apos;installation : réessayez dans une minute.</Empty></Card>
+          ) : (
+            <div className="grid gap-4 lg:grid-cols-3">
+              {([["france", "En France"], ["monde", "Dans le monde"], ["acteurs", "Les plus gros acteurs"]] as const).map(([scope, title]) => (
+                <Card key={scope}>
+                  <CardContent className="space-y-4 p-4">
+                    <h2 className="text-[15px] font-semibold text-foreground">{title}</h2>
+                    {factRows.filter((f) => f.scope === scope).map((f) => (
+                      <div key={f.id} className="border-t border-border/60 pt-3 first:border-0 first:pt-0">
+                        <div className="text-xs text-muted-foreground">{f.label}</div>
+                        <div className="mt-0.5 text-[15px] font-semibold leading-snug text-foreground">{f.value}</div>
+                        {f.note && <p className="mt-1 text-xs text-secondary-foreground">{f.note}</p>}
+                        <p className="mt-1 text-[11px] text-muted-foreground">
+                          Source : {f.source_url ? <a href={f.source_url} target="_blank" rel="noopener noreferrer" className="underline">{f.source_name}</a> : f.source_name}{f.as_of ? ` · ${f.as_of}` : ""}
+                        </p>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+          <Card className="mt-4">
+            <CardContent className="p-4">
+              <h2 className="mb-1 text-[15px] font-semibold text-foreground">Les concurrents qui se rapprochent le plus de vos services</h2>
+              <p className="mb-3 text-xs text-muted-foreground">Ceux que vous suivez, les plus proches de Pontoise d&apos;abord. Ajoutez-en depuis « Découvrir dans l&apos;annuaire » ; leurs informations se remplissent toutes seules.</p>
+              {!competitors.length ? <p className="text-sm text-muted-foreground">Aucun concurrent suivi pour l&apos;instant.</p> : (
+                <ul className="divide-y text-sm">
+                  {[...competitors].sort((a, b) => Number(String(b.postal_code ?? "").startsWith("95")) - Number(String(a.postal_code ?? "").startsWith("95")) || (b.revenue_eur ?? 0) - (a.revenue_eur ?? 0)).slice(0, 8).map((c) => (
+                    <li key={c.id} className="flex flex-wrap items-center gap-x-3 py-2">
+                      <Link href={`/veille/${c.id}`} className="font-medium text-primary hover:underline">{c.name}</Link>
+                      <span className="text-muted-foreground">{[c.city, c.headcount, c.revenue_eur ? `CA ${formatEUR(c.revenue_eur)}${c.revenue_year ? ` (${c.revenue_year})` : ""}` : null].filter(Boolean).join(" · ") || "à enrichir"}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
 
       {tab === "concurrents" && (
         <>
@@ -406,13 +463,19 @@ export default async function VeillePage({
               </div>
             </Card>
           )}
+          <div className="mb-3 flex flex-wrap items-center gap-2 text-sm" aria-label="Filtrer les certifications">
+            {([["", "Priorité (écart avec la concurrence)"], ["prix", "Les moins chères d'abord"]] as const).map(([v, l]) => (
+              <Link key={v || "ecart"} href={href("formations", v ? `&tri=${v}` : "") + (searchParams.voir ? `&voir=${searchParams.voir}` : "")} className={`rounded-full border px-3 py-1 ${(searchParams.tri ?? "") === v ? "border-primary bg-primary text-primary-foreground" : "bg-card hover:bg-muted"}`}>{l}</Link>
+            ))}
+            <Link href={href("formations", searchParams.tri ? `&tri=${searchParams.tri}` : "") + (searchParams.voir === "a_obtenir" ? "" : "&voir=a_obtenir")} className={`ml-auto rounded-full border px-3 py-1 ${searchParams.voir === "a_obtenir" ? "border-primary bg-primary text-primary-foreground" : "bg-card hover:bg-muted"}`}>Seulement celles que je n&apos;ai pas</Link>
+          </div>
           <div className="mb-4 space-y-3">
-            {gapOrder(
-              certList,
-              new Map(
-                certList.map((k) => [k.id, holders.get(k.id)?.length ?? 0]),
-              ),
-            ).map((k) => (
+            {(() => {
+              const base = searchParams.voir === "a_obtenir" ? certList.filter((k) => !["obtenu", "ecarte"].includes(k.status)) : certList;
+              return searchParams.tri === "prix"
+                ? [...base].sort((a, b) => (a.cost_eur ?? Infinity) - (b.cost_eur ?? Infinity) || a.name.localeCompare(b.name))
+                : gapOrder(base, new Map(base.map((k) => [k.id, holders.get(k.id)?.length ?? 0])));
+            })().map((k) => (
               <Card key={k.id}>
                 <CardContent className="space-y-2 p-4">
                   <div className="flex flex-wrap items-center gap-2">
@@ -460,7 +523,9 @@ export default async function VeillePage({
                   )}
                   <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-500">
                     {k.provider && <span>Organisme : {k.provider}</span>}
-                    {k.cost_note && <span>Coût : {k.cost_note}</span>}
+                    {(k.cost_eur != null || k.cost_note) && <span>Coût : {k.cost_eur != null ? `${formatEUR(k.cost_eur)}${k.cost_note ? ` (${k.cost_note})` : ""}` : k.cost_note}</span>}
+                    {k.cost_eur == null && !k.cost_note && <span>Coût : à demander à l&apos;organisme</span>}
+                    {(k.enroll_url || k.source_url) && k.status !== "obtenu" && <a href={k.enroll_url ?? k.source_url} target="_blank" rel="noopener noreferrer" className="font-medium text-primary underline">S&apos;inscrire / demander un devis →</a>}
                     {k.duration_note && <span>Durée : {k.duration_note}</span>}
                     {k.target_date && (
                       <span>Objectif : {formatDate(k.target_date)}</span>

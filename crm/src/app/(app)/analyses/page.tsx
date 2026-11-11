@@ -57,6 +57,7 @@ export default async function AnalysesPage({
       .from("payments")
       .select("amount, received_at")
       .gt("amount", 0)
+      .eq("nature", "encaissement_client")
       .gte("received_at", start),
     sb
       .from("supplier_payments")
@@ -137,6 +138,25 @@ export default async function AnalysesPage({
   const sc = scenario({ revenue, costs }, caPct, costPct);
   const label = (m: string) => MONTH_NAMES[Number(m.slice(5)) - 1];
 
+  // Résumé en français courant : ce qu'il faut retenir, sans lire un seul graphique.
+  const eur0 = (n: number) => `${Math.round(n).toLocaleString("fr-FR")} €`;
+  const lastBilled = billed[last] ?? 0, beforeBilled = billed[before] ?? 0;
+  const bestIdx = billed.slice(0, -1).reduce((b, v, i, a) => (v > (a[b] ?? 0) ? i : b), 0);
+  const topAct = activityRows[0];
+  const summary: string[] = [];
+  summary.push(`Sur ${period} mois, vous avez facturé ${eur0(revenue)} HT et encaissé ${eur0(total(cashed))}.`);
+  if (beforeBilled > 0) {
+    const d = Math.round(((lastBilled - beforeBilled) / beforeBilled) * 100);
+    summary.push(`${label(months[last]).replace(/^./, (c) => c.toUpperCase())} : ${eur0(lastBilled)} facturés, soit ${d >= 0 ? `${d} % de plus` : `${Math.abs(d)} % de moins`} que ${label(months[before])}.`);
+  }
+  if (revenue > 0 && billed[bestIdx] > 0) summary.push(`Votre meilleur mois est ${label(months[bestIdx])} (${eur0(billed[bestIdx])}).`);
+  if (topAct && revenue > 0) summary.push(`${topAct.label} représente ${Math.round((topAct.value / revenue) * 100)} % du chiffre d'affaires${topAct.value / revenue > 0.6 ? " : une activité pèse beaucoup, pensez à diversifier" : ""}.`);
+  summary.push(costs > 0 ? `Dépenses enregistrées : ${eur0(costs)}, il resterait environ ${eur0(result)} avant charges et impôts.` : "Aucune dépense fournisseur n'est enregistrée : le bénéfice affiché est donc trop optimiste.");
+
+  const How = ({ children }: { children: React.ReactNode }) => (
+    <p className="mb-3 rounded-lg bg-secondary/50 px-3 py-2 text-[13px] text-secondary-foreground"><b className="font-medium text-foreground">Comment lire : </b>{children}</p>
+  );
+
   return (
     <>
       <PageHeader
@@ -151,7 +171,14 @@ export default async function AnalysesPage({
         }))}
       />
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-2">
+      <Card className="mt-5">
+        <CardHeader><CardTitle>En résumé</CardTitle></CardHeader>
+        <CardContent>
+          <ul className="list-disc space-y-1.5 pl-5 text-[14.5px] text-secondary-foreground">{summary.map((t) => <li key={t}>{t}</li>)}</ul>
+        </CardContent>
+      </Card>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Évolution mois par mois</CardTitle>
@@ -160,6 +187,7 @@ export default async function AnalysesPage({
             </span>
           </CardHeader>
           <CardContent className="pt-3">
+            <How>chaque mois a deux barres : ce que vous avez facturé (bleu) et ce que vous avez réellement reçu sur le compte (orange). Si l&apos;orange est souvent plus bas, des clients paient en retard.</How>
             <Legend
               items={[
                 { label: "Facturé (HT)", color: PALETTE[0] },
@@ -197,6 +225,7 @@ export default async function AnalysesPage({
             <span className="text-xs text-muted-foreground">mois complets</span>
           </CardHeader>
           <CardContent className="pt-3">
+            <How>on met côte à côte le dernier mois complet et celui d&apos;avant, pour voir ce qui monte ou baisse.</How>
             <Legend
               items={[
                 { label: label(months[before]), color: PALETTE[0] },
@@ -241,6 +270,7 @@ export default async function AnalysesPage({
             </span>
           </CardHeader>
           <CardContent className="pt-3">
+            <How>chaque barre est un type d&apos;activité ; plus elle est longue, plus elle pèse dans votre facturation.</How>
             {activityRows.length ? (
               <RankBars rows={activityRows} />
             ) : (
@@ -263,6 +293,7 @@ export default async function AnalysesPage({
             <span className="text-xs text-muted-foreground">{period} mois</span>
           </CardHeader>
           <CardContent className="pt-3">
+            <How>le camembert découpe vos dépenses par catégorie de fournisseur : la plus grosse part est celle où économiser rapporte le plus.</How>
             {costParts.length ? (
               <PieChart
                 parts={costParts}
@@ -283,6 +314,7 @@ export default async function AnalysesPage({
             <span className="text-xs text-muted-foreground">{period} mois</span>
           </CardHeader>
           <CardContent className="pt-3">
+            <How>on part de ce que vous facturez (à gauche), on retire chaque catégorie de dépenses (en rouge) et il reste le bénéfice estimé (à droite).</How>
             <Waterfall
               steps={steps}
               label="Cascade du chiffre d'affaires facturé au bénéfice estimé"
@@ -311,6 +343,7 @@ export default async function AnalysesPage({
             </span>
           </CardHeader>
           <CardContent className="pt-3">
+            <How>changez le pourcentage de chiffre d&apos;affaires ou de dépenses pour voir l&apos;effet sur le bénéfice, sans rien modifier dans le CRM.</How>
             <form
               action="/analyses"
               className="mb-4 flex flex-wrap items-end gap-3"

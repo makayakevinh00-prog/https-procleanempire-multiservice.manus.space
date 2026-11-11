@@ -35,56 +35,8 @@ export function CompetitorFields({
           placeholder="www.exemple.fr"
         />
       </Field>
-      <Field label="SIREN" hint="9 chiffres">
+      <Field label="SIREN" hint="Facultatif : sans SIREN, je retrouve l'entreprise par son nom">
         <Input name="siren" inputMode="numeric" defaultValue={c?.siren ?? ""} />
-      </Field>
-      <Field label="Ville">
-        <Input name="city" defaultValue={c?.city ?? ""} />
-      </Field>
-      <Field label="Code postal">
-        <Input name="postal_code" defaultValue={c?.postal_code ?? ""} />
-      </Field>
-      <Field label="Code NAF">
-        <Input
-          name="naf_code"
-          defaultValue={c?.naf_code ?? ""}
-          placeholder="81.21Z"
-        />
-      </Field>
-      <Field label="Taille">
-        <Input
-          name="headcount"
-          defaultValue={c?.headcount ?? ""}
-          placeholder="10 à 19 salariés"
-        />
-      </Field>
-      <Field label="Chiffre d'affaires (€)">
-        <Input
-          name="revenue_eur"
-          inputMode="decimal"
-          defaultValue={c?.revenue_eur ?? ""}
-        />
-      </Field>
-      <Field label="Année du CA">
-        <Input
-          name="revenue_year"
-          inputMode="numeric"
-          defaultValue={c?.revenue_year ?? ""}
-        />
-      </Field>
-      <Field label="Création">
-        <Input
-          name="creation_date"
-          type="date"
-          defaultValue={c?.creation_date ?? ""}
-        />
-      </Field>
-      <Field label="Dernière revue">
-        <Input
-          name="last_reviewed_on"
-          type="date"
-          defaultValue={c?.last_reviewed_on ?? ""}
-        />
       </Field>
       <Field label="Statut">
         <Select name="status" defaultValue={c?.status ?? "surveille"}>
@@ -239,7 +191,13 @@ export function CertFields({ k }: { k?: any }) {
       <Field label="Ce que ça nous apporte" className="sm:col-span-3">
         <Textarea name="benefit" defaultValue={k?.benefit ?? ""} />
       </Field>
-      <Field label="Coût">
+      <Field label="Coût (€, pour comparer)" hint="Facultatif : sert au tri « moins cher d'abord »">
+        <Input name="cost_eur" inputMode="decimal" defaultValue={k?.cost_eur ?? ""} />
+      </Field>
+      <Field label="Lien pour s'inscrire">
+        <Input name="enroll_url" defaultValue={k?.enroll_url ?? ""} placeholder="https://…" />
+      </Field>
+      <Field label="Coût (détail)">
         <Input name="cost_note" defaultValue={k?.cost_note ?? ""} />
       </Field>
       <Field label="Durée / délai">

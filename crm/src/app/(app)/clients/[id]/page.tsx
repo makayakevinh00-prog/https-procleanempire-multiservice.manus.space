@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Archive, FilePlus, Mail, MapPin, Pencil, Phone, Plus, Receipt, Repeat, Trash2, Undo2, Wallet } from "lucide-react";
+import { Sparkles, Archive, FilePlus, Mail, MapPin, Pencil, Phone, Plus, Receipt, Repeat, Trash2, Undo2, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { clientImpact } from "@/lib/impact";
 import { Empty } from "@/components/crm/page-header";
@@ -13,7 +13,7 @@ import { Tabs } from "@/components/ui/tabs";
 import { StatusBadge, ReservedBadge } from "@/components/ui/badge";
 import { Table, Td, Tr } from "@/components/ui/table";
 import { ConfirmAction } from "@/components/crm/confirm-action";
-import { addInteractionAction, addClientEmailAction, deleteClientEmailAction, setPipelineAction, toggleClientEmailInvoicesAction } from "@/app/actions/clients";
+import { enrichClientAction, addInteractionAction, addClientEmailAction, deleteClientEmailAction, setPipelineAction, toggleClientEmailInvoicesAction } from "@/app/actions/clients";
 import { archiveClientAction, deleteClientAction, deleteInteractionAction } from "@/app/actions/manage";
 import { PIPELINE, PIPELINE_LABEL, PIPELINE_TONE, type Pipeline } from "@/lib/request-type";
 import { cn, dueInfo, formatDate, formatEUR, formatHours } from "@/lib/utils";
@@ -97,7 +97,7 @@ export default async function ClientPage({ params, searchParams }: { params: { i
       {tab === "resume" && (
         <div className="grid gap-5 lg:grid-cols-3">
           <Card className="lg:col-span-2">
-            <CardHeader><CardTitle>Coordonnées et notes</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Coordonnées et notes</CardTitle>{c.kind === "entreprise" && <form action={enrichClientAction.bind(null, c.id)}><Button size="sm" variant="outline"><Sparkles className="mr-1.5 h-4 w-4" /> Enrichir depuis l&apos;annuaire</Button></form>}</CardHeader>
             <CardContent className="grid gap-x-8 gap-y-4 text-[15px] sm:grid-cols-2">
               <div><div className="text-xs font-semibold uppercase tracking-wide text-slate-400">E-mail</div>{c.email ?? "—"}</div>
               <div><div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Téléphone</div>{c.phone ?? "—"}</div>

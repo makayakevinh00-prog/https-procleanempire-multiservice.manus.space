@@ -2,6 +2,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { canViewAccounting } from "@/lib/auth";
+import { ComptaNav } from "@/components/crm/compta-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,7 @@ export default async function ComptaLayout({ children }: { children: React.React
         <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs text-muted-foreground">lecture seule</span>
         {allowed && <form action={signOut} className="ml-auto"><button className="rounded-lg border px-3 py-1.5 text-sm hover:bg-muted">Se déconnecter</button></form>}
       </header>
+      {allowed && <ComptaNav />}
       <main className="mx-auto max-w-[1400px] px-4 pb-16 pt-6 md:px-10">{children}</main>
     </div>
   );

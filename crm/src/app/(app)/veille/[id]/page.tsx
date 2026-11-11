@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ExternalLink, Plus } from "lucide-react";
+import { ExternalLink, Plus, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
+  askCompetitorResearchAction,
+  enrichCompetitorAction,
   deleteCompetitorAction,
   deleteWatchAction,
   saveCompetitorAction,
@@ -16,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmAction } from "@/components/crm/confirm-action";
 import { CompetitorFields, WatchFields } from "@/components/crm/veille-fields";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatEUR } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 const IMPACT_TONE: Record<string, "gray" | "orange" | "red"> = {
@@ -101,7 +103,26 @@ export default async function CompetitorPage({
 
       <Card className="mb-4">
         <CardHeader>
-          <CardTitle>Fiche</CardTitle>
+          <CardTitle>Ce que l&apos;on sait de {c.name}</CardTitle>
+          <form action={enrichCompetitorAction.bind(null, c.id)}><Button size="sm"><Sparkles className="mr-1.5 h-4 w-4" /> Enrichir automatiquement</Button></form>
+        </CardHeader>
+        <CardContent>
+          <dl className="grid gap-x-8 gap-y-3 text-sm sm:grid-cols-3">
+            {([["Ville", [c.city, c.postal_code].filter(Boolean).join(" ")], ["Taille", c.headcount], ["Chiffre d'affaires publié", c.revenue_eur ? `${formatEUR(c.revenue_eur)}${c.revenue_year ? ` (${c.revenue_year})` : ""}` : null], ["Activité (NAF)", c.naf_code], ["Création", c.creation_date ? formatDate(c.creation_date) : null], ["SIREN", c.siren]] as [string, string | null][]).map(([k, v]) => (
+              <div key={k}><dt className="text-xs text-muted-foreground">{k}</dt><dd className="font-medium">{v || <span className="font-normal text-muted-foreground">non renseigné</span>}</dd></div>
+            ))}
+          </dl>
+          <p className="mt-3 text-xs text-muted-foreground">Ces informations viennent de l&apos;annuaire officiel des entreprises : ne les saisissez pas, cliquez sur « Enrichir ». Un chiffre d&apos;affaires absent veut dire que l&apos;entreprise ne le publie pas.</p>
+          <form action={askCompetitorResearchAction.bind(null, c.id)} className="mt-3 flex flex-wrap items-center gap-3 border-t pt-3">
+            <Button size="sm" variant="outline">Demander la recherche web à l&apos;assistant</Button>
+            <span className="text-xs text-muted-foreground">Prix, labels, certifications, points forts : l&apos;assistant les cherche et remplit la fiche ci-dessous.</span>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>Notes et analyse</CardTitle>
         </CardHeader>
         <CardContent>
           <form

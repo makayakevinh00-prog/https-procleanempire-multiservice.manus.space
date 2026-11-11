@@ -28,9 +28,9 @@ export function ListingForm({
           placeholder="Studio République"
         />
       </Field>
-      <Field label="Propriétaire *">
-        <Select name="client_id" required defaultValue={l?.client_id ?? ""}>
-          <option value="">— choisir —</option>
+      <Field label="Propriétaire *" hint={l ? undefined : "Déjà client ? Choisissez-le. Sinon laissez « nouveau » et remplissez les 3 champs ci-dessous."}>
+        <Select name="client_id" required={!!l} defaultValue={l?.client_id ?? ""}>
+          <option value="">{l ? "— choisir —" : "— nouveau propriétaire —"}</option>
           {clients.map((c) => (
             <option key={c.id} value={c.id}>
               {c.label}
@@ -38,6 +38,14 @@ export function ListingForm({
           ))}
         </Select>
       </Field>
+      {!l && (
+        <>
+          <Field label="Nouveau propriétaire : nom"><Input name="owner_name" placeholder="M. Martin" /></Field>
+          <Field label="E-mail"><Input name="owner_email" type="email" /></Field>
+          <Field label="Téléphone"><Input name="owner_phone" /></Field>
+          <Field label="Votre commission de gestion (%)" hint="Crée le contrat à pourcentage : vous suivrez ensuite la commission mois par mois dans l'onglet Revenus."><Input name="commission_pct" inputMode="decimal" placeholder="ex. 20" /></Field>
+        </>
+      )}
       <Field label="Contrat (commission, tarifs)">
         <Select name="contract_id" defaultValue={l?.contract_id ?? ""}>
           <option value="">— aucun —</option>

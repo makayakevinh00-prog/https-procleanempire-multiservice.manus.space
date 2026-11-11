@@ -594,8 +594,9 @@ export default async function ConciergeriePage({
           <Card className="overflow-hidden">
             {!commissionContracts.length ? (
               <Empty icon={KeyRound}>
-                Aucun contrat à commission. Créez un contrat de gestion locative
-                avec un pourcentage pour suivre votre commission ici.
+                Aucune commission à suivre. Dans l&apos;onglet{" "}
+                <Link href="/conciergerie?tab=logements" className="text-primary underline">Logements</Link>,
+                ajoutez un logement en indiquant votre commission en % : le contrat est créé pour vous.
               </Empty>
             ) : (
               <div className="divide-y">
