@@ -29,14 +29,14 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
   const today = parisToday();
   const [cl, jobs, fav, pay, set, clients, pub, photos, linen, staffRes, bookRes] = await Promise.all([
     sb.from("cleaners").select("*").order("created_at", { ascending: false }),
-    sb.from("cleaning_jobs").select("*, cleaners(full_name), clients(name)").neq("status", "annulee").gte("job_date", addDays(today, -30)).order("job_date"),
+    sb.from("cleaning_jobs").select("*, cleaners!cleaning_jobs_cleaner_id_fkey(full_name), clients(name)").neq("status", "annulee").gte("job_date", addDays(today, -30)).order("job_date"),
     sb.from("cleaner_favorites").select("cleaner_id, client_id, cleaners(full_name), clients(name)"),
     sb.from("cleaning_payouts").select("*, cleaners(full_name, iban)").order("created_at", { ascending: false }).limit(60),
     sb.from("marketplace_settings").select("*").maybeSingle(),
     sb.from("clients").select("id, name").neq("status", "inactif").order("name"),
     sb.from("interventions").select("id, title, scheduled_date, clients(name)").like("source_key", "conc:%").is("staff_id", null).is("assignee", null).gte("scheduled_date", today).lte("scheduled_date", addDays(today, 30)).not("stage", "in", "(annulee,terminee,validee,facturable,facturee)").order("scheduled_date"),
     sb.from("cleaning_job_photos").select("id, job_id, kind").order("created_at"),
-    sb.from("cleaning_linen").select("*, cleaning_jobs(title, job_date, cleaners(full_name))").order("updated_at", { ascending: false }).limit(60),
+    sb.from("cleaning_linen").select("*, cleaning_jobs(title, job_date, cleaners!cleaning_jobs_cleaner_id_fkey(full_name))").order("updated_at", { ascending: false }).limit(60),
     sb.from("staff").select("id, full_name").eq("active", true).order("full_name"),
     sb.from("cleaning_bookings").select("*").order("created_at", { ascending: false }).limit(60)
   ]);
