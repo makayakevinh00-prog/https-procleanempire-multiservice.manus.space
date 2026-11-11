@@ -87,7 +87,7 @@ describe("actions serveur appelées directement", () => {
 
   it("les actions de l'application des nettoyeurs refusent un jeton invalide sans interroger la base", async () => {
     const mod: any = await import("../src/app/actions/nettoyeur");
-    for (const name of ["cleanerAcceptAction", "cleanerReleaseAction", "cleanerFinishAction", "cleanerProfileAction"]) {
+    for (const name of ["cleanerAcceptAction", "cleanerReleaseAction", "cleanerFinishAction", "cleanerProfileAction", "cleanerLinenAction"]) {
       h.calls = [];
       const msg = await (async () => { try { await mod[name]("pas-un-jeton", UUID, new FormData()); return null; } catch (e) { return (e as Error).message; } })();
       expect(msg, name).toBe("REDIRECT:/nettoyeur/invalide");

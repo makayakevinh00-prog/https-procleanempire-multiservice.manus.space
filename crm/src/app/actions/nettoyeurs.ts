@@ -5,7 +5,7 @@ import { cookies, headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { requireOwner } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { dbMessage, flash, numField, str } from "@/lib/data";
+import { checked, dbMessage, flash, numField, str } from "@/lib/data";
 import { addDays, parisToday } from "@/lib/domain/dates";
 import { sendMail, mailConfigured } from "@/lib/mail";
 import { pctsValid } from "@/lib/cleaner-ui";
@@ -138,10 +138,10 @@ export async function validateJobAction(id: string) {
   const sb = createClient();
   const { data: j } = await sb.from("cleaning_jobs").select("status, intervention_id").eq("id", id).maybeSingle();
   if (!j || (j as any).status !== "a_verifier") flash(to("demandes"), "error", "Ce ménage n'est pas en attente de vérification.");
-  const { error } = await sb.from("cleaning_jobs").update({ status: "validee", validated_at: new Date().toISOString() }).eq("id", id);
+  const { error } = await sb.from("cleaning_jobs").update({ status: "validee", validated_at: new Date().toISOString(), departure: "partir" }).eq("id", id);
   if (error) flash(to("demandes"), "error", dbMessage(error));
   if ((j as any).intervention_id) await sb.from("interventions").update({ stage: "validee" }).eq("id", (j as any).intervention_id);
-  done("demandes", "Ménage validé : il entre dans les gains du nettoyeur.");
+  done("demandes", "Ménage validé : le nettoyeur est autorisé à partir et le ménage entre dans ses gains.");
 }
 
 export async function requestRedoAction(id: string, fd: FormData) {
@@ -149,9 +149,9 @@ export async function requestRedoAction(id: string, fd: FormData) {
   const note = str(fd, "note");
   if (!note) flash(to("demandes"), "error", "Dites au nettoyeur ce qu'il faut reprendre.");
   const sb = createClient();
-  const { error } = await sb.from("cleaning_jobs").update({ status: "a_reprendre", review_note: note }).eq("id", id).eq("status", "a_verifier");
+  const { error } = await sb.from("cleaning_jobs").update({ status: "a_reprendre", review_note: note, departure: "rester" }).eq("id", id).eq("status", "a_verifier");
   if (error) flash(to("demandes"), "error", dbMessage(error));
-  done("demandes", "Demande de reprise envoyée : le nettoyeur la voit dans son application.");
+  done("demandes", "Demande de reprise envoyée : le nettoyeur voit le motif et doit rester sur place.");
 }
 
 export async function saveMarketplaceSettingsAction(fd: FormData) {
@@ -161,7 +161,7 @@ export async function saveMarketplaceSettingsAction(fd: FormData) {
   const t = (k: string, d: string) => { const v = str(fd, k); return v && /^\d{2}:\d{2}$/.test(v) ? v : d; };
   const ws = t("window_start", "11:00"), we = t("window_end", "14:00"), mx = t("max_end", "16:00");
   if (!(we > ws && mx >= we)) flash(to("reglages"), "error", "Le créneau doit finir après son début, et la fin maximale après la fin prévue.");
-  const { error } = await createClient().from("marketplace_settings").update({ cleaner_pct: c!, platform_pct: p!, logistics_pct: l!, window_start: ws, window_end: we, max_end: mx, priority_minutes: Math.max(0, Math.min(2880, Math.round(numField(fd, "priority_minutes") ?? 120))), updated_at: new Date().toISOString() }).eq("id", true);
+  const { error } = await createClient().from("marketplace_settings").update({ cleaner_pct: c!, platform_pct: p!, logistics_pct: l!, window_start: ws, window_end: we, max_end: mx, priority_minutes: Math.max(0, Math.min(2880, Math.round(numField(fd, "priority_minutes") ?? 120))), price_studio: Math.max(0, numField(fd, "price_studio") ?? 45), price_t2: Math.max(0, numField(fd, "price_t2") ?? 60), price_t3: Math.max(0, numField(fd, "price_t3") ?? 75), price_maison: Math.max(0, numField(fd, "price_maison") ?? 95), auto_publish: checked(fd, "auto_publish"), auto_payout: checked(fd, "auto_payout"), require_photos: checked(fd, "require_photos"), updated_at: new Date().toISOString() }).eq("id", true);
   if (error) flash(to("reglages"), "error", dbMessage(error));
   done("reglages", "Réglages enregistrés : ils s'appliquent aux prochains ménages publiés.");
 }
@@ -191,4 +191,86 @@ export async function markPayoutPaidAction(id: string) {
   const { error } = await createClient().from("cleaning_payouts").update({ status: "paye", paid_on: parisToday() }).eq("id", id).eq("status", "a_payer");
   if (error) flash(to("paiements"), "error", dbMessage(error));
   done("paiements", "Paiement marqué comme payé : le nettoyeur le voit dans ses gains.");
+}
+
+/** Décision de la direction pour le nettoyeur sur place : il peut partir, ou il doit rester. */
+export async function setDepartureAction(id: string, decision: "rester" | "partir") {
+  await requireOwner();
+  if (decision !== "rester" && decision !== "partir") flash(to("demandes"), "error", "Décision inconnue.");
+  const { error } = await createClient().from("cleaning_jobs").update({ departure: decision }).eq("id", id).in("status", ["a_verifier", "a_reprendre", "acceptee"]);
+  if (error) flash(to("demandes"), "error", dbMessage(error));
+  done("demandes", decision === "partir" ? "Le nettoyeur est autorisé à partir." : "Le nettoyeur doit rester sur place.");
+}
+
+/** Envoie un de vos agents contrôler le logement sur place : une mission « Contrôle » apparaît dans son application, et le nettoyeur est prié de rester. */
+export async function sendControlAction(id: string, fd: FormData) {
+  await requireOwner();
+  const staff = str(fd, "staff_id");
+  if (!staff) flash(to("demandes"), "error", "Choisissez l'agent qui va contrôler.");
+  const sb = createClient();
+  const { data: j } = await sb.from("cleaning_jobs").select("title, client_id, job_date, address, status, control_intervention_id").eq("id", id).maybeSingle();
+  if (!j || !["a_verifier", "a_reprendre"].includes((j as any).status)) flash(to("demandes"), "error", "Ce ménage n'est pas en attente de vérification.");
+  const k = j as any;
+  if (k.control_intervention_id) flash(to("demandes"), "error", "Un contrôle sur place est déjà demandé pour ce ménage.");
+  const { data: i, error } = await sb.from("interventions").insert({
+    client_id: k.client_id, title: `Contrôle qualité — ${String(k.title).replace(/^Ménage — /, "")}`, scheduled_date: k.job_date, staff_id: staff, stage: "affectee",
+    site_address: k.address, notes: "Vérifier sur place que le ménage est bien fait ; signaler tout défaut. Le nettoyeur attend votre passage.", billable: false
+  }).select("id").single();
+  if (error) flash(to("demandes"), "error", dbMessage(error));
+  await sb.from("cleaning_jobs").update({ control_intervention_id: (i as any).id, departure: "rester" }).eq("id", id);
+  done("demandes", "Contrôle sur place demandé : la mission est dans l'application de l'agent et le nettoyeur est prié de rester.");
+}
+
+/** Linge : l'entreprise fait laver (« lavé ») puis renvoie (« renvoyé ») ; le nettoyeur récupère et remet en place. */
+export async function setLinenStatusAction(jobId: string, status: "lave" | "renvoye") {
+  await requireOwner();
+  const need = status === "lave" ? "depose" : "lave";
+  if (status !== "lave" && status !== "renvoye") flash(to("draps"), "error", "Étape inconnue.");
+  const { error, data } = await createClient().from("cleaning_linen").update({ status, updated_at: new Date().toISOString() }).eq("job_id", jobId).eq("status", need).select("id");
+  if (error) flash(to("draps"), "error", dbMessage(error));
+  if (!data?.length) flash(to("draps"), "error", status === "lave" ? "Les draps doivent d'abord être déposés par le nettoyeur." : "Les draps doivent d'abord être marqués comme lavés.");
+  done("draps", status === "lave" ? "Draps marqués comme lavés." : "Draps renvoyés : le nettoyeur peut les récupérer.");
+}
+
+/** Accepte une réservation : le client est retrouvé (par e-mail) ou créé, le ménage est publié aux nettoyeurs de la zone, et le client reçoit la confirmation. */
+export async function acceptBookingAction(id: string, fd: FormData) {
+  await requireOwner();
+  const sb = createClient();
+  const { data: b } = await sb.from("cleaning_bookings").select("*").eq("id", id).eq("status", "nouvelle").maybeSingle();
+  if (!b) flash(to("reservations"), "error", "Cette réservation n'est plus en attente.");
+  const k = b as any;
+  const price = numField(fd, "price_ht") ?? Number(k.price_ht);
+  if (!(price >= 0)) flash(to("reservations"), "error", "Prix invalide.");
+  const { data: set } = await sb.from("marketplace_settings").select("window_start, window_end").maybeSingle();
+  let clientId: string | null = ((await sb.from("clients").select("id").ilike("email", k.email).limit(1).maybeSingle()).data as any)?.id ?? null;
+  if (!clientId) {
+    const ins = await sb.from("clients").insert({ name: k.name, kind: "particulier", status: "actif", email: k.email, phone: k.phone, address: k.address, postal_code: k.postal_code, city: k.city }).select("id").single();
+    if (ins.error?.code === "23505") clientId = ((await sb.from("clients").select("id").ilike("name", k.name).limit(1).maybeSingle()).data as any)?.id ?? null;
+    else if (ins.error) flash(to("reservations"), "error", dbMessage(ins.error));
+    else clientId = (ins.data as any).id;
+  }
+  if (!clientId) flash(to("reservations"), "error", "Impossible de retrouver ou créer le client.");
+  const label = ({ studio: "Studio", t2: "2 pièces", t3: "3 pièces", maison: "Maison" } as Record<string, string>)[k.kind] ?? k.kind;
+  const { data: job, error } = await sb.from("cleaning_jobs").insert({
+    client_id: clientId!, title: `Ménage — ${label} (${k.city})`, job_date: k.job_date, window_start: String((set as any)?.window_start ?? "11:00").slice(0, 5), window_end: String((set as any)?.window_end ?? "14:00").slice(0, 5),
+    city: k.city, postal_code: k.postal_code, address: k.address, access_notes: [k.access_notes, k.note].filter(Boolean).join(" — ") || null, price_ht: price
+  }).select("id").single();
+  if (error) flash(to("reservations"), "error", dbMessage(error));
+  await sb.from("cleaning_bookings").update({ status: "acceptee", job_id: (job as any).id, price_ht: price }).eq("id", id);
+  let mailed = false;
+  if (mailConfigured()) {
+    const day = new Date(k.job_date + "T12:00:00Z").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+    const r = await sendMail({ to: k.email, subject: "Votre ménage est confirmé — ProClean Empire", text: `Bonjour ${String(k.name).split(" ")[0]},
+
+Votre ménage (${label}) est confirmé le ${day}, entre ${String((set as any)?.window_start ?? "11:00").slice(0, 5).replace(":", "h")} et ${String((set as any)?.window_end ?? "14:00").slice(0, 5).replace(":", "h")}, à ${k.address}, ${k.postal_code} ${k.city}.\n\nUn nettoyeur va être désigné. Prix : ${price.toLocaleString("fr-FR")} € HT, à régler sur facture après le ménage.\n\nÀ bientôt,\nProClean Empire`.replace(/\\n/g, "\n") });
+    mailed = r.sent;
+  }
+  done("reservations", `Réservation acceptée et publiée aux nettoyeurs de la zone${mailed ? ". Confirmation envoyée au client." : " (e-mail non envoyé : prévenez le client)."}`);
+}
+
+export async function refuseBookingAction(id: string) {
+  await requireOwner();
+  const { error } = await createClient().from("cleaning_bookings").update({ status: "refusee" }).eq("id", id).eq("status", "nouvelle");
+  if (error) flash(to("reservations"), "error", dbMessage(error));
+  done("reservations", "Réservation refusée : pensez à prévenir le client.");
 }

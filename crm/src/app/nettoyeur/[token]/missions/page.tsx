@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { MapPin, KeyRound, Clock, ChevronRight } from "lucide-react";
 import { agentClient, agentMessage, isToken, type CleanerJob } from "@/lib/agent";
-import { cleanerFinishAction, cleanerReleaseAction } from "@/app/actions/nettoyeur";
-import { JOB_STATUS, dayFr, eur, slot } from "@/lib/cleaner-ui";
+import { cleanerFinishAction, cleanerLinenAction, cleanerReleaseAction } from "@/app/actions/nettoyeur";
+import { CleanerPhotoButton } from "@/components/agent/cleaner-photo";
+import { JOB_STATUS, LINEN_STEP, dayFr, eur, slot } from "@/lib/cleaner-ui";
 import { Gate } from "@/components/agent/gate";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,7 @@ export default async function CleanerMissions({ params, searchParams }: { params
   if (!isToken(token)) return <Gate text="Ce lien n'est pas valide." />;
   const { data, error } = await agentClient().rpc("cleaner_my_jobs", { p_token: token });
   if (error) return <Gate text={agentMessage(error.message)} />;
-  const jobs = (data as { jobs: CleanerJob[] }).jobs;
+  const jobs = (data as { jobs: CleanerJob[]; require_photos: boolean }).jobs, needPhotos = (data as { require_photos: boolean }).require_photos;
   const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Paris" });
   const card = "space-y-3 rounded-3xl bg-[var(--a-card)] p-4";
   return (
@@ -41,11 +42,48 @@ export default async function CleanerMissions({ params, searchParams }: { params
               {j.status === "a_reprendre" && j.review_note && <div className="rounded-2xl bg-[var(--a-badbg)] p-3 text-[14px] text-[var(--a-bad)]"><b>La direction demande de repasser :</b> {j.review_note}</div>}
               {j.status === "a_verifier" && <p className="rounded-2xl bg-[var(--a-warnbg)] p-3 text-center text-[14px] font-bold text-[var(--a-warn)]">Envoyé à la direction. Vous serez payé après validation.</p>}
               {j.status === "validee" && <p className="rounded-2xl bg-[var(--a-okbg)] p-3 text-center text-[14px] font-bold text-[var(--a-ok)]">Validé : {eur(j.amount)} à venir sur votre prochain virement.</p>}
+              {j.departure && j.status !== "validee" && (
+                <div role="status" className={`rounded-2xl p-3 text-center text-[15px] font-extrabold ${j.departure === "partir" ? "bg-[var(--a-okbg)] text-[var(--a-ok)]" : "bg-[var(--a-badbg)] text-[var(--a-bad)]"}`}>
+                  {j.departure === "partir" ? "La direction vous autorise à partir. Merci !" : "Restez sur place : la direction vous demande de reprendre."}
+                </div>
+              )}
+              {(j.status === "acceptee" || j.status === "a_reprendre") && j.date <= today && (
+                <div className="space-y-3">
+                  <CleanerPhotoButton token={token} job={j.id} kind="avant" label="1. Photos avant le ménage" count={j.photos_before ?? 0} />
+                  {j.before_report && j.before_report.items.length > 0 && (
+                    <div className="rounded-2xl bg-[var(--a-bg)] p-3 text-[14px]">
+                      <b className="block text-[15px]">À nettoyer (relevé automatique des photos)</b>
+                      <ul className="mt-1 list-disc space-y-0.5 pl-5">{j.before_report.items.map((it, i) => <li key={i}><b>{it.zone}</b>{it.todo ? ` : ${it.todo}` : ""}</li>)}</ul>
+                    </div>
+                  )}
+                  <CleanerPhotoButton token={token} job={j.id} kind="apres" label="2. Photos après le ménage" count={j.photos_after ?? 0} />
+                </div>
+              )}
+              {j.ai_status === "reprise" && j.ai_report?.remaining && j.ai_report.remaining.length > 0 && j.status !== "validee" && (
+                <div className="rounded-2xl bg-[var(--a-badbg)] p-3 text-[14px] text-[var(--a-bad)]"><b className="block">Points à reprendre avant de partir</b><ul className="mt-1 list-disc pl-5">{j.ai_report.remaining.map((r, i) => <li key={i}><b>{r.zone}</b>{r.why ? ` : ${r.why}` : ""}</li>)}</ul><p className="mt-1 text-xs">Reprenez ces points, refaites une photo après, puis terminez à nouveau.</p></div>
+              )}
               {canFinish && (
                 <form action={cleanerFinishAction.bind(null, token, j.id)} className="space-y-2">
                   <textarea name="note" rows={2} maxLength={1000} placeholder="Un mot pour la direction (facultatif) : ce qui a été fait, un souci…" className="w-full rounded-xl border border-[var(--a-line)] bg-[var(--a-bg)] p-3 text-base" />
-                  <button className="h-14 w-full rounded-2xl bg-[var(--a-ok)] text-lg font-extrabold text-[var(--a-bg)] active:opacity-90">J&apos;ai terminé le ménage</button>
+                  <button disabled={needPhotos && ((j.photos_before ?? 0) === 0 || (j.photos_after ?? 0) === 0)} className="h-14 w-full rounded-2xl bg-[var(--a-ok)] text-lg font-extrabold text-[var(--a-bg)] active:opacity-90 disabled:opacity-40">3. J&apos;ai terminé le ménage</button>
+                  {needPhotos && ((j.photos_before ?? 0) === 0 || (j.photos_after ?? 0) === 0) && <p className="text-center text-xs text-[var(--a-mute)]">Ajoutez au moins une photo avant et une photo après pour terminer.</p>}
                 </form>
+              )}
+              {j.linen && j.status !== "annulee" && (
+                <div className="space-y-2 rounded-2xl bg-[var(--a-bg)] p-3 text-[14px]">
+                  <b className="block text-[15px]">Draps : {LINEN_STEP[j.linen.status]}</b>
+                  {j.linen.tracking && <span className="text-[var(--a-mute)]">Suivi : {j.linen.tracking} ({j.linen.method === "poste" ? "poste" : "livreur"})</span>}
+                  {j.linen.status === "a_deposer" && (
+                    <form action={cleanerLinenAction.bind(null, token, j.id)} className="space-y-2">
+                      <input type="hidden" name="status" value="depose" />
+                      <select name="method" defaultValue="poste" className="h-12 w-full rounded-xl border border-[var(--a-line)] bg-[var(--a-card)] px-3 text-base"><option value="poste">Je dépose au bureau de poste</option><option value="livreur">Un livreur de colis vient les prendre</option></select>
+                      <input name="tracking" placeholder="Numéro de suivi du colis (facultatif)" maxLength={80} className="h-12 w-full rounded-xl border border-[var(--a-line)] bg-[var(--a-card)] px-3 text-base" />
+                      <button className="h-12 w-full rounded-2xl bg-[var(--a-pri)] text-base font-extrabold text-white">J&apos;ai déposé / expédié les draps</button>
+                    </form>
+                  )}
+                  {j.linen.status === "renvoye" && <form action={cleanerLinenAction.bind(null, token, j.id)}><input type="hidden" name="status" value="recupere" /><button className="h-12 w-full rounded-2xl bg-[var(--a-pri)] text-base font-extrabold text-white">J&apos;ai récupéré les draps propres</button></form>}
+                  {j.linen.status === "recupere" && <form action={cleanerLinenAction.bind(null, token, j.id)}><input type="hidden" name="status" value="remis" /><button className="h-12 w-full rounded-2xl bg-[var(--a-ok)] text-base font-extrabold text-[var(--a-bg)]">J&apos;ai remis les draps dans le logement</button></form>}
+                </div>
               )}
               {canRelease && (
                 <form action={cleanerReleaseAction.bind(null, token, j.id)}><button className="flex w-full items-center justify-between rounded-2xl border border-[var(--a-line)] px-4 py-3 text-left text-[14px] font-bold text-[var(--a-mute)]">Je ne peux plus (au moins 24 h avant)<ChevronRight className="h-4 w-4" /></button></form>

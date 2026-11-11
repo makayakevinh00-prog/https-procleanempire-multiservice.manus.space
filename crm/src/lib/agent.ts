@@ -52,4 +52,8 @@ export type CleanerOverview = {
 export type CleanerJob = {
   id: string; title: string; date: string; window_start: string; window_end: string; hours: number | null; city: string | null; postal_code: string | null;
   amount: number; favorite?: boolean; priority_until?: string | null; address?: string | null; access_notes?: string | null; status?: string; cleaner_note?: string | null; review_note?: string | null;
+  departure?: "rester" | "partir" | null; photos_before?: number; photos_after?: number;
+  before_report?: { items: { zone: string; todo: string }[]; level: number | null; summary: string } | null;
+  ai_status?: "ok" | "reprise" | "indisponible" | null; ai_report?: { summary?: string; cleaned?: string[]; remaining?: { zone: string; why: string }[] } | null;
+  linen?: { status: string; method: string | null; tracking: string | null } | null;
 };

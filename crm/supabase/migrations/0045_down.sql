@@ -1,0 +1,11 @@
+drop function if exists automation_create_payouts(text, date, date);
+drop function if exists automation_publish_cleaning_jobs(text);
+drop function if exists automation_set_job_analysis(text, uuid, text, jsonb, text);
+drop function if exists automation_job_context(text, uuid);
+drop function if exists automation_job_photos(text, uuid, text);
+drop function if exists cleaner_linen_update(text, uuid, text, text, text);
+drop function if exists cleaner_add_photo(text, uuid, text, text, text);
+drop table if exists cleaning_linen;
+drop table if exists cleaning_job_photos;
+alter table cleaning_jobs drop column if exists ai_report, drop column if exists before_report, drop column if exists ai_status, drop column if exists control_intervention_id, drop column if exists departure;
+alter table marketplace_settings drop column if exists require_photos, drop column if exists auto_payout, drop column if exists auto_publish;

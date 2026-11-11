@@ -3,7 +3,9 @@ import { runDaily } from "@/lib/automation/run";
 import { syncQonto } from "@/lib/qonto";
 import { createAdmin } from "@/lib/supabase/server";
 import { runConcierge } from "@/lib/concierge/run";
-import { parisToday } from "@/lib/domain/dates";
+import { addDays, isoWeekday, parisToday } from "@/lib/domain/dates";
+import { automationClient, automationSecret } from "@/lib/automation/deps";
+import { sendMail, mailConfigured } from "@/lib/mail";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -37,5 +39,22 @@ export async function GET(req: Request) {
   if (!opts.dryRun && process.env.SUPABASE_SERVICE_ROLE_KEY) {
     try { concierge = await runConcierge(createAdmin(), parisToday()); } catch (e) { concierge = { error: (e as Error).message }; }
   }
-  return Response.json({ automation, qonto, concierge });
+  // Nettoyeurs : publication automatique des ménages, et chaque lundi création (jamais virement) des paiements de la semaine passée.
+  let nettoyeurs: unknown = "non configuré";
+  if (!opts.dryRun) {
+    try {
+      const a = automationClient(), sec = automationSecret(), today = parisToday();
+      const pub = await a.rpc("automation_publish_cleaning_jobs", { p_secret: sec });
+      let payouts: unknown = null;
+      if (isoWeekday(today) === 1) {
+        const mon = addDays(today, -7), sun = addDays(today, -1);
+        const r = await a.rpc("automation_create_payouts", { p_secret: sec, p_start: mon, p_end: sun });
+        payouts = r.data ?? r.error?.message ?? null;
+        const d = r.data as { payouts?: number; total?: number } | null;
+        if (d?.payouts && mailConfigured()) await sendMail({ to: process.env.MAIL_ADMIN ?? "contact@procleanempire.com", subject: `Paiements nettoyeurs à régler : ${d.total} €`, text: `${d.payouts} paiement(s) créé(s) pour la semaine du ${mon} au ${sun}, soit ${d.total} € au total.\n\nÀ régler par virement : CRM › Nettoyeurs › Paiements (fichier de virements prêt pour Qonto).` }).catch(() => undefined);
+      }
+      nettoyeurs = { published: pub.data ?? pub.error?.message ?? null, payouts };
+    } catch (e) { nettoyeurs = { error: (e as Error).message }; }
+  }
+  return Response.json({ automation, qonto, concierge, nettoyeurs });
 }

@@ -27,3 +27,7 @@ export function splitPrice(priceHt: number, cleanerPct: number, platformPct: num
   return { cleaner, platform, logistics: Math.round((priceHt - cleaner - platform) * 100) / 100 };
 }
 export const pctsValid = (c: number, p: number, l: number) => c >= 50 && c <= 90 && p >= 0 && l >= 0 && Math.abs(c + p + l - 100) < 0.005;
+
+/** Étapes du linge, dans l'ordre : le nettoyeur dépose, l'entreprise fait laver et renvoie, le nettoyeur récupère et remet en place. */
+export const LINEN_STEP: Record<string, string> = { a_deposer: "à déposer", depose: "déposé, en cours de lavage", lave: "lavé, bientôt renvoyé", renvoye: "renvoyé : à récupérer", recupere: "récupéré : à remettre", remis: "remis en place ✓" };
+export const LINEN_NEXT: Record<string, string> = { depose: "lave", lave: "renvoye" };
