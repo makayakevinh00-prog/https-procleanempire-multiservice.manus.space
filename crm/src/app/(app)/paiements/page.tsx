@@ -10,7 +10,7 @@ import { StatusBadge } from "@/components/ui/badge";
 import { ClientName } from "@/components/crm/client-name";
 import { ConfirmAction } from "@/components/crm/confirm-action";
 import { QontoStatus } from "@/components/crm/qonto-auto";
-import { addManualPaymentAction, ignorePaymentAction, reconcileAction, syncQontoAction, unreconcileAction } from "@/app/actions/payments";
+import { addManualPaymentAction, classifyPaymentAction, unclassifyPaymentAction, ignorePaymentAction, reconcileAction, syncQontoAction, unreconcileAction } from "@/app/actions/payments";
 import { deletePaymentAction } from "@/app/actions/manage";
 import { daysBetween, formatDate, formatEUR } from "@/lib/utils";
 import { suggestInvoices } from "@/lib/domain/matching";
@@ -22,10 +22,11 @@ export default async function PaymentsPage() {
   const settings = await getSettings(supabase);
   const [pay, inv] = await Promise.all([
     supabase.from("payments").select("*, suggested:suggested_invoice_id(id, number, total_ttc, clients(name, is_reserved)), matched:matched_invoice_id(id, number)").order("received_at", { ascending: false }).limit(100),
-    supabase.from("invoices").select("id, number, total_ttc, paid_amount, due_date, status, clients(id, name, is_reserved)").in("status", ["envoye", "en_retard"]).order("due_date")
+    supabase.from("invoices").select("id, number, total_ttc, paid_amount, due_date, status, sent_at, billing_month, clients(id, name, is_reserved)").in("status", ["envoye", "en_retard"]).order("due_date")
   ]);
   if (pay.error) throw new Error(pay.error.message);
-  const open = (inv.data ?? []) as any[];
+  // Seules les vraies factures émises se rapprochent : pas celles générées automatiquement et jamais envoyées, ni celles déjà soldées.
+  const open = ((inv.data ?? []) as any[]).filter((i) => !(i.billing_month && !i.sent_at) && num(i.total_ttc) - num(i.paid_amount) > 0.005);
   const todo = (pay.data ?? []).filter((p: any) => ["non_rapproche", "propose"].includes(p.match_status));
   const done = (pay.data ?? []).filter((p: any) => !["non_rapproche", "propose"].includes(p.match_status));
   const late = open.filter((i) => i.status === "en_retard" && i.due_date && daysBetween(i.due_date) >= settings.unpaid_alert_days);
@@ -93,6 +94,16 @@ export default async function PaymentsPage() {
                             </label>
                           </div>
                         } />
+                      <ConfirmAction action={classifyPaymentAction.bind(null, p.id)} label="Ce n'est pas un client…" size="sm" variant="outline" title="Classer ce virement" confirmLabel="Classer"
+                        description="Un remboursement ou un apport n'est pas du chiffre d'affaires : le virement sort des « à rapprocher » et de l'encaissé du mois."
+                        extra={<div className="space-y-3">
+                          <Field label="De quoi s'agit-il ?"><Select name="nature" defaultValue="remboursement" required>
+                            <option value="remboursement">Remboursement (à la société, d&apos;un fournisseur ou d&apos;un client)</option>
+                            <option value="apport">Apport ou virement du dirigeant</option>
+                            <option value="autre">Autre (hors facturation)</option>
+                          </Select></Field>
+                          <Field label="Précision (facultatif)"><Input name="note" placeholder="ex. remboursement de frais avancés" /></Field>
+                        </div>} />
                       <form action={ignorePaymentAction.bind(null, p.id)}><Button size="sm" variant="ghost">Ignorer</Button></form>
                       <ConfirmAction action={deletePaymentAction.bind(null, p.id)} label="Supprimer" size="sm" variant="ghost" className="text-red-700"
                         title="Supprimer ce paiement ?" description="Le paiement est supprimé définitivement (trace dans le journal). Si c'est un virement Qonto, il reviendra à la prochaine synchronisation : préférez « Ignorer »." confirmLabel="Oui, supprimer" />
@@ -123,11 +134,13 @@ export default async function PaymentsPage() {
             <tbody>{done.map((p: any) => (
               <Tr key={p.id}>
                 <Td className="whitespace-nowrap">{formatDate(p.received_at)}</Td><Td>{p.counterparty ?? p.label ?? "—"}</Td>
-                <Td className="text-right">{formatEUR(p.amount)}</Td><Td><StatusBadge status={p.match_status} /></Td>
+                <Td className="text-right">{formatEUR(p.amount)}</Td><Td>{p.nature && p.nature !== "encaissement_client" ? <span title={p.note ?? undefined} className="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium">{({ remboursement: "Remboursement", apport: "Apport du dirigeant", autre: "Hors facturation" } as Record<string, string>)[p.nature]}</span> : <StatusBadge status={p.match_status} />}</Td>
                 <Td>{p.matched ? <Link href={`/factures/${p.matched.id}`} className="text-primary hover:underline">{p.matched.number}</Link> : "—"}</Td>
                 <Td className="text-right">{p.match_status === "rapproche" ? (
                   <ConfirmAction action={unreconcileAction.bind(null, p.id)} label="Annuler" size="sm" variant="ghost"
                     title="Annuler le rapprochement ?" description="La facture reviendra à son statut précédent." confirmLabel="Annuler le rapprochement" />
+                ) : p.match_status === "ignore" ? (
+                  <form action={unclassifyPaymentAction.bind(null, p.id)} className="inline"><Button size="sm" variant="ghost">Remettre à rapprocher</Button></form>
                 ) : (
                   <ConfirmAction action={deletePaymentAction.bind(null, p.id)} label="Supprimer" size="sm" variant="ghost" className="text-red-700"
                     title="Supprimer ce paiement ?" description="Suppression définitive (trace dans le journal)." confirmLabel="Oui, supprimer" />

@@ -113,6 +113,15 @@ export default async function MissionsPage({ searchParams }: { searchParams: { q
         ))}
       </div>
 
+      <div className="mb-3 flex flex-wrap items-center gap-2" aria-label="Filtrer par agent">
+        <span className="text-[13px] font-medium text-muted-foreground">Agent :</span>
+        {[{ id: "", label: "Tous" }, ...(staff ?? []).map((x: any) => ({ id: x.id as string, label: String(x.full_name).split(" ")[0] })), { id: "aucun", label: "Sans intervenant" }].map((a) => {
+          const on = (searchParams.agent ?? "") === a.id;
+          return <Link key={a.id || "tous"} href={params({ agent: a.id || undefined })} aria-current={on ? "true" : undefined}
+            className={`rounded-full border px-3 py-1 text-sm font-medium ${on ? "border-primary bg-primary text-primary-foreground" : "bg-card hover:bg-muted"}`}>{a.label}</Link>;
+        })}
+      </div>
+
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1 rounded-lg border bg-card shadow-sm">
           <Link href={params({ date: prev })} className="p-2 hover:bg-muted" aria-label="Période précédente"><ChevronLeft className="h-4 w-4" /></Link>

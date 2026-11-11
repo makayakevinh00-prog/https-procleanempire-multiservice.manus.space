@@ -180,3 +180,36 @@ export function buildLevers(i: {
     .filter((l) => l.count > 0)
     .sort((a, b) => (b.amount ?? -1) - (a.amount ?? -1) || b.count - a.count);
 }
+
+export type PlanStep = { key: string; title: string; why: string; names: string[]; amount: number | null; href: string; cta: string; gain: number };
+
+const plural = (n: number, one: string, many: string) => (n > 1 ? many : one);
+const list = (names: string[], total: number) => (names.length ? names.slice(0, 3).join(", ") + (total > 3 ? ` et ${total - 3} autre${total - 3 > 1 ? "s" : ""}` : "") : "");
+
+/**
+ * Plan d'action calculé tout de suite avec les vrais chiffres (aucune attente) : des étapes claires, les plus rentables d'abord,
+ * avec les clients concernés et ce que chaque étape apporte au chiffre du mois. `gain` = montant HT qui s'ajoute au CA facturé si l'étape aboutit (0 si elle ne change pas le CA).
+ */
+export function buildPlan(i: {
+  drafts: Bucket & { names: string[] };
+  accepted: Bucket & { names: string[] };
+  unbilled: Bucket & { names: string[] };
+  pending: Bucket & { names: string[] };
+  late: Bucket & { names: string[] };
+  unmatched: number;
+  requests: number;
+  prospects: number;
+}): PlanStep[] {
+  const steps: PlanStep[] = [];
+  const add = (s: PlanStep | null) => s && steps.push(s);
+  if (i.drafts.n) add({ key: "brouillons", title: `Validez et envoyez ${i.drafts.n} facture${plural(i.drafts.n, "", "s")} brouillon`, why: "Elles sont prêtes mais pas encore facturées : c'est du chiffre immédiat.", names: i.drafts.names, amount: i.drafts.amount, href: "/factures?statut=brouillon", cta: "Voir les brouillons", gain: i.drafts.amount });
+  if (i.accepted.n) add({ key: "devis_acceptes", title: `Facturez ${i.accepted.n} devis accepté${plural(i.accepted.n, "", "s")}`, why: "Le client a dit oui, il reste à émettre la facture.", names: i.accepted.names, amount: i.accepted.amount, href: "/devis", cta: "Voir les devis", gain: i.accepted.amount });
+  if (i.unbilled.n) add({ key: "contrats", title: `Lancez la facturation de ${i.unbilled.n} contrat${plural(i.unbilled.n, "", "s")} actif${plural(i.unbilled.n, "", "s")} pas encore facturé${plural(i.unbilled.n, "", "s")} ce mois`, why: "Contrats récurrents : la facture du mois n'est pas partie.", names: i.unbilled.names, amount: i.unbilled.amount, href: "/facturation-auto", cta: "Ouvrir la facturation", gain: i.unbilled.amount });
+  if (i.late.n) add({ key: "retard", title: `Relancez ${i.late.n} facture${plural(i.late.n, "", "s")} en retard`, why: "Argent déjà facturé, à récupérer : il compte dans l'encaissé.", names: i.late.names, amount: i.late.amount, href: "/factures?statut=en_retard", cta: "Voir les retards", gain: 0 });
+  if (i.pending.n) add({ key: "devis_envoyes", title: `Relancez ${i.pending.n} devis envoyé${plural(i.pending.n, "", "s")} sans réponse`, why: "Un appel ou un message transforme souvent un devis en vente.", names: i.pending.names, amount: i.pending.amount, href: "/devis", cta: "Voir les devis", gain: 0 });
+  if (i.unmatched) add({ key: "paiements", title: `Rapprochez ${i.unmatched} virement${plural(i.unmatched, "", "s")} reçu${plural(i.unmatched, "", "s")}`, why: "Tant qu'ils ne sont pas reliés à une facture, l'encaissé du mois est faux.", names: [], amount: null, href: "/paiements", cta: "Rapprocher", gain: 0 });
+  if (i.requests) add({ key: "demandes", title: `Répondez à ${i.requests} demande${plural(i.requests, "", "s")} reçue${plural(i.requests, "", "s")} sur le site`, why: "De nouveaux clients possibles : plus on répond vite, plus on signe.", names: [], amount: null, href: "/demandes", cta: "Voir les demandes", gain: 0 });
+  if (i.prospects) add({ key: "prospects", title: `Rappelez ${i.prospects} prospect${plural(i.prospects, "", "s")}`, why: "Ils ont montré de l'intérêt mais ne sont pas encore clients.", names: [], amount: null, href: "/clients?statut=prospect", cta: "Voir les prospects", gain: 0 });
+  return steps.sort((a, b) => b.gain - a.gain || (b.amount ?? -1) - (a.amount ?? -1)).slice(0, 5).map((s) => ({ ...s, why: s.why, names: s.names }));
+}
+export const stepNames = list;

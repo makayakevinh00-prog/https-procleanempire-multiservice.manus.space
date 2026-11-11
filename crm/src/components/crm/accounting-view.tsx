@@ -10,7 +10,7 @@ export interface ComptaData {
   month: string;
   invoices: { id: string | null; number: string; issue_date: string; due_date: string | null; status: string; total_ht: number; total_vat: number; total_ttc: number; paid_at: string | null; client: string }[];
   vat: { rate: number; base: number; vat: number }[];
-  payments: { received_at: string; amount: number; counterparty: string | null; label: string | null; match_status: string; invoice: string | null }[];
+  payments: { received_at: string; amount: number; counterparty: string | null; label: string | null; match_status: string; nature?: string; invoice: string | null }[];
   supplier_payments: { id?: string; has_doc?: boolean; paid_on: string; amount: number; label: string | null; supplier: string }[];
   open_total: number; late_count: number; late_total: number; unmatched: number; numbers: string[];
 }
@@ -122,7 +122,7 @@ export function AccountingView({ data, basePath, owner }: { data: ComptaData; ba
           <CardHeader><CardTitle>Encaissements du mois</CardTitle>{owner && <Link href="/paiements" className="text-xs font-semibold text-primary hover:underline">Rapprochement</Link>}</CardHeader>
           <ul className="divide-y divide-border/50 text-[14px]">
             {!data.payments.length ? <li className="px-5 py-5 text-muted-foreground">Aucun virement reçu ce mois-ci.</li> : data.payments.map((p, k) => (
-              <li key={k} className="flex items-center justify-between gap-3 px-5 py-2.5"><span className="min-w-0"><span className="block truncate font-medium">{p.counterparty ?? p.label ?? "—"}</span><span className="text-[12.5px] text-muted-foreground">{formatDate(p.received_at.slice(0, 10))} · {MATCH[p.match_status] ?? p.match_status}{p.invoice ? ` · ${p.invoice}` : ""}</span></span><b className="num">{formatEUR(Number(p.amount))}</b></li>
+              <li key={k} className="flex items-center justify-between gap-3 px-5 py-2.5"><span className="min-w-0"><span className="block truncate font-medium">{p.counterparty ?? p.label ?? "—"}</span><span className="text-[12.5px] text-muted-foreground">{formatDate(p.received_at.slice(0, 10))} · {p.nature && p.nature !== "encaissement_client" ? ({ remboursement: "Remboursement", apport: "Apport du dirigeant", autre: "Hors facturation" } as Record<string, string>)[p.nature] : (MATCH[p.match_status] ?? p.match_status)}{p.invoice ? ` · ${p.invoice}` : ""}</span></span><b className="num">{formatEUR(Number(p.amount))}</b></li>
             ))}
           </ul>
         </Card>

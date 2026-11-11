@@ -10,7 +10,7 @@ import { Empty } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ClientName } from "@/components/crm/client-name";
 import { MonthlyBars, Donut, RankBars } from "@/components/crm/charts";
-import { Row, Seg, Sparkline, Stat } from "@/components/crm/home-kit";
+import { Row, Sparkline, Stat } from "@/components/crm/home-kit";
 import { Objectives } from "@/components/crm/objectifs";
 import { daysBetween, formatDate, formatEUR, formatHours, round2 } from "@/lib/utils";
 import type { Contract } from "@/lib/domain/types";
@@ -19,7 +19,7 @@ const MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "aoû
 
 const eur0 = (n: number) => `${Math.round(n).toLocaleString("fr-FR")} €`;
 
-export default async function Dashboard({ searchParams }: { searchParams?: { vue?: string; mois?: string } }) {
+export default async function Dashboard({ searchParams }: { searchParams?: { mois?: string } }) {
   const supabase = createClient();
   await supabase.rpc("refresh_overdue");
   const [settings, contracts, invoices, quotes, payments, reserved, actions, clients] = await Promise.all([
@@ -86,7 +86,6 @@ export default async function Dashboard({ searchParams }: { searchParams?: { vue
     }
     return [...m.values()].sort((a, b) => b.value - a.value);
   })() : [];
-  const vue = ["afaire", "retard", "valider"].includes(searchParams?.vue ?? "") ? (searchParams!.vue as string) : "afaire";
   const actionsCount = menuCountsFrom(actions)["/actions"] ?? 0;
   const toValidate = drafts.length + toInvoice.length;
   const bits = [
@@ -96,7 +95,7 @@ export default async function Dashboard({ searchParams }: { searchParams?: { vue
   ].filter(Boolean) as string[];
   const dateLabel = new Date().toLocaleDateString("fr-FR", { timeZone: "Europe/Paris", weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const monthlySeries = series.map((d) => d.value);
-  const ordered = [...actions.filter((a) => a.count === undefined), ...actions.filter((a) => a.count !== undefined)];
+  const ordered = [...actions.filter((a) => a.count === undefined && a.tone !== "blue"), ...actions.filter((a) => a.count !== undefined && a.tone !== "blue")];
 
   return (
     <>
@@ -134,56 +133,25 @@ export default async function Dashboard({ searchParams }: { searchParams?: { vue
           hint={`${cl.filter((c) => c.status === "prospect").length} prospect(s)`} />
       </section>
 
+      <section aria-label="À faire maintenant" className="mt-9">
+        <div className="mb-3 flex items-baseline justify-between">
+          <h2 className="text-[17px] font-semibold tracking-tight text-foreground">À faire maintenant</h2>
+          {actionsCount > 0 && <Link href="/actions" className="text-[13px] font-medium text-primary hover:underline">Tout voir ({actionsCount})</Link>}
+        </div>
+        <Card className="overflow-hidden">
+          <div className="py-1.5">
+            {!actions.length ? <Empty>Rien à faire : tout est à jour.</Empty> : ordered.slice(0, 5).map((a) => (
+              <Row key={a.key} href={a.href} lead={a.count !== undefined ? a.count : ""} dot={a.count === undefined ? (a.tone === "red" ? "err" : a.tone === "orange" ? "warn" : undefined) : undefined}
+                title={a.label} right={<ArrowRight className="h-4 w-4" />} />
+            ))}
+          </div>
+        </Card>
+      </section>
+
       <Objectives today={today} />
 
-      <div className="mt-10">
-        <Seg items={[
-          { href: "/?vue=afaire", label: "À faire maintenant", count: actionsCount, active: vue === "afaire" },
-          { href: "/?vue=retard", label: "Factures en retard", count: late.length, active: vue === "retard", alert: true },
-          { href: "/?vue=valider", label: "À valider", count: toValidate, active: vue === "valider" }
-        ]} />
-      </div>
-
-      <Card className="mt-4 overflow-hidden" id="alertes">
-        <div className="py-1.5">
-          {vue === "afaire" && (!actions.length ? <Empty>Rien à faire : tout est à jour.</Empty> : (
-            <>
-              {ordered.slice(0, 12).map((a) => (
-                <Row key={a.key} href={a.href} lead={a.count !== undefined ? a.count : ""} dot={a.count === undefined ? (a.tone === "red" ? "err" : a.tone === "orange" ? "warn" : undefined) : undefined}
-                  title={a.label} right={<ArrowRight className="h-4 w-4" />} />
-              ))}
-              <div className="px-6 py-3 text-[13px]"><Link href="/actions" className="font-medium text-primary hover:underline">Tout voir ({actionsCount})</Link></div>
-            </>
-          ))}
-          {vue === "retard" && (!late.length ? <Empty>Aucun impayé en retard.</Empty> : late.map((i) => (
-            <Row key={i.id} href={`/factures/${i.id}`} lead={`${daysBetween(i.due_date)} j`} dot="err"
-              title={<>{i.number} · <ClientName name={i.clients.name} reserved={i.clients.is_reserved} link={false} /></>}
-              sub={i.reminder_count ? `${i.reminder_count} relance(s), dernière ${formatDate(i.last_reminder_at)}` : "jamais relancée"}
-              right={formatEUR(num(i.total_ttc) - num(i.paid_amount))} />
-          )))}
-          {vue === "valider" && (!drafts.length && !toInvoice.length && !payments.count ? <Empty>Rien en attente de validation.</Empty> : (
-            <>
-              {drafts.map((i) => (
-                <Row key={i.id} href={`/factures/${i.id}`} lead="Facture" title={<ClientName id={i.clients.id} name={i.clients.name} reserved={i.clients.is_reserved} link={false} />}
-                  sub="Brouillon à relire et valider" right={`${formatEUR(i.total_ht)} HT`} />
-              ))}
-              {toInvoice.map((q) => (
-                <Row key={q.id} href={`/devis/${q.id}`} lead="Devis" title={<>{q.number} · <ClientName name={q.clients.name} reserved={q.clients.is_reserved} link={false} /></>}
-                  sub="Accepté, à facturer" right={`${formatEUR(q.total_ht)} HT`} />
-              ))}
-              {!!payments.count && <Row href="/paiements" lead={payments.count} title="virement(s) à rapprocher" right={<ArrowRight className="h-4 w-4" />} />}
-            </>
-          ))}
-        </div>
-      </Card>
-
-      <Link href="/jarvis/openspace" className="mt-6 flex items-center gap-4 rounded-2xl bg-card px-5 py-4 text-[15px] text-secondary-foreground shadow-[0_1px_2px_rgba(17,18,20,0.04),0_8px_24px_rgba(17,18,20,0.04)] transition-colors hover:bg-secondary/40">
-        <Sparkles className="h-5 w-5 text-primary" strokeWidth={1.5} />
-        <span><b className="font-medium text-foreground">JARVIS</b> · vos agents et leurs alertes</span>
-        <span className="ml-auto inline-flex items-center gap-1 text-[13px] font-medium text-primary">Entrer dans les locaux <ArrowRight className="h-4 w-4" /></span>
-      </Link>
-
-      <div className="mt-10 grid gap-4 lg:grid-cols-3">
+      <h2 className="mb-3 mt-12 text-[17px] font-semibold tracking-tight text-foreground">Évolution et clients</h2>
+      <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Chiffre d&apos;affaires facturé par mois (HT)</CardTitle>
@@ -225,6 +193,12 @@ export default async function Dashboard({ searchParams }: { searchParams?: { vue
         <CardHeader><CardTitle>Meilleurs clients (12 mois, HT)</CardTitle></CardHeader>
         <CardContent>{topClients.length ? <RankBars rows={topClients} /> : <Empty>Aucune facture émise.</Empty>}</CardContent>
       </Card>
+      <Link href="/jarvis/openspace" className="mt-8 flex items-center gap-4 rounded-2xl bg-card px-5 py-4 text-[15px] text-secondary-foreground shadow-[0_1px_2px_rgba(17,18,20,0.04),0_8px_24px_rgba(17,18,20,0.04)] transition-colors hover:bg-secondary/40">
+        <Sparkles className="h-5 w-5 text-primary" strokeWidth={1.5} />
+        <span><b className="font-medium text-foreground">JARVIS</b> · vos agents et leurs alertes</span>
+        <span className="ml-auto inline-flex items-center gap-1 text-[13px] font-medium text-primary">Entrer dans les locaux <ArrowRight className="h-4 w-4" /></span>
+      </Link>
+
     </>
   );
 }

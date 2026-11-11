@@ -3,6 +3,7 @@ import { verifyInbound } from "@/lib/inbound-auth";
 import { requestType } from "@/lib/request-type";
 import { sendMail } from "@/lib/mail";
 import { REQUEST_TYPE_LABEL } from "@/lib/request-type";
+import { spamScore } from "@/lib/request-spam";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,17 @@ export async function POST(req: Request) {
   let b: Record<string, any>;
   try { b = JSON.parse(raw); } catch { return Response.json({ error: "JSON invalide" }, { status: 400 }); }
   if (!s(b.name) || (!s(b.email) && !s(b.phone))) return Response.json({ error: "Nom et e-mail ou téléphone requis" }, { status: 400 });
+
+  // Démarchage et messages indésirables : mis de côté (consultables 90 jours), jamais dans les demandes, les prospects ni les actions à faire.
+  const verdict = spamScore({ name: s(b.name), company: s(b.company), email: s(b.email), phone: s(b.phone), service: s(b.service), message: s(b.comments ?? b.message, 2000) });
+  if (verdict.spam) {
+    const why = verdict.reasons.join(" ; ");
+    await automationClient().rpc("quarantine_quote_request", {
+      p_secret: automationSecret(), p_reason: why,
+      p: { name: s(b.name, 120), company: s(b.company, 120), email: s(b.email, 200), phone: s(b.phone, 40), message: s(b.comments ?? b.message, 2000), service: s(b.service, 120), source: s(b.source, 120), reference: s(b.reference ?? b.id, 60) || null }
+    });
+    return Response.json({ ok: true, filtered: true }, { status: 202 });
+  }
 
   const details: Record<string, string> = {};
   if (Array.isArray(b.details)) for (const d of b.details.slice(0, 20)) if (Array.isArray(d) && d.length === 2) details[s(d[0], 80)] = s(d[1], 300);

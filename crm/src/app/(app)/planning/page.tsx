@@ -20,7 +20,7 @@ const shift = (month: string, n: number) => {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
 };
 
-export default async function PlanningPage({ searchParams }: { searchParams: { mois?: string; client?: string; filtre?: string } }) {
+export default async function PlanningPage({ searchParams }: { searchParams: { mois?: string; client?: string; filtre?: string; agent?: string } }) {
   const today = parisToday();
   const month = /^\d{4}-\d{2}$/.test(searchParams.mois ?? "") ? searchParams.mois! : monthOf(today);
   const { start, end } = monthBounds(month);
@@ -34,8 +34,11 @@ export default async function PlanningPage({ searchParams }: { searchParams: { m
   else if (filtre === "non_facturees") q = q.eq("status", "realise").eq("billable", true).is("invoice_id", null).lt("scheduled_date", `${monthOf(today)}-01`);
   else q = q.gte("scheduled_date", start).lte("scheduled_date", end);
   if (searchParams.client) q = q.eq("client_id", searchParams.client);
-  const [{ data: rows, error }, { data: clients }, services] = await Promise.all([
-    q, supabase.from("clients").select("id, name, is_reserved").neq("status", "inactif").order("name"), loadServices(supabase)
+  if (searchParams.agent === "aucun") q = q.is("staff_id", null).is("assignee", null);
+  else if (searchParams.agent && /^[0-9a-f-]{36}$/i.test(searchParams.agent)) q = q.eq("staff_id", searchParams.agent);
+  const [{ data: rows, error }, { data: clients }, services, { data: staffList }] = await Promise.all([
+    q, supabase.from("clients").select("id, name, is_reserved").neq("status", "inactif").order("name"), loadServices(supabase),
+    supabase.from("staff").select("id, full_name").eq("active", true).order("full_name")
   ]);
   if (error) throw new Error(error.message);
 
@@ -46,7 +49,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: { m
   const toConfirm = items.filter((i) => i.status === "planifie" && i.scheduled_date <= today && !i.invoice_id).length;
   const hours = active.reduce((a, i) => a + num(i.duration_hours), 0);
   const billable = active.filter((i) => i.billable && i.unit_price_ht != null).reduce((a, i) => a + num(i.unit_price_ht) * num(i.quantity), 0);
-  const nav = (m: string) => `/planning?mois=${m}${searchParams.client ? `&client=${searchParams.client}` : ""}`;
+  const nav = (m: string, agent: string | undefined = searchParams.agent) => `/planning?mois=${m}${searchParams.client ? `&client=${searchParams.client}` : ""}${agent ? `&agent=${agent}` : ""}`;
 
   return (
     <>
@@ -63,6 +66,15 @@ export default async function PlanningPage({ searchParams }: { searchParams: { m
           <Link href="/planning" className="ml-auto text-primary hover:underline">Retirer le filtre</Link>
         </div>
       )}
+      <div className="mb-3 flex flex-wrap items-center gap-2" aria-label="Filtrer par agent">
+        <span className="text-[13px] font-medium text-muted-foreground">Agent :</span>
+        {[{ id: "", label: "Tous" }, ...((staffList ?? []) as any[]).map((x) => ({ id: x.id as string, label: String(x.full_name).split(" ")[0] })), { id: "aucun", label: "Sans intervenant" }].map((a) => {
+          const on = (searchParams.agent ?? "") === a.id;
+          return <Link key={a.id || "tous"} href={nav(month, a.id || undefined)} aria-current={on ? "true" : undefined}
+            className={`rounded-full border px-3 py-1 text-sm font-medium ${on ? "border-primary bg-primary text-primary-foreground" : "bg-card hover:bg-muted"}`}>{a.label}</Link>;
+        })}
+      </div>
+
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1 rounded-md border bg-card">
           <Link href={nav(shift(month, -1))} className="p-2 hover:bg-muted" aria-label="Mois précédent"><ChevronLeft className="h-4 w-4" /></Link>
@@ -70,7 +82,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: { m
           <Link href={nav(shift(month, 1))} className="p-2 hover:bg-muted" aria-label="Mois suivant"><ChevronRight className="h-4 w-4" /></Link>
         </div>
         <Link href={`/planning?mois=${monthOf(today)}`} className="text-sm text-primary hover:underline">Aujourd&apos;hui</Link>
-        <form className="ml-auto flex gap-2"><input type="hidden" name="mois" value={month} />
+        <form className="ml-auto flex gap-2"><input type="hidden" name="mois" value={month} />{searchParams.agent && <input type="hidden" name="agent" value={searchParams.agent} />}
           <Select name="client" defaultValue={searchParams.client ?? ""} className="h-9 w-56"><option value="">Tous les clients</option>{clients?.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>
           <Button variant="outline" size="sm">Filtrer</Button></form>
       </div>

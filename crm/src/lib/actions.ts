@@ -4,11 +4,13 @@ import { isLargeAmount } from "@/lib/domain/billing";
 import { contractIssues } from "@/lib/domain/contract-check";
 import { addDays, monthOf, parisToday } from "@/lib/domain/dates";
 import { classifyAssignment } from "@/lib/jarvis/assignment";
+import { spamScore } from "@/lib/request-spam";
 import { daysBetween, formatEUR } from "@/lib/utils";
 
 export type ActionTone = "red" | "orange" | "blue";
 
 /** Une ligne de la liste « Actions à faire ». `count` = compteur agrégé ; sans `count` = élément précis. */
+export type HiddenAction = { key: string; count_at: number | null; dismissed_at: string };
 export type ActionItem = {
   key: string;
   tone: ActionTone;
@@ -29,15 +31,15 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
   const head = { count: "exact" as const, head: true };
 
   // Un SEUL lot de requêtes en parallèle (réglages, compteurs, « pas encore arrivé ») : un seul aller-retour sur le chemin critique.
-  const [settings, contracts, invoices, quotes, payments, requests, lateReq, toConfirm, unassigned, unbilledDone, noAnswer, noEmail, mailFail, unsent, claims, anomalies, toCheck, toValidate, toContact, todayRowsRes] = await Promise.all([
+  const [settings, contracts, invoices, quotes, payments, requests, dismissals, toConfirm, unassigned, unbilledDone, noAnswer, noEmail, mailFail, unsent, claims, anomalies, toCheck, toValidate, toContact, todayRowsRes] = await Promise.all([
     getSettings(supabase),
     supabase.from("contracts").select("*").eq("status", "actif"),
     supabase.from("invoices").select("id, number, status, due_date, total_ht, clients(id, name, is_reserved)").neq("status", "annule").in("status", ["brouillon", "envoye", "en_retard"]),
     supabase.from("quotes").select("id, number, total_ht, invoice_id, contract_id, clients(name, is_reserved), invoices:invoice_id(status)").eq("status", "accepte"),
     supabase.from("payments").select("id", head).in("match_status", ["non_rapproche", "propose"]),
-    supabase.from("quote_requests").select("id", head).eq("status", "nouvelle"),
-    supabase.from("quote_requests").select("id", head).eq("status", "nouvelle").lt("received_at", new Date(Date.now() - 86_400_000).toISOString()),
-    supabase.from("interventions").select("id", head).eq("status", "planifie").lte("scheduled_date", today).is("invoice_id", null),
+    supabase.from("quote_requests").select("id, received_at, name, company, email, phone, service, message, details").eq("status", "nouvelle"),
+    supabase.from("action_dismissals").select("key, count_at"),
+    supabase.from("interventions").select("id", head).eq("status", "planifie").lte("scheduled_date", today).gte("scheduled_date", addDays(today, -45)).is("invoice_id", null),
     supabase.from("interventions").select("id, scheduled_date, staff_id, assignee, title, clients(name), contracts(label)").eq("status", "planifie").gte("scheduled_date", today).lte("scheduled_date", addDays(today, 7)),
     supabase.from("interventions").select("id", head).eq("status", "realise").eq("billable", true).is("invoice_id", null).lt("scheduled_date", `${monthOf(today)}-01`),
     supabase.from("quotes").select("id, sent_at").eq("status", "envoye").not("sent_at", "is", null),
@@ -51,7 +53,7 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
     supabase.from("clients").select("id", head).eq("pipeline", "a_contacter"),
     supabase.from("interventions").select("start_time, arrived_at, staff_id, stage").eq("scheduled_date", today).not("staff_id", "is", null).is("arrived_at", null).in("stage", ["planifiee", "affectee", "en_route"])
   ]);
-  for (const r of [contracts, invoices, quotes, payments, requests, lateReq, toConfirm, unassigned, unbilledDone, noAnswer, noEmail, mailFail, unsent, claims, anomalies, toCheck, toValidate, toContact, todayRowsRes]) {
+  for (const r of [contracts, invoices, quotes, payments, requests, toConfirm, unassigned, unbilledDone, noAnswer, noEmail, mailFail, unsent, claims, anomalies, toCheck, toValidate, toContact, todayRowsRes]) {
     if (r.error) throw new Error(r.error.message);
   }
 
@@ -64,6 +66,11 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
   const followupCut = Date.now() - Number(settings.quote_followup_days) * 86_400_000;
   const noAnswerCount = ((noAnswer.data ?? []) as any[]).filter((q) => Date.parse(q.sent_at) < followupCut).length;
 
+  // Demandes du site : le démarchage n'est jamais une action à faire.
+  const realReqs = ((requests.data ?? []) as any[]).filter((r) => !spamScore(r).spam);
+  const reqCount = realReqs.length;
+  const reqLateCount = realReqs.filter((r) => Date.parse(r.received_at) < Date.now() - 86_400_000).length;
+  const hidden = new Map<string, number | null>(((dismissals.data ?? []) as any[]).map((d) => [d.key as string, d.count_at as number | null]));
   const out: ActionItem[] = [];
   const add = (a: ActionItem) => { if (a.count === undefined || a.count > 0) out.push(a); };
 
@@ -71,7 +78,7 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
   add({ key: "mail_fail", tone: "red", count: mailFail.count ?? 0, label: "e-mail(s) en échec ces 7 derniers jours", href: "/journal" });
   add({ key: "not_arrived", tone: "red", count: notArrived, label: "agent(s) pas encore arrivé(s) sur place (plus de 15 min après l'heure prévue)", href: "/sur-place", menu: "/missions" });
   add({ key: "claims", tone: "red", count: claims.count ?? 0, label: "réclamation(s) client ouverte(s)", href: "/missions/problemes", menu: "/missions" });
-  add({ key: "req_late", tone: "red", count: lateReq.count ?? 0, label: "demande(s) de devis sans traitement depuis plus de 24 h", href: "/demandes", menu: "/clients" });
+  add({ key: "req_late", tone: "red", count: reqLateCount, label: "demande(s) de devis sans traitement depuis plus de 24 h", href: "/demandes", menu: "/clients" });
 
   const inv = (invoices.data ?? []) as any[];
   const open = inv.filter((i) => ["envoye", "en_retard"].includes(i.status));
@@ -97,7 +104,7 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
   }
 
   // À traiter
-  add({ key: "req_new", tone: "orange", count: requests.count ?? 0, label: "nouvelle(s) demande(s) de devis du site", href: "/demandes", menu: "/clients" });
+  add({ key: "req_new", tone: "orange", count: reqCount, label: "nouvelle(s) demande(s) de devis du site", href: "/demandes", menu: "/clients" });
   add({ key: "to_contact", tone: "orange", count: toContact.count ?? 0, label: "prospect(s) à contacter", href: "/clients?etape=a_contacter", menu: "/clients" });
   add({ key: "quote_accepted", tone: "orange", count: toInvoice.length, label: "devis accepté(s) à facturer ou à mettre en contrat", href: "/devis?statut=accepte", menu: "/devis" });
   add({ key: "quote_noanswer", tone: "orange", count: noAnswerCount, label: `devis envoyé(s) sans réponse depuis plus de ${settings.quote_followup_days} jours`, href: "/devis?statut=envoye", menu: "/devis" });
@@ -122,8 +129,10 @@ export async function loadActions(supabase: SupabaseClient): Promise<ActionItem[
   add({ key: "contracts_incomplete", tone: "orange", count: incomplete.length, label: "contrat(s) actif(s) incomplet(s) (jours, durée, intervenant…) : planning non fiable", href: "/contrats?filtre=incomplets", menu: "/sites" });
   add({ key: "no_email", tone: "blue", count: noEmail.count ?? 0, label: "client(s) actif(s) sans e-mail (factures non envoyables automatiquement)", href: "/clients?filtre=sans_email", menu: "/clients" });
 
+  // Actions masquées par le patron : pour toujours (élément précis) ou tant que le nombre ne dépasse pas celui du masquage (compteur).
+  const visible = out.filter((a) => !hidden.has(a.key) || (a.count !== undefined && hidden.get(a.key) != null && a.count > (hidden.get(a.key) as number)));
   const order = { red: 0, orange: 1, blue: 2 } as const;
-  return out.sort((a, b) => order[a.tone] - order[b.tone]);
+  return visible.sort((a, b) => order[a.tone] - order[b.tone]);
 }
 
 /** Compteurs par rubrique du menu + total. */

@@ -111,3 +111,26 @@ export async function markInvoicePaidAction(invoiceId: string, fd: FormData) {
   revalidatePath(back); revalidatePath("/paiements"); revalidatePath("/factures"); revalidatePath("/");
   flash(back, "ok", amount >= remaining ? "Facture marquée comme payée." : "Paiement partiel enregistré.");
 }
+
+const NATURES = ["remboursement", "apport", "autre"] as const;
+
+/** Classe un virement reçu qui n'est pas un paiement de client (remboursement, apport du dirigeant…) : il sort des « à rapprocher » et du chiffre d'affaires encaissé. */
+export async function classifyPaymentAction(id: string, fd: FormData) {
+  await requireAccess("finances");
+  const nature = String(fd.get("nature") ?? "");
+  if (!(NATURES as readonly string[]).includes(nature)) flash("/paiements", "error", "Choisissez une nature.");
+  const note = str(fd, "note");
+  const { error } = await createClient().from("payments").update({ nature, note, match_status: "ignore", matched_invoice_id: null, suggested_invoice_id: null }).eq("id", id).in("match_status", ["non_rapproche", "propose", "ignore"]);
+  if (error) flash("/paiements", "error", dbMessage(error));
+  revalidatePath("/paiements"); revalidatePath("/", "layout");
+  flash("/paiements", "ok", "Virement classé : il ne compte plus comme encaissement de client.");
+}
+
+/** Remet un virement classé dans les encaissements clients à rapprocher. */
+export async function unclassifyPaymentAction(id: string) {
+  await requireAccess("finances");
+  const { error } = await createClient().from("payments").update({ nature: "encaissement_client", note: null, match_status: "non_rapproche" }).eq("id", id).eq("match_status", "ignore");
+  if (error) flash("/paiements", "error", dbMessage(error));
+  revalidatePath("/paiements"); revalidatePath("/", "layout");
+  flash("/paiements", "ok", "Virement remis à rapprocher.");
+}

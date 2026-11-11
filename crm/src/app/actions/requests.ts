@@ -1,5 +1,6 @@
 "use server";
 
+import { automationClient, automationSecret } from "@/lib/automation/deps";
 import { requireAccess } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
@@ -54,4 +55,51 @@ export async function setRequestStatusAction(id: string, status: "nouvelle" | "t
   if (error) flash("/demandes", "error", dbMessage(error));
   revalidatePath("/demandes");
   flash("/demandes", "ok", "Demande mise à jour.");
+}
+
+/** Écarte une demande comme démarchage : elle quitte les actions ; la fiche prospect créée automatiquement est supprimée seulement si elle ne contient rien d'autre. */
+export async function dismissSpamRequestAction(id: string) {
+  await requireAccess("clients");
+  const sb = createClient();
+  const { data: r } = await sb.from("quote_requests").select("client_id").eq("id", id).maybeSingle();
+  const { error } = await sb.from("quote_requests").update({ status: "ignoree" }).eq("id", id);
+  if (error) flash("/demandes", "error", dbMessage(error));
+  const cid = (r as any)?.client_id as string | null | undefined;
+  let removed = false;
+  if (cid) {
+    const [c, q, i, k, others] = await Promise.all([
+      sb.from("clients").select("status").eq("id", cid).maybeSingle(),
+      sb.from("quotes").select("id", { count: "exact", head: true }).eq("client_id", cid),
+      sb.from("invoices").select("id", { count: "exact", head: true }).eq("client_id", cid),
+      sb.from("contracts").select("id", { count: "exact", head: true }).eq("client_id", cid),
+      sb.from("quote_requests").select("id", { count: "exact", head: true }).eq("client_id", cid).neq("id", id)
+    ]);
+    if ((c.data as any)?.status === "prospect" && !q.count && !i.count && !k.count && !others.count) {
+      const del = await sb.from("clients").delete().eq("id", cid);
+      removed = !del.error;
+    }
+  }
+  revalidatePath("/demandes"); revalidatePath("/clients"); revalidatePath("/");
+  flash("/demandes", "ok", removed ? "Demande écartée et prospect automatique supprimé." : "Demande écartée.");
+}
+
+/** Remet dans les demandes un message mis de côté à tort : il suit alors le circuit normal (prospect, notification). */
+export async function restoreQuarantinedAction(id: string) {
+  await requireAccess("clients");
+  const sb = createClient();
+  const { data: q } = await sb.from("quote_request_spam").select("payload").eq("id", id).maybeSingle();
+  if (!q) flash("/demandes?statut=indesirables", "error", "Message introuvable.");
+  const p = (q as any).payload as Record<string, unknown>;
+  const { error } = await automationClient().rpc("submit_quote_request_v2", { p_secret: automationSecret(), p: { ...p, details: {} } });
+  if (error) flash("/demandes?statut=indesirables", "error", "Rétablissement impossible : " + error.message);
+  await sb.from("quote_request_spam").delete().eq("id", id);
+  revalidatePath("/demandes");
+  flash("/demandes", "ok", "Message rétabli dans les demandes.");
+}
+
+export async function deleteQuarantinedAction(id: string) {
+  await requireAccess("clients");
+  await createClient().from("quote_request_spam").delete().eq("id", id);
+  revalidatePath("/demandes");
+  flash("/demandes?statut=indesirables", "ok", "Message supprimé.");
 }

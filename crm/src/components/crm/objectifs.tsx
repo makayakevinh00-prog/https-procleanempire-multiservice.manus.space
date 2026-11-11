@@ -4,12 +4,13 @@ import { createClient } from "@/lib/supabase/server";
 import { num, numOrNull } from "@/lib/data";
 import { monthlyRevenueHt } from "@/lib/domain/recruitment";
 import type { Contract } from "@/lib/domain/types";
-import { askPlanAction, saveGoalsAction } from "@/app/actions/objectifs";
+import { saveGoalsAction } from "@/app/actions/objectifs";
 import {
   GOALS,
   GOAL_ORDER,
   STATUS_LABEL,
-  buildLevers,
+  buildPlan,
+  stepNames,
   forecastStatus,
   pace,
   paceStatus,
@@ -67,22 +68,23 @@ export async function Objectives({ today }: { today: string }) {
       sb
         .from("invoices")
         .select(
-          "client_id, status, issue_date, billing_month, total_ht, total_ttc, paid_amount",
+          "client_id, status, issue_date, billing_month, total_ht, total_ttc, paid_amount, clients(name)",
         )
         .neq("status", "annule"),
       sb
         .from("payments")
         .select("amount, received_at")
         .gt("amount", 0)
+        .eq("nature", "encaissement_client")
         .gte("received_at", `${prev}-01`),
       sb.from("clients").select("created_at").gte("created_at", `${prev}-01`),
       sb
         .from("quotes")
         .select(
-          "status, total_ht, sent_at, invoice_id, invoices:invoice_id(status)",
+          "status, total_ht, sent_at, invoice_id, invoices:invoice_id(status), clients(name)",
         )
         .neq("status", "brouillon"),
-      sb.from("contracts").select("*").eq("status", "actif"),
+      sb.from("contracts").select("*, clients(name)").eq("status", "actif"),
       sb
         .from("quote_requests")
         .select("id", { count: "exact", head: true })
@@ -159,17 +161,19 @@ export async function Objectives({ today }: { today: string }) {
       )
       .map((i) => i.client_id),
   );
-  const unbilled = ((ct.data ?? []) as any[])
+  const unbilledRows = ((ct.data ?? []) as any[])
     .filter((k) => !invoicedThisMonth.has(k.client_id))
-    .map((k) =>
-      monthlyRevenueHt({
+    .map((k) => ({
+      name: String(k.clients?.name ?? ""),
+      v: monthlyRevenueHt({
         ...k,
         monthly_amount_ht: numOrNull(k.monthly_amount_ht),
         per_visit_amount_ht: numOrNull(k.per_visit_amount_ht),
         visits_per_week: numOrNull(k.visits_per_week),
       } as Contract),
-    )
-    .filter((v): v is number => v != null);
+    }))
+    .filter((x): x is { name: string; v: number } => x.v != null);
+  const unbilled = unbilledRows.map((x) => x.v);
   const draftsAmt = sum(drafts, (i) => num(i.total_ht)),
     acceptedAmt = sum(accepted, (q) => num(q.total_ht)),
     unbilledAmt = round2(unbilled.reduce((a, b) => a + b, 0));
@@ -219,21 +223,17 @@ export async function Objectives({ today }: { today: string }) {
   const isSuggested = saved.length === 0;
   const tgt = (k: GoalKind) => (isSuggested ? suggested[k] : target(month, k));
   const active = GOAL_ORDER.filter((k) => tgt(k) != null);
-  const levers = buildLevers({
-    drafts: { n: drafts.length, amount: draftsAmt },
-    acceptedToInvoice: { n: accepted.length, amount: acceptedAmt },
-    unbilledContracts: { n: unbilled.length, amount: unbilledAmt },
-    sentQuotes: {
-      n: pending.length,
-      amount: sum(pending, (q) => num(q.total_ht)),
-    },
-    late: {
-      n: late.length,
-      amount: sum(late, (i) => num(i.total_ttc) - num(i.paid_amount)),
-    },
+  const uniq = (xs: string[]) => [...new Set(xs.filter(Boolean))];
+  const lateAmt = sum(late, (i) => num(i.total_ttc) - num(i.paid_amount));
+  const steps = buildPlan({
+    drafts: { n: drafts.length, amount: draftsAmt, names: uniq(drafts.map((i) => i.clients?.name)) },
+    accepted: { n: accepted.length, amount: acceptedAmt, names: uniq(accepted.map((q) => q.clients?.name)) },
+    unbilled: { n: unbilled.length, amount: unbilledAmt, names: uniq(unbilledRows.map((x) => x.name)) },
+    pending: { n: pending.length, amount: sum(pending, (q) => num(q.total_ht)), names: uniq(pending.map((q) => q.clients?.name)) },
+    late: { n: late.length, amount: lateAmt, names: uniq(late.map((i) => i.clients?.name)) },
     unmatched: unmatched.count ?? 0,
-    prospects: prospects.count ?? 0,
     requests: req.count ?? 0,
+    prospects: prospects.count ?? 0,
   });
   const caTarget = tgt("ca_facture");
   const missing = caTarget != null ? Math.max(caTarget - now.ca_facture, 0) : 0;
@@ -393,51 +393,34 @@ export async function Objectives({ today }: { today: string }) {
               : ` : il reste ${eur0(missing - pipe)} à aller chercher.`}
           </p>
         )}
-        {active.length > 0 && levers.length > 0 && (
-          <details className="mt-4">
-            <summary className="cursor-pointer list-none text-[13px] font-medium text-primary hover:underline">
-              Pour y arriver : {levers.length} piste
-              {levers.length > 1 ? "s" : ""}
-            </summary>
-            <ul className="mt-2 divide-y divide-border/70">
-              {levers.slice(0, 5).map((l) => (
-                <li key={l.key}>
-                  <Link
-                    href={l.href}
-                    className="flex items-center gap-3 py-2.5 text-sm hover:text-primary"
-                  >
-                    <span className="num w-7 text-right font-semibold">
-                      {l.count}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      {l.label}
-                      <span className="block text-xs text-muted-foreground">
-                        {l.note}
-                      </span>
-                    </span>
-                    {l.amount != null && (
-                      <span className="num font-medium">{eur0(l.amount)}</span>
-                    )}
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                  </Link>
+        {active.length > 0 && steps.length > 0 && (
+          <section className="mt-5 rounded-xl border border-border/70 p-4" aria-label="Plan d'action">
+            <h3 className="flex items-center gap-2 text-[14px] font-semibold text-foreground">
+              <Sparkles className="h-4 w-4 text-primary" strokeWidth={1.75} /> Plan pour atteindre {monthLabel}
+            </h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Calculé à l&apos;instant avec vos vrais chiffres, du plus rentable au moins rentable.
+            </p>
+            <ol className="mt-3 space-y-3">
+              {steps.map((st, idx) => (
+                <li key={st.key} className="flex gap-3">
+                  <span className="num flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">{idx + 1}</span>
+                  <div className="min-w-0 flex-1 text-sm">
+                    <div className="font-medium text-foreground">{st.title}{st.amount != null && <span className="num font-normal text-muted-foreground"> · {eur0(st.amount)}</span>}</div>
+                    <div className="text-xs text-muted-foreground">{st.why}{st.names.length > 0 && <> Concerné{st.names.length > 1 ? "s" : ""} : {stepNames(st.names, st.names.length)}.</>}</div>
+                  </div>
+                  <Link href={st.href} className="shrink-0 self-start text-[13px] font-medium text-primary hover:underline">{st.cta} →</Link>
                 </li>
               ))}
-            </ul>
-          </details>
-        )}
-        {!isSuggested && (
-          <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border/70 pt-4">
-            <form action={askPlanAction.bind(null, month)}>
-              <Button size="sm" variant="outline">
-                <Sparkles className="mr-1.5 h-4 w-4" /> Demander un plan à
-                l&apos;assistant
-              </Button>
-            </form>
-            <span className="text-xs text-muted-foreground">
-              Il étudie vos chiffres, vos clients et vos échanges, puis écrit le
-              plan ici.
-            </span>
-          </div>
+            </ol>
+            {caTarget != null && (
+              <p className="mt-3 border-t border-border/70 pt-3 text-xs text-secondary-foreground">
+                {pipe >= missing
+                  ? <>Si les étapes qui facturent aboutissent, vous atteignez <b className="font-medium text-foreground">{eur0(now.ca_facture + pipe)}</b> pour un objectif de {eur0(caTarget)}.</>
+                  : <>Même si tout aboutit, il resterait <b className="font-medium text-foreground">{eur0(missing - pipe)}</b> à aller chercher : nouveaux devis ou nouveaux clients.</>}
+              </p>
+            )}
+          </section>
         )}
         {plan.data && (
           <details className="mt-3 rounded-lg bg-secondary/50 px-4 py-3" open>
