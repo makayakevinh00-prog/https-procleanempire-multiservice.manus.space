@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { cleanerOnlineAction, cleanerPingAction, cleanerPushAction } from "@/app/actions/nettoyeur";
 
 const KEY = "pc_cleaner_link", SKIP = "pc_cleaner_skip";
 
@@ -24,16 +25,93 @@ export function Resume({ reset, children }: { reset?: boolean; children: React.R
   return ready ? <>{children}</> : <p className="py-24 text-center text-[var(--a-mute)]">Chargement…</p>;
 }
 
-/** Les demandes arrivent en direct : la liste se rafraîchit toute seule tant que l'écran est ouvert. */
-export function LiveRefresh({ every = 15 }: { every?: number }) {
+/** Les demandes arrivent en direct : la liste se rafraîchit toute seule ; un nouveau ménage fait vibrer et sonner le téléphone. */
+export function LiveRefresh({ every = 15, ids = [] }: { every?: number; ids?: string[] }) {
   const router = useRouter();
+  const seen = useRef<Set<string> | null>(null);
+  const [fresh, setFresh] = useState(false);
+  useEffect(() => {
+    if (seen.current === null) { seen.current = new Set(ids); return; }
+    const added = ids.filter((i) => !seen.current!.has(i));
+    ids.forEach((i) => seen.current!.add(i));
+    if (!added.length) return;
+    setFresh(true);
+    try { navigator.vibrate?.([250, 120, 250]); } catch { /* ignoré */ }
+    try {
+      const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const ctx = new Ctx(), o = ctx.createOscillator(), g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination); o.frequency.value = 880; g.gain.setValueAtTime(0.15, ctx.currentTime); o.start(); o.stop(ctx.currentTime + 0.25);
+    } catch { /* ignoré */ }
+    const t = setTimeout(() => setFresh(false), 8000);
+    return () => clearTimeout(t);
+  }, [ids]);
   useEffect(() => {
     const id = setInterval(() => { if (document.visibilityState === "visible") router.refresh(); }, every * 1000);
     const onVis = () => { if (document.visibilityState === "visible") router.refresh(); };
     document.addEventListener("visibilitychange", onVis);
     return () => { clearInterval(id); document.removeEventListener("visibilitychange", onVis); };
   }, [router, every]);
-  return <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--a-ok)]"><span className="h-2 w-2 animate-pulse rounded-full bg-[var(--a-ok)]" />En direct</span>;
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--a-ok)]">
+      <span className="h-2 w-2 animate-pulse rounded-full bg-[var(--a-ok)]" />{fresh ? "Nouvelle demande !" : "En direct"}
+    </span>
+  );
+}
+
+const keyBytes = (b64: string) => { const p = "=".repeat((4 - (b64.length % 4)) % 4), r = atob((b64 + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from([...r].map((c) => c.charCodeAt(0))); };
+
+async function enablePush(token: string): Promise<boolean> {
+  try {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return false;
+    if (Notification.permission === "denied") return false;
+    if (Notification.permission !== "granted" && (await Notification.requestPermission()) !== "granted") return false;
+    const key = ((await (await fetch("/api/nettoyeur/push-key")).json()) as { key: string | null }).key;
+    if (!key) return false;
+    const reg = await navigator.serviceWorker.register("/nettoyeur/sw.js", { scope: "/nettoyeur/" });
+    await navigator.serviceWorker.ready;
+    const sub = (await reg.pushManager.getSubscription()) ?? (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(key) }));
+    const j = sub.toJSON();
+    if (!j.endpoint || !j.keys?.p256dh || !j.keys.auth) return false;
+    return (await cleanerPushAction(token, { endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth })).ok;
+  } catch { return false; }
+}
+
+/** Le gros bouton des chauffeurs : se mettre en ligne pour recevoir les ménages (notification + position en direct). */
+export function OnlinePanel({ token, online, hasPush, zone }: { token: string; online: boolean; hasPush: boolean; zone: string }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState("");
+  // Position en direct tant que l'écran est ouvert et qu'on est en ligne (au plus toutes les 30 s).
+  useEffect(() => {
+    if (!online || !("geolocation" in navigator)) return;
+    let last = 0;
+    const id = navigator.geolocation.watchPosition((p) => { if (Date.now() - last > 30_000) { last = Date.now(); void cleanerPingAction(token, p.coords.latitude, p.coords.longitude); } }, () => undefined, { enableHighAccuracy: true, maximumAge: 20_000 });
+    return () => navigator.geolocation.clearWatch(id);
+  }, [online, token]);
+  const toggle = async () => {
+    setBusy(true); setNote("");
+    if (!online) {
+      const pushed = hasPush || (await enablePush(token));
+      const ios = /iPhone|iPad/.test(navigator.userAgent) && !(window.matchMedia("(display-mode: standalone)").matches);
+      setNote(pushed ? "" : ios ? "Pour être prévenu sur iPhone : ajoutez l'application à l'écran d'accueil (Partager › Sur l'écran d'accueil). En attendant, vous serez prévenu par e-mail." : "Notifications non activées : vous serez prévenu par e-mail.");
+      if ("geolocation" in navigator) navigator.geolocation.getCurrentPosition((p) => void cleanerPingAction(token, p.coords.latitude, p.coords.longitude), () => undefined, { enableHighAccuracy: true, timeout: 8000 });
+    }
+    const r = await cleanerOnlineAction(token, !online);
+    if (!r.ok) setNote(r.error ?? "Impossible pour le moment.");
+    setBusy(false); router.refresh();
+  };
+  return (
+    <section className={`mb-4 rounded-3xl p-5 text-center ${online ? "bg-[var(--a-okbg)]" : "bg-[var(--a-card)]"}`}>
+      <button type="button" onClick={toggle} disabled={busy} aria-pressed={online} aria-label={online ? "Se mettre hors ligne" : "Se mettre en ligne"}
+        className={`mx-auto flex h-32 w-32 items-center justify-center rounded-full text-[28px] font-extrabold text-white shadow-lg active:scale-95 disabled:opacity-60 ${online ? "bg-[var(--a-ok)]" : "bg-[var(--a-pri)]"}`}>
+        {busy ? "…" : online ? "STOP" : "GO"}
+      </button>
+      <div className="mt-3 text-[20px] font-extrabold">{online ? "Vous êtes en ligne" : "Vous êtes hors ligne"}</div>
+      <p className="mt-0.5 text-[14px] text-[var(--a-mute)]">{online ? `Vous recherchez des ménages autour de ${zone}. Nous vous prévenons dès qu'un ménage apparaît.` : "Mettez-vous en ligne pour recevoir les ménages en priorité, avec une notification."}</p>
+      {online && <p className="mt-1 text-[12px] text-[var(--a-mute)]">{hasPush ? "🔔 Notifications activées" : "✉️ Vous serez aussi prévenu par e-mail"}</p>}
+      {note && <p role="status" className="mt-2 text-[13px] font-semibold text-[var(--a-warn)]">{note}</p>}
+    </section>
+  );
 }
 
 /** Une demande de ménage : « J'accepte » ou « Passer » (Passer la masque sur ce téléphone, sans rien changer pour les autres). */

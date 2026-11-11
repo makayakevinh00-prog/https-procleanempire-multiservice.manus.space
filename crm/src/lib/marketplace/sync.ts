@@ -3,6 +3,7 @@ import { automationClient, automationSecret } from "@/lib/automation/deps";
 import { fetchIcal } from "@/lib/concierge/run";
 import { parseIcal, type Platform } from "@/lib/concierge/ical";
 import { geocode } from "@/lib/zone";
+import { dispatchTick } from "@/lib/marketplace/notify";
 
 /**
  * Chaîne automatique des ménages : calendriers Airbnb/Booking lus → séjours et ménages créés → ménages localisés → publiés aux nettoyeurs.
@@ -36,5 +37,6 @@ export async function syncMarketplace(o: { minutes?: number; force?: boolean } =
     const p = await geocode({ address: j.address, postal_code: j.postal_code, city: j.city });
     if (p) { await a.rpc("automation_set_job_geo", { p_secret: secret, p_job: j.id, p_lat: p.lat, p_lng: p.lng }); out.geocoded++; }
   }
+  await dispatchTick({ force: true }).catch(() => undefined);
   return out;
 }

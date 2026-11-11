@@ -14,15 +14,19 @@ import { approveCleanerAction, renewCleanerLinkAction, setCleanerStatusAction, t
 import { JOB_STATUS, LINEN_STEP, dayFr, eur, slot } from "@/lib/cleaner-ui";
 import { aiConfigured } from "@/lib/ai-inspect";
 import { formatDate } from "@/lib/utils";
+import { LiveMapLazy } from "@/components/crm/live-map-lazy";
+import { LiveRefreshBadge } from "@/components/crm/live-refresh";
+import { dispatchTick } from "@/lib/marketplace/notify";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Nettoyeurs" };
 const href = (t: string) => `/nettoyeurs?tab=${t}`;
-const TABS = ["direct", "reservations", "demandes", "inscriptions", "nettoyeurs", "draps", "paiements", "reglages"];
+const TABS = ["carte", "direct", "reservations", "demandes", "inscriptions", "nettoyeurs", "draps", "paiements", "reglages"];
 
 /** Nettoyeurs indépendants : demandes à publier et à vérifier, inscriptions à valider, favoris, paiements et réglages des parts. */
 export default async function CleanersPage({ searchParams }: { searchParams: { tab?: string } }) {
-  const tab = TABS.includes(searchParams.tab ?? "") ? searchParams.tab! : "direct";
+  const tab = TABS.includes(searchParams.tab ?? "") ? searchParams.tab! : "carte";
+  if (tab === "carte" || tab === "direct") await dispatchTick().catch(() => undefined);   // les vagues de distribution avancent pendant que vous regardez
   const sb = createClient();
   const today = parisToday();
   const [cl, jobs, fav, pay, set, clients, pub, photos, linen, staffRes, bookRes] = await Promise.all([
@@ -56,6 +60,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
   for (const j of J.filter((x) => x.status === "validee" && !x.payout_id && x.cleaner_id)) { const e = unpaid.get(j.cleaner_id) ?? { name: j.cleaners?.full_name ?? "", iban: !!cleaners.find((c) => c.id === j.cleaner_id)?.iban, n: 0, sum: 0 }; e.n++; e.sum += Number(j.cleaner_amount ?? 0); unpaid.set(j.cleaner_id, e); }
   const toPay = ((pay.data ?? []) as any[]).filter((p) => p.status === "a_payer");
   const tabs = [
+    { href: href("carte"), label: "Carte en direct", count: null, active: tab === "carte" },
     { href: href("direct"), label: "En direct", count: J.filter((j) => j.status === "ouverte").length || null, active: tab === "direct" },
     { href: href("reservations"), label: "Réservations", count: newBookings.length || null, active: tab === "reservations" },
     { href: href("demandes"), label: "Demandes", count: toCheck.length + toPublish.length || null, active: tab === "demandes" },
@@ -76,6 +81,52 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
           <input readOnly value={fresh.url} aria-label="Lien du nettoyeur" className="w-full select-all rounded-md border bg-white px-3 py-2 font-mono text-xs" />
         </div>
       )}
+
+      {tab === "carte" && (() => {
+        const ago = (iso: string | null) => { if (!iso) return "jamais vu"; const m = Math.round((Date.now() - Date.parse(iso)) / 60000); return m < 1 ? "à l'instant" : m < 60 ? `il y a ${m} min` : `il y a ${Math.round(m / 60)} h`; };
+        const fresh = (c: any) => c.last_lat != null && c.last_seen_at && Date.now() - Date.parse(c.last_seen_at) < 10 * 60000;
+        const pos = (c: any) => (fresh(c) ? { lat: c.last_lat as number, lng: c.last_lng as number } : c.lat != null ? { lat: c.lat as number, lng: c.lng as number } : null);
+        const live = J.filter((j) => ["ouverte", "acceptee", "a_verifier", "a_reprendre"].includes(j.status) && j.job_date >= today && j.lat != null);
+        const mapCleaners = cleaners.filter((c) => c.status === "actif" && pos(c)).map((c) => {
+          const mine = live.find((j) => j.cleaner_id === c.id && ["acceptee", "a_reprendre"].includes(j.status));
+          return { id: c.id, name: c.full_name, ...pos(c)!, online: !!c.online, live: fresh(c), seen: ago(c.last_seen_at), goingTo: mine ? { lat: mine.lat, lng: mine.lng, title: mine.title } : null };
+        });
+        const mapJobs = live.map((j) => ({ id: j.id, lat: j.lat, lng: j.lng, title: j.title, sub: `${dayFr(j.job_date)} · ${j.city ?? ""} · ${JOB_STATUS[j.status] ?? j.status}${j.cleaners?.full_name ? ` · ${j.cleaners.full_name}` : ""}`, status: (j.status === "a_reprendre" ? "acceptee" : j.status) as "ouverte" | "acceptee" | "a_verifier" }));
+        const byZone = new Map<string, { label: string; lat: number; lng: number; jobs: number; accepted: number; n: number }>();
+        for (const j of live) { const k = j.postal_code ?? "?"; const z = byZone.get(k) ?? { label: `${j.city ?? ""} ${k}`.trim(), lat: 0, lng: 0, jobs: 0, accepted: 0, n: 0 }; z.lat += j.lat; z.lng += j.lng; z.n++; if (j.status === "ouverte") z.jobs++; else z.accepted++; byZone.set(k, z); }
+        const onlineN = cleaners.filter((c) => c.status === "actif" && c.online);
+        const zones = [...byZone.values()].map((z) => ({ label: z.label, lat: z.lat / z.n, lng: z.lng / z.n, jobs: z.jobs, accepted: z.accepted, online: onlineN.filter((c) => { const p = pos(c); return p && Math.hypot(p.lat - z.lat / z.n, p.lng - z.lng / z.n) * 111 <= (c.radius_km ?? 15); }).length })).sort((a, b) => b.jobs - a.jobs);
+        const openLate = J.filter((j) => j.status === "ouverte" && j.job_date >= today && Date.now() - Date.parse(j.created_at) > 5 * 60000);
+        return (
+          <>
+            <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
+              <LiveRefreshBadge />
+              <span><b>{onlineN.length}</b> nettoyeur(s) en ligne</span>
+              <span><b>{J.filter((j) => j.status === "ouverte" && j.job_date >= today).length}</b> ménage(s) à pourvoir</span>
+              <span><b>{J.filter((j) => ["acceptee", "a_reprendre"].includes(j.status) && j.job_date >= today).length}</b> accepté(s)</span>
+              {openLate.length > 0 && <span className="font-semibold text-red-700">{openLate.length} ménage(s) sans preneur depuis plus de 5 min</span>}
+            </div>
+            <LiveMapLazy cleaners={mapCleaners} jobs={mapJobs} zones={zones} />
+            <p className="mt-2 text-xs text-muted-foreground">Vert : nettoyeur en ligne · gris : hors ligne · rouge : ménage à pourvoir · bleu : accepté (trait pointillé = où il va) · orange : à vérifier. Cercles : affluence (rouge = forte demande). Position GPS en direct seulement quand l&apos;application du nettoyeur est ouverte ; sinon, son adresse.</p>
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              <Card>
+                <CardHeader><CardTitle>Affluence par zone</CardTitle></CardHeader>
+                {!zones.length ? <Empty>Aucun ménage à venir : la carte s&apos;anime dès qu&apos;un ménage est publié.</Empty> : <ul className="divide-y text-sm">{zones.map((z) => (
+                  <li key={z.label} className="flex items-center gap-3 px-5 py-2.5"><span className="min-w-0 flex-1 font-medium">{z.label}</span><span className="text-xs text-muted-foreground">{z.jobs} à pourvoir · {z.accepted} accepté(s) · {z.online} en ligne</span>
+                    <Badge tone={z.jobs >= 3 ? "red" : z.jobs >= 1 ? "orange" : "green"}>{z.jobs > z.online ? "Manque de monde" : z.jobs >= 1 ? "Demande" : "Couvert"}</Badge></li>
+                ))}</ul>}
+              </Card>
+              <Card>
+                <CardHeader><CardTitle>Nettoyeurs</CardTitle></CardHeader>
+                {!cleaners.filter((c) => c.status === "actif").length ? <Empty>Aucun nettoyeur actif.</Empty> : <ul className="divide-y text-sm">{cleaners.filter((c) => c.status === "actif").sort((a, b) => Number(!!b.online) - Number(!!a.online)).map((c) => {
+                  const mine = live.find((j) => j.cleaner_id === c.id && ["acceptee", "a_reprendre"].includes(j.status));
+                  return (<li key={c.id} className="flex items-center gap-3 px-5 py-2.5"><span className={`h-2.5 w-2.5 shrink-0 rounded-full ${c.online ? "bg-emerald-500" : "bg-slate-300"}`} /><span className="min-w-0 flex-1"><b className="font-medium">{c.full_name}</b><span className="block text-xs text-muted-foreground">{c.online ? "En ligne" : "Hors ligne"} · vu {ago(c.last_seen_at)}{mine ? ` · va à : ${mine.title} (${mine.city ?? ""})` : ""}</span></span></li>);
+                })}</ul>}
+              </Card>
+            </div>
+          </>
+        );
+      })()}
 
       {tab === "direct" && (() => {
         const openJ = J.filter((j) => j.status === "ouverte" && j.job_date >= today), accepted = J.filter((j) => ["acceptee", "a_reprendre"].includes(j.status) && j.job_date >= addDays(today, -1)), sent = J.filter((j) => j.status === "a_verifier");

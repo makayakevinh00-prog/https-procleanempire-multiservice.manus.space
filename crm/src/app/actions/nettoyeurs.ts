@@ -10,6 +10,7 @@ import { addDays, parisToday } from "@/lib/domain/dates";
 import { sendMail, mailConfigured } from "@/lib/mail";
 import { pctsValid } from "@/lib/cleaner-ui";
 import { geocode } from "@/lib/zone";
+import { dispatchTick } from "@/lib/marketplace/notify";
 
 const BACK = "/nettoyeurs";
 const to = (tab: string) => `${BACK}?tab=${tab}`;
@@ -252,12 +253,15 @@ export async function acceptBookingAction(id: string, fd: FormData) {
   }
   if (!clientId) flash(to("reservations"), "error", "Impossible de retrouver ou créer le client.");
   const label = ({ studio: "Studio", t2: "2 pièces", t3: "3 pièces", maison: "Maison" } as Record<string, string>)[k.kind] ?? k.kind;
+  const bpt = await geocode({ address: k.address, postal_code: k.postal_code, city: k.city });
   const { data: job, error } = await sb.from("cleaning_jobs").insert({
+    lat: bpt?.lat ?? null, lng: bpt?.lng ?? null,
     client_id: clientId!, title: `Ménage — ${label} (${k.city})`, job_date: k.job_date, window_start: String((set as any)?.window_start ?? "11:00").slice(0, 5), window_end: String((set as any)?.window_end ?? "14:00").slice(0, 5),
     city: k.city, postal_code: k.postal_code, address: k.address, access_notes: [k.access_notes, k.note].filter(Boolean).join(" — ") || null, price_ht: price
   }).select("id").single();
   if (error) flash(to("reservations"), "error", dbMessage(error));
   await sb.from("cleaning_bookings").update({ status: "acceptee", job_id: (job as any).id, price_ht: price }).eq("id", id);
+  await dispatchTick({ force: true }).catch(() => undefined);
   let mailed = false;
   if (mailConfigured()) {
     const day = new Date(k.job_date + "T12:00:00Z").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
@@ -290,5 +294,6 @@ export async function createManualJobAction(fd: FormData) {
     city, postal_code: postal, address, access_notes: str(fd, "access_notes") || null, price_ht: price, lat: pt?.lat ?? null, lng: pt?.lng ?? null
   });
   if (error) flash(to("direct"), "error", dbMessage(error));
-  done("direct", "Ménage publié : les nettoyeurs de la zone le voient maintenant.");
+  await dispatchTick({ force: true }).catch(() => undefined);
+  done("direct", "Ménage publié : il est proposé en priorité aux nettoyeurs en ligne les mieux placés.");
 }

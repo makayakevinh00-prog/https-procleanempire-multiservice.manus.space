@@ -22,7 +22,7 @@ beforeAll(async () => {
     grant usage on schema public to authenticated, anon; alter default privileges in schema public grant all on tables to authenticated, anon; alter default privileges in schema public grant execute on functions to authenticated, anon;`);
   for (const f of readdirSync(path.join(root, "supabase/migrations")).filter((x) => x.endsWith(".sql") && !x.endsWith("_down.sql") && x <= "0038_conciergerie.sql").sort()) await db.exec(read(`supabase/migrations/${f}`));
   await db.exec(read("supabase/seed.sql"));
-  for (const f of ["0044_nettoyeurs.sql", "0045_nettoyeurs_suite.sql", "0046_reservations.sql", "0047_nettoyeurs_uber.sql"]) { await db.exec(read(`supabase/migrations/${f}`)); await db.exec(read(`supabase/migrations/${f}`)); } // rejouables
+  for (const f of ["0044_nettoyeurs.sql", "0045_nettoyeurs_suite.sql", "0046_reservations.sql", "0047_nettoyeurs_uber.sql", "0048_nettoyeurs_en_ligne.sql"]) { await db.exec(read(`supabase/migrations/${f}`)); await db.exec(read(`supabase/migrations/${f}`)); } // rejouables
   await q("update app_settings set automation_secret = $1", [SECRET]);
   client = (await q("insert into clients(name, postal_code, city, address) values ('Propriétaire Martin','95300','Pontoise','1 rue A') returning id"))[0].id;
   listing = (await q("insert into concierge_listings(name, client_id, cleaning_price_ht, cleaning_hours, platform) values ('Studio Gare', $1, 60, 2, 'airbnb') returning id", [client]))[0].id;
@@ -83,6 +83,7 @@ describe("0047 — réservations → ménages → zone", () => {
     await q("select automation_set_job_geo($1,$2,0,0)", [SECRET, todo[0].id]);   // hors de France : ignoré
     expect((await q("select count(*)::int n from cleaning_jobs where lat is not null"))[0].n).toBe(2);
     expect((await q("select automation_jobs_to_geocode($1) t", [SECRET]))[0].t).toHaveLength(0);
+    await q("update cleaning_jobs set created_at = now() - interval '10 minutes'");   // au-delà des vagues de distribution : visible de tous dans la zone
   });
   it("le nettoyeur voit les ménages de son rayon avec la distance, pas ceux hors zone", async () => {
     let jobs = (await q("select cleaner_open_jobs($1) o", [T3]))[0].o.jobs as any[];

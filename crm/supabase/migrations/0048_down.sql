@@ -1,0 +1,17 @@
+drop function if exists automation_claim_tick(text, int);
+drop function if exists cleaner_ping(text, double precision, double precision);
+drop function if exists dispatch_visible(cleaners, cleaning_jobs);
+drop function if exists dispatch_wave_size(cleaning_jobs);
+drop function if exists dispatch_rank(cleaners, cleaning_jobs);
+drop function if exists dispatch_score(cleaners, cleaning_jobs);
+drop function if exists dispatch_eligible(cleaners, cleaning_jobs);
+drop table if exists cleaning_offers;
+drop function if exists automation_drop_push(text, text);
+drop function if exists automation_pending_notifications(text);
+drop function if exists cleaner_set_zone(text, text, text, double precision, double precision);
+drop function if exists cleaner_zones(text);
+drop function if exists cleaner_push_status(text);
+drop function if exists cleaner_push_subscribe(text, text, text, text);
+drop function if exists cleaner_set_online(text, boolean);
+drop table if exists cleaner_push;
+alter table cleaners drop column if exists notify_email, drop column if exists online_at, drop column if exists online;

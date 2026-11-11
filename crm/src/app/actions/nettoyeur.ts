@@ -98,6 +98,38 @@ export async function cleanerProfileAction(token: string, fd: FormData) {
   go(token, "/profil", "ok", pt ? (gps ? "Profil enregistré avec votre position GPS : vous voyez les ménages dans votre rayon." : "Profil enregistré : vous voyez les ménages dans votre rayon.") : "Profil enregistré. Votre adresse n'a pas pu être localisée : vous voyez les ménages de votre département.");
 }
 
+/** Bouton En ligne / Hors ligne. */
+export async function cleanerOnlineAction(token: string, online: boolean): Promise<{ ok: boolean; error?: string }> {
+  if (!isToken(token)) return { ok: false, error: "Lien invalide." };
+  const { error } = await agentClient().rpc("cleaner_set_online", { p_token: token, p_online: online });
+  if (error) return { ok: false, error: agentMessage(error.message) };
+  revalidatePath(base(token), "layout");
+  return { ok: true };
+}
+
+/** Position en direct (application ouverte). */
+export async function cleanerPingAction(token: string, lat: number, lng: number): Promise<void> {
+  if (!isToken(token) || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
+  await agentClient().rpc("cleaner_ping", { p_token: token, p_lat: lat, p_lng: lng });
+}
+
+/** Abonnement aux notifications de ce téléphone. */
+export async function cleanerPushAction(token: string, sub: { endpoint: string; p256dh: string; auth: string }): Promise<{ ok: boolean }> {
+  if (!isToken(token)) return { ok: false };
+  const { error } = await agentClient().rpc("cleaner_push_subscribe", { p_token: token, p_endpoint: sub.endpoint, p_p256dh: sub.p256dh, p_auth: sub.auth });
+  return { ok: !error };
+}
+
+/** Aller travailler dans une zone de demande : le centre de travail devient cette zone. */
+export async function cleanerZoneAction(token: string, postal: string, city: string) {
+  guard(token);
+  const pt = await geocode({ postal_code: postal, city });
+  const { error } = await agentClient().rpc("cleaner_set_zone", { p_token: token, p_postal: postal, p_city: city, p_lat: pt?.lat ?? null, p_lng: pt?.lng ?? null });
+  if (error) go(token, "", "error", agentMessage(error.message));
+  revalidatePath(base(token), "layout");
+  go(token, "", "ok", `Vous travaillez maintenant autour de ${city}.`);
+}
+
 const SIGNUP = "/nettoyeur/inscription";
 const fail = (msg: string): never => redirect(`${SIGNUP}?error=${encodeURIComponent(msg)}`);
 
