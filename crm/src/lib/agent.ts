@@ -1,5 +1,7 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
+import { isLang, isTheme, type Lang, type ThemePref } from "@/lib/field-ui";
 import { noStoreFetch } from "@/lib/supabase/no-store";
 
 /**
@@ -24,3 +26,19 @@ export function agentMessage(message: string): string {
 }
 
 export const isToken = (t: string) => /^[0-9a-f]{64}$/.test(t);
+
+export type AgentReport = {
+  agent: string; done: number; validated: number; cancelled: number; sites_checked: number; rate: number;
+  recent: { id: string; date: string; time: string | null; title: string; client: string; site: string | null; stage: string }[];
+};
+export type AgentProfile = {
+  name: string; email: string | null; phone: string | null; missions_done: number;
+  company_name: string | null; company_phone: string | null; company_email: string | null; deletion_requested_at: string | null;
+};
+
+/** Préférences de l'application (thème, langue) : simples cookies de l'appareil, jamais envoyés à la base. */
+export function agentPrefs(): { lang: Lang; theme: ThemePref } {
+  const c = cookies();
+  const lang = c.get("agent_lang")?.value, theme = c.get("agent_theme")?.value;
+  return { lang: isLang(lang) ? lang : "fr", theme: isTheme(theme) ? theme : "light" };
+}

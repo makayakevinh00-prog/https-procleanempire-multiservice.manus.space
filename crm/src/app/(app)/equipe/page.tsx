@@ -70,6 +70,7 @@ export default async function TeamPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="text-base font-bold text-slate-900">{s.full_name}</div>
+                    {s.deletion_requested_at && <div role="status" className="mt-1 inline-block rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-900">Demande d&apos;effacement des données reçue le {new Date(s.deletion_requested_at).toLocaleDateString("fr-FR")}</div>}
                     <div className="text-xs text-slate-500">{s.role === "responsable" ? "Responsable" : "Agent"}{s.zone ? ` · ${s.zone}` : ""}{!s.active ? " · inactif" : ""}</div>
                   </div>
                   <Link href={`/missions?vue=semaine&agent=${s.id}`} className="text-xs font-semibold text-primary hover:underline">Ses missions</Link>
