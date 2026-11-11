@@ -16,7 +16,6 @@ import { aiConfigured } from "@/lib/ai-inspect";
 import { formatDate } from "@/lib/utils";
 import { LiveMapLazy } from "@/components/crm/live-map-lazy";
 import { LiveRefreshBadge } from "@/components/crm/live-refresh";
-import { dispatchTick } from "@/lib/marketplace/notify";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Nettoyeurs" };
@@ -26,7 +25,6 @@ const TABS = ["carte", "direct", "reservations", "demandes", "inscriptions", "ne
 /** Nettoyeurs indépendants : demandes à publier et à vérifier, inscriptions à valider, favoris, paiements et réglages des parts. */
 export default async function CleanersPage({ searchParams }: { searchParams: { tab?: string } }) {
   const tab = TABS.includes(searchParams.tab ?? "") ? searchParams.tab! : "carte";
-  if (tab === "carte" || tab === "direct") await dispatchTick().catch(() => undefined);   // les vagues de distribution avancent pendant que vous regardez
   const sb = createClient();
   const today = parisToday();
   const [cl, jobs, fav, pay, set, clients, pub, photos, linen, staffRes, bookRes] = await Promise.all([

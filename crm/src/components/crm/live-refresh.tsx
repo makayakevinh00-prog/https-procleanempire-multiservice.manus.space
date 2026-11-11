@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 export function LiveRefreshBadge({ every = 15 }: { every?: number }) {
   const router = useRouter();
   useEffect(() => {
-    const id = setInterval(() => { if (document.visibilityState === "visible") router.refresh(); }, every * 1000);
+    const id = setInterval(() => { if (document.visibilityState === "visible") { void fetch("/api/nettoyeur/tick", { method: "POST" }).then(() => router.refresh()).catch(() => undefined); router.refresh(); } }, every * 1000);
     return () => clearInterval(id);
   }, [router, every]);
   return <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700"><span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />Mise à jour automatique</span>;

@@ -46,10 +46,12 @@ export function LiveRefresh({ every = 15, ids = [] }: { every?: number; ids?: st
     return () => clearTimeout(t);
   }, [ids]);
   useEffect(() => {
-    const id = setInterval(() => { if (document.visibilityState === "visible") router.refresh(); }, every * 1000);
-    const onVis = () => { if (document.visibilityState === "visible") router.refresh(); };
-    document.addEventListener("visibilitychange", onVis);
-    return () => { clearInterval(id); document.removeEventListener("visibilitychange", onVis); };
+    // Le travail de fond (calendriers, distribution) tourne à part ; l'écran se rafraîchit sans l'attendre.
+    const tick = () => { if (document.visibilityState === "visible") { void fetch("/api/nettoyeur/tick", { method: "POST" }).then(() => router.refresh()).catch(() => undefined); router.refresh(); } };
+    tick();
+    const id = setInterval(tick, every * 1000);
+    document.addEventListener("visibilitychange", tick);
+    return () => { clearInterval(id); document.removeEventListener("visibilitychange", tick); };
   }, [router, every]);
   return (
     <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--a-ok)]">

@@ -7,8 +7,6 @@ import { dayFr, eur, slot } from "@/lib/cleaner-ui";
 import { initials } from "@/lib/field-ui";
 import { Gate } from "@/components/agent/gate";
 import { LiveRefresh, OnlinePanel, Remember, RequestCard } from "@/components/nettoyeur/live";
-import { syncMarketplace } from "@/lib/marketplace/sync";
-import { dispatchTick } from "@/lib/marketplace/notify";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Accueil — ProClean Nettoyeur", robots: { index: false, follow: false }, referrer: "no-referrer" };
@@ -20,8 +18,6 @@ const level = (z: Zone) => (z.open_jobs >= 3 ? { t: "Forte demande", c: "bg-[var
 export default async function CleanerHome({ params, searchParams }: { params: { token: string }; searchParams: { ok?: string; error?: string } }) {
   const token = params.token;
   if (!isToken(token)) return <Gate text="Ce lien n'est pas valide. Retrouvez votre accès avec votre e-mail." back={{ href: "/nettoyeur/inscription#lien", label: "Retrouver mon accès" }} />;
-  await syncMarketplace({ minutes: 30 }).catch(() => undefined);   // réservations Airbnb/Booking → ménages (au plus toutes les 30 min)
-  await dispatchTick().catch(() => undefined);                      // vagues de distribution (au plus toutes les 20 s)
   const c = agentClient();
   const [ov, jobsRes, zonesRes, pushRes] = await Promise.all([c.rpc("cleaner_overview", { p_token: token }), c.rpc("cleaner_open_jobs", { p_token: token }), c.rpc("cleaner_zones", { p_token: token }), c.rpc("cleaner_push_status", { p_token: token })]);
   if (ov.error) return <Gate text={agentMessage(ov.error.message)} back={{ href: "/nettoyeur?reset=1", label: "Retrouver mon accès" }} />;
