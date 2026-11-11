@@ -4,6 +4,7 @@ import { agentClient } from "@/lib/agent";
 import { bookCleaningAction } from "@/app/actions/nettoyeur";
 import { FIELD_CSS } from "@/components/agent/theme";
 import { eur } from "@/lib/cleaner-ui";
+import { agentPrefs } from "@/lib/agent";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Réserver un ménage — ProClean Empire", description: "Réservez un ménage à domicile en quelques clics : un nettoyeur vient chez vous entre 11 h et 14 h." };
@@ -18,7 +19,7 @@ export default async function Reserve({ searchParams }: { searchParams: { ok?: s
   const tomorrow = new Date(Date.now() + 864e5).toLocaleDateString("sv-SE", { timeZone: "Europe/Paris" });
   const max = new Date(Date.now() + 90 * 864e5).toLocaleDateString("sv-SE", { timeZone: "Europe/Paris" });
   return (
-    <div className="agent-app min-h-screen bg-[var(--a-bg)] text-[var(--a-ink)]" data-theme="system" lang="fr">
+    <div className="agent-app min-h-screen bg-[var(--a-bg)] text-[var(--a-ink)]" data-theme={agentPrefs().theme} lang="fr">
       <style dangerouslySetInnerHTML={{ __html: FIELD_CSS }} />
       <main className="mx-auto max-w-md px-4 py-8">
         <Image src="/logo.png" alt="ProClean Empire" width={187} height={344} className="mb-3 h-16 w-auto" priority />
