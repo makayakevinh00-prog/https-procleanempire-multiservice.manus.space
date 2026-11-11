@@ -1,0 +1,17 @@
+drop function if exists cleaner_update_profile(text, text, text, text);
+drop function if exists cleaner_finish_job(text, uuid, text);
+drop function if exists cleaner_release_job(text, uuid);
+drop function if exists cleaner_accept_job(text, uuid);
+drop function if exists cleaner_my_jobs(text);
+drop function if exists cleaner_open_jobs(text);
+drop function if exists cleaner_overview(text);
+drop function if exists cleaner_by_token(text);
+drop function if exists cleaner_signup(jsonb);
+drop trigger if exists cleaning_jobs_amounts_t on cleaning_jobs;
+drop function if exists cleaning_job_amounts();
+drop table if exists cleaner_favorites;
+alter table if exists cleaning_jobs drop constraint if exists cleaning_jobs_payout_fk;
+drop table if exists cleaning_payouts;
+drop table if exists cleaning_jobs;
+drop table if exists cleaners;
+drop table if exists marketplace_settings;

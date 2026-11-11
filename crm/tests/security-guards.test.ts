@@ -12,6 +12,8 @@ const read = (p: string) => readFileSync(path.join(root, p), "utf8");
  * Toute nouvelle entrée ici doit être justifiée et validée par le dirigeant.
  */
 const SANS_GARDE: Record<string, string> = {
+  "nettoyeur.ts":
+    "Application des nettoyeurs : accès par lien privé (jeton) ou inscription publique ; refus d'un jeton invalide vérifié par direct-access.test.ts.",
   "agent.ts":
     "Application des agents : accès par lien privé (jeton), pas de session du patron. Refus d'un jeton invalide vérifié par direct-access.test.ts.",
 };
@@ -61,6 +63,7 @@ describe("garde de rôle sur les actions serveur", () => {
       "src/app/api/contrats/[id]/pdf/route.ts",
       "src/app/api/missions/photo/[id]/route.ts",
       "src/app/api/compta/export/route.ts",
+      "src/app/api/nettoyeurs/virements/route.ts",
     ]) {
       expect(read(p), p).toMatch(/await (isOwner|canRead\("[a-z]+"\)|isAccountant)\(?\)?/);
     }

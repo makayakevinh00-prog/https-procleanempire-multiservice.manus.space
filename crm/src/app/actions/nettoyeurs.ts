@@ -1,0 +1,194 @@
+"use server";
+
+import { createHash, randomBytes } from "node:crypto";
+import { cookies, headers } from "next/headers";
+import { revalidatePath } from "next/cache";
+import { requireOwner } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+import { dbMessage, flash, numField, str } from "@/lib/data";
+import { addDays, parisToday } from "@/lib/domain/dates";
+import { sendMail, mailConfigured } from "@/lib/mail";
+import { pctsValid } from "@/lib/cleaner-ui";
+
+const BACK = "/nettoyeurs";
+const to = (tab: string) => `${BACK}?tab=${tab}`;
+const done = (tab: string, msg: string): never => { revalidatePath(BACK); return flash(to(tab), "ok", msg); };
+const sha = (c: string) => createHash("sha256").update(c).digest("hex");
+const origin = () => { const h = headers(); return `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`; };
+
+/** Valide une inscription (ou renouvelle le lien) : un lien privé est créé, envoyé par e-mail si possible, et affiché une seule fois ici. */
+async function issueLink(id: string, tab: string, firstTime: boolean) {
+  const sb = createClient();
+  const { data: c } = await sb.from("cleaners").select("full_name, email, siret").eq("id", id).maybeSingle();
+  if (!c) flash(to(tab), "error", "Nettoyeur introuvable.");
+  const k = c as any;
+  const token = randomBytes(32).toString("hex");
+  const { error } = await sb.from("cleaners").update({ status: "actif", token_hash: sha(token), token_set_at: new Date().toISOString(), ...(firstTime ? { approved_at: new Date().toISOString() } : {}) }).eq("id", id);
+  if (error) flash(to(tab), "error", dbMessage(error));
+  const url = `${origin()}/nettoyeur/${token}`;
+  let mailed = false;
+  if (mailConfigured()) {
+    const r = await sendMail({
+      to: k.email, subject: firstTime ? "Votre inscription est validée — ProClean Empire" : "Votre nouveau lien ProClean Empire",
+      text: `Bonjour ${String(k.full_name).split(" ")[0]},\n\n${firstTime ? "Votre inscription comme nettoyeur est validée." : "Voici votre nouveau lien personnel (l'ancien ne fonctionne plus)."}\n\nVotre lien personnel : ${url}\n\nGardez-le pour vous : il donne accès à vos ménages et à vos gains. Ajoutez-le à l'écran d'accueil de votre téléphone. Dans Profil, ajoutez votre IBAN pour être payé.\n\nÀ bientôt,\nProClean Empire`
+    });
+    mailed = r.sent;
+  }
+  cookies().set("cleaner_link", JSON.stringify({ name: k.full_name, url, mailed }), { httpOnly: true, secure: true, sameSite: "strict", path: BACK, maxAge: 120 });
+  revalidatePath(BACK);
+  flash(to(tab), "ok", mailed ? `Lien envoyé par e-mail à ${k.full_name}.` : `Lien créé pour ${k.full_name} : copiez-le ci-dessous (e-mail non envoyé).`);
+}
+export async function approveCleanerAction(id: string) { await requireOwner(); return issueLink(id, "inscriptions", true); }
+export async function renewCleanerLinkAction(id: string) { await requireOwner(); return issueLink(id, "nettoyeurs", false); }
+
+export async function setCleanerStatusAction(id: string, status: "refuse" | "suspendu" | "actif") {
+  await requireOwner();
+  if (!["refuse", "suspendu", "actif"].includes(status)) flash(to("nettoyeurs"), "error", "Statut inconnu.");
+  const patch: Record<string, unknown> = { status };
+  if (status !== "actif") patch.token_hash = null;                       // le lien cesse de fonctionner tout de suite
+  const { error } = await createClient().from("cleaners").update(patch).eq("id", id);
+  if (error) flash(to("nettoyeurs"), "error", dbMessage(error));
+  if (status === "suspendu") {
+    // Ses ménages à venir non commencés repartent en ligne.
+    const sb = createClient();
+    const { data: js } = await sb.from("cleaning_jobs").select("id, intervention_id").eq("cleaner_id", id).eq("status", "acceptee");
+    for (const j of (js ?? []) as any[]) {
+      await sb.from("cleaning_jobs").update({ status: "ouverte", cleaner_id: null, accepted_at: null }).eq("id", j.id);
+      if (j.intervention_id) await sb.from("interventions").update({ assignee: null }).eq("id", j.intervention_id);
+    }
+  }
+  done(status === "refuse" ? "inscriptions" : "nettoyeurs", status === "actif" ? "Compte réactivé : renvoyez-lui un lien." : status === "suspendu" ? "Compte suspendu : son lien est coupé et ses ménages à venir sont remis en ligne." : "Inscription refusée.");
+}
+
+export async function toggleFavoriteAction(fd: FormData) {
+  await requireOwner();
+  const cleaner = str(fd, "cleaner_id"), client = str(fd, "client_id"), remove = str(fd, "remove") === "1";
+  if (!cleaner || !client) flash(to("nettoyeurs"), "error", "Choisissez un propriétaire et un nettoyeur.");
+  const sb = createClient();
+  const { error } = remove ? await sb.from("cleaner_favorites").delete().eq("cleaner_id", cleaner!).eq("client_id", client!) : await sb.from("cleaner_favorites").upsert({ cleaner_id: cleaner!, client_id: client! });
+  if (error) flash(to("nettoyeurs"), "error", dbMessage(error));
+  done("nettoyeurs", remove ? "Favori retiré." : "Favori ajouté : il verra d'abord les ménages de ce propriétaire.");
+}
+
+type Pub = { sb: ReturnType<typeof createClient>; settings: any; favClients: Set<string> };
+async function publishOne(ctx: Pub, interventionId: string): Promise<string | null> {
+  const { sb, settings, favClients } = ctx;
+  const { data: i } = await sb.from("interventions").select("id, client_id, title, scheduled_date, duration_hours, site_address, source_key, staff_id, assignee, stage, clients(name, address, postal_code, city)").eq("id", interventionId).maybeSingle();
+  if (!i) return "Ménage introuvable.";
+  const m = i as any;
+  if (m.staff_id || m.assignee) return `« ${m.title} » a déjà un agent.`;
+  const stay = String(m.source_key ?? "").startsWith("conc:") ? String(m.source_key).slice(5) : null;
+  const { data: st } = stay ? await sb.from("concierge_stays").select("listing_id").eq("id", stay).maybeSingle() : { data: null };
+  const { data: l } = (st as any)?.listing_id ? await sb.from("concierge_listings").select("id, name, cleaning_price_ht, cleaning_hours, site_id, sites(address, postal_code, city, access_notes)").eq("id", (st as any).listing_id).maybeSingle() : { data: null };
+  const L = l as any, site = L?.sites, cl = m.clients;
+  const price = L?.cleaning_price_ht != null ? Number(L.cleaning_price_ht) : null;
+  if (price == null) return `Prix du ménage manquant pour « ${m.title} » : renseignez-le dans Conciergerie › Logements.`;
+  const postal = site?.postal_code ?? cl?.postal_code ?? null;
+  if (!postal) return `Code postal manquant pour « ${m.title} » : ajoutez l'adresse du logement ou du propriétaire.`;
+  const priority = favClients.has(m.client_id) && settings.priority_minutes > 0 ? new Date(Date.now() + settings.priority_minutes * 60_000).toISOString() : null;
+  const { error } = await sb.from("cleaning_jobs").insert({
+    intervention_id: m.id, listing_id: L?.id ?? null, client_id: m.client_id, title: m.title.replace(/^Ménage — /, "Ménage — "), job_date: m.scheduled_date,
+    window_start: String(settings.window_start).slice(0, 5), window_end: String(settings.window_end).slice(0, 5),
+    duration_hours: L?.cleaning_hours ?? m.duration_hours ?? null, city: site?.city ?? cl?.city ?? null, postal_code: postal,
+    address: site?.address ?? m.site_address ?? cl?.address ?? null, access_notes: site?.access_notes ?? null, price_ht: price, priority_until: priority
+  });
+  if (error) return error.code === "23505" ? null : dbMessage(error);
+  return null;
+}
+
+async function ctx(): Promise<Pub> {
+  const sb = createClient();
+  const [{ data: s }, { data: f }] = await Promise.all([sb.from("marketplace_settings").select("*").maybeSingle(), sb.from("cleaner_favorites").select("client_id")]);
+  return { sb, settings: s ?? { window_start: "11:00", window_end: "14:00", priority_minutes: 120 }, favClients: new Set(((f ?? []) as any[]).map((x) => x.client_id as string)) };
+}
+
+export async function publishJobAction(interventionId: string) {
+  await requireOwner();
+  const err = await publishOne(await ctx(), interventionId);
+  if (err) flash(to("demandes"), "error", err);
+  done("demandes", "Ménage publié : les nettoyeurs de la zone le voient.");
+}
+
+export async function publishAllJobsAction() {
+  await requireOwner();
+  const c = await ctx();
+  const today = parisToday();
+  const { data } = await c.sb.from("interventions").select("id").like("source_key", "conc:%").is("staff_id", null).is("assignee", null).gte("scheduled_date", today).lte("scheduled_date", addDays(today, 30)).not("stage", "in", "(annulee,terminee,validee,facturable,facturee)");
+  const { data: have } = await c.sb.from("cleaning_jobs").select("intervention_id").not("intervention_id", "is", null);
+  const taken = new Set(((have ?? []) as any[]).map((x) => x.intervention_id as string));
+  let ok = 0; const errs: string[] = [];
+  for (const r of ((data ?? []) as any[]).filter((x) => !taken.has(x.id))) { const e = await publishOne(c, r.id); if (e) errs.push(e); else ok++; }
+  revalidatePath(BACK);
+  if (!ok && errs.length) flash(to("demandes"), "error", errs[0]);
+  flash(to("demandes"), "ok", `${ok} ménage${ok > 1 ? "s" : ""} publié${ok > 1 ? "s" : ""}.${errs.length ? ` ${errs.length} à compléter (prix ou adresse manquant).` : ""}`);
+}
+
+export async function cancelJobAction(id: string) {
+  await requireOwner();
+  const sb = createClient();
+  const { data: j } = await sb.from("cleaning_jobs").select("status, intervention_id").eq("id", id).maybeSingle();
+  if (!j || !["ouverte", "acceptee", "a_reprendre"].includes((j as any).status)) flash(to("demandes"), "error", "Ce ménage ne peut plus être retiré.");
+  await sb.from("cleaning_jobs").update({ status: "annulee" }).eq("id", id);
+  if ((j as any).intervention_id) await sb.from("interventions").update({ assignee: null }).eq("id", (j as any).intervention_id);
+  done("demandes", "Ménage retiré des demandes.");
+}
+
+export async function validateJobAction(id: string) {
+  await requireOwner();
+  const sb = createClient();
+  const { data: j } = await sb.from("cleaning_jobs").select("status, intervention_id").eq("id", id).maybeSingle();
+  if (!j || (j as any).status !== "a_verifier") flash(to("demandes"), "error", "Ce ménage n'est pas en attente de vérification.");
+  const { error } = await sb.from("cleaning_jobs").update({ status: "validee", validated_at: new Date().toISOString() }).eq("id", id);
+  if (error) flash(to("demandes"), "error", dbMessage(error));
+  if ((j as any).intervention_id) await sb.from("interventions").update({ stage: "validee" }).eq("id", (j as any).intervention_id);
+  done("demandes", "Ménage validé : il entre dans les gains du nettoyeur.");
+}
+
+export async function requestRedoAction(id: string, fd: FormData) {
+  await requireOwner();
+  const note = str(fd, "note");
+  if (!note) flash(to("demandes"), "error", "Dites au nettoyeur ce qu'il faut reprendre.");
+  const sb = createClient();
+  const { error } = await sb.from("cleaning_jobs").update({ status: "a_reprendre", review_note: note }).eq("id", id).eq("status", "a_verifier");
+  if (error) flash(to("demandes"), "error", dbMessage(error));
+  done("demandes", "Demande de reprise envoyée : le nettoyeur la voit dans son application.");
+}
+
+export async function saveMarketplaceSettingsAction(fd: FormData) {
+  await requireOwner();
+  const c = numField(fd, "cleaner_pct"), p = numField(fd, "platform_pct"), l = numField(fd, "logistics_pct");
+  if (c == null || p == null || l == null || !pctsValid(c, p, l)) flash(to("reglages"), "error", "Les trois parts doivent faire 100 %, avec 50 à 90 % pour le nettoyeur.");
+  const t = (k: string, d: string) => { const v = str(fd, k); return v && /^\d{2}:\d{2}$/.test(v) ? v : d; };
+  const ws = t("window_start", "11:00"), we = t("window_end", "14:00"), mx = t("max_end", "16:00");
+  if (!(we > ws && mx >= we)) flash(to("reglages"), "error", "Le créneau doit finir après son début, et la fin maximale après la fin prévue.");
+  const { error } = await createClient().from("marketplace_settings").update({ cleaner_pct: c!, platform_pct: p!, logistics_pct: l!, window_start: ws, window_end: we, max_end: mx, priority_minutes: Math.max(0, Math.min(2880, Math.round(numField(fd, "priority_minutes") ?? 120))), updated_at: new Date().toISOString() }).eq("id", true);
+  if (error) flash(to("reglages"), "error", dbMessage(error));
+  done("reglages", "Réglages enregistrés : ils s'appliquent aux prochains ménages publiés.");
+}
+
+/** Crée les paiements de la période : une ligne par nettoyeur, avec tous ses ménages validés pas encore payés jusqu'à la fin de la période. */
+export async function createPayoutsAction(fd: FormData) {
+  await requireOwner();
+  const start = str(fd, "start"), end = str(fd, "end");
+  if (!start || !end || !/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end) || end < start) flash(to("paiements"), "error", "Choisissez une période valide.");
+  const sb = createClient();
+  const { data } = await sb.from("cleaning_jobs").select("id, cleaner_id, cleaner_amount").eq("status", "validee").is("payout_id", null).not("cleaner_id", "is", null).lte("validated_at", `${end}T23:59:59+02:00`);
+  const by = new Map<string, { ids: string[]; total: number }>();
+  for (const j of (data ?? []) as any[]) { const e = by.get(j.cleaner_id) ?? { ids: [], total: 0 }; e.ids.push(j.id); e.total += Number(j.cleaner_amount ?? 0); by.set(j.cleaner_id, e); }
+  let n = 0;
+  for (const [cleaner, e] of by) {
+    if (!(e.total > 0)) continue;
+    const { data: p, error } = await sb.from("cleaning_payouts").insert({ cleaner_id: cleaner, period_start: start!, period_end: end!, amount: Math.round(e.total * 100) / 100, jobs: e.ids.length }).select("id").single();
+    if (error) flash(to("paiements"), "error", dbMessage(error));
+    await sb.from("cleaning_jobs").update({ payout_id: (p as any).id }).in("id", e.ids);
+    n++;
+  }
+  done("paiements", n ? `${n} paiement${n > 1 ? "s" : ""} créé${n > 1 ? "s" : ""} : téléchargez le fichier de virement, virez depuis Qonto, puis marquez-les payés.` : "Rien à payer : aucun ménage validé en attente.");
+}
+
+export async function markPayoutPaidAction(id: string) {
+  await requireOwner();
+  const { error } = await createClient().from("cleaning_payouts").update({ status: "paye", paid_on: parisToday() }).eq("id", id).eq("status", "a_payer");
+  if (error) flash(to("paiements"), "error", dbMessage(error));
+  done("paiements", "Paiement marqué comme payé : le nettoyeur le voit dans ses gains.");
+}

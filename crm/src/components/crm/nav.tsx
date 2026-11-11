@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Home, ListChecks, Users, MapPin, ClipboardList, FileText, Receipt, UserCog, Package, Settings, LogOut, Bell, Search, X, LayoutGrid, Truck, ChevronsLeft, PieChart, Calculator, Repeat, CalendarDays, Radar, TrendingUp, BarChart3, KeyRound } from "lucide-react";
+import { Home, ListChecks, Users, MapPin, ClipboardList, FileText, Receipt, UserCog, Package, Settings, LogOut, Bell, Search, X, LayoutGrid, Truck, ChevronsLeft, PieChart, Calculator, Repeat, CalendarDays, Radar, TrendingUp, BarChart3, KeyRound, Brush } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { pathAllowed, type Perms } from "@/lib/team";
 
@@ -30,6 +30,7 @@ const GROUPS: Group[] = [
     { href: "/planning", label: "Planning", icon: CalendarDays },
     { href: "/sites", label: "Sites", icon: MapPin },
     { href: "/conciergerie", label: "Conciergerie", icon: KeyRound },
+    { href: "/nettoyeurs", label: "Nettoyeurs", icon: Brush },
     { href: "/equipe", label: "Équipe", icon: UserCog, children: [{ href: "/recrutement", label: "Recrutement" }] }
   ] },
   { title: "Finance", items: [

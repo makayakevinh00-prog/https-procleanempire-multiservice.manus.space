@@ -23,7 +23,7 @@ describe("droits de l'équipe", () => {
     expect(sectionOf("/factures")).toBe("finances");
     expect(sectionOf("/api/devis/1/pdf")).toBe("devis");
     expect(sectionOf("/bienvenue")).toBe("always");
-    for (const p of ["/parametres", "/jarvis", "/jarvis/alertes", "/journal", "/actions", "/", "/compte", "/api/mcp", "/api/jarvis/kpis", "/api/qonto/sync", "/inconnue", "/clients-pirate"]) expect(sectionOf(p)).toBeNull();
+    for (const p of ["/parametres", "/jarvis", "/jarvis/alertes", "/journal", "/actions", "/", "/compte", "/api/mcp", "/api/jarvis/kpis", "/api/qonto/sync", "/inconnue", "/clients-pirate", "/nettoyeurs", "/api/nettoyeurs/virements"]) expect(sectionOf(p)).toBeNull();
   });
   it("un préfixe ne déborde pas sur une autre route", () => {
     expect(sectionOf("/clients")).toBe("clients");
