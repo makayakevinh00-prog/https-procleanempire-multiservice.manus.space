@@ -236,7 +236,7 @@ export async function bookCleaningAction(fd: FormData) {
 }
 
 // ───────────── Espace conciergerie (lien privé) ─────────────
-const pBack = (t: string, kind: "ok" | "error", msg: string): never => redirect(`/partenaire/${t}?${kind}=${encodeURIComponent(msg)}`);
+const pBack = (t: string, kind: "ok" | "error", msg: string, v = "logements"): never => redirect(`/partenaire/${t}?v=${v}&${kind}=${encodeURIComponent(msg)}`);
 
 /** La conciergerie ajoute ou modifie un de ses logements : nom, adresse, accès, lien de calendrier (vérifié ici). Le tarif reste fixé par ProClean. */
 export async function partnerSaveListingAction(token: string, id: string | null, fd: FormData) {
@@ -255,11 +255,11 @@ export async function partnerSaveListingAction(token: string, id: string | null,
 export async function partnerLinenAction(token: string, listing: string, fd: FormData) {
   if (!isToken(token)) redirect("/nettoyeur");
   const n = Math.round(Number(fd.get("clean")));
-  if (!(n >= 0 && n <= 200)) pBack(token, "error", "Nombre de parures entre 0 et 200.");
+  if (!(n >= 0 && n <= 200)) pBack(token, "error", "Nombre de parures entre 0 et 200.", "linge");
   const { error } = await agentClient().rpc("partner_set_linen", { p_secret: token, p_listing: listing, p_clean: n });
   if (error) pBack(token, "error", agentMessage(error.message));
   revalidatePath(`/partenaire/${token}`);
-  pBack(token, "ok", "Stock de linge propre mis à jour.");
+  pBack(token, "ok", "Stock de linge propre mis à jour.", "linge");
 }
 
 export async function partnerRoomsAction(token: string, listing: string, fd: FormData) {
@@ -295,5 +295,5 @@ export async function partnerApiKeyAction(token: string) {
   if (error) pBack(token, "error", agentMessage(error.message));
   cookies().set("partner_key", key, { httpOnly: true, secure: true, sameSite: "strict", path: `/partenaire/${token}`, maxAge: 180 });
   revalidatePath(`/partenaire/${token}`);
-  pBack(token, "ok", "Clé créée : copiez-la maintenant, elle ne sera plus affichée.");
+  pBack(token, "ok", "Clé créée : copiez-la maintenant, elle ne sera plus affichée.", "api");
 }

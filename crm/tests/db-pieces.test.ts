@@ -28,7 +28,7 @@ beforeAll(async () => {
     grant usage on schema public to authenticated, anon; alter default privileges in schema public grant all on tables to authenticated, anon; alter default privileges in schema public grant execute on functions to authenticated, anon;`);
   for (const f of readdirSync(path.join(root, "supabase/migrations")).filter((x) => x.endsWith(".sql") && !x.endsWith("_down.sql") && x <= "0038_conciergerie.sql").sort()) await db.exec(read(`supabase/migrations/${f}`));
   await db.exec(read("supabase/seed.sql"));
-  for (const f of readdirSync(path.join(root, "supabase/migrations")).filter((x) => x.endsWith(".sql") && !x.endsWith("_down.sql") && x >= "0044" && x <= "0056_photos_par_piece.sql").sort()) await db.exec(read(`supabase/migrations/${f}`));
+  for (const f of readdirSync(path.join(root, "supabase/migrations")).filter((x) => x.endsWith(".sql") && !x.endsWith("_down.sql") && x >= "0044" && x <= "0057_tableau_conciergerie.sql").sort()) await db.exec(read(`supabase/migrations/${f}`));
   await db.exec(read("supabase/migrations/0056_photos_par_piece.sql")); // rejouable
   await q("update app_settings set automation_secret = $1", [SECRET]);
   await q("update marketplace_settings set spot_check_every = 0, trust_jobs = 0, rules_min_minutes = 0, rules_min_photos = 1");
@@ -70,5 +70,11 @@ describe("0056 — photos pièce par pièce", () => {
     const j = (await q("select id from cleaning_jobs where status = 'validee' limit 1"))[0].id;
     const p = (await q("select automation_job_photos($1,$2,'apres') p", [SECRET, j]))[0].p as any[];
     expect(p.map((x) => x.room).sort()).toEqual(["Chambre 1", "Chambre 2", "Douche"]);
+  });
+  it("tableau de bord de la conciergerie : chiffres du mois et prix de ses ménages", async () => {
+    const o = (await q("select partner_overview($1) o", [P1]))[0].o;
+    expect(o.stats).toMatchObject({ done_month: 1, spend_month: 100, searching: 0, in_progress: 1, done_total: 1 });
+    expect(o.jobs.find((j: any) => j.status === "validee")).toMatchObject({ price: 100, photos: 7, validated_by: "regles" });
+    expect(o.listings[0].rooms).toContain("Douche");
   });
 });
