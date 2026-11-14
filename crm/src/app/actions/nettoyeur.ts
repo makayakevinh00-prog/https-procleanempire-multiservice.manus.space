@@ -39,9 +39,9 @@ export async function cleanerReleaseAction(token: string, jobId: string) {
   go(token, "/missions", "ok", "Vous vous êtes désisté : le ménage est de nouveau proposé.");
 }
 
-/** Après l'envoi : contrôle automatique des photos (si l'IA est activée), puis prévenir la direction. Ne bloque jamais le nettoyeur. */
-async function afterFinish(jobId: string, name: string) {
-  let verdict = "indisponible", summary = "Analyse automatique non activée : vérifiez les photos.";
+/** Après l'envoi : contrôle automatique des photos (si l'IA est activée). Selon le verdict et le réglage : validé tout de suite, à reprendre, ou envoyé à la direction. Ne bloque jamais le nettoyeur. */
+async function afterFinish(jobId: string, name: string): Promise<"validee" | "a_reprendre" | "a_verifier"> {
+  let verdict = "indisponible", summary = "Analyse automatique non activée : vérifiez les photos.", status: "validee" | "a_reprendre" | "a_verifier" = "a_verifier";
   try {
     const a = automationClient(), secret = automationSecret();
     let report: unknown = { summary };
@@ -52,12 +52,16 @@ async function afterFinish(jobId: string, name: string) {
       else summary = "L'analyse automatique n'a pas abouti : vérifiez les photos.";
     }
     await a.rpc("automation_set_job_analysis", { p_secret: secret, p_job: jobId, p_kind: "apres", p_report: report, p_verdict: verdict });
+    const after = await a.rpc("automation_job_context", { p_secret: secret, p_job: jobId });
+    const st = (after.data as any)?.status;
+    if (st === "validee" || st === "a_reprendre") status = st;
   } catch { /* le contrôle automatique est un plus */ }
   if (mailConfigured()) {
     const to = process.env.MAIL_ADMIN ?? "contact@procleanempire.com";
-    const head = verdict === "reprise" ? "Reprise demandée automatiquement : des points restent à nettoyer." : verdict === "ok" ? "Le contrôle automatique ne relève rien." : "Contrôle automatique indisponible.";
-    await sendMail({ to, subject: verdict === "reprise" ? "Ménage à reprendre — contrôle automatique" : "Ménage terminé à vérifier", text: `${name} a terminé un ménage.\n\n${head}\n${summary}\n\nÀ vérifier dans le CRM : Nettoyeurs › Demandes.` }).catch(() => undefined);
+    const head = status === "validee" ? "Validé automatiquement : le contrôle par l'IA ne relève rien, le nettoyeur est autorisé à partir." : verdict === "reprise" ? "Reprise demandée automatiquement : des points restent à nettoyer." : verdict === "ok" ? "Le contrôle automatique ne relève rien : à vous de valider." : "Contrôle automatique indisponible : à vous de vérifier.";
+    await sendMail({ to, subject: status === "validee" ? "Ménage validé automatiquement" : verdict === "reprise" ? "Ménage à reprendre — contrôle automatique" : "Ménage terminé à vérifier", text: `${name} a terminé un ménage.\n\n${head}\n${summary}\n\n${status === "validee" ? "Photos et détail" : "À vérifier"} dans le CRM : Nettoyeurs › Demandes.` }).catch(() => undefined);
   }
+  return status;
 }
 
 export async function cleanerFinishAction(token: string, jobId: string, fd: FormData) {
@@ -66,9 +70,20 @@ export async function cleanerFinishAction(token: string, jobId: string, fd: Form
   const { error } = await c.rpc("cleaner_finish_job", { p_token: token, p_job: jobId, p_note: String(fd.get("note") ?? "") });
   if (error) go(token, "/missions", "error", agentMessage(error.message));
   const { data: ov } = await c.rpc("cleaner_overview", { p_token: token });
-  await afterFinish(jobId, String((ov as any)?.name ?? "Un nettoyeur"));
+  const status = await afterFinish(jobId, String((ov as any)?.name ?? "Un nettoyeur"));
   revalidatePath(base(token), "layout");
+  if (status === "validee") go(token, "/missions", "ok", "Ménage validé ✔ Le contrôle des photos est bon : vous pouvez partir. Il entre dans vos gains.");
+  if (status === "a_reprendre") go(token, "/missions", "error", "Le contrôle des photos relève des points à reprendre : regardez la liste, reprenez, refaites une photo de chaque zone, puis terminez à nouveau.");
   go(token, "/missions", "ok", "Merci ! Votre ménage est envoyé à la direction pour vérification. Attendez ses instructions avant de partir.");
+}
+
+/** « Je suis sur place » : pointage d'arrivée. */
+export async function cleanerArriveAction(token: string, jobId: string) {
+  guard(token);
+  const { error } = await agentClient().rpc("cleaner_arrive", { p_token: token, p_job: jobId });
+  if (error) go(token, "/missions", "error", agentMessage(error.message));
+  revalidatePath(base(token), "layout");
+  go(token, "/missions", "ok", "Arrivée pointée. Commencez par les photos (ou la vidéo) avant le ménage.");
 }
 
 /** Suivi des draps : déposer (poste ou livreur), récupérer au retour, remettre en place. */
@@ -125,9 +140,9 @@ export async function cleanerZoneAction(token: string, postal: string, city: str
   guard(token);
   const pt = await geocode({ postal_code: postal, city });
   const { error } = await agentClient().rpc("cleaner_set_zone", { p_token: token, p_postal: postal, p_city: city, p_lat: pt?.lat ?? null, p_lng: pt?.lng ?? null });
-  if (error) go(token, "", "error", agentMessage(error.message));
+  if (error) go(token, "/demandes", "error", agentMessage(error.message));
   revalidatePath(base(token), "layout");
-  go(token, "", "ok", `Vous travaillez maintenant autour de ${city}.`);
+  go(token, "/demandes", "ok", `Vous travaillez maintenant autour de ${city}.`);
 }
 
 const SIGNUP = "/nettoyeur/inscription";

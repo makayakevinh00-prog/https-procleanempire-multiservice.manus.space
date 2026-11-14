@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { MapPin, KeyRound, Clock, ChevronRight } from "lucide-react";
 import { agentClient, agentMessage, isToken, type CleanerJob } from "@/lib/agent";
-import { cleanerFinishAction, cleanerLinenAction, cleanerReleaseAction } from "@/app/actions/nettoyeur";
+import { cleanerArriveAction, cleanerFinishAction, cleanerLinenAction, cleanerReleaseAction } from "@/app/actions/nettoyeur";
+import { CleanerVideoButton } from "@/components/nettoyeur/live";
 import { CleanerPhotoButton } from "@/components/agent/cleaner-photo";
 import { JOB_STATUS, LINEN_STEP, dayFr, eur, slot } from "@/lib/cleaner-ui";
 import { Gate } from "@/components/agent/gate";
@@ -39,9 +40,13 @@ export default async function CleanerMissions({ params, searchParams }: { params
               <div className="flex items-center gap-2 text-[15px] font-bold"><Clock className="h-4 w-4 text-[var(--a-pri)]" />{slot(j.window_start, j.window_end)}{j.hours ? ` · environ ${j.hours} h` : ""}<span className="ml-auto num text-[var(--a-ok)]">{eur(j.amount)}</span></div>
               {j.status !== "validee" && j.address && <a className="flex items-start gap-2 rounded-2xl bg-[var(--a-bg)] p-3 text-[15px] font-bold text-[var(--a-pri)]" href={`https://maps.google.com/?q=${encodeURIComponent(`${j.address} ${j.postal_code ?? ""} ${j.city ?? ""}`)}`} target="_blank" rel="noopener noreferrer"><MapPin className="mt-0.5 h-5 w-5 shrink-0" />{j.address}, {j.postal_code} {j.city}</a>}
               {j.status !== "validee" && j.access_notes && <div className="flex items-start gap-2 rounded-2xl bg-[var(--a-warnbg)] p-3 text-[14px] text-[var(--a-warn)]"><KeyRound className="mt-0.5 h-4 w-4 shrink-0" /><span><b>Accès :</b> {j.access_notes}</span></div>}
-              {j.status === "a_reprendre" && j.review_note && <div className="rounded-2xl bg-[var(--a-badbg)] p-3 text-[14px] text-[var(--a-bad)]"><b>La direction demande de repasser :</b> {j.review_note}</div>}
-              {j.status === "a_verifier" && <p className="rounded-2xl bg-[var(--a-warnbg)] p-3 text-center text-[14px] font-bold text-[var(--a-warn)]">Envoyé à la direction. Vous serez payé après validation.</p>}
-              {j.status === "validee" && <p className="rounded-2xl bg-[var(--a-okbg)] p-3 text-center text-[14px] font-bold text-[var(--a-ok)]">Validé : {eur(j.amount)} à venir sur votre prochain virement.</p>}
+              {j.status === "a_reprendre" && j.review_note && <div className="rounded-2xl bg-[var(--a-badbg)] p-3 text-[14px] text-[var(--a-bad)]"><b>{j.ai_status === "reprise" ? "À reprendre" : "La direction demande de repasser"} :</b> {j.review_note}</div>}
+              {j.status === "acceptee" && j.date === today && !j.arrived_at && (
+                <form action={cleanerArriveAction.bind(null, token, j.id)}><button className="h-14 w-full rounded-2xl bg-[var(--a-pri)] text-lg font-extrabold text-white active:opacity-90">📍 Je suis sur place</button><p className="mt-1 text-center text-xs text-[var(--a-mute)]">Pointez en arrivant : sans pointage à l&apos;heure, le ménage est proposé à un autre nettoyeur.</p></form>
+              )}
+              {j.status === "acceptee" && j.arrived_at && <p className="rounded-2xl bg-[var(--a-okbg)] p-2 text-center text-[13px] font-bold text-[var(--a-ok)]">Arrivée pointée ✔</p>}
+              {j.status === "a_verifier" && <p className="rounded-2xl bg-[var(--a-warnbg)] p-3 text-center text-[14px] font-bold text-[var(--a-warn)]">Envoyé pour vérification. Vous serez payé après validation.</p>}
+              {j.status === "validee" && <p className="rounded-2xl bg-[var(--a-okbg)] p-3 text-center text-[14px] font-bold text-[var(--a-ok)]">{j.validated_by === "ia" ? "Validé automatiquement (contrôle des photos)" : "Validé"} : {eur(j.amount)} à venir sur votre prochain virement.</p>}
               {j.departure && j.status !== "validee" && (
                 <div role="status" className={`rounded-2xl p-3 text-center text-[15px] font-extrabold ${j.departure === "partir" ? "bg-[var(--a-okbg)] text-[var(--a-ok)]" : "bg-[var(--a-badbg)] text-[var(--a-bad)]"}`}>
                   {j.departure === "partir" ? "La direction vous autorise à partir. Merci !" : "Restez sur place : la direction vous demande de reprendre."}
@@ -50,6 +55,7 @@ export default async function CleanerMissions({ params, searchParams }: { params
               {(j.status === "acceptee" || j.status === "a_reprendre") && j.date <= today && (
                 <div className="space-y-3">
                   <CleanerPhotoButton token={token} job={j.id} kind="avant" label="1. Photos avant le ménage" count={j.photos_before ?? 0} />
+                  <CleanerVideoButton token={token} job={j.id} kind="avant" label="ou filmer les pièces (avant)" />
                   {j.before_report && j.before_report.items.length > 0 && (
                     <div className="rounded-2xl bg-[var(--a-bg)] p-3 text-[14px]">
                       <b className="block text-[15px]">À nettoyer (relevé automatique des photos)</b>
@@ -57,10 +63,20 @@ export default async function CleanerMissions({ params, searchParams }: { params
                     </div>
                   )}
                   <CleanerPhotoButton token={token} job={j.id} kind="apres" label="2. Photos après le ménage" count={j.photos_after ?? 0} />
+                  <CleanerVideoButton token={token} job={j.id} kind="apres" label="ou filmer les pièces (après)" />
                 </div>
               )}
-              {j.ai_status === "reprise" && j.ai_report?.remaining && j.ai_report.remaining.length > 0 && j.status !== "validee" && (
-                <div className="rounded-2xl bg-[var(--a-badbg)] p-3 text-[14px] text-[var(--a-bad)]"><b className="block">Points à reprendre avant de partir</b><ul className="mt-1 list-disc pl-5">{j.ai_report.remaining.map((r, i) => <li key={i}><b>{r.zone}</b>{r.why ? ` : ${r.why}` : ""}</li>)}</ul><p className="mt-1 text-xs">Reprenez ces points, refaites une photo après, puis terminez à nouveau.</p></div>
+              {j.ai_status === "reprise" && j.ai_report?.remaining && j.ai_report.remaining.length > 0 && j.status === "a_reprendre" && (
+                <div className="space-y-2 rounded-2xl bg-[var(--a-badbg)] p-3 text-[14px] text-[var(--a-bad)]">
+                  <b className="block text-[15px]">Points à reprendre avant de partir</b>
+                  {j.ai_report.remaining.map((r, i) => (
+                    <div key={i} className="space-y-1.5 rounded-xl bg-[var(--a-bg)] p-2.5 text-[var(--a-ink)]">
+                      <div><b>{i + 1}. {r.zone}</b>{r.why ? ` : ${r.why}` : ""}</div>
+                      <CleanerPhotoButton token={token} job={j.id} kind="apres" label={`Reprendre la photo : ${r.zone}`} count={0} />
+                    </div>
+                  ))}
+                  <p className="text-xs">Reprenez chaque point, refaites sa photo, puis appuyez de nouveau sur « J&apos;ai terminé ».</p>
+                </div>
               )}
               {canFinish && (
                 <form action={cleanerFinishAction.bind(null, token, j.id)} className="space-y-2">

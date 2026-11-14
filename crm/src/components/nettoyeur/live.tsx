@@ -6,19 +6,23 @@ import { cleanerOnlineAction, cleanerPingAction, cleanerPushAction } from "@/app
 
 const KEY = "pc_cleaner_link", SKIP = "pc_cleaner_skip";
 
-/** Mémorise le lien du nettoyeur sur ce téléphone : en rouvrant l'application, il retrouve directement ses ménages. */
-export function Remember({ token }: { token: string }) {
-  useEffect(() => { try { localStorage.setItem(KEY, token); } catch { /* navigation privée */ } }, [token]);
+/** Mémorise le lien personnel sur ce téléphone (nettoyeur indépendant ou agent salarié) : en rouvrant l'application, on retrouve directement sa journée. */
+export function Remember({ token, base = "nettoyeur" }: { token: string; base?: "nettoyeur" | "agent" }) {
+  useEffect(() => { try { localStorage.setItem(KEY, `/${base}/${token}`); } catch { /* navigation privée */ } }, [token, base]);
   return null;
 }
 
-/** Page d'accueil de l'application : redirige vers le compte mémorisé sinon affiche son contenu. */
+/** Page d'accueil de l'application : redirige vers le compte mémorisé, sinon affiche son contenu. */
 export function Resume({ reset, children }: { reset?: boolean; children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   useEffect(() => {
     try {
       if (reset) localStorage.removeItem(KEY);
-      else { const t = localStorage.getItem(KEY); if (t && /^[0-9a-f]{64}$/.test(t)) { window.location.replace(`/nettoyeur/${t}`); return; } }
+      else {
+        const v = localStorage.getItem(KEY) ?? "";
+        const path = /^[0-9a-f]{64}$/.test(v) ? `/nettoyeur/${v}` : /^\/(nettoyeur|agent)\/[0-9a-f]{64}$/.test(v) ? v : null;
+        if (path) { window.location.replace(path); return; }
+      }
     } catch { /* ignoré */ }
     setReady(true);
   }, [reset]);
@@ -157,6 +161,63 @@ export function GpsButton() {
       <input type="hidden" name="gps_lat" id="gps-lat" /><input type="hidden" name="gps_lng" id="gps-lng" />
       <button type="button" onClick={use} className="h-12 w-full rounded-2xl border border-[var(--a-pri)] text-base font-extrabold text-[var(--a-pri)]">📍 Utiliser ma position GPS</button>
       {msg && <p role="status" className="mt-1 text-xs text-[var(--a-mute)]">{msg}</p>}
+    </div>
+  );
+}
+
+/** Réduit une image (1280 px, JPEG) avant envoi. */
+const toJpeg = (src: CanvasImageSource, w: number, h: number) => new Promise<Blob>((ok, ko) => {
+  const scale = Math.min(1, 1280 / Math.max(w, h)), c = document.createElement("canvas");
+  c.width = Math.round(w * scale); c.height = Math.round(h * scale);
+  c.getContext("2d")!.drawImage(src, 0, 0, c.width, c.height);
+  c.toBlob((b) => (b ? ok(b) : ko(new Error("Image illisible"))), "image/jpeg", 0.7);
+});
+
+/** Tire `n` images réparties sur toute la durée d'une vidéo (dans le téléphone : la vidéo elle-même n'est jamais envoyée). */
+async function videoFrames(file: File, n: number, onStep: (i: number) => void): Promise<Blob[]> {
+  const url = URL.createObjectURL(file), v = document.createElement("video");
+  v.muted = true; v.playsInline = true; v.preload = "auto"; v.src = url;
+  try {
+    await new Promise<void>((ok, ko) => { v.onloadeddata = () => ok(); v.onerror = () => ko(new Error("Vidéo illisible sur cet appareil.")); setTimeout(() => ko(new Error("Vidéo trop longue à ouvrir.")), 20000); });
+    const d = Number.isFinite(v.duration) && v.duration > 0 ? v.duration : 0;
+    if (!d) throw new Error("Vidéo illisible sur cet appareil.");
+    const out: Blob[] = [];
+    for (let i = 0; i < n; i++) {
+      await new Promise<void>((ok, ko) => { v.onseeked = () => ok(); v.onerror = () => ko(new Error("Vidéo illisible.")); v.currentTime = Math.min(d - 0.05, (d * (i + 0.5)) / n); setTimeout(() => ok(), 4000); });
+      out.push(await toJpeg(v, v.videoWidth, v.videoHeight)); onStep(i + 1);
+    }
+    return out;
+  } finally { URL.revokeObjectURL(url); }
+}
+
+/** « Filmer la pièce » : 8 images sont tirées de la vidéo et envoyées comme des photos avant / après, puis analysées. */
+export function CleanerVideoButton({ token, job, kind, label }: { token: string; job: string; kind: "avant" | "apres"; label: string }) {
+  const input = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+  const [busy, setBusy] = useState("");
+  const [msg, setMsg] = useState("");
+  async function onFile(f: File | undefined) {
+    if (!f) return;
+    setMsg(""); setBusy("Lecture de la vidéo…");
+    try {
+      const frames = await videoFrames(f, 8, (i) => setBusy(`Images ${i}/8…`));
+      for (let i = 0; i < frames.length; i++) {
+        setBusy(`Envoi ${i + 1}/${frames.length}…`);
+        const fd = new FormData();
+        fd.set("token", token); fd.set("job", job); fd.set("kind", kind); fd.set("file", frames[i]!, "image.jpg");
+        if (i < frames.length - 1) fd.set("defer", "1");                 // l'analyse se fait une seule fois, sur la dernière image
+        const r = await fetch("/api/nettoyeur/photo", { method: "POST", body: fd });
+        if (!r.ok) throw new Error(((await r.json().catch(() => ({}))) as { error?: string }).error ?? "Envoi impossible.");
+      }
+      router.refresh();
+    } catch (e) { setMsg((e as Error).message || "Vidéo non lue : prenez des photos à la place."); }
+    finally { setBusy(""); if (input.current) input.current.value = ""; }
+  }
+  return (
+    <div>
+      <button type="button" disabled={!!busy} onClick={() => input.current?.click()} className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-[var(--a-line)] bg-[var(--a-bg)] text-[15px] font-bold text-[var(--a-pri)] active:opacity-80 disabled:opacity-60">🎥 {busy || label}</button>
+      <input ref={input} type="file" accept="video/*" capture="environment" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
+      {msg && <p role="alert" className="mt-1 text-sm font-semibold text-[var(--a-bad)]">{msg}</p>}
     </div>
   );
 }

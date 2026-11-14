@@ -1,7 +1,7 @@
 /**
  * Contrôle d'un ménage par l'IA à partir des photos du nettoyeur : « avant » = ce qu'il y a à nettoyer ; « après » = ce qui est fait, ce qui reste, verdict.
  * Actif seulement si ANTHROPIC_API_KEY est configurée ; sinon le ménage part à la direction avec la mention « analyse automatique indisponible ».
- * L'IA ne décide jamais seule d'un paiement : elle peut seulement demander une reprise ; la direction valide.
+ * L'IA demande les reprises. Elle ne valide seule que si le réglage « validation automatique » est activé et qu'elle n'est pas peu sûre ; sinon la direction valide.
  */
 export type Img = { content_type: string; b64: string };
 export type BeforeReport = { items: { zone: string; todo: string }[]; level: number | null; summary: string };

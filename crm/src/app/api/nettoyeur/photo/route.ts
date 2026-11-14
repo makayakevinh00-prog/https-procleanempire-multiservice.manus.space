@@ -21,7 +21,7 @@ export async function POST(req: Request) {
   if (error) return NextResponse.json({ error: agentMessage(error.message) }, { status: /ACCES_REFUSE/.test(error.message) ? 403 : 422 });
 
   let analysed = false;
-  if (kind === "avant" && aiConfigured()) {
+  if (kind === "avant" && aiConfigured() && fd?.get("defer") !== "1") {
     try {
       const a = automationClient(), secret = automationSecret();
       const { data } = await a.rpc("automation_job_photos", { p_secret: secret, p_job: job, p_kind: "avant" });

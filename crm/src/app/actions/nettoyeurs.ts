@@ -140,7 +140,7 @@ export async function validateJobAction(id: string) {
   const sb = createClient();
   const { data: j } = await sb.from("cleaning_jobs").select("status, intervention_id").eq("id", id).maybeSingle();
   if (!j || (j as any).status !== "a_verifier") flash(to("demandes"), "error", "Ce ménage n'est pas en attente de vérification.");
-  const { error } = await sb.from("cleaning_jobs").update({ status: "validee", validated_at: new Date().toISOString(), departure: "partir" }).eq("id", id);
+  const { error } = await sb.from("cleaning_jobs").update({ status: "validee", validated_at: new Date().toISOString(), validated_by: "direction", departure: "partir" }).eq("id", id);
   if (error) flash(to("demandes"), "error", dbMessage(error));
   if ((j as any).intervention_id) await sb.from("interventions").update({ stage: "validee" }).eq("id", (j as any).intervention_id);
   done("demandes", "Ménage validé : le nettoyeur est autorisé à partir et le ménage entre dans ses gains.");
@@ -163,7 +163,7 @@ export async function saveMarketplaceSettingsAction(fd: FormData) {
   const t = (k: string, d: string) => { const v = str(fd, k); return v && /^\d{2}:\d{2}$/.test(v) ? v : d; };
   const ws = t("window_start", "11:00"), we = t("window_end", "14:00"), mx = t("max_end", "16:00");
   if (!(we > ws && mx >= we)) flash(to("reglages"), "error", "Le créneau doit finir après son début, et la fin maximale après la fin prévue.");
-  const { error } = await createClient().from("marketplace_settings").update({ cleaner_pct: c!, platform_pct: p!, logistics_pct: l!, window_start: ws, window_end: we, max_end: mx, priority_minutes: Math.max(0, Math.min(2880, Math.round(numField(fd, "priority_minutes") ?? 120))), price_studio: Math.max(0, numField(fd, "price_studio") ?? 45), price_t2: Math.max(0, numField(fd, "price_t2") ?? 60), price_t3: Math.max(0, numField(fd, "price_t3") ?? 75), price_maison: Math.max(0, numField(fd, "price_maison") ?? 95), auto_publish: checked(fd, "auto_publish"), auto_payout: checked(fd, "auto_payout"), require_photos: checked(fd, "require_photos"), updated_at: new Date().toISOString() }).eq("id", true);
+  const { error } = await createClient().from("marketplace_settings").update({ auto_validate: checked(fd, "auto_validate"), cleaner_pct: c!, platform_pct: p!, logistics_pct: l!, window_start: ws, window_end: we, max_end: mx, priority_minutes: Math.max(0, Math.min(2880, Math.round(numField(fd, "priority_minutes") ?? 120))), price_studio: Math.max(0, numField(fd, "price_studio") ?? 45), price_t2: Math.max(0, numField(fd, "price_t2") ?? 60), price_t3: Math.max(0, numField(fd, "price_t3") ?? 75), price_maison: Math.max(0, numField(fd, "price_maison") ?? 95), auto_publish: checked(fd, "auto_publish"), auto_payout: checked(fd, "auto_payout"), require_photos: checked(fd, "require_photos"), updated_at: new Date().toISOString() }).eq("id", true);
   if (error) flash(to("reglages"), "error", dbMessage(error));
   done("reglages", "Réglages enregistrés : ils s'appliquent aux prochains ménages publiés.");
 }
