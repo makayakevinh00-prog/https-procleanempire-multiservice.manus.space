@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Field, Input, Select } from "@/components/ui/form";
 import { Tabs } from "@/components/ui/tabs";
 import { ConfirmAction } from "@/components/crm/confirm-action";
-import { approveCleanerAction, renewCleanerLinkAction, setCleanerStatusAction, toggleFavoriteAction, publishJobAction, publishAllJobsAction, cancelJobAction, validateJobAction, requestRedoAction, saveMarketplaceSettingsAction, createPayoutsAction, markPayoutPaidAction, setDepartureAction, sendControlAction, setLinenStatusAction, acceptBookingAction, refuseBookingAction, createManualJobAction, reanalyzeJobAction } from "@/app/actions/nettoyeurs";
+import { approveCleanerAction, renewCleanerLinkAction, setCleanerStatusAction, toggleFavoriteAction, publishJobAction, publishAllJobsAction, cancelJobAction, validateJobAction, requestRedoAction, saveMarketplaceSettingsAction, createPayoutsAction, markPayoutPaidAction, setDepartureAction, sendControlAction, setLinenStatusAction, acceptBookingAction, refuseBookingAction, createManualJobAction, reanalyzeJobAction, createCourierAction, renewCourierLinkAction, setCourierActiveAction } from "@/app/actions/nettoyeurs";
 import { JOB_STATUS, LINEN_STEP, dayFr, eur, slot } from "@/lib/cleaner-ui";
 import { aiConfigured } from "@/lib/ai-inspect";
 import { formatDate } from "@/lib/utils";
@@ -27,7 +27,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
   const tab = TABS.includes(searchParams.tab ?? "") ? searchParams.tab! : "carte";
   const sb = createClient();
   const today = parisToday();
-  const [cl, jobs, fav, pay, set, clients, pub, photos, linen, staffRes, bookRes] = await Promise.all([
+  const [cl, jobs, fav, pay, set, clients, pub, photos, linen, staffRes, bookRes, courRes, runRes] = await Promise.all([
     sb.from("cleaners").select("*").order("created_at", { ascending: false }),
     sb.from("cleaning_jobs").select("*, cleaners!cleaning_jobs_cleaner_id_fkey(full_name), clients(name)").neq("status", "annulee").gte("job_date", addDays(today, -30)).order("job_date"),
     sb.from("cleaner_favorites").select("cleaner_id, client_id, cleaners(full_name), clients(name)"),
@@ -38,8 +38,11 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
     sb.from("cleaning_job_photos").select("id, job_id, kind").order("created_at"),
     sb.from("cleaning_linen").select("*, cleaning_jobs(title, job_date, cleaners!cleaning_jobs_cleaner_id_fkey(full_name))").order("updated_at", { ascending: false }).limit(60),
     sb.from("staff").select("id, full_name").eq("active", true).order("full_name"),
-    sb.from("cleaning_bookings").select("*").order("created_at", { ascending: false }).limit(60)
+    sb.from("cleaning_bookings").select("*").order("created_at", { ascending: false }).limit(60),
+    sb.from("linen_couriers").select("*").order("created_at"),
+    sb.from("linen_runs").select("*, linen_couriers(full_name), cleaning_jobs(title, city, job_date, status)").gte("due_date", addDays(today, -2)).order("due_date").limit(120)
   ]);
+  const couriers = (courRes.error ? [] : (courRes.data ?? [])) as any[], linenRuns = (runRes.error ? [] : (runRes.data ?? [])) as any[];
   if (cl.error) return (<><PageHeader title="Nettoyeurs" /><Card><Empty>Les nettoyeurs s&apos;installent : réessayez dans une minute.</Empty></Card></>);
   for (const r of [jobs, fav, pay, set, clients, pub]) if (r.error) throw new Error(r.error.message);
   const photoRows = (photos.error ? [] : (photos.data ?? [])) as any[], linenRows = (linen.error ? [] : (linen.data ?? [])) as any[], staffList = (staffRes.data ?? []) as any[];
@@ -64,7 +67,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
     { href: href("demandes"), label: "Demandes", count: toCheck.length + toPublish.length || null, active: tab === "demandes" },
     { href: href("inscriptions"), label: "Inscriptions", count: pending.length || null, active: tab === "inscriptions" },
     { href: href("nettoyeurs"), label: "Nettoyeurs", count: active.length || null, active: tab === "nettoyeurs" },
-    { href: href("draps"), label: "Draps", count: linenOpen.length || null, active: tab === "draps" },
+    { href: href("draps"), label: "Linge", count: (linenOpen.length + linenRuns.filter((r) => r.status !== "fait" && r.due_date <= today && r.cleaning_jobs?.status !== "annulee").length) || null, active: tab === "draps" },
     { href: href("paiements"), label: "Paiements", count: toPay.length || null, active: tab === "paiements" },
     { href: href("reglages"), label: "Réglages", count: null, active: tab === "reglages" }
   ];
@@ -89,6 +92,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
           const mine = live.find((j) => j.cleaner_id === c.id && ["acceptee", "a_reprendre"].includes(j.status));
           return { id: c.id, name: c.full_name, ...pos(c)!, online: !!c.online, live: fresh(c), seen: ago(c.last_seen_at), goingTo: mine ? { lat: mine.lat, lng: mine.lng, title: mine.title } : null };
         });
+        for (const k of couriers.filter((x) => x.active && x.last_lat != null && x.last_seen_at && Date.now() - Date.parse(x.last_seen_at) < 30 * 60000)) mapCleaners.push({ id: k.id, name: `🚚 ${k.full_name} (linge)`, lat: k.last_lat, lng: k.last_lng, online: true, live: true, seen: ago(k.last_seen_at), goingTo: null });
         const mapJobs = live.map((j) => ({ id: j.id, lat: j.lat, lng: j.lng, title: j.title, sub: `${dayFr(j.job_date)} · ${j.city ?? ""} · ${JOB_STATUS[j.status] ?? j.status}${j.cleaners?.full_name ? ` · ${j.cleaners.full_name}` : ""}`, status: (j.status === "a_reprendre" ? "acceptee" : j.status) as "ouverte" | "acceptee" | "a_verifier" }));
         const byZone = new Map<string, { label: string; lat: number; lng: number; jobs: number; accepted: number; n: number }>();
         for (const j of live) { const k = j.postal_code ?? "?"; const z = byZone.get(k) ?? { label: `${j.city ?? ""} ${k}`.trim(), lat: 0, lng: 0, jobs: 0, accepted: 0, n: 0 }; z.lat += j.lat; z.lng += j.lng; z.n++; if (j.status === "ouverte") z.jobs++; else z.accepted++; byZone.set(k, z); }
@@ -312,19 +316,52 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
       )}
 
       {tab === "draps" && (
-        <Card>
-          <CardHeader><CardTitle>Suivi des draps ({linenOpen.length} en cours)</CardTitle></CardHeader>
-          {!linenRows.length ? <Empty>Aucun linge suivi pour l&apos;instant : il apparaît quand un nettoyeur termine un ménage.</Empty> : (
-            <ul className="divide-y text-sm">{linenRows.map((l) => (
-              <li key={l.id} className="flex flex-wrap items-center gap-3 px-5 py-2.5">
-                <span className="min-w-0 flex-1"><b className="font-medium">{l.cleaning_jobs?.title}</b><span className="block text-xs text-muted-foreground">{l.cleaning_jobs?.cleaners?.full_name} · {dayFr(l.cleaning_jobs?.job_date)}{l.method ? ` · ${l.method === "poste" ? "poste" : "livreur"}` : ""}{l.tracking ? ` · suivi ${l.tracking}` : ""}</span></span>
-                <Badge tone={l.status === "remis" ? "green" : l.status === "renvoye" || l.status === "recupere" ? "blue" : "orange"}>{LINEN_STEP[l.status]}</Badge>
-                {l.status === "depose" && <form action={setLinenStatusAction.bind(null, l.job_id, "lave")}><Button size="sm" variant="outline">Marquer lavé</Button></form>}
-                {l.status === "lave" && <form action={setLinenStatusAction.bind(null, l.job_id, "renvoye")}><Button size="sm" variant="outline">Marquer renvoyé</Button></form>}
-              </li>
-            ))}</ul>
-          )}
-        </Card>
+        <>
+          <Card className="mb-4">
+            <CardHeader><CardTitle>Livreurs de linge ({couriers.filter((k) => k.active).length})</CardTitle></CardHeader>
+            <div className="space-y-4 px-5 pb-5">
+              <p className="text-sm text-muted-foreground">Le livreur a sa propre page : il voit ses tournées (livrer le linge propre avant le ménage, récupérer le linge sale après), appuie sur « Je pars », et le nettoyeur voit où il est. Dès qu&apos;un livreur existe, chaque ménage publié crée ses deux tournées.</p>
+              {couriers.length > 0 && <ul className="divide-y rounded-lg border text-sm">{couriers.map((k) => (
+                <li key={k.id} className="flex flex-wrap items-center gap-3 px-4 py-2.5">
+                  <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${k.active ? "bg-emerald-500" : "bg-slate-300"}`} />
+                  <span className="min-w-0 flex-1"><b className="font-medium">{k.full_name}</b><span className="block text-xs text-muted-foreground">{[k.phone, k.email].filter(Boolean).join(" · ") || "sans coordonnées"}{k.last_seen_at ? ` · position reçue le ${formatDate(k.last_seen_at)}` : ""}{k.active ? "" : " · désactivé"}</span></span>
+                  <form action={renewCourierLinkAction.bind(null, k.id)}><Button size="sm" variant="outline">{k.active ? "Nouveau lien" : "Réactiver et envoyer un lien"}</Button></form>
+                  {k.active && <ConfirmAction action={setCourierActiveAction.bind(null, k.id, false)} label="Désactiver" size="sm" variant="ghost" title="Désactiver ce livreur ?" description="Son lien cesse de fonctionner et ses tournées en cours redeviennent libres." confirmLabel="Désactiver" />}
+                </li>
+              ))}</ul>}
+              <form action={createCourierAction} className="grid gap-3 sm:grid-cols-4">
+                <Field label="Nom du livreur"><Input name="full_name" required minLength={2} /></Field>
+                <Field label="Téléphone"><Input name="phone" inputMode="tel" /></Field>
+                <Field label="E-mail (pour lui envoyer son lien)"><Input name="email" type="email" /></Field>
+                <div className="flex items-end"><Button>Ajouter le livreur</Button></div>
+              </form>
+            </div>
+          </Card>
+          <Card className="mb-4">
+            <CardHeader><CardTitle>Tournées de linge ({linenRuns.filter((r) => r.status !== "fait" && r.cleaning_jobs?.status !== "annulee").length} à faire)</CardTitle></CardHeader>
+            {!linenRuns.length ? <Empty>{couriers.length ? "Aucune tournée : elles se créent avec les ménages publiés." : "Ajoutez un livreur pour que les tournées se créent avec les ménages."}</Empty> : (
+              <ul className="divide-y text-sm">{linenRuns.filter((r) => r.cleaning_jobs?.status !== "annulee").map((r) => (
+                <li key={r.id} className="flex flex-wrap items-center gap-3 px-5 py-2.5">
+                  <span className="min-w-0 flex-1"><b className="font-medium">{r.kind === "livraison" ? "Livrer le linge propre" : "Récupérer le linge sale"}</b> · {r.cleaning_jobs?.title}<span className="block text-xs text-muted-foreground">{dayFr(r.due_date)} · {r.cleaning_jobs?.city ?? ""}{r.linen_couriers?.full_name ? ` · ${r.linen_couriers.full_name}` : " · aucun livreur pour l'instant"}{r.done_at ? ` · fait le ${formatDate(r.done_at)}` : ""}</span></span>
+                  <Badge tone={r.status === "fait" ? "green" : r.status === "en_route" ? "orange" : r.due_date <= today ? "red" : "blue"}>{r.status === "fait" ? "Fait" : r.status === "en_route" ? "En route" : "À faire"}</Badge>
+                </li>
+              ))}</ul>
+            )}
+          </Card>
+          <Card>
+            <CardHeader><CardTitle>Lavage des draps ({linenOpen.length} en cours)</CardTitle></CardHeader>
+            {!linenRows.length ? <Empty>Aucun linge en lavage pour l&apos;instant : il apparaît quand un nettoyeur termine un ménage ou qu&apos;un livreur récupère le linge sale.</Empty> : (
+              <ul className="divide-y text-sm">{linenRows.map((l) => (
+                <li key={l.id} className="flex flex-wrap items-center gap-3 px-5 py-2.5">
+                  <span className="min-w-0 flex-1"><b className="font-medium">{l.cleaning_jobs?.title}</b><span className="block text-xs text-muted-foreground">{l.cleaning_jobs?.cleaners?.full_name} · {dayFr(l.cleaning_jobs?.job_date)}{l.method ? ` · ${l.method === "poste" ? "poste" : "livreur"}` : ""}{l.tracking ? ` · suivi ${l.tracking}` : ""}</span></span>
+                  <Badge tone={l.status === "remis" ? "green" : l.status === "renvoye" || l.status === "recupere" ? "blue" : "orange"}>{LINEN_STEP[l.status]}</Badge>
+                  {l.status === "depose" && <form action={setLinenStatusAction.bind(null, l.job_id, "lave")}><Button size="sm" variant="outline">Marquer lavé</Button></form>}
+                  {l.status === "lave" && <form action={setLinenStatusAction.bind(null, l.job_id, "renvoye")}><Button size="sm" variant="outline">Marquer renvoyé</Button></form>}
+                </li>
+              ))}</ul>
+            )}
+          </Card>
+        </>
       )}
 
       {tab === "paiements" && (

@@ -51,6 +51,7 @@ export function parseGuide(text: string): Guide | null {
 /** Raison lisible d'un échec de l'IA (affichée au patron, jamais au client). */
 export function aiErrorLabel(status: number, body: string): string {
   const detail = str((json(body)?.error?.message as string) ?? "", 140);
+  if (/credit balance|billing/i.test(body)) return "le compte Anthropic n'a plus de crédit : ajoutez-en sur console.anthropic.com (Plans & Billing), puis relancez l'analyse";
   if (status === 401 || status === 403) return `clé d'API refusée par Anthropic (${status})${detail ? ` : ${detail}` : ""}`;
   if (status === 404) return `modèle introuvable${detail ? ` : ${detail}` : ""}`;
   if (status === 429) return "quota ou crédit Anthropic dépassé (429)";

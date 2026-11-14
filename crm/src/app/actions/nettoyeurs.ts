@@ -305,13 +305,15 @@ export async function reanalyzeJobAction(id: string) {
   await requireOwner();
   const { data: j } = await createClient().from("cleaning_jobs").select("status").eq("id", id).maybeSingle();
   if (!j || (j as any).status !== "a_verifier") flash(to("demandes"), "error", "Ce ménage n'est pas en attente de vérification.");
-  let msg = "";
+  let msg = "", failed = false;
   try {
     const before = await runBeforeAnalysis(id);
     const o = await runAfterAnalysis(id);
-    msg = o.status === "validee" ? "Analyse faite : rien à signaler, ménage validé automatiquement." : o.status === "a_reprendre" ? `Analyse faite : reprise demandée au nettoyeur. ${o.summary}` : o.verdict === "ok" ? `Analyse faite : rien à signaler. ${o.summary} À vous de valider.` : `${o.summary}${before ? ` (relevé avant : ${before})` : ""}`;
-    if (o.verdict === "indisponible") { revalidatePath(BACK); flash(to("demandes"), "error", msg); }
-  } catch (e) { flash(to("demandes"), "error", `Analyse impossible : ${(e as Error).message}`); }
+    failed = o.verdict === "indisponible";
+    msg = o.status === "validee" ? "Analyse faite : rien à signaler, ménage validé automatiquement." : o.status === "a_reprendre" ? `Analyse faite : reprise demandée au nettoyeur. ${o.summary}` : o.verdict === "ok" ? `Analyse faite : rien à signaler. ${o.summary} À vous de valider.` : `${o.summary}${before && !o.summary.includes(before) ? ` (relevé avant : ${before})` : ""}`;
+  } catch (e) { failed = true; msg = `Analyse impossible : ${(e as Error).message}`; }
+  revalidatePath(BACK);
+  if (failed) flash(to("demandes"), "error", msg);                  // hors du try : la redirection ne doit pas être prise pour une erreur
   done("demandes", msg);
 }
 
@@ -358,4 +360,44 @@ export async function saveListingGuideAction(id: string, fd: FormData) {
   if (error) flash(REF(id), "error", dbMessage(error));
   revalidatePath(REF(id));
   flash(REF(id), "ok", "Guide enregistré.");
+}
+
+/** Livreur de linge : création (ou nouveau lien). Le lien privé est envoyé par e-mail si possible et affiché une seule fois. */
+async function issueCourierLink(id: string, firstTime: boolean) {
+  const sb = createClient();
+  const { data: c } = await sb.from("linen_couriers").select("full_name, email").eq("id", id).maybeSingle();
+  if (!c) flash(to("draps"), "error", "Livreur introuvable.");
+  const k = c as any, token = randomBytes(32).toString("hex");
+  const { error } = await sb.from("linen_couriers").update({ active: true, token_hash: sha(token), token_set_at: new Date().toISOString() }).eq("id", id);
+  if (error) flash(to("draps"), "error", dbMessage(error));
+  const url = `${origin()}/linge/${token}`;
+  let mailed = false;
+  if (k.email && mailConfigured()) {
+    const r = await sendMail({ to: k.email, subject: firstTime ? "Votre lien ProClean — tournées de linge" : "Votre nouveau lien ProClean", text: `Bonjour ${String(k.full_name).split(" ")[0]},\n\nVoici votre lien personnel pour vos tournées de linge${firstTime ? "" : " (l'ancien ne fonctionne plus)"} :\n${url}\n\nGardez-le pour vous et ajoutez-le à l'écran d'accueil de votre téléphone. En partant, appuyez sur « Je pars » : le nettoyeur voit que vous arrivez.\n\nProClean Empire` });
+    mailed = r.sent;
+  }
+  cookies().set("cleaner_link", JSON.stringify({ name: k.full_name, url, mailed }), { httpOnly: true, secure: true, sameSite: "strict", path: BACK, maxAge: 120 });
+  revalidatePath(BACK);
+  flash(to("draps"), "ok", mailed ? `Lien envoyé par e-mail à ${k.full_name}.` : `Lien créé pour ${k.full_name} : copiez-le ci-dessus et transmettez-le.`);
+}
+
+export async function createCourierAction(fd: FormData) {
+  await requireOwner();
+  const name = str(fd, "full_name");
+  if (!name || name.length < 2) flash(to("draps"), "error", "Indiquez le nom du livreur.");
+  const sb = createClient();
+  const { data, error } = await sb.from("linen_couriers").insert({ full_name: name, email: str(fd, "email") || null, phone: str(fd, "phone") || null }).select("id").single();
+  if (error) flash(to("draps"), "error", dbMessage(error));
+  await sb.rpc("linen_backfill");                                   // les ménages déjà publiés reçoivent leurs tournées
+  return issueCourierLink((data as any).id, true);
+}
+export async function renewCourierLinkAction(id: string) { await requireOwner(); return issueCourierLink(id, false); }
+
+export async function setCourierActiveAction(id: string, active: boolean) {
+  await requireOwner();
+  const sb = createClient();
+  const { error } = await sb.from("linen_couriers").update(active ? { active: true } : { active: false, token_hash: null }).eq("id", id);
+  if (error) flash(to("draps"), "error", dbMessage(error));
+  if (!active) await sb.from("linen_runs").update({ status: "a_faire", courier_id: null, started_at: null }).eq("courier_id", id).eq("status", "en_route");
+  done("draps", active ? "Livreur réactivé : renvoyez-lui un lien." : "Livreur désactivé : son lien est coupé et ses tournées en cours sont libérées.");
 }

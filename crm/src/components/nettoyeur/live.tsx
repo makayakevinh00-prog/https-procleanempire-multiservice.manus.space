@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { cleanerOnlineAction, cleanerPingAction, cleanerPushAction } from "@/app/actions/nettoyeur";
+import { cleanerOnlineAction, cleanerPingAction, cleanerPushAction, courierPingAction } from "@/app/actions/nettoyeur";
 
 const KEY = "pc_cleaner_link", SKIP = "pc_cleaner_skip";
 
 /** Mémorise le lien personnel sur ce téléphone (nettoyeur indépendant ou agent salarié) : en rouvrant l'application, on retrouve directement sa journée. */
-export function Remember({ token, base = "nettoyeur" }: { token: string; base?: "nettoyeur" | "agent" }) {
+export function Remember({ token, base = "nettoyeur" }: { token: string; base?: "nettoyeur" | "agent" | "linge" }) {
   useEffect(() => { try { localStorage.setItem(KEY, `/${base}/${token}`); } catch { /* navigation privée */ } }, [token, base]);
   return null;
 }
@@ -20,7 +20,7 @@ export function Resume({ reset, children }: { reset?: boolean; children: React.R
       if (reset) localStorage.removeItem(KEY);
       else {
         const v = localStorage.getItem(KEY) ?? "";
-        const path = /^[0-9a-f]{64}$/.test(v) ? `/nettoyeur/${v}` : /^\/(nettoyeur|agent)\/[0-9a-f]{64}$/.test(v) ? v : null;
+        const path = /^[0-9a-f]{64}$/.test(v) ? `/nettoyeur/${v}` : /^\/(nettoyeur|agent|linge)\/[0-9a-f]{64}$/.test(v) ? v : null;
         if (path) { window.location.replace(path); return; }
       }
     } catch { /* ignoré */ }
@@ -220,4 +220,24 @@ export function CleanerVideoButton({ token, job, kind, label }: { token: string;
       {msg && <p role="alert" className="mt-1 text-sm font-semibold text-[var(--a-bad)]">{msg}</p>}
     </div>
   );
+}
+
+/** Livreur de linge : l'écran se rafraîchit seul ; en route, sa position est envoyée (au plus toutes les 30 s) pour que le nettoyeur le voie arriver. */
+export function CourierLive({ token, active }: { token: string; active: boolean }) {
+  const router = useRouter();
+  const [state, setState] = useState<"" | "ok" | "refus">("");
+  useEffect(() => {
+    const id = setInterval(() => { if (document.visibilityState === "visible") router.refresh(); }, 30_000);
+    return () => clearInterval(id);
+  }, [router]);
+  useEffect(() => {
+    if (!active || !("geolocation" in navigator)) return;
+    let last = 0;
+    const id = navigator.geolocation.watchPosition(
+      (p) => { setState("ok"); if (Date.now() - last > 30_000) { last = Date.now(); void courierPingAction(token, p.coords.latitude, p.coords.longitude); } },
+      () => setState("refus"), { enableHighAccuracy: true, maximumAge: 20_000 });
+    return () => navigator.geolocation.clearWatch(id);
+  }, [active, token]);
+  if (!active) return null;
+  return <span className={`inline-flex items-center gap-1.5 text-xs font-bold ${state === "refus" ? "text-[var(--a-bad)]" : "text-[var(--a-ok)]"}`}><span className="h-2 w-2 animate-pulse rounded-full bg-current" />{state === "refus" ? "Position refusée" : "Position partagée"}</span>;
 }

@@ -132,6 +132,22 @@ export async function cleanerZoneAction(token: string, postal: string, city: str
   go(token, "/demandes", "ok", `Vous travaillez maintenant autour de ${city}.`);
 }
 
+/** Livreur de linge : avancer une tournée (« Je pars », « Fait », « Je ne peux plus »). */
+export async function courierRunAction(token: string, runId: string, status: "en_route" | "fait" | "a_faire") {
+  if (!isToken(token)) redirect("/nettoyeur");
+  const back = (kind: "ok" | "error", msg: string): never => redirect(`/linge/${token}?${kind}=${encodeURIComponent(msg)}`);
+  const { error } = await agentClient().rpc("courier_run_update", { p_token: token, p_run: runId, p_status: status });
+  if (error) back("error", agentMessage(error.message));
+  revalidatePath(`/linge/${token}`);
+  back("ok", status === "en_route" ? "C'est noté : le nettoyeur voit que vous arrivez. Gardez cette page ouverte pour partager votre position." : status === "fait" ? "Merci, c'est enregistré." : "Tournée libérée pour un autre livreur.");
+}
+
+/** Position du livreur en route (page ouverte). */
+export async function courierPingAction(token: string, lat: number, lng: number): Promise<void> {
+  if (!isToken(token) || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
+  await agentClient().rpc("courier_ping", { p_token: token, p_lat: lat, p_lng: lng });
+}
+
 const SIGNUP = "/nettoyeur/inscription";
 const fail = (msg: string): never => redirect(`${SIGNUP}?error=${encodeURIComponent(msg)}`);
 

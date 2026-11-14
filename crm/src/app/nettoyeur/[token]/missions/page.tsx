@@ -40,6 +40,20 @@ export default async function CleanerMissions({ params, searchParams }: { params
               <div className="flex items-center gap-2 text-[15px] font-bold"><Clock className="h-4 w-4 text-[var(--a-pri)]" />{slot(j.window_start, j.window_end)}{j.hours ? ` · environ ${j.hours} h` : ""}<span className="ml-auto num text-[var(--a-ok)]">{eur(j.amount)}</span></div>
               {j.status !== "validee" && j.address && <a className="flex items-start gap-2 rounded-2xl bg-[var(--a-bg)] p-3 text-[15px] font-bold text-[var(--a-pri)]" href={`https://maps.google.com/?q=${encodeURIComponent(`${j.address} ${j.postal_code ?? ""} ${j.city ?? ""}`)}`} target="_blank" rel="noopener noreferrer"><MapPin className="mt-0.5 h-5 w-5 shrink-0" />{j.address}, {j.postal_code} {j.city}</a>}
               {j.status !== "validee" && j.access_notes && <div className="flex items-start gap-2 rounded-2xl bg-[var(--a-warnbg)] p-3 text-[14px] text-[var(--a-warn)]"><KeyRound className="mt-0.5 h-4 w-4 shrink-0" /><span><b>Accès :</b> {j.access_notes}</span></div>}
+              {j.clean_linen && j.status !== "validee" && (
+                <div className={`rounded-2xl p-3 text-[14px] font-bold ${j.clean_linen.status === "sur_place" ? "bg-[var(--a-okbg)] text-[var(--a-ok)]" : j.clean_linen.status === "en_route" ? "bg-[var(--a-warnbg)] text-[var(--a-warn)]" : "bg-[var(--a-bg)] text-[var(--a-mute)]"}`}>
+                  {j.clean_linen.status === "sur_place" && <>🧺 Linge propre sur place{j.clean_linen.done_at ? ` (déposé à ${new Date(j.clean_linen.done_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" })})` : ""}</>}
+                  {j.clean_linen.status === "en_route" && (
+                    <>🚚 Linge propre en route{j.clean_linen.courier ? ` avec ${j.clean_linen.courier.split(" ")[0]}` : ""}{j.clean_linen.km != null ? ` · à ${String(j.clean_linen.km).replace(".", ",")} km` : ""}
+                      <span className="mt-1 flex flex-wrap gap-3 text-[13px]">
+                        {j.clean_linen.lat != null && <a className="underline" href={`https://maps.google.com/?q=${j.clean_linen.lat},${j.clean_linen.lng}`} target="_blank" rel="noopener noreferrer">Voir sa position</a>}
+                        {j.clean_linen.phone && <a className="underline" href={`tel:${j.clean_linen.phone.replace(/[^+\d]/g, "")}`}>Appeler le livreur</a>}
+                        {j.clean_linen.lat == null && <span className="font-normal">Position pas encore partagée.</span>}
+                      </span></>
+                  )}
+                  {j.clean_linen.status === "a_venir" && <>🧺 Linge propre pas encore livré. Vous serez informé ici quand le livreur part.</>}
+                </div>
+              )}
               {j.guide && j.status !== "validee" && (
                 <details className="rounded-2xl bg-[var(--a-bg)] p-3 text-[14px]" open={j.status === "acceptee" && !!j.arrived_at && (j.photos_after ?? 0) === 0}>
                   <summary className="cursor-pointer text-[15px] font-extrabold text-[var(--a-pri)]">Comment nettoyer ce logement</summary>
