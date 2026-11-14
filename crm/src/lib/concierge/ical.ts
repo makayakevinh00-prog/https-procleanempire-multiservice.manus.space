@@ -93,6 +93,24 @@ const HOSTS = [
   /(^|\.)beds24\.com$/,
   /(^|\.)guesty\.com$/,
   /(^|\.)superhote\.com$/,
+  /(^|\.)hostaway\.com$/,
+  /(^|\.)hostfully\.com$/,
+  /(^|\.)ownerrez\.com$/,
+  /(^|\.)tokeet\.com$/,
+  /(^|\.)uplisting\.io$/,
+  /(^|\.)igms\.com$/,
+  /(^|\.)eviivo\.com$/,
+  /(^|\.)amenitiz\.(io|com)$/,
+  /(^|\.)elloha\.com$/,
+  /(^|\.)hostify\.com$/,
+  /(^|\.)zeevou\.com$/,
+  /(^|\.)bookingsync\.com$/,
+  /(^|\.)smily\.com$/,
+  /(^|\.)avantio\.com$/,
+  /(^|\.)rentalsunited\.com$/,
+  /(^|\.)tripadvisor\.(com|fr)$/,
+  /(^|\.)holidu\.com$/,
+  /(^|\.)gites-de-france\.com$/,
 ];
 
 /** Un lien calendrier sûr à télécharger depuis le serveur : https, sans identifiants, sans port ni adresse IP, hôte reconnu. */
@@ -121,7 +139,7 @@ export function checkIcalUrl(
     return {
       ok: false,
       reason:
-        "Ce site n'est pas une plateforme reconnue (Airbnb, Booking, Abritel/Vrbo, Google Agenda ou un logiciel de gestion courant).",
+        "Ce site n'est pas une plateforme reconnue (Airbnb, Booking, Abritel/Vrbo, Google Agenda, SuperHote, Smoobu, Lodgify, Hostaway, Guesty, Beds24… ). Dites-nous lequel pour qu'on l'ajoute.",
     };
   return { ok: true, url: u.toString() };
 }
