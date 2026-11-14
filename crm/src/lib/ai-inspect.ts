@@ -3,7 +3,7 @@
  * Actif seulement si ANTHROPIC_API_KEY est configurée ; sinon le ménage part à la direction avec la mention « analyse automatique indisponible ».
  * L'IA demande les reprises. Elle ne valide seule que si le réglage « validation automatique » est activé et qu'elle n'est pas peu sûre ; sinon la direction valide.
  */
-export type Img = { content_type: string; b64: string };
+export type Img = { content_type: string; b64: string; room?: string | null };
 export type BeforeReport = { items: { zone: string; todo: string }[]; level: number | null; summary: string };
 export type AfterReport = { cleaned: string[]; remaining: { zone: string; why: string }[]; verdict: "ok" | "reprise"; summary: string; confidence: "haute" | "moyenne" | "faible" };
 
@@ -61,7 +61,7 @@ export function aiErrorLabel(status: number, body: string): string {
 }
 
 type Part = { type: "text"; text: string } | { type: "image"; source: { type: "base64"; media_type: string; data: string } };
-const imgs = (images: Img[]): Part[] => images.map((i) => ({ type: "image", source: { type: "base64", media_type: i.content_type, data: i.b64 } }));
+const imgs = (images: Img[]): Part[] => images.flatMap((i): Part[] => [...(i.room ? [{ type: "text" as const, text: `Pièce : ${str(i.room, 60)}` }] : []), { type: "image", source: { type: "base64", media_type: i.content_type, data: i.b64 } }]);
 
 async function ask(content: Part[]): Promise<{ text: string | null; error: string | null }> {
   const key = process.env.ANTHROPIC_API_KEY?.trim();
@@ -97,7 +97,7 @@ export async function analyzeAfter(images: Img[], before: BeforeReport | null, r
   const guide = ref?.guide ? ` Guide de ce logement : ${ref.guide.rooms.map((r) => `${r.room} — ${r.steps.join(", ")}`).join(" ; ")}.${ref.guide.attention.length ? ` Points d'attention : ${ref.guide.attention.join(" ; ")}.` : ""}` : "";
   const content: Part[] = [];
   if (ref?.images.length) content.push({ type: "text", text: "RÉFÉRENCE — le logement propre et rangé, tel qu'il doit être rendu :" }, ...imgs(ref.images), { type: "text", text: "APRÈS LE MÉNAGE — photos du nettoyeur aujourd'hui :" });
-  content.push(...imgs(images), { type: "text", text: `Ces ${ref?.images.length ? "dernières " : ""}photos montrent le logement APRÈS le ménage. ${list}${guide}${ref?.images.length ? " Compare à la référence : signale ce qui n'est pas rendu comme sur la référence (lit non fait, objets déplacés ou manquants, saleté)." : ""} Dis ce qui est propre, et ce qui ne l'est CLAIREMENT pas (saleté, désordre, linge ou déchets visibles). Ne demande une reprise que pour des défauts visibles sur les photos : si une zone n'est pas photographiée, ne la compte pas comme sale. Réponds : {"cleaned":["..."],"remaining":[{"zone":"...","why":"..."}],"verdict":"ok" ou "reprise","summary":"une ou deux phrases","confidence":"haute|moyenne|faible"}` });
+  content.push(...imgs(images), { type: "text", text: `Ces ${ref?.images.length ? "dernières " : ""}photos montrent le logement APRÈS le ménage. ${list}${guide}${ref?.images.length ? " Compare à la référence : signale ce qui n'est pas rendu comme sur la référence (lit non fait, objets déplacés ou manquants, saleté)." : ""} Dis ce qui est propre, et ce qui ne l'est CLAIREMENT pas (saleté, désordre, linge ou déchets visibles). Ne demande une reprise que pour des défauts visibles sur les photos : si une zone n'est pas photographiée, ne la compte pas comme sale. Quand une pièce est indiquée avant une photo, cite cette pièce dans tes réponses. Réponds : {"cleaned":["..."],"remaining":[{"zone":"...","why":"..."}],"verdict":"ok" ou "reprise","summary":"une ou deux phrases","confidence":"haute|moyenne|faible"}` });
   const r = await ask(content);
   if (!r.text) return { report: null, error: r.error };
   const report = parseAfter(r.text);

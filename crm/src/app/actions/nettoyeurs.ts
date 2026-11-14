@@ -165,7 +165,7 @@ export async function saveMarketplaceSettingsAction(fd: FormData) {
   const t = (k: string, d: string) => { const v = str(fd, k); return v && /^\d{2}:\d{2}$/.test(v) ? v : d; };
   const ws = t("window_start", "11:00"), we = t("window_end", "14:00"), mx = t("max_end", "16:00");
   if (!(we > ws && mx >= we)) flash(to("reglages"), "error", "Le créneau doit finir après son début, et la fin maximale après la fin prévue.");
-  const { error } = await createClient().from("marketplace_settings").update({ auto_validate: checked(fd, "auto_validate"), rules_validate: checked(fd, "rules_validate"), rules_min_photos: Math.max(1, Math.min(20, Math.round(numField(fd, "rules_min_photos") ?? 2))), rules_min_minutes: Math.max(0, Math.min(600, Math.round(numField(fd, "rules_min_minutes") ?? 30))), trust_jobs: Math.max(0, Math.min(100, Math.round(numField(fd, "trust_jobs") ?? 3))), spot_check_every: Math.max(0, Math.min(100, Math.round(numField(fd, "spot_check_every") ?? 5))), ...(fd.has("default_checklist") ? { default_checklist: String(fd.get("default_checklist") ?? "").split("\n").map((x) => x.trim().slice(0, 200)).filter(Boolean).slice(0, 40) } : {}), cleaner_pct: c!, platform_pct: p!, logistics_pct: l!, window_start: ws, window_end: we, max_end: mx, priority_minutes: Math.max(0, Math.min(2880, Math.round(numField(fd, "priority_minutes") ?? 120))), price_studio: Math.max(0, numField(fd, "price_studio") ?? 45), price_t2: Math.max(0, numField(fd, "price_t2") ?? 60), price_t3: Math.max(0, numField(fd, "price_t3") ?? 75), price_maison: Math.max(0, numField(fd, "price_maison") ?? 95), auto_publish: checked(fd, "auto_publish"), auto_payout: checked(fd, "auto_payout"), require_photos: checked(fd, "require_photos"), updated_at: new Date().toISOString() }).eq("id", true);
+  const { error } = await createClient().from("marketplace_settings").update({ auto_validate: checked(fd, "auto_validate"), rules_validate: checked(fd, "rules_validate"), rules_min_photos: Math.max(1, Math.min(20, Math.round(numField(fd, "rules_min_photos") ?? 2))), rules_min_minutes: Math.max(0, Math.min(600, Math.round(numField(fd, "rules_min_minutes") ?? 30))), trust_jobs: Math.max(0, Math.min(100, Math.round(numField(fd, "trust_jobs") ?? 3))), spot_check_every: Math.max(0, Math.min(100, Math.round(numField(fd, "spot_check_every") ?? 5))), ...(fd.has("default_rooms") ? { default_rooms: String(fd.get("default_rooms") ?? "").split("\n").map((x) => x.trim().slice(0, 60)).filter(Boolean).slice(0, 20) } : {}), ...(fd.has("default_checklist") ? { default_checklist: String(fd.get("default_checklist") ?? "").split("\n").map((x) => x.trim().slice(0, 200)).filter(Boolean).slice(0, 40) } : {}), cleaner_pct: c!, platform_pct: p!, logistics_pct: l!, window_start: ws, window_end: we, max_end: mx, priority_minutes: Math.max(0, Math.min(2880, Math.round(numField(fd, "priority_minutes") ?? 120))), price_studio: Math.max(0, numField(fd, "price_studio") ?? 45), price_t2: Math.max(0, numField(fd, "price_t2") ?? 60), price_t3: Math.max(0, numField(fd, "price_t3") ?? 75), price_maison: Math.max(0, numField(fd, "price_maison") ?? 95), auto_publish: checked(fd, "auto_publish"), auto_payout: checked(fd, "auto_payout"), require_photos: checked(fd, "require_photos"), updated_at: new Date().toISOString() }).eq("id", true);
   if (error) flash(to("reglages"), "error", dbMessage(error));
   done("reglages", "Réglages enregistrés : ils s'appliquent aux prochains ménages publiés.");
 }
@@ -445,4 +445,14 @@ export async function setListingLinenAction(id: string, fd: FormData) {
   const { error } = await createClient().from("concierge_listings").update({ linen_clean: clean, linen_dirty: dirty, linen_per_stay: per }).eq("id", id);
   if (error) flash(to("draps"), "error", dbMessage(error));
   done("draps", "Stock de linge enregistré.");
+}
+
+/** Pièces à photographier d'un logement (une par ligne). Vide = pièces du guide, sinon liste standard. */
+export async function setListingRoomsAction(id: string, fd: FormData) {
+  await requireOwner();
+  const rooms = String(fd.get("rooms") ?? "").split("\n").map((x) => x.trim().slice(0, 60)).filter(Boolean).slice(0, 20);
+  const { error } = await createClient().from("concierge_listings").update({ rooms: rooms.length ? rooms : null }).eq("id", id);
+  if (error) flash(REF(id), "error", dbMessage(error));
+  revalidatePath(REF(id));
+  flash(REF(id), "ok", rooms.length ? "Pièces enregistrées : elles s'appliquent aux prochains ménages acceptés." : "Liste vidée : les pièces du guide ou la liste standard seront utilisées.");
 }

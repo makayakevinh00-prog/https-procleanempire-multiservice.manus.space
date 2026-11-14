@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ConfirmAction } from "@/components/crm/confirm-action";
 import { RefUpload } from "@/components/crm/ref-upload";
-import { analyzeListingAction, clearListingReferenceAction, saveListingGuideAction } from "@/app/actions/nettoyeurs";
+import { analyzeListingAction, clearListingReferenceAction, saveListingGuideAction, setListingRoomsAction } from "@/app/actions/nettoyeurs";
 import { aiConfigured, type Guide } from "@/lib/ai-inspect";
 import { formatDate } from "@/lib/utils";
 
@@ -17,7 +17,7 @@ export const metadata = { title: "Référence du logement" };
 export default async function ListingReference({ params, searchParams }: { params: { id: string }; searchParams: { ok?: string; error?: string } }) {
   const sb = createClient();
   const [l, ph] = await Promise.all([
-    sb.from("concierge_listings").select("id, name, ref_guide, ref_at, clients(name)").eq("id", params.id).maybeSingle(),
+    sb.from("concierge_listings").select("id, name, ref_guide, ref_at, rooms, clients(name)").eq("id", params.id).maybeSingle(),
     sb.from("listing_ref_photos").select("id, created_at").eq("listing_id", params.id).order("created_at")
   ]);
   if (!l.data) notFound();
@@ -41,6 +41,15 @@ export default async function ListingReference({ params, searchParams }: { param
             {!aiConfigured() && <span className="text-xs font-medium text-amber-700">Clé de l&apos;IA absente du serveur : l&apos;analyse ne peut pas tourner.</span>}
           </div>
         </div>
+      </Card>
+
+      <Card className="mb-4">
+        <CardHeader><CardTitle>Pièces à photographier</CardTitle></CardHeader>
+        <form action={setListingRoomsAction.bind(null, k.id)} className="space-y-3 px-5 pb-5">
+          <p className="text-sm text-muted-foreground">Le nettoyeur prend une photo avant et une photo après de chaque pièce de cette liste. Une pièce par ligne (« Chambre 1 », « Chambre 2 », « Douche »…). Laissez vide pour reprendre les pièces du guide, sinon la liste standard.</p>
+          <textarea name="rooms" rows={6} defaultValue={((k.rooms ?? []) as string[]).join("\n")} placeholder={(g?.rooms ?? []).map((r) => r.room).join("\n") || "Cuisine\nSalon / séjour\nChambre\nSalle de bain / douche\nWC"} className="w-full rounded-md border p-3 text-sm" />
+          <Button variant="outline">Enregistrer les pièces</Button>
+        </form>
       </Card>
 
       <Card>

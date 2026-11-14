@@ -262,6 +262,15 @@ export async function partnerLinenAction(token: string, listing: string, fd: For
   pBack(token, "ok", "Stock de linge propre mis à jour.");
 }
 
+export async function partnerRoomsAction(token: string, listing: string, fd: FormData) {
+  if (!isToken(token)) redirect("/nettoyeur");
+  const rooms = String(fd.get("rooms") ?? "").split("\n").map((x) => x.trim()).filter(Boolean).slice(0, 20);
+  const { error } = await agentClient().rpc("partner_set_rooms", { p_secret: token, p_listing: listing, p_rooms: rooms });
+  if (error) pBack(token, "error", agentMessage(error.message));
+  revalidatePath(`/partenaire/${token}`);
+  pBack(token, "ok", rooms.length ? "Pièces enregistrées : le nettoyeur photographiera chacune, avant et après." : "Liste vidée : les pièces du guide ou la liste standard seront utilisées.");
+}
+
 /** Référence du logement : l'IA rédige le guide de ménage à partir des images envoyées par la conciergerie. */
 export async function partnerAnalyzeAction(token: string, listing: string) {
   if (!isToken(token)) redirect("/nettoyeur");

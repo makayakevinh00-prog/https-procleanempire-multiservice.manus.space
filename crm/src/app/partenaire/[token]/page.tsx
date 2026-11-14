@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { agentClient, agentMessage, agentPrefs, isToken } from "@/lib/agent";
-import { partnerAnalyzeAction, partnerApiKeyAction, partnerLinenAction, partnerSaveListingAction } from "@/app/actions/nettoyeur";
+import { partnerAnalyzeAction, partnerApiKeyAction, partnerLinenAction, partnerRoomsAction, partnerSaveListingAction } from "@/app/actions/nettoyeur";
 import { JOB_STATUS, dayFr, eur } from "@/lib/cleaner-ui";
 import { PLATFORMS } from "@/lib/concierge/ical";
 import { FIELD_CSS } from "@/components/agent/theme";
@@ -111,6 +111,11 @@ export default async function PartnerPage({ params, searchParams }: { params: { 
                 <RefUpload listing={l.id} endpoint="/api/partenaire/photo" token={token} dark />
                 {l.ref_photos > 0 && <form action={partnerAnalyzeAction.bind(null, token, l.id)} className="mt-2"><button className="h-11 rounded-xl bg-[var(--a-pri)] px-4 text-sm font-extrabold text-white">{l.has_guide ? "Refaire le guide" : "Faire rédiger le guide par l'IA"}</button></form>}
                 {g && <div className="mt-3 rounded-2xl bg-[var(--a-bg)] p-3 text-[13px]">{g.summary && <p className="text-[var(--a-mute)]">{g.summary}</p>}{(g.rooms ?? []).map((r: any) => <div key={r.room} className="mt-1.5"><b>{r.room}</b><ul className="list-disc pl-5">{(r.steps ?? []).map((x: string, i: number) => <li key={i}>{x}</li>)}</ul></div>)}</div>}
+              </section>
+              <section>
+                <b className="mb-1 block text-[15px]">Pièces à photographier</b>
+                <p className="mb-2 text-[13px] text-[var(--a-mute)]">Le nettoyeur prend une photo avant et après de chaque pièce. Une pièce par ligne. Vide : les pièces du guide, sinon cuisine, séjour, chambre, salle de bain, WC.</p>
+                <form action={partnerRoomsAction.bind(null, token, l.id)} className="space-y-2"><textarea name="rooms" rows={5} placeholder={"Cuisine\nSalon\nChambre 1\nChambre 2\nDouche\nWC"} className="w-full rounded-xl border border-[var(--a-line)] bg-[var(--a-bg)] p-3 text-[15px]" /><button className="h-11 rounded-xl border border-[var(--a-pri)] px-4 text-sm font-extrabold text-[var(--a-pri)]">Enregistrer les pièces</button></form>
               </section>
               <section><b className="mb-2 block text-[15px]">Informations et calendrier</b><ListingForm token={token} l={l} /></section>
             </div>

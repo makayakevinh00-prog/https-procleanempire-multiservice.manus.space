@@ -17,7 +17,8 @@ export default async function CleanerMissions({ params, searchParams }: { params
   const token = params.token;
   if (!isToken(token)) return <Gate text="Ce lien n'est pas valide." />;
   const db = agentClient();
-  const [{ data, error }, lists] = await Promise.all([db.rpc("cleaner_my_jobs", { p_token: token }), db.rpc("cleaner_checklists", { p_token: token })]);
+  const [{ data, error }, lists, roomRes] = await Promise.all([db.rpc("cleaner_my_jobs", { p_token: token }), db.rpc("cleaner_checklists", { p_token: token }), db.rpc("cleaner_job_rooms", { p_token: token })]);
+  const roomsOf = (roomRes.data ?? {}) as Record<string, { room: string; avant: number; apres: number }[]>;
   if (error) return <Gate text={agentMessage(error.message)} />;
   const tasks = (lists.data ?? {}) as Record<string, { label: string; done: boolean }[]>;
   const jobs = (data as { jobs: CleanerJob[]; require_photos: boolean }).jobs, needPhotos = (data as { require_photos: boolean }).require_photos;
@@ -83,8 +84,32 @@ export default async function CleanerMissions({ params, searchParams }: { params
               )}
               {(j.status === "acceptee" || j.status === "a_reprendre") && j.date <= today && (
                 <div className="space-y-3">
-                  <CleanerPhotoButton token={token} job={j.id} kind="avant" label="1. Photos avant le ménage" count={j.photos_before ?? 0} />
-                  <CleanerVideoButton token={token} job={j.id} kind="avant" label="ou filmer les pièces (avant)" />
+                  {(roomsOf[j.id]?.length ?? 0) > 0 ? (
+                    <div className="rounded-2xl bg-[var(--a-bg)] p-3">
+                      <div className="mb-2 flex items-center justify-between"><b className="text-[15px]">Photos pièce par pièce</b><span className="text-xs font-bold text-[var(--a-mute)]">{roomsOf[j.id]!.filter((r) => r.avant > 0 && r.apres > 0).length}/{roomsOf[j.id]!.length} complètes</span></div>
+                      <p className="mb-2 text-xs text-[var(--a-mute)]">Une photo de chaque pièce avant de commencer, puis une après, du même endroit.</p>
+                      <div className="space-y-2.5">
+                        {roomsOf[j.id]!.map((r) => (
+                          <div key={r.room}>
+                            <div className="mb-1 text-[14px] font-extrabold">{r.room}</div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <CleanerPhotoButton compact token={token} job={j.id} kind="avant" room={r.room} label="Avant" count={r.avant} />
+                              <CleanerPhotoButton compact token={token} job={j.id} kind="apres" room={r.room} label="Après" count={r.apres} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <CleanerPhotoButton token={token} job={j.id} kind="avant" label="1. Photos avant le ménage" count={j.photos_before ?? 0} />
+                      <CleanerPhotoButton token={token} job={j.id} kind="apres" label="2. Photos après le ménage" count={j.photos_after ?? 0} />
+                    </>
+                  )}
+                  <div className="grid grid-cols-2 gap-2">
+                    <CleanerVideoButton token={token} job={j.id} kind="avant" label="Vidéo avant" />
+                    <CleanerVideoButton token={token} job={j.id} kind="apres" label="Vidéo après" />
+                  </div>
                   {j.before_report && j.before_report.items.length > 0 && (
                     <div className="rounded-2xl bg-[var(--a-bg)] p-3 text-[14px]">
                       <b className="block text-[15px]">À nettoyer (relevé automatique des photos)</b>
@@ -92,8 +117,6 @@ export default async function CleanerMissions({ params, searchParams }: { params
                     </div>
                   )}
                   {(tasks[j.id]?.length ?? 0) > 0 && <TaskList token={token} job={j.id} tasks={tasks[j.id]!} />}
-                  <CleanerPhotoButton token={token} job={j.id} kind="apres" label="2. Photos après le ménage" count={j.photos_after ?? 0} />
-                  <CleanerVideoButton token={token} job={j.id} kind="apres" label="ou filmer les pièces (après)" />
                 </div>
               )}
               {j.ai_status === "reprise" && j.ai_report?.remaining && j.ai_report.remaining.length > 0 && j.status === "a_reprendre" && (
@@ -110,9 +133,9 @@ export default async function CleanerMissions({ params, searchParams }: { params
               )}
               {canFinish && (
                 <form action={cleanerFinishAction.bind(null, token, j.id)} className="space-y-2">
-                  <textarea name="note" rows={2} maxLength={1000} placeholder="Un mot pour la direction : obligatoire s'il reste une tâche non cochée (dites pourquoi)." className="w-full rounded-xl border border-[var(--a-line)] bg-[var(--a-bg)] p-3 text-base" />
-                  <button disabled={needPhotos && ((j.photos_before ?? 0) === 0 || (j.photos_after ?? 0) === 0)} className="h-14 w-full rounded-2xl bg-[var(--a-ok)] text-lg font-extrabold text-[var(--a-bg)] active:opacity-90 disabled:opacity-40">3. J&apos;ai terminé le ménage</button>
-                  {needPhotos && ((j.photos_before ?? 0) === 0 || (j.photos_after ?? 0) === 0) && <p className="text-center text-xs text-[var(--a-mute)]">Ajoutez au moins une photo avant et une photo après pour terminer.</p>}
+                  <textarea name="note" rows={2} maxLength={1000} placeholder="Un mot pour la direction : obligatoire s'il manque une photo ou une tâche (dites pourquoi)." className="w-full rounded-xl border border-[var(--a-line)] bg-[var(--a-bg)] p-3 text-base" />
+                  <button disabled={needPhotos && !(roomsOf[j.id]?.length) && ((j.photos_before ?? 0) === 0 || (j.photos_after ?? 0) === 0)} className="h-14 w-full rounded-2xl bg-[var(--a-ok)] text-lg font-extrabold text-[var(--a-bg)] active:opacity-90 disabled:opacity-40">3. J&apos;ai terminé le ménage</button>
+                  {needPhotos && (roomsOf[j.id]?.some((r) => !r.avant || !r.apres) ?? false) && <p className="text-center text-xs text-[var(--a-mute)]">Il manque des photos de pièces : prenez-les, ou expliquez pourquoi dans le mot ci-dessus.</p>}
                 </form>
               )}
               {j.linen && j.status !== "annulee" && (

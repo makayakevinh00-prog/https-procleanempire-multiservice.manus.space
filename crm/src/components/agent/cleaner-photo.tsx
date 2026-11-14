@@ -15,7 +15,7 @@ async function shrink(file: File): Promise<Blob> {
 }
 
 /** Bouton photo du nettoyeur : avant ou après le ménage. Plusieurs photos possibles ; le compteur vient du serveur. */
-export function CleanerPhotoButton({ token, job, kind, label, count }: { token: string; job: string; kind: "avant" | "apres"; label: string; count: number }) {
+export function CleanerPhotoButton({ token, job, kind, label, count, room, compact }: { token: string; job: string; kind: "avant" | "apres"; label: string; count: number; room?: string; compact?: boolean }) {
   const input = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const [state, setState] = useState<"idle" | "busy" | "error">("idle");
@@ -25,7 +25,7 @@ export function CleanerPhotoButton({ token, job, kind, label, count }: { token: 
     setState("busy"); setMsg("");
     try {
       const fd = new FormData();
-      fd.set("token", token); fd.set("job", job); fd.set("kind", kind); fd.set("file", await shrink(f), "photo.jpg");
+      fd.set("token", token); fd.set("job", job); fd.set("kind", kind); if (room) fd.set("room", room); fd.set("file", await shrink(f), "photo.jpg");
       const r = await fetch("/api/nettoyeur/photo", { method: "POST", body: fd });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error ?? "Envoi impossible.");
@@ -35,8 +35,8 @@ export function CleanerPhotoButton({ token, job, kind, label, count }: { token: 
   }
   return (
     <div>
-      <button type="button" disabled={state === "busy"} onClick={() => input.current?.click()} className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-[var(--a-line)] bg-[var(--a-bg)] text-[16px] font-extrabold text-[var(--a-ink)] active:opacity-80 disabled:opacity-60">
-        <Camera className="h-5 w-5" /> {state === "busy" ? "Envoi et analyse…" : label}{count > 0 ? ` (${count})` : ""}
+      <button type="button" disabled={state === "busy"} onClick={() => input.current?.click()} className={compact ? `flex h-12 w-full items-center justify-center gap-1.5 rounded-xl border-2 text-[14px] font-extrabold active:opacity-80 disabled:opacity-60 ${count > 0 ? "border-[var(--a-ok)] bg-[var(--a-okbg)] text-[var(--a-ok)]" : "border-[var(--a-line)] bg-[var(--a-bg)] text-[var(--a-ink)]"}` : "flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-[var(--a-line)] bg-[var(--a-bg)] text-[16px] font-extrabold text-[var(--a-ink)] active:opacity-80 disabled:opacity-60"}>
+        <Camera className={compact ? "h-4 w-4" : "h-5 w-5"} /> {state === "busy" ? "Envoi…" : label}{count > 0 ? (compact ? ` ✓${count > 1 ? ` ${count}` : ""}` : ` (${count})`) : ""}
       </button>
       <input ref={input} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
       {msg && <p role="alert" className="mt-1 text-sm font-semibold text-[var(--a-bad)]">{msg}</p>}
