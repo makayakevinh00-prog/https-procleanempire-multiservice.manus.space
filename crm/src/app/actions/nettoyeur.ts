@@ -8,6 +8,8 @@ import { agentClient, agentMessage, isToken } from "@/lib/agent";
 import { ibanValid } from "@/lib/cleaner-ui";
 import { geocode, inFrance } from "@/lib/zone";
 import { checkSiret, siretValid } from "@/lib/siret";
+import { checkIcalUrl } from "@/lib/concierge/ical";
+import { analyzeReference, type Img } from "@/lib/ai-inspect";
 import { sendMail, mailConfigured } from "@/lib/mail";
 import { automationClient, automationSecret } from "@/lib/automation/deps";
 import { runAfterAnalysis, type AfterOutcome } from "@/lib/marketplace/inspect";
@@ -132,14 +134,16 @@ export async function cleanerZoneAction(token: string, postal: string, city: str
   go(token, "/demandes", "ok", `Vous travaillez maintenant autour de ${city}.`);
 }
 
-/** Livreur de linge : avancer une tournée (« Je pars », « Fait », « Je ne peux plus »). */
-export async function courierRunAction(token: string, runId: string, status: "en_route" | "fait" | "a_faire") {
+/** Livreur de linge : avancer une tournée (« Je pars », « Fait » avec le nombre de parures, « Je ne peux plus »). */
+export async function courierRunAction(token: string, runId: string, status: "en_route" | "fait" | "a_faire", fd?: FormData) {
   if (!isToken(token)) redirect("/nettoyeur");
   const back = (kind: "ok" | "error", msg: string): never => redirect(`/linge/${token}?${kind}=${encodeURIComponent(msg)}`);
-  const { error } = await agentClient().rpc("courier_run_update", { p_token: token, p_run: runId, p_status: status });
+  const raw = fd?.get("sets"), sets = raw != null && String(raw).trim() !== "" ? Math.round(Number(raw)) : null;
+  if (sets != null && !(sets >= 0 && sets <= 50)) back("error", "Nombre de parures entre 0 et 50.");
+  const { error } = await agentClient().rpc("courier_run_update", { p_token: token, p_run: runId, p_status: status, p_sets: sets });
   if (error) back("error", agentMessage(error.message));
   revalidatePath(`/linge/${token}`);
-  back("ok", status === "en_route" ? "C'est noté : le nettoyeur voit que vous arrivez. Gardez cette page ouverte pour partager votre position." : status === "fait" ? "Merci, c'est enregistré." : "Tournée libérée pour un autre livreur.");
+  back("ok", status === "en_route" ? "C'est noté : le nettoyeur voit que vous arrivez. Gardez cette page ouverte pour partager votre position." : status === "fait" ? "Merci, c'est enregistré : le stock du logement est à jour." : "Tournée libérée pour un autre livreur.");
 }
 
 /** Position du livreur en route (page ouverte). */
@@ -222,4 +226,58 @@ export async function bookCleaningAction(fd: FormData) {
     await sendMail({ to: process.env.MAIL_ADMIN ?? "contact@procleanempire.com", subject: "Nouvelle réservation de ménage", text: `${p.name} (${p.email}) demande un ménage ${KIND_LABEL[p.kind] ?? p.kind} le ${p.job_date} à ${p.city}.\nÀ accepter dans le CRM : Nettoyeurs › Réservations.` }).catch(() => undefined);
   }
   redirect("/reserver?ok=1");
+}
+
+// ───────────── Espace conciergerie (lien privé) ─────────────
+const pBack = (t: string, kind: "ok" | "error", msg: string): never => redirect(`/partenaire/${t}?${kind}=${encodeURIComponent(msg)}`);
+
+/** La conciergerie ajoute ou modifie un de ses logements : nom, adresse, accès, lien de calendrier (vérifié ici). Le tarif reste fixé par ProClean. */
+export async function partnerSaveListingAction(token: string, id: string | null, fd: FormData) {
+  if (!isToken(token)) redirect("/nettoyeur");
+  const ical = String(fd.get("ical_url") ?? "").trim();
+  let url = "";
+  if (ical) { const c = checkIcalUrl(ical); if (!c.ok) pBack(token, "error", c.reason); else url = c.url; }
+  const p = { name: String(fd.get("name") ?? ""), address: String(fd.get("address") ?? ""), postal_code: String(fd.get("postal_code") ?? "").replace(/\s/g, ""), city: String(fd.get("city") ?? ""), access_notes: String(fd.get("access_notes") ?? ""), platform: String(fd.get("platform") ?? "autre"), ical_url: url, keep_ical: !!id && !url && fd.get("remove_ical") !== "on", checkout_time: String(fd.get("checkout_time") ?? "") };
+  const { error } = await agentClient().rpc("partner_save_listing", { p_secret: token, p_id: id, p });
+  if (error) pBack(token, "error", agentMessage(error.message));
+  if (!id && mailConfigured()) await sendMail({ to: process.env.MAIL_ADMIN ?? "contact@procleanempire.com", subject: "Nouveau logement ajouté par une conciergerie", text: `Le logement « ${p.name} » (${p.postal_code} ${p.city}) vient d'être ajouté depuis l'espace conciergerie.\n\nIl lui manque le tarif du ménage : sans tarif, aucun ménage n'est publié.\nÀ compléter : CRM › Conciergerie.` }).catch(() => undefined);
+  revalidatePath(`/partenaire/${token}`);
+  pBack(token, "ok", id ? "Logement enregistré." : "Logement ajouté. ProClean fixe le tarif du ménage, puis les ménages se créent tout seuls à chaque départ.");
+}
+
+export async function partnerLinenAction(token: string, listing: string, fd: FormData) {
+  if (!isToken(token)) redirect("/nettoyeur");
+  const n = Math.round(Number(fd.get("clean")));
+  if (!(n >= 0 && n <= 200)) pBack(token, "error", "Nombre de parures entre 0 et 200.");
+  const { error } = await agentClient().rpc("partner_set_linen", { p_secret: token, p_listing: listing, p_clean: n });
+  if (error) pBack(token, "error", agentMessage(error.message));
+  revalidatePath(`/partenaire/${token}`);
+  pBack(token, "ok", "Stock de linge propre mis à jour.");
+}
+
+/** Référence du logement : l'IA rédige le guide de ménage à partir des images envoyées par la conciergerie. */
+export async function partnerAnalyzeAction(token: string, listing: string) {
+  if (!isToken(token)) redirect("/nettoyeur");
+  const c = agentClient();
+  const { data, error } = await c.rpc("partner_ref_for_analysis", { p_secret: token, p_listing: listing });
+  if (error) pBack(token, "error", agentMessage(error.message));
+  const d = data as { name: string; photos: Img[] };
+  if (!d.photos.length) pBack(token, "error", "Ajoutez d'abord des photos ou une vidéo du logement propre.");
+  const r = await analyzeReference(d.photos, d.name);
+  if (!r.report) pBack(token, "error", "Le guide n'a pas pu être rédigé pour le moment. ProClean est prévenu ; réessayez plus tard.");
+  const up = await c.rpc("partner_set_guide", { p_secret: token, p_listing: listing, p_guide: r.report });
+  if (up.error) pBack(token, "error", agentMessage(up.error.message));
+  revalidatePath(`/partenaire/${token}`);
+  pBack(token, "ok", "Guide de ménage rédigé : les nettoyeurs le verront et leurs photos seront comparées à votre référence.");
+}
+
+/** Clé d'API : générée ici, affichée une seule fois. Une nouvelle clé remplace l'ancienne. */
+export async function partnerApiKeyAction(token: string) {
+  if (!isToken(token)) redirect("/nettoyeur");
+  const key = `pk_${randomBytes(24).toString("hex")}`;
+  const { error } = await agentClient().rpc("partner_set_api_key", { p_secret: token, p_key_hash: sha(key) });
+  if (error) pBack(token, "error", agentMessage(error.message));
+  cookies().set("partner_key", key, { httpOnly: true, secure: true, sameSite: "strict", path: `/partenaire/${token}`, maxAge: 180 });
+  revalidatePath(`/partenaire/${token}`);
+  pBack(token, "ok", "Clé créée : copiez-la maintenant, elle ne sera plus affichée.");
 }

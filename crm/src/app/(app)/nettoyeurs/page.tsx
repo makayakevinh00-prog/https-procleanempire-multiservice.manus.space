@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Field, Input, Select } from "@/components/ui/form";
 import { Tabs } from "@/components/ui/tabs";
 import { ConfirmAction } from "@/components/crm/confirm-action";
-import { approveCleanerAction, renewCleanerLinkAction, setCleanerStatusAction, toggleFavoriteAction, publishJobAction, publishAllJobsAction, cancelJobAction, validateJobAction, requestRedoAction, saveMarketplaceSettingsAction, createPayoutsAction, markPayoutPaidAction, setDepartureAction, sendControlAction, setLinenStatusAction, acceptBookingAction, refuseBookingAction, createManualJobAction, reanalyzeJobAction, createCourierAction, renewCourierLinkAction, setCourierActiveAction } from "@/app/actions/nettoyeurs";
+import { approveCleanerAction, renewCleanerLinkAction, setCleanerStatusAction, toggleFavoriteAction, publishJobAction, publishAllJobsAction, cancelJobAction, validateJobAction, requestRedoAction, saveMarketplaceSettingsAction, createPayoutsAction, markPayoutPaidAction, setDepartureAction, sendControlAction, setLinenStatusAction, acceptBookingAction, refuseBookingAction, createManualJobAction, reanalyzeJobAction, createCourierAction, renewCourierLinkAction, setCourierActiveAction, setListingLinenAction } from "@/app/actions/nettoyeurs";
 import { JOB_STATUS, LINEN_STEP, dayFr, eur, slot } from "@/lib/cleaner-ui";
 import { aiConfigured } from "@/lib/ai-inspect";
 import { formatDate } from "@/lib/utils";
@@ -27,7 +27,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
   const tab = TABS.includes(searchParams.tab ?? "") ? searchParams.tab! : "carte";
   const sb = createClient();
   const today = parisToday();
-  const [cl, jobs, fav, pay, set, clients, pub, photos, linen, staffRes, bookRes, courRes, runRes] = await Promise.all([
+  const [cl, jobs, fav, pay, set, clients, pub, photos, linen, staffRes, bookRes, courRes, runRes, stockRes] = await Promise.all([
     sb.from("cleaners").select("*").order("created_at", { ascending: false }),
     sb.from("cleaning_jobs").select("*, cleaners!cleaning_jobs_cleaner_id_fkey(full_name), clients(name)").neq("status", "annulee").gte("job_date", addDays(today, -30)).order("job_date"),
     sb.from("cleaner_favorites").select("cleaner_id, client_id, cleaners(full_name), clients(name)"),
@@ -40,8 +40,10 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
     sb.from("staff").select("id, full_name").eq("active", true).order("full_name"),
     sb.from("cleaning_bookings").select("*").order("created_at", { ascending: false }).limit(60),
     sb.from("linen_couriers").select("*").order("created_at"),
-    sb.from("linen_runs").select("*, linen_couriers(full_name), cleaning_jobs(title, city, job_date, status)").gte("due_date", addDays(today, -2)).order("due_date").limit(120)
+    sb.from("linen_runs").select("*, linen_couriers(full_name), cleaning_jobs(title, city, job_date, status)").gte("due_date", addDays(today, -2)).order("due_date").limit(120),
+    sb.from("concierge_listings").select("id, name, linen_clean, linen_dirty, linen_per_stay, clients(name)").order("name")
   ]);
+  const stock = (stockRes.error ? [] : (stockRes.data ?? [])) as any[], lowStock = stock.filter((l) => l.linen_per_stay > 0 && l.linen_clean < l.linen_per_stay);
   const couriers = (courRes.error ? [] : (courRes.data ?? [])) as any[], linenRuns = (runRes.error ? [] : (runRes.data ?? [])) as any[];
   if (cl.error) return (<><PageHeader title="Nettoyeurs" /><Card><Empty>Les nettoyeurs s&apos;installent : réessayez dans une minute.</Empty></Card></>);
   for (const r of [jobs, fav, pay, set, clients, pub]) if (r.error) throw new Error(r.error.message);
@@ -67,7 +69,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
     { href: href("demandes"), label: "Demandes", count: toCheck.length + toPublish.length || null, active: tab === "demandes" },
     { href: href("inscriptions"), label: "Inscriptions", count: pending.length || null, active: tab === "inscriptions" },
     { href: href("nettoyeurs"), label: "Nettoyeurs", count: active.length || null, active: tab === "nettoyeurs" },
-    { href: href("draps"), label: "Linge", count: (linenOpen.length + linenRuns.filter((r) => r.status !== "fait" && r.due_date <= today && r.cleaning_jobs?.status !== "annulee").length) || null, active: tab === "draps" },
+    { href: href("draps"), label: "Linge", count: (lowStock.length + linenOpen.length + linenRuns.filter((r) => r.status !== "fait" && r.due_date <= today && r.cleaning_jobs?.status !== "annulee").length) || null, active: tab === "draps" },
     { href: href("paiements"), label: "Paiements", count: toPay.length || null, active: tab === "paiements" },
     { href: href("reglages"), label: "Réglages", count: null, active: tab === "reglages" }
   ];
@@ -347,6 +349,24 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
                 </li>
               ))}</ul>
             )}
+          </Card>
+          <Card className={`mb-4 ${lowStock.length ? "border-red-300" : ""}`}>
+            <CardHeader><CardTitle>Stock de linge par logement{lowStock.length ? ` · ${lowStock.length} à réapprovisionner` : ""}</CardTitle></CardHeader>
+            {!stock.length ? <Empty>Aucun logement : ajoutez-les dans Conciergerie pour suivre leur linge.</Empty> : (
+              <ul className="divide-y text-sm">{stock.map((l) => (
+                <li key={l.id} className="px-5 py-2.5">
+                  <form action={setListingLinenAction.bind(null, l.id)} className="flex flex-wrap items-end gap-3">
+                    <span className="min-w-0 flex-1"><b className="font-medium">{l.name}</b><span className="block text-xs text-muted-foreground">{l.clients?.name}</span></span>
+                    {l.linen_per_stay > 0 && l.linen_clean < l.linen_per_stay && <Badge tone="red">Pas assez de linge propre</Badge>}
+                    <label className="text-xs text-muted-foreground">Propres<Input name="linen_clean" type="number" min={0} max={200} defaultValue={l.linen_clean} className="mt-0.5 h-9 w-20" /></label>
+                    <label className="text-xs text-muted-foreground">Sales<Input name="linen_dirty" type="number" min={0} max={200} defaultValue={l.linen_dirty} className="mt-0.5 h-9 w-20" /></label>
+                    <label className="text-xs text-muted-foreground">Par séjour<Input name="linen_per_stay" type="number" min={0} max={20} defaultValue={l.linen_per_stay} className="mt-0.5 h-9 w-20" /></label>
+                    <Button size="sm" variant="outline">Enregistrer</Button>
+                  </form>
+                </li>
+              ))}</ul>
+            )}
+            <p className="px-5 pb-4 pt-2 text-xs text-muted-foreground">Le stock bouge tout seul : un ménage terminé retire les parures d&apos;un séjour du propre et les ajoute au sale ; le livreur ajoute ce qu&apos;il dépose et emporte le sale. Corrigez ici si besoin.</p>
           </Card>
           <Card>
             <CardHeader><CardTitle>Lavage des draps ({linenOpen.length} en cours)</CardTitle></CardHeader>

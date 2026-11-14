@@ -401,3 +401,48 @@ export async function setCourierActiveAction(id: string, active: boolean) {
   if (!active) await sb.from("linen_runs").update({ status: "a_faire", courier_id: null, started_at: null }).eq("courier_id", id).eq("status", "en_route");
   done("draps", active ? "Livreur réactivé : renvoyez-lui un lien." : "Livreur désactivé : son lien est coupé et ses tournées en cours sont libérées.");
 }
+
+const ACC = "/conciergerie/acces";
+
+/** Espace conciergerie : crée (ou renouvelle) le lien privé d'un client. Affiché une seule fois, envoyé par e-mail si possible. */
+export async function createPartnerAccessAction(fd: FormData) {
+  await requireOwner();
+  const clientId = str(fd, "client_id");
+  if (!clientId) flash(ACC, "error", "Choisissez le client (la conciergerie ou le propriétaire).");
+  const sb = createClient();
+  const { data: c } = await sb.from("clients").select("name, email, is_reserved").eq("id", clientId!).maybeSingle();
+  if (!c) flash(ACC, "error", "Client introuvable.");
+  const k = c as any;
+  if (k.is_reserved) flash(ACC, "error", `${k.name} est un contact réservé : pas d'accès automatique.`);
+  const token = randomBytes(32).toString("hex");
+  const { error } = await sb.from("partner_access").upsert({ client_id: clientId, active: true, token_hash: sha(token), token_set_at: new Date().toISOString() }, { onConflict: "client_id" });
+  if (error) flash(ACC, "error", dbMessage(error));
+  const url = `${origin()}/partenaire/${token}`;
+  let mailed = false;
+  if (k.email && checked(fd, "send_mail") && mailConfigured()) {
+    const r = await sendMail({ to: k.email, subject: "Votre espace ProClean Empire", text: `Bonjour,\n\nVoici le lien privé de votre espace ProClean :\n${url}\n\nVous y reliez les calendriers de vos logements (Airbnb, Booking, votre logiciel) : les ménages se créent tout seuls à chaque départ. Vous y suivez aussi vos ménages et votre linge.\n\nGardez ce lien pour vous.\n\nProClean Empire` });
+    mailed = r.sent;
+  }
+  cookies().set("partner_link", JSON.stringify({ name: k.name, url, mailed }), { httpOnly: true, secure: true, sameSite: "strict", path: ACC, maxAge: 120 });
+  revalidatePath(ACC);
+  flash(ACC, "ok", mailed ? `Lien envoyé par e-mail à ${k.name}.` : `Lien créé pour ${k.name} : copiez-le ci-dessous et transmettez-le.`);
+}
+
+export async function setPartnerActiveAction(clientId: string, active: boolean) {
+  await requireOwner();
+  const { error } = await createClient().from("partner_access").update(active ? { active: true } : { active: false, token_hash: null, api_key_hash: null }).eq("client_id", clientId);
+  if (error) flash(ACC, "error", dbMessage(error));
+  revalidatePath(ACC);
+  flash(ACC, "ok", active ? "Accès réactivé : créez un nouveau lien." : "Accès coupé : le lien et la clé d'API ne fonctionnent plus.");
+}
+
+/** Stock de linge d'un logement, corrigé à la main. */
+export async function setListingLinenAction(id: string, fd: FormData) {
+  await requireOwner();
+  const n = (k: string, max: number) => { const v = Math.round(Number(fd.get(k))); return v >= 0 && v <= max ? v : null; };
+  const clean = n("linen_clean", 200), dirty = n("linen_dirty", 200), per = n("linen_per_stay", 20);
+  if (clean == null || dirty == null || per == null) flash(to("draps"), "error", "Nombres invalides (parures entre 0 et 200, par séjour entre 0 et 20).");
+  const { error } = await createClient().from("concierge_listings").update({ linen_clean: clean, linen_dirty: dirty, linen_per_stay: per }).eq("id", id);
+  if (error) flash(to("draps"), "error", dbMessage(error));
+  done("draps", "Stock de linge enregistré.");
+}

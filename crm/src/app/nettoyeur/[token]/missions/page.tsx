@@ -40,7 +40,12 @@ export default async function CleanerMissions({ params, searchParams }: { params
               <div className="flex items-center gap-2 text-[15px] font-bold"><Clock className="h-4 w-4 text-[var(--a-pri)]" />{slot(j.window_start, j.window_end)}{j.hours ? ` · environ ${j.hours} h` : ""}<span className="ml-auto num text-[var(--a-ok)]">{eur(j.amount)}</span></div>
               {j.status !== "validee" && j.address && <a className="flex items-start gap-2 rounded-2xl bg-[var(--a-bg)] p-3 text-[15px] font-bold text-[var(--a-pri)]" href={`https://maps.google.com/?q=${encodeURIComponent(`${j.address} ${j.postal_code ?? ""} ${j.city ?? ""}`)}`} target="_blank" rel="noopener noreferrer"><MapPin className="mt-0.5 h-5 w-5 shrink-0" />{j.address}, {j.postal_code} {j.city}</a>}
               {j.status !== "validee" && j.access_notes && <div className="flex items-start gap-2 rounded-2xl bg-[var(--a-warnbg)] p-3 text-[14px] text-[var(--a-warn)]"><KeyRound className="mt-0.5 h-4 w-4 shrink-0" /><span><b>Accès :</b> {j.access_notes}</span></div>}
-              {j.clean_linen && j.status !== "validee" && (
+              {j.clean_linen?.stock && j.status !== "validee" && (
+                <div className={`rounded-2xl p-3 text-[14px] font-bold ${j.clean_linen.stock.clean >= j.clean_linen.stock.per_stay ? "bg-[var(--a-okbg)] text-[var(--a-ok)]" : "bg-[var(--a-badbg)] text-[var(--a-bad)]"}`}>
+                  🧺 Linge propre dans le logement : {j.clean_linen.stock.clean} parure{j.clean_linen.stock.clean > 1 ? "s" : ""}{j.clean_linen.stock.clean < j.clean_linen.stock.per_stay ? ` (il en faut ${j.clean_linen.stock.per_stay} : prévenez la direction s'il n'y a pas de livraison prévue)` : ""}
+                </div>
+              )}
+              {j.clean_linen?.status && j.status !== "validee" && (
                 <div className={`rounded-2xl p-3 text-[14px] font-bold ${j.clean_linen.status === "sur_place" ? "bg-[var(--a-okbg)] text-[var(--a-ok)]" : j.clean_linen.status === "en_route" ? "bg-[var(--a-warnbg)] text-[var(--a-warn)]" : "bg-[var(--a-bg)] text-[var(--a-mute)]"}`}>
                   {j.clean_linen.status === "sur_place" && <>🧺 Linge propre sur place{j.clean_linen.done_at ? ` (déposé à ${new Date(j.clean_linen.done_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" })})` : ""}</>}
                   {j.clean_linen.status === "en_route" && (

@@ -255,6 +255,11 @@ export default async function ConciergeriePage({
         title="Conciergerie"
         subtitle="Vos logements gérés, leurs réservations, les ménages à chaque départ et votre commission : tout est ici, à part du nettoyage."
       />
+      <p className="-mt-2 mb-4 text-sm">
+        <Link href="/conciergerie/acces" className="font-medium text-primary hover:underline">
+          Espaces conciergerie : donner un accès à une conciergerie ou à un propriétaire →
+        </Link>
+      </p>
       <Tabs items={tabs} />
 
       {tab === "apercu" && (
