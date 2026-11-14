@@ -66,6 +66,13 @@ export async function cleanerFinishAction(token: string, jobId: string, fd: Form
   go(token, "/missions", "ok", "Merci ! Votre ménage est envoyé à la direction pour vérification. Attendez ses instructions avant de partir.");
 }
 
+/** Cocher ou décocher une tâche du ménage (sans recharger la page). */
+export async function cleanerTaskAction(token: string, jobId: string, index: number, done: boolean): Promise<{ ok: boolean; error?: string }> {
+  if (!isToken(token)) return { ok: false, error: "Lien invalide." };
+  const { error } = await agentClient().rpc("cleaner_check_task", { p_token: token, p_job: jobId, p_index: index, p_done: done });
+  return error ? { ok: false, error: agentMessage(error.message) } : { ok: true };
+}
+
 /** « Je suis sur place » : pointage d'arrivée. */
 export async function cleanerArriveAction(token: string, jobId: string) {
   guard(token);

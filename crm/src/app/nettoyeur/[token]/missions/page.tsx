@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { MapPin, KeyRound, Clock, ChevronRight } from "lucide-react";
 import { agentClient, agentMessage, isToken, type CleanerJob } from "@/lib/agent";
 import { cleanerArriveAction, cleanerFinishAction, cleanerLinenAction, cleanerReleaseAction } from "@/app/actions/nettoyeur";
-import { CleanerVideoButton } from "@/components/nettoyeur/live";
+import { CleanerVideoButton, TaskList } from "@/components/nettoyeur/live";
 import { CleanerPhotoButton } from "@/components/agent/cleaner-photo";
 import { JOB_STATUS, LINEN_STEP, dayFr, eur, slot } from "@/lib/cleaner-ui";
 import { Gate } from "@/components/agent/gate";
@@ -16,8 +16,10 @@ const TONE: Record<string, string> = { acceptee: "bg-[var(--a-soft)] text-[var(-
 export default async function CleanerMissions({ params, searchParams }: { params: { token: string }; searchParams: { ok?: string; error?: string } }) {
   const token = params.token;
   if (!isToken(token)) return <Gate text="Ce lien n'est pas valide." />;
-  const { data, error } = await agentClient().rpc("cleaner_my_jobs", { p_token: token });
+  const db = agentClient();
+  const [{ data, error }, lists] = await Promise.all([db.rpc("cleaner_my_jobs", { p_token: token }), db.rpc("cleaner_checklists", { p_token: token })]);
   if (error) return <Gate text={agentMessage(error.message)} />;
+  const tasks = (lists.data ?? {}) as Record<string, { label: string; done: boolean }[]>;
   const jobs = (data as { jobs: CleanerJob[]; require_photos: boolean }).jobs, needPhotos = (data as { require_photos: boolean }).require_photos;
   const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Paris" });
   const card = "space-y-3 rounded-3xl bg-[var(--a-card)] p-4";
@@ -89,6 +91,7 @@ export default async function CleanerMissions({ params, searchParams }: { params
                       <ul className="mt-1 list-disc space-y-0.5 pl-5">{j.before_report.items.map((it, i) => <li key={i}><b>{it.zone}</b>{it.todo ? ` : ${it.todo}` : ""}</li>)}</ul>
                     </div>
                   )}
+                  {(tasks[j.id]?.length ?? 0) > 0 && <TaskList token={token} job={j.id} tasks={tasks[j.id]!} />}
                   <CleanerPhotoButton token={token} job={j.id} kind="apres" label="2. Photos après le ménage" count={j.photos_after ?? 0} />
                   <CleanerVideoButton token={token} job={j.id} kind="apres" label="ou filmer les pièces (après)" />
                 </div>
@@ -107,7 +110,7 @@ export default async function CleanerMissions({ params, searchParams }: { params
               )}
               {canFinish && (
                 <form action={cleanerFinishAction.bind(null, token, j.id)} className="space-y-2">
-                  <textarea name="note" rows={2} maxLength={1000} placeholder="Un mot pour la direction (facultatif) : ce qui a été fait, un souci…" className="w-full rounded-xl border border-[var(--a-line)] bg-[var(--a-bg)] p-3 text-base" />
+                  <textarea name="note" rows={2} maxLength={1000} placeholder="Un mot pour la direction : obligatoire s'il reste une tâche non cochée (dites pourquoi)." className="w-full rounded-xl border border-[var(--a-line)] bg-[var(--a-bg)] p-3 text-base" />
                   <button disabled={needPhotos && ((j.photos_before ?? 0) === 0 || (j.photos_after ?? 0) === 0)} className="h-14 w-full rounded-2xl bg-[var(--a-ok)] text-lg font-extrabold text-[var(--a-bg)] active:opacity-90 disabled:opacity-40">3. J&apos;ai terminé le ménage</button>
                   {needPhotos && ((j.photos_before ?? 0) === 0 || (j.photos_after ?? 0) === 0) && <p className="text-center text-xs text-[var(--a-mute)]">Ajoutez au moins une photo avant et une photo après pour terminer.</p>}
                 </form>

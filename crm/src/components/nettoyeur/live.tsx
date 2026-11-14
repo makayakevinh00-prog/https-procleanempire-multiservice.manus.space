@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { cleanerOnlineAction, cleanerPingAction, cleanerPushAction, courierPingAction } from "@/app/actions/nettoyeur";
+import { cleanerOnlineAction, cleanerPingAction, cleanerPushAction, cleanerTaskAction, courierPingAction } from "@/app/actions/nettoyeur";
 
 const KEY = "pc_cleaner_link", SKIP = "pc_cleaner_skip";
 
@@ -240,4 +240,33 @@ export function CourierLive({ token, active }: { token: string; active: boolean 
   }, [active, token]);
   if (!active) return null;
   return <span className={`inline-flex items-center gap-1.5 text-xs font-bold ${state === "refus" ? "text-[var(--a-bad)]" : "text-[var(--a-ok)]"}`}><span className="h-2 w-2 animate-pulse rounded-full bg-current" />{state === "refus" ? "Position refusée" : "Position partagée"}</span>;
+}
+
+/** Tâches du ménage à cocher. La case répond tout de suite ; si l'enregistrement échoue, elle revient en arrière avec un message. */
+export function TaskList({ token, job, tasks }: { token: string; job: string; tasks: { label: string; done: boolean }[] }) {
+  const [items, setItems] = useState(tasks);
+  const [msg, setMsg] = useState("");
+  const left = items.filter((t) => !t.done).length;
+  const toggle = async (i: number) => {
+    const next = !items[i]!.done;
+    setItems((l) => l.map((t, k) => (k === i ? { ...t, done: next } : t))); setMsg("");
+    const r = await cleanerTaskAction(token, job, i, next);
+    if (!r.ok) { setItems((l) => l.map((t, k) => (k === i ? { ...t, done: !next } : t))); setMsg(r.error ?? "Non enregistré, réessayez."); }
+  };
+  return (
+    <div className="rounded-2xl bg-[var(--a-bg)] p-3">
+      <div className="mb-2 flex items-center justify-between"><b className="text-[15px]">Tâches</b><span className={`rounded-full px-2.5 py-0.5 text-xs font-extrabold ${left ? "bg-[var(--a-soft)] text-[var(--a-pri)]" : "bg-[var(--a-okbg)] text-[var(--a-ok)]"}`}>{left ? `${items.length - left}/${items.length}` : "Tout est fait ✔"}</span></div>
+      <ul className="space-y-1.5">
+        {items.map((t, i) => (
+          <li key={i}>
+            <button type="button" role="checkbox" aria-checked={t.done} onClick={() => toggle(i)} className="flex w-full items-start gap-3 rounded-xl p-2 text-left active:bg-[var(--a-card)]">
+              <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border-2 text-[16px] font-extrabold ${t.done ? "border-[var(--a-ok)] bg-[var(--a-ok)] text-[var(--a-bg)]" : "border-[var(--a-line)]"}`}>{t.done ? "✓" : ""}</span>
+              <span className={`text-[15px] ${t.done ? "text-[var(--a-mute)] line-through" : "font-semibold"}`}>{t.label}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      {msg && <p role="alert" className="mt-1 text-sm font-semibold text-[var(--a-bad)]">{msg}</p>}
+    </div>
+  );
 }
