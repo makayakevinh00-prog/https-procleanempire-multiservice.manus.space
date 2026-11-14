@@ -12,6 +12,12 @@ export function Remember({ token, base = "nettoyeur" }: { token: string; base?: 
   return null;
 }
 
+/** À la déconnexion : oublie le lien mémorisé sur ce téléphone. */
+export function ForgetLocal() {
+  useEffect(() => { try { localStorage.removeItem(KEY); } catch { /* ignoré */ } }, []);
+  return null;
+}
+
 /** Page d'accueil de l'application : redirige vers le compte mémorisé, sinon affiche son contenu. */
 export function Resume({ reset, children }: { reset?: boolean; children: React.ReactNode }) {
   const [ready, setReady] = useState(false);

@@ -38,6 +38,7 @@ export default async function CleanerProfile({ params, searchParams }: { params:
         <label className="block"><span className="mb-1 block text-[14px] font-bold">IBAN pour vos virements</span><input name="iban" autoComplete="off" className={input} placeholder={o.has_iban ? `Enregistré (${o.iban_hint}) : saisissez pour le remplacer` : "FR76 …"} /><span className="text-xs text-[var(--a-mute)]">Il n&apos;est jamais affiché en entier, ni à vous ni aux propriétaires.</span></label>
         <button className="h-14 w-full rounded-2xl bg-[var(--a-pri)] text-lg font-extrabold text-white">Enregistrer</button>
       </form>
+      <a href="/connexion?choisir=1" className="mt-4 flex h-12 items-center justify-center rounded-2xl border border-[var(--a-line)] text-[15px] font-extrabold text-[var(--a-mute)]">Changer d&apos;espace ou me déconnecter</a>
       <section className="mt-4 rounded-3xl bg-[var(--a-card)] p-4 text-[14px] text-[var(--a-mute)]">
         <b className="block text-[16px] text-[var(--a-ink)]">Comment ça marche</b>
         <ul className="mt-2 list-disc space-y-1 pl-5">

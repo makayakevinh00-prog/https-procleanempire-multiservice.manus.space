@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes, randomInt } from "node:crypto";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { agentClient, agentMessage, isToken } from "@/lib/agent";
@@ -296,4 +296,64 @@ export async function partnerApiKeyAction(token: string) {
   cookies().set("partner_key", key, { httpOnly: true, secure: true, sameSite: "strict", path: `/partenaire/${token}`, maxAge: 180 });
   revalidatePath(`/partenaire/${token}`);
   pBack(token, "ok", "Clé créée : copiez-la maintenant, elle ne sera plus affichée.", "api");
+}
+
+// ───────────── Connexion unique (e-mail + code) ─────────────
+const LOGIN = "/connexion";
+type Space = { kind: "nettoyeur" | "agent" | "linge" | "partenaire" | "gestion"; label: string; path: string };
+const codeHash = (email: string, code: string) => sha(`${email}:${code}`);
+const validMail = (e: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e);
+
+/** Étape 1 : l'adresse e-mail. Un code à 6 chiffres part par e-mail si l'adresse a au moins un espace. La réponse est la même dans tous les cas. */
+export async function loginStartAction(fd: FormData) {
+  if (String(fd.get("website") ?? "") !== "") redirect(LOGIN);
+  const email = String(fd.get("email") ?? "").trim().toLowerCase();
+  if (!validMail(email)) redirect(`${LOGIN}?error=${encodeURIComponent("Indiquez une adresse e-mail valide.")}`);
+  const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
+  let sent = "aucun";
+  try {
+    const { data } = await automationClient().rpc("automation_login_start", { p_secret: automationSecret(), p_email: email, p_code_hash: codeHash(email, code) });
+    sent = String(data ?? "aucun");
+  } catch { /* même réponse */ }
+  if (sent === "envoye" && mailConfigured()) {
+    await sendMail({ to: email, subject: `${code} — votre code ProClean`, text: `Votre code de connexion ProClean : ${code}\n\nIl est valable 10 minutes. Si vous n'avez pas demandé ce code, ignorez ce message.\n\nProClean Empire` }).catch(() => undefined);
+  }
+  cookies().set("pc_login_email", email, { httpOnly: true, secure: true, sameSite: "lax", path: LOGIN, maxAge: 900 });
+  redirect(`${LOGIN}?etape=code${sent === "trop" ? `&error=${encodeURIComponent("Trop de demandes : réessayez dans une heure, ou utilisez le dernier code reçu.")}` : ""}`);
+}
+
+/** Étape 2 : le code. S'il est bon, cet appareil reçoit un jeton pour chacun des espaces de la personne. */
+export async function loginVerifyAction(fd: FormData) {
+  const email = cookies().get("pc_login_email")?.value ?? "";
+  const code = String(fd.get("code") ?? "").replace(/\D/g, "");
+  if (!validMail(email)) redirect(LOGIN);
+  if (code.length !== 6) redirect(`${LOGIN}?etape=code&error=${encodeURIComponent("Le code comporte 6 chiffres.")}`);
+  const a = automationClient(), secret = automationSecret();
+  const { data } = await a.rpc("automation_login_verify", { p_secret: secret, p_email: email, p_code_hash: codeHash(email, code) });
+  const roles = (data ?? null) as { kind: Space["kind"]; id: string | null; label: string }[] | null;
+  if (!roles || !roles.length) redirect(`${LOGIN}?etape=code&error=${encodeURIComponent("Code incorrect ou expiré. Vérifiez-le, ou demandez-en un nouveau.")}`);
+  const spaces: Space[] = [];
+  for (const r of roles!.slice(0, 8)) {
+    if (r.kind === "gestion") { spaces.push({ kind: "gestion", label: r.label, path: "/" }); continue; }
+    const token = randomBytes(32).toString("hex");
+    const { error } = await a.rpc("automation_issue_token", { p_secret: secret, p_kind: r.kind, p_subject: r.id, p_token_hash: sha(token) });
+    if (!error) spaces.push({ kind: r.kind, label: r.label, path: `/${r.kind}/${token}` });
+  }
+  const jar = cookies();
+  jar.delete({ name: "pc_login_email", path: LOGIN });
+  jar.set("pc_spaces", JSON.stringify({ email, spaces }), { httpOnly: true, secure: true, sameSite: "lax", path: LOGIN, maxAge: 60 * 86400 });
+  redirect(LOGIN);
+}
+
+/** Déconnexion de cet appareil : ses jetons cessent de fonctionner. */
+export async function logoutAction() {
+  const jar = cookies();
+  try {
+    const v = JSON.parse(jar.get("pc_spaces")?.value ?? "null") as { spaces?: Space[] } | null;
+    const hashes = (v?.spaces ?? []).map((s) => /^\/[a-z]+\/([0-9a-f]{64})$/.exec(s.path)?.[1]).filter((t): t is string => !!t).map(sha);
+    if (hashes.length) await automationClient().rpc("automation_revoke_tokens", { p_secret: automationSecret(), p_hashes: hashes });
+  } catch { /* on déconnecte quand même */ }
+  jar.delete({ name: "pc_spaces", path: LOGIN });
+  jar.delete({ name: "pc_login_email", path: LOGIN });
+  redirect(`${LOGIN}?bye=1`);
 }

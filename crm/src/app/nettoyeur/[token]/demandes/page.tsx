@@ -20,7 +20,7 @@ export default async function CleanerRequests({ params, searchParams }: { params
   if (!isToken(token)) return <Gate text="Ce lien n'est pas valide." />;
   const c = agentClient();
   const [ov, jobsRes, zonesRes] = await Promise.all([c.rpc("cleaner_overview", { p_token: token }), c.rpc("cleaner_open_jobs", { p_token: token }), c.rpc("cleaner_zones", { p_token: token })]);
-  if (ov.error) return <Gate text={agentMessage(ov.error.message)} back={{ href: "/nettoyeur?reset=1", label: "Retrouver mon accès" }} />;
+  if (ov.error) return <Gate text={agentMessage(ov.error.message)} back={{ href: "/connexion", label: "Me connecter" }} />;
   if (jobsRes.error) return <Gate text={agentMessage(jobsRes.error.message)} />;
   const o = ov.data as CleanerOverview, jobs = (jobsRes.data as { jobs: CleanerJob[] }).jobs, zones = (zonesRes.data ?? []) as Zone[];
   const days = [...new Set(jobs.map((j) => j.date))];

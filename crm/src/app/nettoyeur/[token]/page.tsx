@@ -17,10 +17,10 @@ const TONE: Record<string, string> = { acceptee: "border-[var(--a-pri)] bg-[var(
 /** Aujourd'hui : même page que l'application des agents (frise de la journée), avec en plus le bouton En ligne, les gains et les nouvelles demandes. */
 export default async function CleanerToday({ params, searchParams }: { params: { token: string }; searchParams: { ok?: string; error?: string } }) {
   const token = params.token;
-  if (!isToken(token)) return <Gate text="Ce lien n'est pas valide. Retrouvez votre accès avec votre e-mail." back={{ href: "/nettoyeur/inscription#lien", label: "Retrouver mon accès" }} />;
+  if (!isToken(token)) return <Gate text="Ce lien n'est pas valide. Retrouvez votre accès avec votre e-mail." back={{ href: "/connexion", label: "Me connecter" }} />;
   const c = agentClient();
   const [ov, openRes, mineRes, pushRes] = await Promise.all([c.rpc("cleaner_overview", { p_token: token }), c.rpc("cleaner_open_jobs", { p_token: token }), c.rpc("cleaner_my_jobs", { p_token: token }), c.rpc("cleaner_push_status", { p_token: token })]);
-  if (ov.error) return <Gate text={agentMessage(ov.error.message)} back={{ href: "/nettoyeur?reset=1", label: "Retrouver mon accès" }} />;
+  if (ov.error) return <Gate text={agentMessage(ov.error.message)} back={{ href: "/connexion", label: "Me connecter" }} />;
   const o = ov.data as CleanerOverview;
   const open = ((openRes.data as { jobs: CleanerJob[] } | null)?.jobs ?? []);
   const mine = ((mineRes.data as { jobs: CleanerJob[] } | null)?.jobs ?? []);

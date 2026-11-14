@@ -218,6 +218,7 @@ Le ménage du jour du départ est créé, déplacé ou annulé.`}</pre>
           </details>
         </div>
       )}
+      <a href="/connexion?choisir=1" className="mt-6 block text-center text-[14px] font-bold text-[var(--a-mute)]">Changer d&apos;espace ou me déconnecter</a>
       <p className="px-2 pt-6 text-center text-xs text-[var(--a-mute)]">Ce lien est privé : il donne accès à vos logements et à vos consignes d&apos;accès. Ne le partagez pas.</p>
     </>
   );

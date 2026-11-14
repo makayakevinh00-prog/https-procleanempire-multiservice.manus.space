@@ -23,7 +23,7 @@ export default function CleanerHome({ searchParams }: { searchParams: { reset?: 
             <li>💶 Vous voyez ce que vous gagnez avant d&apos;accepter</li>
           </ul>
           <Link href="/nettoyeur/inscription" className="mt-7 flex h-14 items-center justify-center rounded-2xl bg-[var(--a-pri)] text-lg font-extrabold text-white">Créer mon compte</Link>
-          <Link href="/nettoyeur/inscription#lien" className="mt-3 flex h-12 items-center justify-center rounded-2xl border border-[var(--a-pri)] text-base font-extrabold text-[var(--a-pri)]">J&apos;ai déjà un compte</Link>
+          <Link href="/connexion" className="mt-3 flex h-12 items-center justify-center rounded-2xl border border-[var(--a-pri)] text-base font-extrabold text-[var(--a-pri)]">J&apos;ai déjà un compte : me connecter</Link>
         </Resume>
       </main>
     </div>

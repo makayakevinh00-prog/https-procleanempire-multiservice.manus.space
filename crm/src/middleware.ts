@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { pathAllowed, sanitizePerms } from "@/lib/team";
 
 // Les routes cron s'authentifient elles-mêmes (CRON_SECRET) ; tout le reste exige une session.
-const PUBLIC = ["/login", "/acces-refuse", "/api/cron/", "/api/qonto/sync", "/api/inbound/", "/agent/", "/api/agent/", "/suivi/", "/api/public/", "/api/calendrier/", "/api/mcp", "/.well-known/", "/register", "/authorize", "/token", "/compta/activer", "/invitation", "/nettoyeur/", "/api/nettoyeur/", "/reserver", "/linge/", "/partenaire/", "/api/partenaire/"];
+const PUBLIC = ["/login", "/acces-refuse", "/api/cron/", "/api/qonto/sync", "/api/inbound/", "/agent/", "/api/agent/", "/suivi/", "/api/public/", "/api/calendrier/", "/api/mcp", "/.well-known/", "/register", "/authorize", "/token", "/compta/activer", "/invitation", "/nettoyeur/", "/api/nettoyeur/", "/reserver", "/linge/", "/partenaire/", "/api/partenaire/", "/connexion"];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });

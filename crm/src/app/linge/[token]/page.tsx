@@ -67,6 +67,7 @@ export default async function CourierPage({ params, searchParams }: { params: { 
           </div>
         </section>
       ))}
+      <a href="/connexion?choisir=1" className="mt-6 block text-center text-[14px] font-bold text-[var(--a-mute)]">Changer d&apos;espace ou me déconnecter</a>
     </>
   );
 }
