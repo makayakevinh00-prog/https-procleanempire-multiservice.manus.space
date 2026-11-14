@@ -22,6 +22,7 @@ const GROUPS: Group[] = [
     { href: "/devis", label: "Devis", icon: FileText },
     { href: "/contrats", label: "Contrats", icon: Repeat },
     { href: "/activites", label: "Activités", icon: PieChart },
+    { href: "/veille/territoire", label: "Territoire", icon: MapPin },
     { href: "/veille", label: "Veille concurrentielle", icon: Radar },
     { href: "/croissance", label: "Croissance", icon: TrendingUp }
   ] },

@@ -281,6 +281,9 @@ export default async function GrowthPage() {
         title="Croissance"
         subtitle="Les caps à franchir et où vous en êtes, d'après vos vrais chiffres."
       />
+      <Link href="/veille/territoire" className="mb-4 block rounded-xl border bg-white p-4 text-sm hover:bg-secondary">
+        <b>Territoire commercial</b> — la carte des entreprises à prospecter zone par zone (95, puis 93, 94, 75), ce qui est déjà signé, et quand ouvrir la zone suivante. →
+      </Link>
       <div className="grid gap-4 lg:grid-cols-2">
         {cards.map((c) => {
           const v = verdict(c.criteria);

@@ -1,6 +1,7 @@
 "use server";
 
 import { lookupCompany } from "@/lib/enrich";
+import { SECTORS, SIZES, fetchPage, isSector, targetsOf, type TargetRow } from "@/lib/territoire";
 import { requireAccess } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
@@ -302,4 +303,107 @@ export async function askCompetitorResearchAction(id: string) {
   });
   if (error) flash(`${BACK}/${id}`, "error", dbMessage(error));
   done(`${BACK}/${id}`, "Recherche demandée à l'assistant : il remplira prix, labels et points forts dès qu'il traite sa liste.");
+}
+
+// ───────────── Territoire commercial ─────────────
+const TER = "/veille/territoire";
+const terBack = (zone: string, kind: "ok" | "error", msg: string): never => { revalidatePath(TER); return flash(`${TER}?zone=${zone}`, kind, msg); };
+const zoneCode = (v: unknown) => (typeof v === "string" && /^(\d{2,3}|2[AB])$/.test(v) ? v : null);
+
+/**
+ * Charge depuis l'annuaire officiel les établissements d'une zone pour un secteur et une taille d'entreprise.
+ * L'annuaire se lit par pages de 25 : chaque clic en lit jusqu'à 30 (750 entreprises) puis s'arrête ; « Charger la suite » reprend où il en était.
+ */
+export async function loadTerritoryAction(fd: FormData) {
+  await requireAccess("veille");
+  const zone = zoneCode(fd.get("zone")), sector = fd.get("sector"), size = String(fd.get("size") ?? "10");
+  if (!zone) flash(TER, "error", "Zone inconnue.");
+  if (!isSector(sector) || !(size in SIZES)) terBack(zone!, "error", "Choisissez un secteur et une taille d'entreprise.");
+  const sb = createClient(), sec = sector as keyof typeof SECTORS, codes = SIZES[size]!.codes;
+  let pages = 0, added = 0, done_ = true, err: string | null = null;
+  for (const section of SECTORS[sec].sections) {
+    const key = `${sec}:${section}:${size}`;
+    const { data: st } = await sb.from("territory_loads").select("next_page, total_pages").eq("dept", zone!).eq("sector", key).maybeSingle();
+    let page = Number((st as any)?.next_page ?? 1), total = (st as any)?.total_pages as number | null ?? null, results = 0;
+    while (pages < 30 && (total == null || page <= total)) {
+      const r = await fetchPage(zone!, section, codes, page);
+      if ("error" in r) { err = r.error; break; }
+      total = r.totalPages; results = r.total; pages++;
+      const rows = r.rows.flatMap((x) => targetsOf(x, zone!, sec));
+      // Une entreprise peut revenir sur deux pages : un seul enregistrement par établissement.
+      const uniq = [...new Map(rows.map((t: TargetRow) => [t.siret, t])).values()];
+      if (uniq.length) {
+        const up = await sb.from("territory_targets").upsert(uniq.map((t) => ({ ...t, updated_at: new Date().toISOString() })), { onConflict: "siret", ignoreDuplicates: false });
+        if (up.error) { err = dbMessage(up.error); break; }
+        added += uniq.length;
+      }
+      page++;
+      if (!r.rows.length) { total = page - 1; break; }
+    }
+    await sb.from("territory_loads").upsert({ dept: zone!, sector: key, next_page: page, total_pages: total, total_results: results || null, updated_at: new Date().toISOString() }, { onConflict: "dept,sector" });
+    if (err) { done_ = false; break; }
+    if (total == null || page <= total) { done_ = false; if (pages >= 30) break; }
+  }
+  if (err && !added) terBack(zone!, "error", err);
+  terBack(zone!, "ok", `${added} établissement${added > 1 ? "s" : ""} chargé${added > 1 ? "s" : ""} (${SECTORS[sec].label}).${done_ ? " Ce secteur est complet." : " Il en reste : cliquez de nouveau sur « Charger » pour la suite."}${err ? ` Arrêt : ${err}` : ""}`);
+}
+
+/** Écarter un établissement de la prospection (ou le remettre) : il ne compte plus dans le pourcentage. */
+export async function excludeTargetAction(zone: string, siret: string, excluded: boolean) {
+  await requireAccess("veille");
+  const z = zoneCode(zone) ?? "95";
+  const { error } = await createClient().from("territory_targets").update({ excluded, updated_at: new Date().toISOString() }).eq("siret", siret);
+  if (error) terBack(z, "error", dbMessage(error));
+  terBack(z, "ok", excluded ? "Établissement écarté : il ne compte plus dans la zone." : "Établissement remis dans la zone.");
+}
+
+/** Passer un établissement en prospect : sa fiche client est créée (étape « à contacter ») ; il devient orange sur la carte, puis vert quand il est client. */
+export async function targetToProspectAction(zone: string, siret: string) {
+  await requireAccess("veille");
+  const z = zoneCode(zone) ?? "95", sb = createClient();
+  const { data: t } = await sb.from("territory_targets").select("*").eq("siret", siret).maybeSingle();
+  if (!t) terBack(z, "error", "Établissement introuvable.");
+  const k = t as any;
+  const { data: ex } = await sb.from("clients").select("id").eq("siren", k.siren).limit(1).maybeSingle();
+  if (ex) terBack(z, "ok", "Cette entreprise a déjà une fiche dans vos clients et prospects.");
+  const row = { name: k.name, kind: "entreprise", status: "prospect", pipeline: "a_contacter", siren: k.siren, siret: k.siret, naf_code: k.naf_code, address: k.address, postal_code: k.postal_code, city: k.city, source: "territoire" };
+  let ins = await sb.from("clients").insert(row).select("id").single();
+  if (ins.error?.code === "23505") ins = await sb.from("clients").insert({ ...row, name: `${k.name} (${k.city ?? k.postal_code ?? k.siret})` }).select("id").single();   // un autre client porte déjà ce nom
+  if (ins.error) terBack(z, "error", dbMessage(ins.error));
+  revalidatePath("/clients");
+  terBack(z, "ok", `${k.name} est maintenant un prospect « à contacter ». Retrouvez-le dans Clients.`);
+}
+
+/** Objectifs d'une zone : part d'établissements à signer, chiffre mensuel récurrent et nombre de clients fidèles avant d'ouvrir la suivante. */
+export async function saveZoneAction(code: string, fd: FormData) {
+  await requireAccess("veille");
+  const z = zoneCode(code);
+  if (!z) flash(TER, "error", "Zone inconnue.");
+  const pct = numField(fd, "target_pct"), mrr = numField(fd, "min_mrr"), loyal = numField(fd, "min_loyal");
+  if (pct == null || pct < 1 || pct > 100 || mrr == null || mrr < 0 || loyal == null || loyal < 0) terBack(z!, "error", "Objectifs invalides : part entre 1 et 100 %, montants positifs.");
+  const { error } = await createClient().from("territory_zones").update({ target_pct: pct, min_mrr: mrr, min_loyal: Math.round(loyal!) }).eq("code", z!);
+  if (error) terBack(z!, "error", dbMessage(error));
+  terBack(z!, "ok", "Objectifs de la zone enregistrés.");
+}
+
+/** Ouvrir une zone à la prospection (ou la refermer). */
+export async function setZoneStatusAction(code: string, status: "active" | "verrouillee" | "terminee") {
+  await requireAccess("veille");
+  const z = zoneCode(code);
+  if (!z || !["active", "verrouillee", "terminee"].includes(status)) flash(TER, "error", "Zone inconnue.");
+  const { error } = await createClient().from("territory_zones").update({ status, ...(status === "active" ? { opened_at: new Date().toISOString() } : {}) }).eq("code", z!);
+  if (error) terBack(z!, "error", dbMessage(error));
+  terBack(z!, "ok", status === "active" ? "Zone ouverte : chargez ses établissements pour commencer." : status === "terminee" ? "Zone marquée comme acquise." : "Zone refermée.");
+}
+
+/** Ajouter un département à la liste des zones. */
+export async function addZoneAction(fd: FormData) {
+  await requireAccess("veille");
+  const z = zoneCode(str(fd, "code")), label = str(fd, "label");
+  if (!z || !label) flash(TER, "error", "Indiquez le numéro du département et son nom.");
+  const sb = createClient();
+  const { data: last } = await sb.from("territory_zones").select("rank").order("rank", { ascending: false }).limit(1).maybeSingle();
+  const { error } = await sb.from("territory_zones").insert({ code: z!, label: label!.slice(0, 80), rank: Number((last as any)?.rank ?? 0) + 1 });
+  if (error) flash(TER, "error", error.code === "23505" ? "Cette zone existe déjà." : dbMessage(error));
+  terBack(z!, "ok", "Zone ajoutée à la suite des autres.");
 }
