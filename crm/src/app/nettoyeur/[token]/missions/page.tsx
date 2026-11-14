@@ -75,7 +75,7 @@ export default async function CleanerMissions({ params, searchParams }: { params
               )}
               {j.status === "acceptee" && j.arrived_at && <p className="rounded-2xl bg-[var(--a-okbg)] p-2 text-center text-[13px] font-bold text-[var(--a-ok)]">Arrivée pointée ✔</p>}
               {j.status === "a_verifier" && <p className="rounded-2xl bg-[var(--a-warnbg)] p-3 text-center text-[14px] font-bold text-[var(--a-warn)]">Envoyé pour vérification. Vous serez payé après validation.</p>}
-              {j.status === "validee" && <p className="rounded-2xl bg-[var(--a-okbg)] p-3 text-center text-[14px] font-bold text-[var(--a-ok)]">{j.validated_by === "ia" ? "Validé automatiquement (contrôle des photos)" : "Validé"} : {eur(j.amount)} à venir sur votre prochain virement.</p>}
+              {j.status === "validee" && <p className="rounded-2xl bg-[var(--a-okbg)] p-3 text-center text-[14px] font-bold text-[var(--a-ok)]">{j.validated_by === "ia" ? "Validé automatiquement (contrôle des photos)" : j.validated_by === "regles" ? "Validé automatiquement" : "Validé"} : {eur(j.amount)} à venir sur votre prochain virement.</p>}
               {j.departure && j.status !== "validee" && (
                 <div role="status" className={`rounded-2xl p-3 text-center text-[15px] font-extrabold ${j.departure === "partir" ? "bg-[var(--a-okbg)] text-[var(--a-ok)]" : "bg-[var(--a-badbg)] text-[var(--a-bad)]"}`}>
                   {j.departure === "partir" ? "La direction vous autorise à partir. Merci !" : "Restez sur place : la direction vous demande de reprendre."}

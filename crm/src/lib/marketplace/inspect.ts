@@ -2,7 +2,7 @@ import "server-only";
 import { automationClient, automationSecret } from "@/lib/automation/deps";
 import { aiConfigured, analyzeAfter, analyzeBefore, type BeforeReport, type Guide, type Img } from "@/lib/ai-inspect";
 
-export type AfterOutcome = { status: "validee" | "a_reprendre" | "a_verifier"; verdict: "ok" | "reprise" | "indisponible"; summary: string };
+export type AfterOutcome = { status: "validee" | "a_reprendre" | "a_verifier"; verdict: "ok" | "reprise" | "indisponible"; summary: string; by: "ia" | "regles" | null; reason: string | null };
 
 /** Relevé « avant » : ce qu'il y a à nettoyer, d'après les photos du nettoyeur. Renvoie la raison si l'IA n'a pas pu analyser. */
 export async function runBeforeAnalysis(jobId: string): Promise<string | null> {
@@ -27,7 +27,15 @@ export async function runAfterAnalysis(jobId: string): Promise<AfterOutcome> {
     else summary = `Analyse automatique impossible : ${r.error ?? "raison inconnue"}.`;
   }
   await a.rpc("automation_set_job_analysis", { p_secret: secret, p_job: jobId, p_kind: "apres", p_report: report ?? { summary }, p_verdict: verdict });
+  // Sans avis de l'IA : validation par règles (pointage, tâches, photos, durée, confiance, contrôle au hasard).
+  let reason: string | null = null, byRules = false;
+  if (verdict === "indisponible") {
+    const r = await a.rpc("automation_rules_validate", { p_secret: secret, p_job: jobId });
+    const d = (r.data ?? {}) as { validated?: boolean; reason?: string | null };
+    byRules = d.validated === true; reason = d.reason ?? null;
+  }
   const after = await a.rpc("automation_job_context", { p_secret: secret, p_job: jobId });
   const st = (after.data as { status?: string } | null)?.status;
-  return { status: st === "validee" || st === "a_reprendre" ? st : "a_verifier", verdict, summary };
+  const status = st === "validee" || st === "a_reprendre" ? st : "a_verifier";
+  return { status, verdict, summary, by: status === "validee" ? (byRules ? "regles" : "ia") : null, reason };
 }

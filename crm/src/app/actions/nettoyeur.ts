@@ -43,11 +43,11 @@ export async function cleanerReleaseAction(token: string, jobId: string) {
 
 /** Après l'envoi : contrôle automatique des photos. Selon le verdict et le réglage : validé tout de suite, à reprendre, ou envoyé à la direction. Ne bloque jamais le nettoyeur. */
 async function afterFinish(jobId: string, name: string): Promise<"validee" | "a_reprendre" | "a_verifier"> {
-  let o: AfterOutcome = { status: "a_verifier", verdict: "indisponible", summary: "Analyse automatique impossible : erreur du serveur." };
+  let o: AfterOutcome = { status: "a_verifier", verdict: "indisponible", summary: "Analyse automatique impossible : erreur du serveur.", by: null, reason: null };
   try { o = await runAfterAnalysis(jobId); } catch { /* le contrôle automatique est un plus */ }
   if (mailConfigured()) {
     const to = process.env.MAIL_ADMIN ?? "contact@procleanempire.com";
-    const head = o.status === "validee" ? "Validé automatiquement : le contrôle par l'IA ne relève rien, le nettoyeur est autorisé à partir." : o.verdict === "reprise" ? "Reprise demandée automatiquement : des points restent à nettoyer." : o.verdict === "ok" ? "Le contrôle automatique ne relève rien : à vous de valider." : "Contrôle automatique indisponible : à vous de vérifier.";
+    const head = o.by === "regles" ? "Validé automatiquement par les règles (pointage, tâches, photos, durée, nettoyeur de confiance) : le nettoyeur est autorisé à partir. Les photos n'ont pas été analysées par l'IA." : o.status === "validee" ? "Validé automatiquement : le contrôle par l'IA ne relève rien, le nettoyeur est autorisé à partir." : o.verdict === "reprise" ? "Reprise demandée automatiquement : des points restent à nettoyer." : o.verdict === "ok" ? "Le contrôle automatique ne relève rien : à vous de valider." : `À vous de vérifier${o.reason ? ` : ${o.reason}` : ""}.`;
     await sendMail({ to, subject: o.status === "validee" ? "Ménage validé automatiquement" : o.verdict === "reprise" ? "Ménage à reprendre — contrôle automatique" : "Ménage terminé à vérifier", text: `${name} a terminé un ménage.\n\n${head}\n${o.summary}\n\n${o.status === "validee" ? "Photos et détail" : "À vérifier"} dans le CRM : Nettoyeurs › Demandes.` }).catch(() => undefined);
   }
   return o.status;
@@ -61,7 +61,7 @@ export async function cleanerFinishAction(token: string, jobId: string, fd: Form
   const { data: ov } = await c.rpc("cleaner_overview", { p_token: token });
   const status = await afterFinish(jobId, String((ov as any)?.name ?? "Un nettoyeur"));
   revalidatePath(base(token), "layout");
-  if (status === "validee") go(token, "/missions", "ok", "Ménage validé ✔ Le contrôle des photos est bon : vous pouvez partir. Il entre dans vos gains.");
+  if (status === "validee") go(token, "/missions", "ok", "Ménage validé ✔ Vous pouvez partir. Il entre dans vos gains.");
   if (status === "a_reprendre") go(token, "/missions", "error", "Le contrôle des photos relève des points à reprendre : regardez la liste, reprenez, refaites une photo de chaque zone, puis terminez à nouveau.");
   go(token, "/missions", "ok", "Merci ! Votre ménage est envoyé à la direction pour vérification. Attendez ses instructions avant de partir.");
 }

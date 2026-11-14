@@ -206,6 +206,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
                 return (
                 <li key={j.id} className="space-y-3 px-5 py-3">
                   <div><b className="font-medium">{j.title}</b> · {j.cleaners?.full_name} · {dayFr(j.job_date)} · {eur(j.cleaner_amount)} pour le nettoyeur</div>
+                  {j.check_note && <p className="rounded-md bg-blue-50 p-2 text-xs text-blue-900"><b>Pourquoi vous le voyez :</b> {j.check_note}.</p>}
                   {j.cleaner_note && <p className="rounded-md bg-muted p-2 text-xs">Mot du nettoyeur : {j.cleaner_note}</p>}
                   {Array.isArray(j.checklist) && j.checklist.length > 0 && (() => { const miss = (j.checklist as any[]).filter((t) => !t.done); return (
                     <p className={`rounded-md p-2 text-xs ${miss.length ? "bg-amber-50 text-amber-900" : "bg-emerald-50 text-emerald-900"}`}><b>Tâches : {j.checklist.length - miss.length}/{j.checklist.length} cochées.</b>{miss.length ? ` Non cochées : ${miss.map((t) => t.label).join(" ; ")}` : ""}</p>); })()}
@@ -252,7 +253,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
             {!J.filter((j) => j.status !== "a_verifier").length ? <Empty>Aucune demande publiée.</Empty> : (
               <ul className="divide-y text-sm">{J.filter((j) => j.status !== "a_verifier").map((j) => (
                 <li key={j.id} className="flex flex-wrap items-center gap-3 px-5 py-2.5">
-                  <span className="min-w-0 flex-1"><b className="font-medium">{j.title}</b><span className="block text-xs text-muted-foreground">{dayFr(j.job_date)} · {slot(j.window_start, j.window_end)} · {j.clients?.name} · {j.city} · {eur(j.price_ht)} HT{j.cleaners?.full_name ? ` · ${j.cleaners.full_name}` : ""}{j.validated_by === "ia" ? " · validé par l'IA" : ""}{j.arrived_at && j.status === "acceptee" ? " · sur place" : ""}{j.review_note ? ` · à reprendre : ${j.review_note}` : ""}</span></span>
+                  <span className="min-w-0 flex-1"><b className="font-medium">{j.title}</b><span className="block text-xs text-muted-foreground">{dayFr(j.job_date)} · {slot(j.window_start, j.window_end)} · {j.clients?.name} · {j.city} · {eur(j.price_ht)} HT{j.cleaners?.full_name ? ` · ${j.cleaners.full_name}` : ""}{j.validated_by === "ia" ? " · validé par l'IA" : j.validated_by === "regles" ? " · validé par les règles" : ""}{j.arrived_at && j.status === "acceptee" ? " · sur place" : ""}{j.review_note ? ` · à reprendre : ${j.review_note}` : ""}</span></span>
                   <Badge tone={j.status === "ouverte" ? "blue" : j.status === "validee" ? "green" : j.status === "a_reprendre" ? "red" : "orange"}>{JOB_STATUS[j.status]}</Badge>
                   {["ouverte", "acceptee", "a_reprendre"].includes(j.status) && <ConfirmAction action={cancelJobAction.bind(null, j.id)} label="Retirer" size="sm" variant="ghost" title="Retirer ce ménage ?" description="Le ménage n'est plus proposé et le nettoyeur éventuel est prévenu en ne le voyant plus." confirmLabel="Retirer" />}
                 </li>
@@ -433,6 +434,15 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
               <Field label="2 pièces (€ HT)"><Input name="price_t2" inputMode="decimal" defaultValue={S.price_t2} /></Field>
               <Field label="3 pièces (€ HT)"><Input name="price_t3" inputMode="decimal" defaultValue={S.price_t3} /></Field>
               <Field label="Maison (€ HT)" className="sm:col-span-3"><Input name="price_maison" inputMode="decimal" defaultValue={S.price_maison} /></Field>
+              <div className="space-y-3 rounded-lg border p-4 sm:col-span-3">
+                <label className="flex items-start gap-2 text-sm"><input type="checkbox" name="rules_validate" defaultChecked={S.rules_validate} className="mt-1" /><span><b className="font-medium">Valider automatiquement par règles, sans IA</b> quand l&apos;analyse des photos est indisponible : le nettoyeur a pointé, coché toutes les tâches, envoyé assez de photos, est resté assez longtemps, et il a fait ses preuves. Sinon le ménage vous arrive avec la raison.</span></label>
+                <div className="grid gap-3 sm:grid-cols-4">
+                  <Field label="Photos minimum (avant et après)"><Input name="rules_min_photos" type="number" min={1} max={20} defaultValue={S.rules_min_photos ?? 2} /></Field>
+                  <Field label="Minutes minimum sur place"><Input name="rules_min_minutes" type="number" min={0} max={600} defaultValue={S.rules_min_minutes ?? 30} /></Field>
+                  <Field label="Période d'essai (ménages validés par vous)"><Input name="trust_jobs" type="number" min={0} max={100} defaultValue={S.trust_jobs ?? 3} /></Field>
+                  <Field label="Contrôle au hasard : 1 ménage sur… (0 = jamais)"><Input name="spot_check_every" type="number" min={0} max={100} defaultValue={S.spot_check_every ?? 5} /></Field>
+                </div>
+              </div>
               <label className="block text-sm sm:col-span-3"><b className="font-medium">Tâches à cocher par le nettoyeur</b> (une par ligne). Utilisées quand le logement n&apos;a pas de guide ; sinon ce sont les étapes du guide.<textarea name="default_checklist" rows={7} defaultValue={((S.default_checklist ?? []) as string[]).join("\n")} className="mt-1 w-full rounded-md border p-3 text-sm" /></label>
               <label className="flex items-start gap-2 text-sm sm:col-span-3"><input type="checkbox" name="auto_validate" defaultChecked={S.auto_validate} className="mt-1" /><span><b className="font-medium">Valider automatiquement</b> un ménage quand le contrôle des photos par l&apos;IA ne relève rien (et qu&apos;elle en est sûre) : le nettoyeur peut partir tout de suite. Décoché : vous validez chaque ménage vous-même. Dans tous les cas, l&apos;IA demande les reprises et vous voyez les cas douteux.</span></label>
               <label className="flex items-start gap-2 text-sm sm:col-span-3"><input type="checkbox" name="auto_publish" defaultChecked={S.auto_publish} className="mt-1" /><span><b className="font-medium">Publier automatiquement</b> chaque ménage Airbnb / Booking dès la réservation (calendriers lus à l&apos;ouverture de l&apos;application nettoyeur, au plus toutes les 30 min, et chaque jour à 18 h) : il faut un prix et une adresse sur le logement.</span></label>
