@@ -11,6 +11,8 @@ import { sendMail, mailConfigured } from "@/lib/mail";
 import { pctsValid } from "@/lib/cleaner-ui";
 import { geocode } from "@/lib/zone";
 import { dispatchTick } from "@/lib/marketplace/notify";
+import { runAfterAnalysis, runBeforeAnalysis } from "@/lib/marketplace/inspect";
+import { analyzeReference, type Img } from "@/lib/ai-inspect";
 
 const BACK = "/nettoyeurs";
 const to = (tab: string) => `${BACK}?tab=${tab}`;
@@ -296,4 +298,64 @@ export async function createManualJobAction(fd: FormData) {
   if (error) flash(to("direct"), "error", dbMessage(error));
   await dispatchTick({ force: true }).catch(() => undefined);
   done("direct", "Ménage publié : il est proposé en priorité aux nettoyeurs en ligne les mieux placés.");
+}
+
+/** Relancer le contrôle par l'IA d'un ménage en attente (par exemple après une analyse indisponible). Le résultat, ou la raison de l'échec, s'affiche. */
+export async function reanalyzeJobAction(id: string) {
+  await requireOwner();
+  const { data: j } = await createClient().from("cleaning_jobs").select("status").eq("id", id).maybeSingle();
+  if (!j || (j as any).status !== "a_verifier") flash(to("demandes"), "error", "Ce ménage n'est pas en attente de vérification.");
+  let msg = "";
+  try {
+    const before = await runBeforeAnalysis(id);
+    const o = await runAfterAnalysis(id);
+    msg = o.status === "validee" ? "Analyse faite : rien à signaler, ménage validé automatiquement." : o.status === "a_reprendre" ? `Analyse faite : reprise demandée au nettoyeur. ${o.summary}` : o.verdict === "ok" ? `Analyse faite : rien à signaler. ${o.summary} À vous de valider.` : `${o.summary}${before ? ` (relevé avant : ${before})` : ""}`;
+    if (o.verdict === "indisponible") { revalidatePath(BACK); flash(to("demandes"), "error", msg); }
+  } catch (e) { flash(to("demandes"), "error", `Analyse impossible : ${(e as Error).message}`); }
+  done("demandes", msg);
+}
+
+const REF = (id: string) => `/conciergerie/reference/${id}`;
+
+/** Référence d'un logement : l'IA regarde les photos du logement propre et rédige le guide de ménage. */
+export async function analyzeListingAction(id: string) {
+  await requireOwner();
+  const sb = createClient();
+  const { data: l } = await sb.from("concierge_listings").select("name").eq("id", id).maybeSingle();
+  if (!l) flash("/conciergerie", "error", "Logement introuvable.");
+  const { data: photos, error } = await sb.rpc("listing_ref_photos_b64", { p_listing: id });
+  if (error) flash(REF(id), "error", dbMessage(error));
+  if (!((photos ?? []) as Img[]).length) flash(REF(id), "error", "Ajoutez d'abord des photos ou une vidéo du logement propre.");
+  const r = await analyzeReference((photos ?? []) as Img[], String((l as any).name));
+  if (!r.report) flash(REF(id), "error", `Analyse impossible : ${r.error ?? "raison inconnue"}.`);
+  const up = await sb.from("concierge_listings").update({ ref_guide: r.report, ref_at: new Date().toISOString() }).eq("id", id);
+  if (up.error) flash(REF(id), "error", dbMessage(up.error));
+  revalidatePath(REF(id));
+  flash(REF(id), "ok", "Guide de ménage rédigé : les nettoyeurs le verront, et le contrôle comparera leurs photos à cette référence.");
+}
+
+export async function clearListingReferenceAction(id: string) {
+  await requireOwner();
+  const sb = createClient();
+  await sb.from("listing_ref_photos").delete().eq("listing_id", id);
+  await sb.from("concierge_listings").update({ ref_guide: null, ref_at: null }).eq("id", id);
+  revalidatePath(REF(id));
+  flash(REF(id), "ok", "Référence effacée : vous pouvez en refaire une.");
+}
+
+/** Corriger le guide à la main (une étape par ligne, « Pièce : étape »). */
+export async function saveListingGuideAction(id: string, fd: FormData) {
+  await requireOwner();
+  const rooms = new Map<string, string[]>();
+  for (const line of String(fd.get("guide") ?? "").split("\n")) {
+    const m = /^\s*([^:]{1,60}):\s*(.{1,160})$/.exec(line);
+    if (m) rooms.set(m[1]!.trim(), [...(rooms.get(m[1]!.trim()) ?? []), m[2]!.trim()].slice(0, 10));
+  }
+  if (!rooms.size) flash(REF(id), "error", "Écrivez une étape par ligne, sous la forme « Cuisine : dégraisser la plaque ».");
+  const attention = String(fd.get("attention") ?? "").split("\n").map((x) => x.trim().slice(0, 160)).filter(Boolean).slice(0, 8);
+  const guide = { summary: (str(fd, "summary") ?? "").slice(0, 300), rooms: [...rooms].slice(0, 12).map(([room, steps]) => ({ room, steps })), attention };
+  const { error } = await createClient().from("concierge_listings").update({ ref_guide: guide, ref_at: new Date().toISOString() }).eq("id", id);
+  if (error) flash(REF(id), "error", dbMessage(error));
+  revalidatePath(REF(id));
+  flash(REF(id), "ok", "Guide enregistré.");
 }

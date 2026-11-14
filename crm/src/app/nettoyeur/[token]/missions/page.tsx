@@ -40,6 +40,14 @@ export default async function CleanerMissions({ params, searchParams }: { params
               <div className="flex items-center gap-2 text-[15px] font-bold"><Clock className="h-4 w-4 text-[var(--a-pri)]" />{slot(j.window_start, j.window_end)}{j.hours ? ` · environ ${j.hours} h` : ""}<span className="ml-auto num text-[var(--a-ok)]">{eur(j.amount)}</span></div>
               {j.status !== "validee" && j.address && <a className="flex items-start gap-2 rounded-2xl bg-[var(--a-bg)] p-3 text-[15px] font-bold text-[var(--a-pri)]" href={`https://maps.google.com/?q=${encodeURIComponent(`${j.address} ${j.postal_code ?? ""} ${j.city ?? ""}`)}`} target="_blank" rel="noopener noreferrer"><MapPin className="mt-0.5 h-5 w-5 shrink-0" />{j.address}, {j.postal_code} {j.city}</a>}
               {j.status !== "validee" && j.access_notes && <div className="flex items-start gap-2 rounded-2xl bg-[var(--a-warnbg)] p-3 text-[14px] text-[var(--a-warn)]"><KeyRound className="mt-0.5 h-4 w-4 shrink-0" /><span><b>Accès :</b> {j.access_notes}</span></div>}
+              {j.guide && j.status !== "validee" && (
+                <details className="rounded-2xl bg-[var(--a-bg)] p-3 text-[14px]" open={j.status === "acceptee" && !!j.arrived_at && (j.photos_after ?? 0) === 0}>
+                  <summary className="cursor-pointer text-[15px] font-extrabold text-[var(--a-pri)]">Comment nettoyer ce logement</summary>
+                  {j.guide.summary && <p className="mt-1 text-[var(--a-mute)]">{j.guide.summary}</p>}
+                  {j.guide.rooms.map((r) => <div key={r.room} className="mt-2"><b>{r.room}</b><ul className="mt-0.5 list-disc space-y-0.5 pl-5">{r.steps.map((x, i) => <li key={i}>{x}</li>)}</ul></div>)}
+                  {j.guide.attention.length > 0 && <div className="mt-2 rounded-xl bg-[var(--a-warnbg)] p-2 text-[var(--a-warn)]"><b>Attention</b><ul className="mt-0.5 list-disc pl-5">{j.guide.attention.map((x, i) => <li key={i}>{x}</li>)}</ul></div>}
+                </details>
+              )}
               {j.status === "a_reprendre" && j.review_note && <div className="rounded-2xl bg-[var(--a-badbg)] p-3 text-[14px] text-[var(--a-bad)]"><b>{j.ai_status === "reprise" ? "À reprendre" : "La direction demande de repasser"} :</b> {j.review_note}</div>}
               {j.status === "acceptee" && j.date === today && !j.arrived_at && (
                 <form action={cleanerArriveAction.bind(null, token, j.id)}><button className="h-14 w-full rounded-2xl bg-[var(--a-pri)] text-lg font-extrabold text-white active:opacity-90">📍 Je suis sur place</button><p className="mt-1 text-center text-xs text-[var(--a-mute)]">Pointez en arrivant : sans pointage à l&apos;heure, le ménage est proposé à un autre nettoyeur.</p></form>

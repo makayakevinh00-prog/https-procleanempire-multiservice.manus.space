@@ -487,7 +487,13 @@ export default async function ConciergeriePage({
                     <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-4 gap-y-1">
                       <div className="min-w-0 flex-1">
                         <div className="font-semibold text-foreground">
-                          {l.name}
+                          {l.name}{" "}
+                          <Link
+                            href={`/conciergerie/reference/${l.id}`}
+                            className="ml-2 text-xs font-medium text-primary hover:underline"
+                          >
+                            {l.ref_guide ? "Référence IA ✔" : "Ajouter la référence IA"}
+                          </Link>
                         </div>
                         <div className="text-sm text-muted-foreground">
                           {l.clients?.name} ·{" "}

@@ -53,7 +53,7 @@ export type CleanerOverview = {
 export type CleanerJob = {
   id: string; title: string; date: string; window_start: string; window_end: string; hours: number | null; city: string | null; postal_code: string | null;
   amount: number; distance_km?: number | null; favorite?: boolean; priority_until?: string | null; address?: string | null; access_notes?: string | null; status?: string; cleaner_note?: string | null; review_note?: string | null;
-  departure?: "rester" | "partir" | null; arrived_at?: string | null; validated_by?: "ia" | "direction" | null; rank?: number | null; photos_before?: number; photos_after?: number;
+  departure?: "rester" | "partir" | null; arrived_at?: string | null; guide?: { summary: string; rooms: { room: string; steps: string[] }[]; attention: string[] } | null; validated_by?: "ia" | "direction" | null; rank?: number | null; photos_before?: number; photos_after?: number;
   before_report?: { items: { zone: string; todo: string }[]; level: number | null; summary: string } | null;
   ai_status?: "ok" | "reprise" | "indisponible" | null; ai_report?: { summary?: string; cleaned?: string[]; remaining?: { zone: string; why: string }[] } | null;
   linen?: { status: string; method: string | null; tracking: string | null } | null;

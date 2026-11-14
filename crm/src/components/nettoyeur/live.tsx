@@ -166,7 +166,7 @@ export function GpsButton() {
 }
 
 /** Réduit une image (1280 px, JPEG) avant envoi. */
-const toJpeg = (src: CanvasImageSource, w: number, h: number) => new Promise<Blob>((ok, ko) => {
+export const toJpeg = (src: CanvasImageSource, w: number, h: number) => new Promise<Blob>((ok, ko) => {
   const scale = Math.min(1, 1280 / Math.max(w, h)), c = document.createElement("canvas");
   c.width = Math.round(w * scale); c.height = Math.round(h * scale);
   c.getContext("2d")!.drawImage(src, 0, 0, c.width, c.height);
@@ -174,7 +174,7 @@ const toJpeg = (src: CanvasImageSource, w: number, h: number) => new Promise<Blo
 });
 
 /** Tire `n` images réparties sur toute la durée d'une vidéo (dans le téléphone : la vidéo elle-même n'est jamais envoyée). */
-async function videoFrames(file: File, n: number, onStep: (i: number) => void): Promise<Blob[]> {
+export async function videoFrames(file: File, n: number, onStep: (i: number) => void): Promise<Blob[]> {
   const url = URL.createObjectURL(file), v = document.createElement("video");
   v.muted = true; v.playsInline = true; v.preload = "auto"; v.src = url;
   try {

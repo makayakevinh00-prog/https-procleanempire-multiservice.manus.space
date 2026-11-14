@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { agentClient, agentMessage, isToken } from "@/lib/agent";
-import { automationClient, automationSecret } from "@/lib/automation/deps";
-import { aiConfigured, analyzeBefore, type Img } from "@/lib/ai-inspect";
+import { runBeforeAnalysis } from "@/lib/marketplace/inspect";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -21,13 +20,8 @@ export async function POST(req: Request) {
   if (error) return NextResponse.json({ error: agentMessage(error.message) }, { status: /ACCES_REFUSE/.test(error.message) ? 403 : 422 });
 
   let analysed = false;
-  if (kind === "avant" && aiConfigured() && fd?.get("defer") !== "1") {
-    try {
-      const a = automationClient(), secret = automationSecret();
-      const { data } = await a.rpc("automation_job_photos", { p_secret: secret, p_job: job, p_kind: "avant" });
-      const rep = await analyzeBefore((data ?? []) as Img[]);
-      if (rep) { await a.rpc("automation_set_job_analysis", { p_secret: secret, p_job: job, p_kind: "avant", p_report: rep, p_verdict: null }); analysed = true; }
-    } catch { /* l'analyse ne doit jamais empêcher l'envoi de la photo */ }
+  if (kind === "avant" && fd?.get("defer") !== "1") {
+    try { analysed = (await runBeforeAnalysis(job)) === null; } catch { /* l'analyse ne doit jamais empêcher l'envoi de la photo */ }
   }
   return NextResponse.json({ ok: true, analysed });
 }

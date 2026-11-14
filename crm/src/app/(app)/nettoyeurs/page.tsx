@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Field, Input, Select } from "@/components/ui/form";
 import { Tabs } from "@/components/ui/tabs";
 import { ConfirmAction } from "@/components/crm/confirm-action";
-import { approveCleanerAction, renewCleanerLinkAction, setCleanerStatusAction, toggleFavoriteAction, publishJobAction, publishAllJobsAction, cancelJobAction, validateJobAction, requestRedoAction, saveMarketplaceSettingsAction, createPayoutsAction, markPayoutPaidAction, setDepartureAction, sendControlAction, setLinenStatusAction, acceptBookingAction, refuseBookingAction, createManualJobAction } from "@/app/actions/nettoyeurs";
+import { approveCleanerAction, renewCleanerLinkAction, setCleanerStatusAction, toggleFavoriteAction, publishJobAction, publishAllJobsAction, cancelJobAction, validateJobAction, requestRedoAction, saveMarketplaceSettingsAction, createPayoutsAction, markPayoutPaidAction, setDepartureAction, sendControlAction, setLinenStatusAction, acceptBookingAction, refuseBookingAction, createManualJobAction, reanalyzeJobAction } from "@/app/actions/nettoyeurs";
 import { JOB_STATUS, LINEN_STEP, dayFr, eur, slot } from "@/lib/cleaner-ui";
 import { aiConfigured } from "@/lib/ai-inspect";
 import { formatDate } from "@/lib/utils";
@@ -211,6 +211,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
                   {ph.length > 0 && <div className="flex flex-wrap gap-2">{ph.map((p) => <a key={p.id} href={`/api/nettoyeurs/photo/${p.id}`} target="_blank" rel="noreferrer" className="block"><img src={`/api/nettoyeurs/photo/${p.id}`} alt={`Photo ${p.kind === "avant" ? "avant" : "après"}`} className="h-20 w-20 rounded-lg border object-cover" /><span className="block text-center text-[10px] text-muted-foreground">{p.kind === "avant" ? "avant" : "après"}</span></a>)}</div>}
                   <div className="flex flex-wrap items-start gap-3">
                     <form action={validateJobAction.bind(null, j.id)}><Button size="sm">Valider (le nettoyeur peut partir)</Button></form>
+                    <form action={reanalyzeJobAction.bind(null, j.id)}><Button size="sm" variant="outline">{j.ai_status === "indisponible" || !j.ai_status ? "Lancer l'analyse par l'IA" : "Relancer l'analyse par l'IA"}</Button></form>
                     <form action={requestRedoAction.bind(null, j.id)} className="flex flex-wrap gap-2"><Input name="note" placeholder="Ce qu'il faut reprendre…" className="h-9 w-64" /><Button size="sm" variant="outline">Demander de repasser</Button></form>
                   </div>
                   <div className="flex flex-wrap items-center gap-3 border-t pt-2">
@@ -222,6 +223,20 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
                   </div>
                 </li>
               );})}</ul>
+            </Card>
+          )}
+          {J.some((j) => j.status === "a_reprendre" && j.ai_status === "reprise") && (
+            <Card className="mb-4 border-red-300">
+              <CardHeader><CardTitle>Défauts détectés par l&apos;IA : reprise en cours ({J.filter((j) => j.status === "a_reprendre" && j.ai_status === "reprise").length})</CardTitle></CardHeader>
+              <ul className="divide-y text-sm">{J.filter((j) => j.status === "a_reprendre" && j.ai_status === "reprise").map((j) => { const rep = j.ai_report as any, ph = photoRows.filter((p) => p.job_id === j.id); return (
+                <li key={j.id} className="space-y-2 px-5 py-3">
+                  <div><b className="font-medium">{j.title}</b> · {j.cleaners?.full_name} · {dayFr(j.job_date)}</div>
+                  <div className="rounded-md bg-red-50 p-3 text-xs text-red-900">{rep?.summary}{Array.isArray(rep?.remaining) && rep.remaining.length > 0 && <ul className="mt-1 list-disc pl-4">{rep.remaining.map((r: any, i: number) => <li key={i}><b>{r.zone}</b> {r.why}</li>)}</ul>}</div>
+                  {ph.length > 0 && <div className="flex flex-wrap gap-2">{ph.slice(-8).map((p) => <a key={p.id} href={`/api/nettoyeurs/photo/${p.id}`} target="_blank" rel="noreferrer"><img src={`/api/nettoyeurs/photo/${p.id}`} alt={`Photo ${p.kind}`} className="h-16 w-16 rounded-lg border object-cover" /></a>)}</div>}
+                  {j.control_intervention_id ? <span className="text-xs text-muted-foreground">Contrôle sur place demandé à un agent.</span> : (
+                    <form action={sendControlAction.bind(null, j.id)} className="flex flex-wrap items-center gap-2"><Select name="staff_id" required defaultValue="" className="h-9 w-48"><option value="" disabled>Agent à envoyer…</option>{staffList.map((x) => <option key={x.id} value={x.id}>{x.full_name}</option>)}</Select><Button size="sm" variant="outline">Envoyer quelqu&apos;un vérifier sur place</Button></form>
+                  )}
+                </li>); })}</ul>
             </Card>
           )}
           <Card>

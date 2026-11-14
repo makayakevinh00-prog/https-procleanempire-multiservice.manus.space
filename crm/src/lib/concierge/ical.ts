@@ -92,6 +92,7 @@ const HOSTS = [
   /(^|\.)hospitable\.com$/,
   /(^|\.)beds24\.com$/,
   /(^|\.)guesty\.com$/,
+  /(^|\.)superhote\.com$/,
 ];
 
 /** Un lien calendrier sûr à télécharger depuis le serveur : https, sans identifiants, sans port ni adresse IP, hôte reconnu. */

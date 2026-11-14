@@ -26,8 +26,8 @@ beforeAll(async () => {
     grant usage on schema public to authenticated, anon; alter default privileges in schema public grant all on tables to authenticated, anon; alter default privileges in schema public grant execute on functions to authenticated, anon;`);
   for (const f of readdirSync(path.join(root, "supabase/migrations")).filter((x) => x.endsWith(".sql") && !x.endsWith("_down.sql") && x <= "0038_conciergerie.sql").sort()) await db.exec(read(`supabase/migrations/${f}`));
   await db.exec(read("supabase/seed.sql"));
-  for (const f of ["0044_nettoyeurs.sql", "0045_nettoyeurs_suite.sql", "0046_reservations.sql", "0047_nettoyeurs_uber.sql", "0048_nettoyeurs_en_ligne.sql", "0049_vapid.sql", "0050_automatismes.sql"]) await db.exec(read(`supabase/migrations/${f}`));
-  await db.exec(read("supabase/migrations/0050_automatismes.sql")); // rejouable
+  for (const f of ["0044_nettoyeurs.sql", "0045_nettoyeurs_suite.sql", "0046_reservations.sql", "0047_nettoyeurs_uber.sql", "0048_nettoyeurs_en_ligne.sql", "0049_vapid.sql", "0050_nettoyeurs_automatismes.sql"]) await db.exec(read(`supabase/migrations/${f}`));
+  await db.exec(read("supabase/migrations/0050_nettoyeurs_automatismes.sql")); // rejouable
   await q("update app_settings set automation_secret = $1", [SECRET]);
   client = (await q("insert into clients(name, postal_code, city, address) values ('Propriétaire','95300','Pontoise','1 rue A') returning id"))[0].id;
   const mk = async (n: string, e: string, t: string) => (await q("insert into cleaners(full_name, email, siret, departments, status, token_hash, online) values ($1,$2,'12345678900011','{95}','actif',$3,true) returning id", [n, e, hash(t)]))[0].id as string;
