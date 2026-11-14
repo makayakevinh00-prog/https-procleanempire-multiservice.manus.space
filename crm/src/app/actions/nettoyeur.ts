@@ -340,9 +340,12 @@ export async function loginVerifyAction(fd: FormData) {
     if (!error) spaces.push({ kind: r.kind, label: r.label, path: `/${r.kind}/${token}` });
   }
   const jar = cookies();
+  // L'appareil garde les espaces déjà mémorisés : une autre adresse en ajoute, elle ne remplace pas.
+  let kept: Space[] = [];
+  try { const v = JSON.parse(jar.get("pc_spaces")?.value ?? "null") as { spaces?: Space[] } | null; kept = (v?.spaces ?? []).filter((k) => !spaces.some((n) => n.kind === k.kind && n.label === k.label)); } catch { kept = []; }
   jar.delete({ name: "pc_login_email", path: LOGIN });
-  jar.set("pc_spaces", JSON.stringify({ email, spaces }), { httpOnly: true, secure: true, sameSite: "lax", path: LOGIN, maxAge: 60 * 86400 });
-  redirect(LOGIN);
+  jar.set("pc_spaces", JSON.stringify({ email, spaces: [...spaces, ...kept].slice(0, 12) }), { httpOnly: true, secure: true, sameSite: "lax", path: LOGIN, maxAge: 60 * 86400 });
+  redirect(spaces.length === 1 && spaces[0]!.kind !== "gestion" && !kept.length ? spaces[0]!.path : `${LOGIN}?choisir=1`);
 }
 
 /** Déconnexion de cet appareil : ses jetons cessent de fonctionner. */

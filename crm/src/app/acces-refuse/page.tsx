@@ -9,7 +9,7 @@ export default function AccessDenied() {
   async function signOut() {
     "use server";
     await createClient().auth.signOut();
-    redirect("/login");
+    redirect("/connexion?choisir=1");   // retour à la connexion : espaces mémorisés, ou une autre adresse
   }
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#0f172a] p-6">

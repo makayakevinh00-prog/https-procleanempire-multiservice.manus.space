@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 async function signOut() {
   "use server";
   await createClient().auth.signOut();
-  redirect("/login");
+  redirect("/connexion?choisir=1");   // retour à la connexion : espaces mémorisés, ou une autre adresse
 }
 
 /** Coquille minimale de l'espace comptable : aucun menu du CRM, seulement la comptabilité. L'activation (/compta/activer) a sa propre page. */

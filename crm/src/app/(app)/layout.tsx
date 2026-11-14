@@ -11,7 +11,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   async function signOut() {
     "use server";
     await createClient().auth.signOut();
-    redirect("/login");
+    redirect("/connexion?choisir=1");   // retour à la connexion : espaces mémorisés, ou une autre adresse
   }
   // Porte d'entrée : tout autre compte que celui du patron n'obtient aucune page ni aucun chiffre (la base refuse déjà ses lectures).
   const access = await getAccess();

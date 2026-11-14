@@ -32,7 +32,7 @@ export default function LoginPage({ searchParams }: { searchParams: { error?: st
             <Field label="Mot de passe"><Input name="password" type="password" required autoComplete="current-password" /></Field>
             <Button className="w-full">Se connecter</Button>
           </form>
-          <p className="text-center text-xs text-slate-500">Nettoyeur, agent, livreur ou conciergerie ? <a href="/connexion" className="font-medium text-slate-900 underline">Connexion par code</a></p>
+          <p className="text-center text-xs text-slate-500">Nettoyeur, agent, livreur ou conciergerie ? <a href="/connexion?autre=1" className="font-medium text-slate-900 underline">Connexion par code</a></p>
         </CardContent>
       </Card>
     </main>
