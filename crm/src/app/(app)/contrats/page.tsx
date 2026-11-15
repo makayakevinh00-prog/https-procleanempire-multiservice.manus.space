@@ -57,7 +57,12 @@ export default async function ContractsPage({ searchParams }: { searchParams: { 
       {incompleteCount > 0 && !searchParams.filtre && (
         <div className="mb-4 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          <span><b>{incompleteCount} contrat(s) actif(s) incomplet(s)</b> : sans jours de passage ou durée, ils ne peuvent pas alimenter le planning automatique ni le suivi des heures. Cliquez sur l&apos;alerte d&apos;un contrat pour le compléter.</span>
+          <div>
+            <b>{incompleteCount} contrat(s) actif(s) à compléter</b> : sans jours de passage ou durée, ils ne peuvent pas alimenter le planning automatique ni le suivi des heures. Cliquez sur un contrat pour le compléter :
+            <ul className="mt-2 space-y-1">{rows.filter((r) => r.incomplete).map(({ k, issues }) => (
+              <li key={k.id}><Link href={`/contrats/${k.id}`} className="font-semibold underline">{k.clients?.name ?? "Client"} — {k.label}</Link> <span className="text-amber-800">· il manque : {[...issues.blocking, ...issues.warnings].slice(0, 3).join(", ")}</span></li>
+            ))}</ul>
+          </div>
         </div>
       )}
       <Card>

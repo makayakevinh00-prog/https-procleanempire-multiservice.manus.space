@@ -36,7 +36,8 @@ export default async function InvoicesPage({ searchParams }: { searchParams: { s
 
   const toSend = (i: any) => i.billing_month && !i.sent_at && ["envoye", "en_retard"].includes(i.status);
   const filters: Record<string, (i: any) => boolean> = {
-    a_valider: (i) => i.status === "brouillon", a_envoyer: toSend, envoye: (i) => i.status === "envoye", en_retard: (i) => i.status === "en_retard", paye: (i) => i.status === "paye", annule: (i) => i.status === "annule"
+    a_valider: (i) => i.status === "brouillon", a_envoyer: toSend, envoye: (i) => i.status === "envoye", en_retard: (i) => i.status === "en_retard", paye: (i) => i.status === "paye", annule: (i) => i.status === "annule",
+    ce_mois: (i) => i.status !== "brouillon" && i.status !== "annule" && !!i.issue_date?.startsWith(new Date().toISOString().slice(0, 7))
   };
   const current = searchParams.statut && filters[searchParams.statut] ? searchParams.statut : "";
   const data = current ? rows.filter(filters[current]) : rows;
@@ -55,6 +56,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams: { s
     { href: "/factures?statut=a_envoyer", label: "À envoyer", count: count("a_envoyer"), active: current === "a_envoyer" },
     { href: "/factures?statut=envoye", label: "Émises", count: count("envoye"), active: current === "envoye" },
     { href: "/factures?statut=en_retard", label: "En retard", count: count("en_retard"), active: current === "en_retard" },
+    { href: "/factures?statut=ce_mois", label: "Facturées ce mois", count: count("ce_mois"), active: current === "ce_mois" },
     { href: "/factures?statut=paye", label: "Payées", count: count("paye"), active: current === "paye" },
     { href: "/factures?statut=annule", label: "Annulées", count: count("annule"), active: current === "annule" }
   ];
@@ -68,7 +70,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams: { s
         <Stat label="À encaisser (TTC)" value={formatEUR(outstanding)} sub={`${open.length} facture(s) ouverte(s)`} tone="orange" icon={Wallet} href="/factures?statut=envoye" />
         <Stat label="En retard" value={late.length} sub={late.length ? formatEUR(late.reduce((a, i) => a + n(i.total_ttc) - n(i.paid_amount), 0)) : "rien en retard"} tone={late.length ? "red" : "green"} icon={AlertTriangle} href="/factures?statut=en_retard" />
         <Stat label="Brouillons à valider" value={drafts.length} sub={formatEUR(drafts.reduce((a, i) => a + n(i.total_ht), 0)) + " HT"} tone="violet" icon={FilePen} href="/factures?statut=a_valider" />
-        <Stat label="Facturé ce mois (HT)" value={formatEUR(billedMonth)} tone="green" icon={Send} />
+        <Stat label="Facturé ce mois (HT)" value={formatEUR(billedMonth)} sub={`${count("ce_mois")} facture(s) : voir la liste`} tone="green" icon={Send} href="/factures?statut=ce_mois" />
       </div>
 
       <ActivityTabs current={famSel} counts={famCounts} href={(k) => { const p = new URLSearchParams(); if (k) p.set("famille", k); if (searchParams.statut) p.set("statut", searchParams.statut); const q = p.toString(); return `/factures${q ? `?${q}` : ""}`; }} />

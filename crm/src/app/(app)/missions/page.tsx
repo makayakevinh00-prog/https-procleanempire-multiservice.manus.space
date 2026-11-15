@@ -106,37 +106,42 @@ export default async function MissionsPage({ searchParams }: { searchParams: { q
       <MissionsTabs active="missions" counts={{ verifier: rows.filter((r) => ["terminee", "a_verifier"].includes(r.stage) && !r.invoice_id).length, anomalies: openIssues ?? 0 }} />
       <ActivityTabs pole="nettoyage" current={famSel} counts={famCounts} href={(k) => params({ famille: k || undefined })} />
 
-      <div className="mb-4 flex flex-wrap gap-2">
-        {VIEWS.map(([v, l]) => (
-          <Link key={v} href={params({ vue: v, date: v === "jour" ? today : anchor })}
-            className={`rounded-full border px-3 py-1.5 text-sm font-medium ${view === v ? "border-foreground bg-foreground text-background" : "bg-card hover:bg-muted"}`}>{l}</Link>
-        ))}
+      {/* Une seule ligne : la période et la façon de la regarder. */}
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-1 rounded-lg border bg-card shadow-sm">
+          <Link href={params({ date: prev })} className="p-2 hover:bg-muted" aria-label="Période précédente"><ChevronLeft className="h-4 w-4" /></Link>
+          <span className="min-w-40 text-center text-sm font-semibold capitalize">{label}</span>
+          <Link href={params({ date: next })} className="p-2 hover:bg-muted" aria-label="Période suivante"><ChevronRight className="h-4 w-4" /></Link>
+        </div>
+        {anchor !== today && <Link href={params({ date: today })} className="text-sm text-primary hover:underline">Revenir à aujourd&apos;hui</Link>}
+        <div className="ml-auto flex overflow-hidden rounded-lg border bg-card text-sm font-medium shadow-sm" aria-label="Affichage">
+          {VIEWS.filter(([v]) => !["agent", "site", "statut"].includes(v)).map(([v, l]) => (
+            <Link key={v} href={params({ vue: v, date: v === "jour" ? today : anchor })} aria-current={view === v ? "true" : undefined}
+              className={`px-3 py-2 ${view === v ? "bg-foreground text-background" : "hover:bg-muted"}`}>{l}</Link>
+          ))}
+        </div>
       </div>
 
-      <div className="mb-3 flex flex-wrap items-center gap-2" aria-label="Filtrer par agent">
-        <span className="text-[13px] font-medium text-muted-foreground">Agent :</span>
-        {[{ id: "", label: "Tous" }, ...(staff ?? []).map((x: any) => ({ id: x.id as string, label: String(x.full_name).split(" ")[0] })), { id: "aucun", label: "Sans intervenant" }].map((a) => {
+      {/* Les agents en un geste ; le reste des filtres est replié. */}
+      <div className="mb-4 flex flex-wrap items-center gap-2" aria-label="Filtrer par agent">
+        {[{ id: "", label: "Tous les agents" }, ...(staff ?? []).map((x: any) => ({ id: x.id as string, label: String(x.full_name).split(" ")[0] })), { id: "aucun", label: "Sans intervenant" }].map((a) => {
           const on = (searchParams.agent ?? "") === a.id;
           return <Link key={a.id || "tous"} href={params({ agent: a.id || undefined })} aria-current={on ? "true" : undefined}
             className={`rounded-full border px-3 py-1 text-sm font-medium ${on ? "border-primary bg-primary text-primary-foreground" : "bg-card hover:bg-muted"}`}>{a.label}</Link>;
         })}
-      </div>
-
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-1 rounded-lg border bg-card shadow-sm">
-          <Link href={params({ date: prev })} className="p-2 hover:bg-muted" aria-label="Période précédente"><ChevronLeft className="h-4 w-4" /></Link>
-          <span className="min-w-44 text-center text-sm font-semibold capitalize">{label}</span>
-          <Link href={params({ date: next })} className="p-2 hover:bg-muted" aria-label="Période suivante"><ChevronRight className="h-4 w-4" /></Link>
-        </div>
-        {anchor !== today && <Link href={params({ date: today })} className="text-sm text-primary hover:underline">Aujourd&apos;hui</Link>}
-        <form className="ml-auto flex flex-wrap gap-2" action="/missions">
-          <input type="hidden" name="vue" value={view} /><input type="hidden" name="date" value={anchor} />
-          <div className="relative"><Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><input name="q" defaultValue={searchParams.q ?? ""} placeholder="Site, agent, client…" className="h-9 w-48 rounded-lg border bg-card pl-8 pr-2 text-sm" /></div>
-          <Select name="agent" defaultValue={searchParams.agent ?? ""} className="h-9 w-44"><option value="">Tous les agents</option><option value="aucun">Sans intervenant</option>{staff?.map((s) => <option key={s.id} value={s.id}>{s.full_name}</option>)}</Select>
-          <Select name="site" defaultValue={searchParams.site ?? ""} className="h-9 w-44"><option value="">Tous les sites</option>{sites?.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</Select>
-          <Select name="etape" defaultValue={searchParams.etape ?? ""} className="h-9 w-40"><option value="">Toutes les étapes</option>{STAGES.map(([s, l]) => <option key={s} value={s}>{l}</option>)}</Select>
-          <Button variant="outline" size="sm" className="h-9">Filtrer</Button>
-        </form>
+        <details className="ml-auto" open={(!!(searchParams.q || searchParams.site || searchParams.etape) || ["agent", "site", "statut"].includes(view))}>
+          <summary className="cursor-pointer rounded-full border bg-card px-3 py-1 text-sm font-medium hover:bg-muted">Plus de filtres{(!!(searchParams.q || searchParams.site || searchParams.etape) || ["agent", "site", "statut"].includes(view)) ? " (actifs)" : ""}</summary>
+          <form className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border bg-card p-3" action="/missions">
+            <input type="hidden" name="vue" value={view} /><input type="hidden" name="date" value={anchor} />
+            {searchParams.agent && <input type="hidden" name="agent" value={searchParams.agent} />}
+            <div className="relative"><Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><input name="q" defaultValue={searchParams.q ?? ""} placeholder="Site, agent, client…" className="h-9 w-48 rounded-lg border bg-card pl-8 pr-2 text-sm" /></div>
+            <Select name="site" defaultValue={searchParams.site ?? ""} className="h-9 w-44"><option value="">Tous les sites</option>{sites?.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</Select>
+            <Select name="etape" defaultValue={searchParams.etape ?? ""} className="h-9 w-40"><option value="">Toutes les étapes</option>{STAGES.map(([s, l]) => <option key={s} value={s}>{l}</option>)}</Select>
+            <Button variant="outline" size="sm" className="h-9">Filtrer</Button>
+            {(!!(searchParams.q || searchParams.site || searchParams.etape) || ["agent", "site", "statut"].includes(view)) && <Link href={params({ q: undefined, site: undefined, etape: undefined })} className="text-sm text-primary hover:underline">Effacer</Link>}
+            <span className="w-full text-xs text-muted-foreground">Regrouper la liste : {VIEWS.filter(([v]) => ["agent", "site", "statut"].includes(v)).map(([v, l], k) => <span key={v}>{k > 0 && " · "}<Link href={params({ vue: v })} className={view === v ? "font-semibold text-foreground" : "text-primary hover:underline"}>{l.toLowerCase()}</Link></span>)}</span>
+          </form>
+        </details>
       </div>
 
       <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
