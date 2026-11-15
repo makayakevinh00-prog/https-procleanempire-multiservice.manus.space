@@ -456,3 +456,32 @@ export async function setListingRoomsAction(id: string, fd: FormData) {
   revalidatePath(REF(id));
   flash(REF(id), "ok", rooms.length ? "Pièces enregistrées : elles s'appliquent aux prochains ménages acceptés." : "Liste vidée : les pièces du guide ou la liste standard seront utilisées.");
 }
+
+
+// ───────────── Fiches de paie des agents salariés ─────────────
+const TEAM = "/equipe";
+
+/** Dépose la fiche de paie d'un agent pour un mois (PDF, 3 Mo au plus). Une fiche déjà déposée pour ce mois est remplacée. */
+export async function uploadPayslipAction(staffId: string, fd: FormData) {
+  await requireOwner();
+  const period = String(fd.get("period") ?? ""), file = fd.get("file");
+  if (!/^\d{4}-\d{2}$/.test(period)) flash(TEAM, "error", "Choisissez le mois de la fiche de paie.");
+  if (!(file instanceof File) || !file.size) flash(TEAM, "error", "Choisissez le fichier PDF de la fiche de paie.");
+  const f = file as File;
+  if (f.type !== "application/pdf" && !f.name.toLowerCase().endsWith(".pdf")) flash(TEAM, "error", "La fiche de paie doit être un fichier PDF.");
+  if (f.size > 3 * 1024 * 1024) flash(TEAM, "error", "Fichier trop lourd : 3 Mo au plus.");
+  const net = String(fd.get("net_amount") ?? "").replace(",", ".").trim();
+  const row = { staff_id: staffId, period: `${period}-01`, file_name: f.name.slice(0, 120), mime: "application/pdf", data_b64: Buffer.from(await f.arrayBuffer()).toString("base64"), net_amount: net && Number(net) >= 0 ? Number(net) : null };
+  const { error } = await createClient().from("payslips").upsert(row, { onConflict: "staff_id,period" });
+  if (error) flash(TEAM, "error", dbMessage(error));
+  revalidatePath(TEAM);
+  flash(TEAM, "ok", "Fiche de paie déposée : l'agent la voit dans son application, onglet Paie.");
+}
+
+export async function deletePayslipAction(id: string) {
+  await requireOwner();
+  const { error } = await createClient().from("payslips").delete().eq("id", id);
+  if (error) flash(TEAM, "error", dbMessage(error));
+  revalidatePath(TEAM);
+  flash(TEAM, "ok", "Fiche de paie supprimée.");
+}

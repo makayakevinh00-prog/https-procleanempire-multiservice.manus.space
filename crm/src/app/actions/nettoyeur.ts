@@ -13,6 +13,8 @@ import { analyzeReference, type Img } from "@/lib/ai-inspect";
 import { sendMail, mailConfigured } from "@/lib/mail";
 import { automationClient, automationSecret } from "@/lib/automation/deps";
 import { runAfterAnalysis, type AfterOutcome } from "@/lib/marketplace/inspect";
+import { hashPassword, passwordOk, verifyPassword } from "@/lib/password";
+import { createClient } from "@/lib/supabase/server";
 
 const sha = (c: string) => createHash("sha256").update(c).digest("hex");
 const origin = () => { const h = headers(); return `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`; };
@@ -169,10 +171,11 @@ export async function cleanerSignupAction(fd: FormData) {
   const siret = String(fd.get("siret") ?? "").replace(/\s/g, ""), postal = String(fd.get("postal_code") ?? "").replace(/\s/g, "");
   const radius = Math.round(Number(fd.get("radius_km") ?? 15)), address = String(fd.get("address_line") ?? "").trim(), city = String(fd.get("city") ?? "").trim();
   if (name.length < 2 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) fail("Indiquez votre nom et une adresse e-mail valide.");
-  if (!siretValid(siret)) fail("Le SIRET doit comporter 14 chiffres valides. Pas encore de SIRET ? Il se crée gratuitement sur autoentrepreneur.urssaf.fr, puis revenez ici.");
+  const noSiret = siret === "";                                                                   // pas encore d'entreprise : compte créé, en attente du SIRET
+  if (!noSiret && !siretValid(siret)) fail("Le SIRET doit comporter 14 chiffres valides. Pas encore de SIRET ? Laissez la case vide : nous vous guidons pour créer votre entreprise.");
   if (!/^\d{5}$/.test(postal)) fail("Indiquez le code postal de votre adresse (5 chiffres).");
   if (!(radius >= 1 && radius <= 100)) fail("Le rayon doit être compris entre 1 et 100 km.");
-  const check = await checkSiret(siret);
+  const check = noSiret ? { status: "sans" as const } : await checkSiret(siret);
   if (check.status === "cesse") fail("Ce SIRET correspond à une activité cessée. Vérifiez-le ou créez une nouvelle activité.");
   if (check.status === "inconnu") fail("Ce SIRET n'existe pas dans l'annuaire officiel des entreprises : vérifiez les chiffres.");
   const verified = check.status === "actif";                                                    // annuaire indisponible : la demande attend la validation du patron
@@ -189,6 +192,15 @@ export async function cleanerSignupAction(fd: FormData) {
     redirect(`${SIGNUP}?ok=lien`);
   }
   const admin = process.env.MAIL_ADMIN ?? "contact@procleanempire.com";
+  if (noSiret && data !== "sans_siret") fail("Votre demande est enregistrée, mais l'inscription sans SIRET n'est pas encore ouverte. Nous vous recontactons par e-mail.");
+  if (data === "sans_siret") {
+    const url = `${origin()}/nettoyeur/attente/${token}`;
+    if (mailConfigured()) {
+      await sendMail({ to: email, subject: "ProClean Empire — créez votre entreprise pour commencer", text: `Bonjour ${name.split(" ")[0]},\n\nVotre compte est créé. Il vous manque un numéro SIRET pour recevoir des ménages : il s'obtient en créant votre auto-entreprise (quelques jours).\n\nVotre page de suivi : ${url}\nVous y trouvez les liens pour créer votre entreprise, puis la case pour saisir votre SIRET. Votre compte s'active dès que le SIRET est vérifié.\n\nProClean Empire` }).catch(() => undefined);
+      await sendMail({ to: admin, subject: "Nouveau nettoyeur inscrit sans SIRET", text: `${name} (${email}) s'est inscrit(e) sans SIRET : compte en attente jusqu'à la création de son entreprise.\nSuivi : CRM › Nettoyeurs › Inscriptions.` }).catch(() => undefined);
+    }
+    redirect(`/nettoyeur/attente/${token}?nouveau=1`);
+  }
   if (data === "actif") {
     const url = `${origin()}/nettoyeur/${token}`;
     if (mailConfigured()) {
@@ -200,6 +212,21 @@ export async function cleanerSignupAction(fd: FormData) {
   }
   if (mailConfigured()) await sendMail({ to: admin, subject: "Inscription de nettoyeur à valider", text: `${name} (${email}) demande à rejoindre les nettoyeurs ; l'annuaire des entreprises n'a pas répondu : SIRET ${siret} à vérifier.\nÀ valider dans le CRM : Nettoyeurs › Inscriptions.` }).catch(() => undefined);
   redirect(`${SIGNUP}?ok=attente`);
+}
+
+/** Compte en attente : la personne saisit son SIRET une fois son entreprise créée. Vérifié dans l'annuaire officiel = compte actif tout de suite. */
+export async function cleanerSiretAction(token: string, fd: FormData) {
+  guard(token);
+  const back = (kind: "ok" | "error", msg: string): never => redirect(`/nettoyeur/attente/${token}?${kind}=${encodeURIComponent(msg)}`);
+  const siret = String(fd.get("siret") ?? "").replace(/\s/g, "");
+  if (!siretValid(siret)) back("error", "Le SIRET comporte 14 chiffres. Vous le trouvez sur le document reçu après la création de votre entreprise.");
+  const check = await checkSiret(siret);
+  if (check.status === "cesse") back("error", "Ce SIRET correspond à une activité cessée.");
+  if (check.status === "inconnu") back("error", "Ce SIRET n'apparaît pas encore dans l'annuaire officiel. Après une création, il faut parfois attendre quelques jours : réessayez plus tard.");
+  const { data, error } = await automationClient().rpc("automation_cleaner_set_siret", { p_secret: automationSecret(), p_token: token, p_siret: siret, p_verified: check.status === "actif" });
+  if (error) back("error", agentMessage(error.message));
+  if (data === "actif") redirect(`/nettoyeur/${token}`);
+  back("ok", "SIRET enregistré. L'annuaire officiel ne répond pas en ce moment : nous le vérifions à la main et activons votre compte très vite.");
 }
 
 async function sendNewLink(email: string) {
@@ -300,7 +327,27 @@ export async function partnerApiKeyAction(token: string) {
 
 // ───────────── Connexion unique (e-mail + code) ─────────────
 const LOGIN = "/connexion";
-type Space = { kind: "nettoyeur" | "agent" | "linge" | "partenaire" | "gestion"; label: string; path: string };
+type Space = { kind: "nettoyeur" | "attente" | "agent" | "linge" | "partenaire" | "gestion"; label: string; path: string };
+type Role = { kind: Space["kind"]; id: string | null; label: string };
+
+/** Ouvre les espaces d'une personne sur cet appareil (un jeton par espace) et les mémorise à côté de ceux déjà connus. */
+async function openSpaces(email: string, roles: Role[]): Promise<never> {
+  const a = automationClient(), secret = automationSecret();
+  const spaces: Space[] = [];
+  for (const r of roles.slice(0, 8)) {
+    if (r.kind === "gestion") { spaces.push({ kind: "gestion", label: r.label, path: "/" }); continue; }
+    const token = randomBytes(32).toString("hex");
+    const { error } = await a.rpc("automation_issue_token", { p_secret: secret, p_kind: r.kind, p_subject: r.id, p_token_hash: sha(token) });
+    if (!error) spaces.push({ kind: r.kind, label: r.label, path: r.kind === "attente" ? `/nettoyeur/attente/${token}` : `/${r.kind}/${token}` });
+  }
+  const jar = cookies();
+  // L'appareil garde les espaces déjà mémorisés : une autre adresse en ajoute, elle ne remplace pas.
+  let kept: Space[] = [];
+  try { const v = JSON.parse(jar.get("pc_spaces")?.value ?? "null") as { spaces?: Space[] } | null; kept = (v?.spaces ?? []).filter((k) => !spaces.some((n) => (n.kind === k.kind || (n.kind === "nettoyeur" && k.kind === "attente")) && n.label === k.label)); } catch { kept = []; }
+  jar.delete({ name: "pc_login_email", path: LOGIN });
+  jar.set("pc_spaces", JSON.stringify({ email, spaces: [...spaces, ...kept].slice(0, 12) }), { httpOnly: true, secure: true, sameSite: "lax", path: LOGIN, maxAge: 60 * 86400 });
+  return redirect(spaces.length === 1 && spaces[0]!.kind !== "gestion" && !kept.length ? spaces[0]!.path : `${LOGIN}?choisir=1`);
+}
 const codeHash = (email: string, code: string) => sha(`${email}:${code}`);
 const validMail = (e: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e);
 
@@ -328,24 +375,38 @@ export async function loginVerifyAction(fd: FormData) {
   const code = String(fd.get("code") ?? "").replace(/\D/g, "");
   if (!validMail(email)) redirect(LOGIN);
   if (code.length !== 6) redirect(`${LOGIN}?etape=code&error=${encodeURIComponent("Le code comporte 6 chiffres.")}`);
+  const pass = String(fd.get("password") ?? "");
+  if (pass && !passwordOk(pass)) redirect(`${LOGIN}?etape=code&error=${encodeURIComponent("Le mot de passe doit faire au moins 8 caractères (ou laissez la case vide).")}`);
   const a = automationClient(), secret = automationSecret();
   const { data } = await a.rpc("automation_login_verify", { p_secret: secret, p_email: email, p_code_hash: codeHash(email, code) });
-  const roles = (data ?? null) as { kind: Space["kind"]; id: string | null; label: string }[] | null;
+  const roles = (data ?? null) as Role[] | null;
   if (!roles || !roles.length) redirect(`${LOGIN}?etape=code&error=${encodeURIComponent("Code incorrect ou expiré. Vérifiez-le, ou demandez-en un nouveau.")}`);
-  const spaces: Space[] = [];
-  for (const r of roles!.slice(0, 8)) {
-    if (r.kind === "gestion") { spaces.push({ kind: "gestion", label: r.label, path: "/" }); continue; }
-    const token = randomBytes(32).toString("hex");
-    const { error } = await a.rpc("automation_issue_token", { p_secret: secret, p_kind: r.kind, p_subject: r.id, p_token_hash: sha(token) });
-    if (!error) spaces.push({ kind: r.kind, label: r.label, path: `/${r.kind}/${token}` });
-  }
-  const jar = cookies();
-  // L'appareil garde les espaces déjà mémorisés : une autre adresse en ajoute, elle ne remplace pas.
-  let kept: Space[] = [];
-  try { const v = JSON.parse(jar.get("pc_spaces")?.value ?? "null") as { spaces?: Space[] } | null; kept = (v?.spaces ?? []).filter((k) => !spaces.some((n) => n.kind === k.kind && n.label === k.label)); } catch { kept = []; }
-  jar.delete({ name: "pc_login_email", path: LOGIN });
-  jar.set("pc_spaces", JSON.stringify({ email, spaces: [...spaces, ...kept].slice(0, 12) }), { httpOnly: true, secure: true, sameSite: "lax", path: LOGIN, maxAge: 60 * 86400 });
-  redirect(spaces.length === 1 && spaces[0]!.kind !== "gestion" && !kept.length ? spaces[0]!.path : `${LOGIN}?choisir=1`);
+  // Le code vient de prouver que l'adresse est bien la sienne : c'est le seul moment où un mot de passe peut être créé ou changé.
+  if (pass) await a.rpc("automation_password_set", { p_secret: secret, p_email: email, p_hash: hashPassword(pass) });
+  await openSpaces(email, roles!);
+}
+
+/** Connexion avec un mot de passe : celui choisi après un code (nettoyeur, agent, livreur, conciergerie), ou celui de l'espace de gestion et de l'espace comptable. */
+export async function loginPasswordAction(fd: FormData) {
+  const bad = (): never => redirect(`${LOGIN}?mode=mdp&error=${encodeURIComponent("E-mail ou mot de passe incorrect. Après 5 erreurs, la connexion par mot de passe est bloquée 15 minutes : utilisez alors le code par e-mail.")}`);
+  if (String(fd.get("website") ?? "") !== "") redirect(LOGIN);
+  const email = String(fd.get("email") ?? "").trim().toLowerCase(), pass = String(fd.get("password") ?? "");
+  if (!validMail(email) || !pass) bad();
+  const a = automationClient(), secret = automationSecret();
+  let roles: Role[] | null = null;
+  try {
+    const { data: stored } = await a.rpc("automation_password_get", { p_secret: secret, p_email: email });
+    if (typeof stored === "string") {
+      const { data } = await a.rpc("automation_password_result", { p_secret: secret, p_email: email, p_ok: verifyPassword(pass, stored) });
+      roles = (data ?? null) as Role[] | null;
+    }
+  } catch { roles = null; }
+  const field = (roles ?? []).filter((r) => r.kind !== "gestion");
+  if (field.length) await openSpaces(email, field);
+  // Espace de gestion et espace comptable : leur propre mot de passe.
+  const { error } = await createClient().auth.signInWithPassword({ email, password: pass });
+  if (error) bad();
+  redirect("/");
 }
 
 /** Déconnexion de cet appareil : ses jetons cessent de fonctionner. */

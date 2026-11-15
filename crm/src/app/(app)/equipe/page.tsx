@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import { generateAgentLinkAction, revokeAgentLinkAction, saveStaffAction } from "@/app/actions/missions";
 import { ConfirmAction } from "@/components/crm/confirm-action";
 import { deleteStaffAction } from "@/app/actions/manage";
+import { uploadPayslipAction, deletePayslipAction } from "@/app/actions/nettoyeurs";
 import { PageHeader, Empty } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,8 @@ export default async function TeamPage() {
   const supabase = createClient();
   const today = parisToday();
   const monday = addDays(today, 1 - isoWeekday(today));
+  const { data: slips } = await supabase.from("payslips").select("id, staff_id, period, net_amount").order("period", { ascending: false });
+  const slipsOf = (id: string) => ((slips ?? []) as any[]).filter((p) => p.staff_id === id);
   const [{ data: staff, error }, { data: week }] = await Promise.all([
     supabase.from("staff").select("*").order("active", { ascending: false }).order("full_name"),
     supabase.from("interventions").select("staff_id, duration_hours, scheduled_date, stage").gte("scheduled_date", monday).lte("scheduled_date", addDays(monday, 6)).neq("stage", "annulee")
@@ -92,6 +95,20 @@ export default async function TeamPage() {
                       title="Révoquer ce lien ?" description="L'agent ne pourra plus ouvrir ses missions sur son téléphone." confirmLabel="Révoquer" />}
                   </div>
                 )}
+                <details>
+                  <summary className="cursor-pointer text-xs font-medium text-primary">Fiches de paie ({slipsOf(s.id).length})</summary>
+                  <form action={uploadPayslipAction.bind(null, s.id)} className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
+                    <label className="block">Mois<input type="month" name="period" required className="mt-1 h-9 w-full rounded-md border px-2" /></label>
+                    <label className="block">Net à payer (facultatif)<input name="net_amount" inputMode="decimal" placeholder="1 450,00" className="mt-1 h-9 w-full rounded-md border px-2" /></label>
+                    <label className="block sm:col-span-2">Fichier PDF (3 Mo au plus)<input type="file" name="file" accept="application/pdf,.pdf" required className="mt-1 block w-full text-xs" /></label>
+                    <div className="sm:col-span-2"><Button size="sm" variant="outline">Déposer la fiche</Button></div>
+                  </form>
+                  {slipsOf(s.id).length > 0 && <ul className="mt-2 divide-y text-xs">{slipsOf(s.id).map((p: any) => (
+                    <li key={p.id} className="flex items-center justify-between gap-2 py-1.5"><span className="capitalize">{new Date(`${p.period}T12:00:00`).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}{p.net_amount != null ? ` · ${Number(p.net_amount).toLocaleString("fr-FR")} €` : ""}</span>
+                      <ConfirmAction action={deletePayslipAction.bind(null, p.id)} label="Supprimer" variant="ghost" size="sm" title="Supprimer cette fiche de paie ?" description="L'agent ne la verra plus dans son application." confirmLabel="Supprimer" /></li>
+                  ))}</ul>}
+                  <p className="mt-2 text-xs text-slate-500">L&apos;agent la retrouve dans son application, onglet Paie.</p>
+                </details>
                 <details>
                   <summary className="cursor-pointer text-xs font-medium text-primary">Modifier</summary>
                   <form action={saveStaffAction} className="mt-3 space-y-3"><StaffFields s={s} /><Button size="sm">Enregistrer</Button></form>

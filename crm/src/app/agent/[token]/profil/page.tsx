@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Sun, Moon, Smartphone, Languages, KeyRound, HelpCircle, ShieldCheck, Trash2, ChevronRight } from "lucide-react";
+import { Sun, Moon, Smartphone, Languages, KeyRound, HelpCircle, ShieldCheck, Trash2, ChevronRight, Wallet, LogOut } from "lucide-react";
 import { agentClient, agentMessage, agentPrefs, isToken, type AgentProfile } from "@/lib/agent";
 import { agentPrefAction } from "@/app/actions/agent";
 import { dict, initials } from "@/lib/field-ui";
@@ -73,11 +73,17 @@ export default async function ProfilePage({ params }: { params: { token: string 
 
       <h2 className={label}>{t.securityHelp}</h2>
       <section className="divide-y divide-[var(--a-line)] rounded-3xl bg-[var(--a-card)]">
+        <Row href={`${base}/paie`} icon={Wallet} title="Fiches de paie" sub="Mes bulletins de salaire" />
         <Row href={`${base}/aide#lien`} icon={KeyRound} title={t.personalLink} sub={t.personalLinkSub} />
         <Row href={`${base}/aide`} icon={HelpCircle} title={t.help} sub={t.helpSub} />
         <Row href={`${base}/confidentialite`} icon={ShieldCheck} title={t.privacy} sub={t.privacySub} />
         <Row href={`${base}/donnees`} icon={Trash2} title={t.deleteData} sub={t.deleteSub} danger />
       </section>
+      <form method="post" action="/connexion/sortir" className="mt-4">
+        <input type="hidden" name="t" value={token} />
+        <button className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl border border-[var(--a-line)] text-[16px] font-extrabold text-[var(--a-bad)]"><LogOut className="h-5 w-5" />Se déconnecter</button>
+      </form>
+      <a href="/connexion?choisir=1" className="mt-3 block text-center text-[14px] font-bold text-[var(--a-mute)]">Changer d&apos;espace</a>
     </>
   );
 }
