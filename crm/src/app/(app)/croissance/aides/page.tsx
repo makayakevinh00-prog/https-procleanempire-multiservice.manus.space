@@ -22,7 +22,7 @@ export default function AidesPage({ searchParams }: { searchParams: { besoin?: s
           <ul className="divide-y text-sm">{top.map((a) => (
             <li key={a.name} className="flex flex-wrap items-center gap-3 px-5 py-2.5">
               <span className="min-w-0 flex-1"><b>{a.name}</b><span className="block text-xs text-muted-foreground">{NEEDS[a.need]} · {a.by}</span></span>
-              <a href={a.url} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium hover:bg-secondary">Page officielle</a>
+              <a href={(a.apply ?? a).url} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90">{a.apply ? "Faire la demande" : "Page officielle"}</a>
             </li>
           ))}</ul>
         </Card>
@@ -42,7 +42,11 @@ export default function AidesPage({ searchParams }: { searchParams: { besoin?: s
               <p>{a.what}</p>
               <p><span className="text-muted-foreground">Pour qui : </span>{a.who}</p>
               {a.amount && <p><span className="text-muted-foreground">Montant indicatif : </span>{a.amount}</p>}
-              <a href={a.url} target="_blank" rel="noreferrer" className="inline-block text-primary hover:underline">Voir la page officielle →</a>
+              {a.how && <p className="rounded-md bg-secondary p-3"><b>Comment faire la demande : </b>{a.how}</p>}
+              <div className="flex flex-wrap gap-2 pt-1">
+                {a.apply && <a href={a.apply.url} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90">{a.apply.label}</a>}
+                <a href={a.url} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium hover:bg-secondary">Conditions (page officielle)</a>
+              </div>
             </CardContent>
           </Card>
         ))}
