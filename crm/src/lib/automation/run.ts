@@ -2,7 +2,8 @@ import { planMonthlyInvoices, type PlannedInvoice } from "../domain/billing-plan
 import { isLastDayOfMonth, monthLabel, monthOf, nextMonth, parisToday } from "../domain/dates";
 import { contractIssues } from "../domain/contract-check";
 import { contractVisits, type ScheduleContract } from "../domain/schedule";
-import { autoReminderDecision } from "../domain/reminders";
+import { autoReminderDecision, feeApplies, isBusinessDay, paymentHold, reminderRecipients, type BankCredit } from "../domain/reminders";
+import { daysBetween } from "../utils";
 import { renderPdf, pdfMoney, type PdfDoc } from "../pdf/document";
 import { invoiceDoc } from "../pdf/doc-mapper";
 import { REMINDER_FEE_EUR, REMINDER_FEE_LEVEL } from "../domain/reminders";
@@ -16,6 +17,8 @@ export interface Deps {
   mailConfigured: () => boolean;
   secret: string;
   now?: Date;
+  /** Virements reçus à la banque depuis une date (ISO). Absent = la banque n'est pas branchée : les relances partent sans cette vérification. */
+  recentCredits?: (sinceIso: string) => Promise<BankCredit[]>;
 }
 
 export interface RunOptions {
@@ -38,6 +41,10 @@ export interface Report {
   failed: { what: string; reason: string }[];
   followups: { number: string; to: string; level: number }[];
   reminders: { number: string; to: string; level: number }[];
+  /** Relances retenues : un virement reçu à la banque paie peut-être déjà la facture. */
+  held: { number: string; reason: string }[];
+  /** Vérification de la banque avant les relances : faite, non branchée, inutile (aucune relance à envoyer) ou message d'erreur. */
+  bankCheck: string;
   planning: { created: number; incompleteContracts: string[] };
   skippedDrafts: string[];
   expiredQuotes: number;
@@ -54,7 +61,7 @@ export async function runDaily(deps: Deps, opts: RunOptions = {}): Promise<Repor
   const month = opts.month ?? monthOf(today);
   const lastDay = isLastDayOfMonth(today);
   const report: Report = {
-    today, month, enabled: false, generated: [], sent: [], failed: [], followups: [], reminders: [],
+    today, month, enabled: false, generated: [], sent: [], failed: [], followups: [], reminders: [], held: [], bankCheck: "inutile",
     planning: { created: 0, incompleteContracts: [] }, skippedDrafts: [], expiredQuotes: 0,
     alerts: { unassigned_next7: 0, to_confirm: 0, requests_late: 0, overdue_15: 0 }, pendingMail: 0, digestSent: "rien à signaler"
   };
@@ -158,7 +165,7 @@ export async function runDaily(deps: Deps, opts: RunOptions = {}): Promise<Repor
           });
           // Adresse principale + adresses supplémentaires « reçoit les factures » (dédoublonnées)
           const everyone = [client.email, ...((it.extra_emails as string[] | undefined) ?? [])].filter((e, k, a) => e && a.findIndex((x) => x.toLowerCase() === e.toLowerCase()) === k);
-          const res = await send("facture", { to: everyone, subject: mail.subject, text: mail.text, html: mail.html, attachment: { filename: `${inv.number}.pdf`, bytes } }, "invoice", inv.id);
+          const res = await send("facture", { to: everyone, subject: mail.subject, text: mail.text, html: mail.html, fromName: mail.fromName, attachment: { filename: `${inv.number}.pdf`, bytes } }, "invoice", inv.id);
           if (res.sent) {
             await call("automation_mark_sent", { p_invoice_id: inv.id, p_to: everyone.join(", ") });
             report.sent.push({ number: inv.number, to: everyone.join(", ") });
@@ -172,14 +179,17 @@ export async function runDaily(deps: Deps, opts: RunOptions = {}): Promise<Repor
     }
   }
 
+  // Les relances (devis et factures) ne partent qu'un jour ouvré : ni week-end, ni jour férié. Elles attendent simplement le jour ouvré suivant.
+  const businessDay = isBusinessDay(today);
+
   // 3. Relances de devis sans réponse (relance 1, puis relance 2 ; arrêt dès que le statut change)
-  if (!opts.dryRun) {
+  if (!opts.dryRun && businessDay) {
     try {
       const quotes: any[] = await call("automation_quotes_to_follow", {});
       for (const q of quotes) {
         if (!deps.mailConfigured()) { report.failed.push({ what: "relances de devis", reason: "clé e-mail non configurée" }); break; }
         const mail = quoteFollowupEmail({ company, phone: settings.company_phone, number: q.number, totalTtc: eur(q.total_ttc), validUntil: fr(q.valid_until), level: q.level });
-        const res = await send("relance_devis", { to: q.email, subject: mail.subject, text: mail.text, html: mail.html }, "quote", q.id);
+        const res = await send("relance_devis", { to: q.email, subject: mail.subject, text: mail.text, html: mail.html, fromName: mail.fromName }, "quote", q.id);
         if (res.sent) { await call("automation_quote_followup_done", { p_quote_id: q.id }); report.followups.push({ number: q.number, to: q.email, level: q.level }); }
         else report.failed.push({ what: `relance devis ${q.number}`, reason: res.reason });
       }
@@ -192,22 +202,53 @@ export async function runDaily(deps: Deps, opts: RunOptions = {}): Promise<Repor
   if (!opts.dryRun) {
     try {
       await call("automation_refresh_overdue", {});
-      if (settings.auto_reminders_enabled) {
+      if (settings.auto_reminders_enabled && businessDay) {
+        const now = deps.now ?? new Date();
         const due = await call("automation_due_reminders", {});
-        for (const it of (due.items ?? []) as any[]) {
+        // Qui est à relancer aujourd'hui, et à quelles adresses (là où la facture est partie, l'adresse du client, ses adresses « reçoit les factures »).
+        const ready = ((due.items ?? []) as any[]).map((it) => ({ it, to: reminderRecipients(it.client?.email, it.invoice?.sent_to, it.extra_emails) })).filter(({ it, to }) => to.length > 0 && autoReminderDecision({
+          status: it.invoice.status, due_date: it.invoice.due_date, reminder_count: it.invoice.reminder_count, last_reminder_at: it.invoice.last_reminder_at,
+          client_is_reserved: it.client.is_reserved, total_ht: Number(it.invoice.total_ht)
+        }, due.settings, now).allowed);
+
+        // Avant de relancer : la banque a-t-elle déjà reçu le règlement (virement pas encore rattaché dans le CRM) ?
+        let credits: BankCredit[] | null = null;
+        // Virements déjà rattachés ou écartés dans le CRM (quand la base les fournit) : ils ne retiennent jamais une relance.
+        const handled = Array.isArray(due.handled_transactions) ? new Set<string>(due.handled_transactions as string[]) : null;
+        if (ready.length) {
+          if (!deps.recentCredits) report.bankCheck = "non branchée";
+          else {
+            try { credits = await deps.recentCredits(new Date(now.getTime() - 45 * 86_400_000).toISOString()); report.bankCheck = "faite"; }
+            catch (e) { report.bankCheck = `impossible (${(e as Error).message})`; }
+          }
+        }
+
+        for (const { it, to } of ready) {
           const inv = it.invoice, client = it.client;
-          const decision = autoReminderDecision({
-            status: inv.status, due_date: inv.due_date, reminder_count: inv.reminder_count, last_reminder_at: inv.last_reminder_at,
-            client_is_reserved: client.is_reserved, total_ht: Number(inv.total_ht)
-          }, due.settings, deps.now ?? new Date());
-          if (!decision.allowed || !client.email) continue;
+          const remaining = Math.max(0, Math.round((Number(inv.total_ttc) - Number(inv.paid_amount ?? 0)) * 100) / 100);
+          if (credits) {
+            const hold = paymentHold({ number: inv.number, issue_date: inv.issue_date, total_ttc: Number(inv.total_ttc), paid_amount: Number(inv.paid_amount ?? 0) }, client.name ?? "", credits, today, handled);
+            if (hold) { report.held.push({ number: inv.number, reason: `virement de ${eur(hold.amount)} reçu le ${fr(hold.date)} de « ${hold.payer} » : ${hold.reason}` }); continue; }
+          }
           if (!deps.mailConfigured()) { report.failed.push({ what: "relances de factures", reason: "clé e-mail non configurée" }); break; }
           let reminder: any;
           try { reminder = await call("automation_register_reminder", { p_invoice_id: inv.id }); } catch { continue; } // la base refuse : rien à faire
           const lvl = Number(reminder.level ?? 1);
-          const mail = reminderEmail({ company, phone: settings.company_phone, number: inv.number, totalTtc: eur(inv.total_ttc), dueDate: fr(inv.due_date), level: lvl, fee: eur(REMINDER_FEE_EUR), feeLevel: REMINDER_FEE_LEVEL, totalWithFee: eur(Number(inv.total_ttc) + REMINDER_FEE_EUR) });
-          const res = await send("relance_facture", { to: client.email, subject: mail.subject, text: mail.text, html: mail.html }, "invoice", inv.id);
-          if (res.sent) report.reminders.push({ number: inv.number, to: client.email, level: reminder.level });
+          // La facture est jointe quand la base fournit ses lignes ; sinon la relance part sans pièce jointe (et ne l'annonce pas).
+          let attachment: MailInput["attachment"];
+          if (Array.isArray(it.lines) && it.lines.length) {
+            try { attachment = { filename: `${inv.number}.pdf`, bytes: await renderPdf(invoiceDoc(inv, client, it.lines), due.settings) }; } catch { attachment = undefined; }
+          }
+          const mail = reminderEmail({
+            company, phone: settings.company_phone, number: inv.number, totalTtc: eur(inv.total_ttc), dueDate: fr(inv.due_date), level: lvl,
+            fee: eur(REMINDER_FEE_EUR), feeLevel: REMINDER_FEE_LEVEL, totalWithFee: eur(remaining + REMINDER_FEE_EUR),
+            professional: feeApplies(client.kind), remaining: eur(remaining), daysLate: inv.due_date ? daysBetween(inv.due_date, now) : null,
+            previousDate: inv.last_reminder_at ? fr(parisToday(new Date(inv.last_reminder_at))) : null,
+            period: inv.billing_month ? monthLabel(inv.billing_month) : null, interventionDate: inv.service_date ? fr(inv.service_date) : null,
+            iban: settings.company_iban ?? null, attached: !!attachment
+          });
+          const res = await send("relance_facture", { to, subject: mail.subject, text: mail.text, html: mail.html, fromName: mail.fromName, attachment }, "invoice", inv.id);
+          if (res.sent) report.reminders.push({ number: inv.number, to: to.join(", "), level: reminder.level });
           else {
             await call("automation_undo_reminder", { p_reminder_id: reminder.id }); // pas de relance fantôme
             report.failed.push({ what: `relance ${inv.number}`, reason: res.reason });
@@ -233,6 +274,8 @@ export async function runDaily(deps: Deps, opts: RunOptions = {}): Promise<Repor
   }
   for (const s of report.sent) lines.push(`Facture ${s.number} envoyée à ${s.to}.`);
   for (const r of report.reminders) lines.push(`Relance n°${r.level} de la facture ${r.number} envoyée à ${r.to}.`);
+  for (const h of report.held) todo.push(`Relance de la facture ${h.number} retenue — ${h.reason}. Vérifiez dans Paiements : si ce virement règle bien cette facture, rattachez-le ; sinon la relance reprendra d'elle-même.`);
+  if (report.bankCheck.startsWith("impossible")) todo.push(`Les relances du jour sont parties sans vérifier la banque : vérification ${report.bankCheck}.`);
   for (const f of report.followups) lines.push(`Devis ${f.number} relancé (relance n°${f.level}, ${f.to}).`);
   if (report.planning.created) lines.push(`${report.planning.created} passage(s) ajouté(s) au planning d'après les contrats.`);
   if (report.expiredQuotes) lines.push(`${report.expiredQuotes} devis expiré(s) faute de réponse.`);

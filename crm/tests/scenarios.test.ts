@@ -9,10 +9,13 @@ import { readFileSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
 import { runDaily, type Deps, type Report } from "@/lib/automation/run";
-import { overdueSequence } from "@/lib/domain/reminders";
+import { isBusinessDay, overdueSequence } from "@/lib/domain/reminders";
+import { parisToday } from "@/lib/domain/dates";
 import { contractIssues } from "@/lib/domain/contract-check";
 
 const read = (p: string) => readFileSync(path.join(__dirname, "..", p), "utf8");
+/** Les relances ne partent qu'un jour ouvré : si le test tourne un week-end ou un jour férié, le planificateur est lancé comme au prochain jour ouvré. */
+const workday = () => { let d = new Date(); while (!isBusinessDay(parisToday(d))) d = new Date(d.getTime() + 86_400_000); return d; };
 let db: PGlite;
 const q = async <T = any>(sql: string, params: any[] = []) => (await db.query<T>(sql, params)).rows;
 const fails = async (sql: string, params: any[], re: RegExp) => { await expect(db.query(sql, params)).rejects.toThrow(re); };
@@ -279,25 +282,25 @@ describe("Scénario 3 — impayés : J+1, J+7, J+15 alerte, J+30 manuel, arrêt 
 
   it("avant l'échéance : aucune relance", async () => {
     await settle("c1", -10);
-    const r = await runDaily(deps(new Date()));
+    const r = await runDaily(deps(workday()));
     expect(r.reminders).toEqual([]);
   });
   it("J+2 : première relance automatique (une seule, même si le planificateur repasse)", async () => {
     await settle("c1", 2);
-    const r = await runDaily(deps(new Date()));
+    const r = await runDaily(deps(workday()));
     expect(r.reminders).toHaveLength(1);
     expect(reminderMails()).toHaveLength(1);
-    const again = await runDaily(deps(new Date()));
+    const again = await runDaily(deps(workday()));
     expect(again.reminders).toEqual([]);                               // délai minimum entre deux relances
     expect((await invoiceOf("c1")).reminder_count).toBe(1);
   });
   it("J+8 : seconde relance ; le maximum est atteint, ensuite plus rien d'automatique", async () => {
     await settle("c1", 8, 7);
-    const r = await runDaily(deps(new Date()));
+    const r = await runDaily(deps(workday()));
     expect(r.reminders).toHaveLength(1);
     expect((await invoiceOf("c1")).reminder_count).toBe(2);
     await settle("c1", 16, 8);
-    expect((await runDaily(deps(new Date()))).reminders).toEqual([]);
+    expect((await runDaily(deps(workday()))).reminders).toEqual([]);
     const steps = overdueSequence(16, 2, { reminder_first_after_days: 1, reminder_interval_days: 6, reminder_max_count: 2, unpaid_alert_days: 15, reminder_manual_days: 30 });
     expect(steps.map((s) => s.state)).toEqual(["fait", "fait", "du", "a_venir"]);   // J+15 : alerte due ; J+30 : pas encore
     expect(overdueSequence(31, 2, { reminder_first_after_days: 1, reminder_interval_days: 6, reminder_max_count: 2, unpaid_alert_days: 15, reminder_manual_days: 30 }).at(-1)!.state).toBe("du");
@@ -307,7 +310,7 @@ describe("Scénario 3 — impayés : J+1, J+7, J+15 alerte, J+30 manuel, arrêt 
     await q("select validate_invoice($1, false, true)", [inv.id]);                // validation manuelle du patron (confirmation explicite)
     await q("update invoices set due_date = current_date - 20, status='envoye' where id=$1", [inv.id]);
     const before = mails.length;
-    const r = await runDaily(deps(new Date()));
+    const r = await runDaily(deps(workday()));
     expect(r.reminders.find((x: any) => /Réservé/.test(JSON.stringify(x)))).toBeUndefined();
     expect(mails.slice(before).filter((m) => m.to === "c2@client.test")).toHaveLength(0);
     expect((await q("select reminder_count from invoices where id=$1", [inv.id]))[0].reminder_count).toBe(0);
@@ -321,7 +324,7 @@ describe("Scénario 3 — impayés : J+1, J+7, J+15 alerte, J+30 manuel, arrêt 
     await settle("c1", 40);                                                   // même « en retard » sur le papier, payée = intouchable
     await q("update invoices set status='paye' where id=$1", [inv.id]);
     const before = reminderMails().length;
-    const r = await runDaily(deps(new Date()));
+    const r = await runDaily(deps(workday()));
     expect(r.reminders).toEqual([]);
     expect(reminderMails()).toHaveLength(before);
     await fails("select reconcile_payment($1,$2,false)", [pay.id, inv.id], /PAIEMENT_DEJA_RAPPROCHE/);

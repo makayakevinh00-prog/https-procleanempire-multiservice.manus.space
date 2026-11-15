@@ -61,7 +61,7 @@ export async function sendTestEmailAction() {
     lines: [{ description: "Entretien mensuel — exemple", quantity: 1, unit_price_ht: 100, vat_rate: 20 }], totals: { ht: 100, vat: 20, ttc: 120 }
   }, settings);
   const m = invoiceEmail({ company: settings.company_name, phone: settings.company_phone, number: "EXEMPLE-001", totalTtc: "120,00 €", period: "test", iban: settings.company_iban });
-  const res = await sendMail({ to: to!, subject: `[TEST] ${m.subject}`, text: m.text, html: m.html, attachment: { filename: "EXEMPLE-001.pdf", bytes } });
+  const res = await sendMail({ to: to!, subject: `[TEST] ${m.subject}`, text: m.text, html: m.html, fromName: m.fromName, attachment: { filename: "EXEMPLE-001.pdf", bytes } });
   await logEmail(supabase, { kind: "test", to: to!, subject: `[TEST] ${m.subject}`, ok: res.sent, error: res.sent ? undefined : res.reason });
   if (!res.sent) flash("/facturation-auto", "error", `Test échoué : ${res.reason}`);
   flash("/facturation-auto", "ok", `E-mail de test envoyé à ${to} (avec un PDF d'exemple). Vérifiez votre boîte de réception et vos courriers indésirables.`);

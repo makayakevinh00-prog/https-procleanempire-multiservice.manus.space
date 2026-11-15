@@ -7,6 +7,7 @@ import { dbMessage, flash } from "@/lib/data";
 import { sendMail } from "@/lib/mail";
 import { logEmail } from "@/lib/email-log";
 import { loadRecipients, pickRecipients } from "@/lib/recipients";
+import { senderName, serviceFor } from "@/lib/mail-identity";
 
 const BACK = "/jarvis";
 
@@ -31,7 +32,8 @@ export async function approveAndSendEmailAction(id: string, fd: FormData) {
   if (!list.length) flash(BACK, "error", "Choisissez au moins un destinataire.");
   const known = (await loadRecipients(sb, cl!.id)).map((r) => r.email.toLowerCase());
   const extra = list.filter((e) => !known.includes(e.toLowerCase()));
-  const r = await sendMail({ to: list, subject: p.subject!, text: p.body!, html: `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.5;white-space:pre-wrap">${esc(p.body!)}</div>` });
+  // Nom d'expéditeur : le service de l'agent qui a rédigé (finance → service facturation, commercial → service commercial), jamais une personne.
+  const r = await sendMail({ to: list, subject: p.subject!, text: p.body!, fromName: senderName("ProClean Empire", serviceFor(a!.agent_key)), html: `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.5;white-space:pre-wrap">${esc(p.body!)}</div>` });
   for (const to of list) await logEmail(sb, { kind: "agent", to, subject: p.subject, ok: r.sent, error: r.sent ? undefined : r.reason, entity: "client", entityId: cl!.id });
   if (!r.sent) flash(BACK, "error", `E-mail NON envoyé : ${r.reason}. La proposition reste à valider.`);
   const { error } = await sb.rpc("jarvis_mark_sent", { p_id: id, p_result: `E-mail envoyé à ${list.join(", ")}${extra.length ? " (dont une adresse ajoutée par vous)" : ""}.` });

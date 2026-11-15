@@ -10,7 +10,7 @@ const settings = {
 const client = (o: any = {}) => ({ id: "c1", name: "SEA", email: "sea@x.fr", is_reserved: false, auto_send_invoices: true, status: "actif", ...o });
 const contract = (o: any = {}) => ({ id: "k1", client_id: "c1", label: "Entretien", billing_mode: "mensuel", monthly_amount_ht: 600, start_date: "2026-01-01", end_date: null, status: "actif", ...o });
 
-function fake(overrides: { settings?: any; clients?: any[]; contracts?: any[]; interventions?: any[]; pending?: any[]; quotes?: any[]; mailOk?: boolean; mailConfigured?: boolean; validateFails?: boolean; due?: any[]; registerFails?: boolean; expired?: number; alerts?: any; drafts?: string[] } = {}) {
+function fake(overrides: { settings?: any; clients?: any[]; contracts?: any[]; interventions?: any[]; pending?: any[]; quotes?: any[]; mailOk?: boolean; mailConfigured?: boolean; validateFails?: boolean; due?: any[]; registerFails?: boolean; expired?: number; alerts?: any; drafts?: string[]; handled?: string[] } = {}) {
   const calls: { name: string; args: any }[] = [];
   const mails: any[] = [];
   const st = { ...settings, ...(overrides.settings ?? {}) };
@@ -30,7 +30,7 @@ function fake(overrides: { settings?: any; clients?: any[]; contracts?: any[]; i
         case "automation_insert_interventions": return { data: (args.p_rows as any[]).length, error: null };
         case "automation_expire_quotes": return { data: overrides.expired ?? 0, error: null };
         case "automation_alerts": return { data: overrides.alerts ?? { unassigned_next7: 0, to_confirm: 0, requests_late: 0, overdue_15: 0 }, error: null };
-        case "automation_due_reminders": return { data: { settings: { ...st, auto_reminders_enabled: true }, items: overrides.due ?? [] }, error: null };
+        case "automation_due_reminders": return { data: { settings: { ...st, auto_reminders_enabled: true }, items: overrides.due ?? [], ...(overrides.handled ? { handled_transactions: overrides.handled } : {}) }, error: null };
         case "automation_register_reminder": return overrides.registerFails ? { data: null, error: { message: "RELANCE_DEJA_ENVOYEE" } } : { data: { id: "r1", level: 1 }, error: null };
         case "automation_quotes_to_follow": return { data: overrides.quotes ?? [], error: null };
         default: return { data: null, error: null };
@@ -73,7 +73,7 @@ describe("automatisation quotidienne", () => {
   });
   it("jour ordinaire : aucune génération", async () => {
     const f = fake();
-    f.deps.now = new Date("2026-11-15T18:00:00Z");
+    f.deps.now = new Date("2026-11-16T18:00:00Z");
     const r = await runDaily(f.deps);
     expect(r.generated).toEqual([]);
     expect(f.names()).not.toContain("automation_create_invoice");
@@ -121,7 +121,7 @@ describe("automatisation quotidienne", () => {
   });
   it("relance les devis sans réponse puis les marque", async () => {
     const f = fake({ quotes: [{ id: "q1", number: "DEV-120", total_ttc: 300, valid_until: "2026-12-10", email: "x@y.fr", level: 1 }] });
-    f.deps.now = new Date("2026-11-15T18:00:00Z");
+    f.deps.now = new Date("2026-11-16T18:00:00Z");
     const r = await runDaily(f.deps);
     expect(r.followups).toEqual([{ number: "DEV-120", to: "x@y.fr", level: 1 }]);
     expect(f.names()).toContain("automation_quote_followup_done");
@@ -132,29 +132,128 @@ describe("automatisation quotidienne", () => {
     const on = { auto_reminders_enabled: true, reminder_first_after_days: 7, reminder_interval_days: 14, reminder_max_count: 3 };
     it("relance une facture en retard puis le signale", async () => {
       const f = fake({ settings: on, due: [due()] });
-      f.deps.now = new Date("2026-11-15T18:00:00Z");
+      f.deps.now = new Date("2026-11-16T18:00:00Z");
       const r = await runDaily(f.deps);
       expect(r.reminders).toEqual([{ number: "F-2026-009", to: "x@y.fr", level: 1 }]);
     });
     it("jamais pour un contact réservé", async () => {
       const f = fake({ settings: on, due: [due({}, { is_reserved: true })] });
-      f.deps.now = new Date("2026-11-15T18:00:00Z");
+      f.deps.now = new Date("2026-11-16T18:00:00Z");
       const r = await runDaily(f.deps);
       expect(r.reminders).toEqual([]);
       expect(f.names()).not.toContain("automation_register_reminder");
     });
     it("si la base refuse (relance récente), aucun e-mail", async () => {
       const f = fake({ settings: on, due: [due()], registerFails: true });
-      f.deps.now = new Date("2026-11-15T18:00:00Z");
+      f.deps.now = new Date("2026-11-16T18:00:00Z");
       const r = await runDaily(f.deps);
       expect(r.reminders).toEqual([]);
       expect(f.mails.filter((m) => m.to === "x@y.fr")).toEqual([]);
     });
     it("e-mail en échec : la relance est annulée", async () => {
       const f = fake({ settings: on, due: [due()], mailOk: false });
-      f.deps.now = new Date("2026-11-15T18:00:00Z");
+      f.deps.now = new Date("2026-11-16T18:00:00Z");
       await runDaily(f.deps);
       expect(f.names()).toContain("automation_undo_reminder");
+    });
+
+    const monday = new Date("2026-11-16T18:00:00Z");
+    const clientMail = (f: ReturnType<typeof fake>) => f.mails.find((m) => String(m.to).includes("x@y.fr"));
+
+    it("week-end ou jour férié : rien ne part, la relance attend le jour ouvré suivant", async () => {
+      for (const day of ["2026-11-14T18:00:00Z", "2026-11-15T18:00:00Z", "2026-11-11T18:00:00Z"]) {   // samedi, dimanche, 11 novembre
+        const f = fake({ settings: on, due: [due()], quotes: [{ id: "q1", number: "DEV-1", total_ttc: 10, valid_until: null, email: "q@y.fr", level: 1 }] });
+        f.deps.now = new Date(day);
+        const r = await runDaily(f.deps);
+        expect(r.reminders).toEqual([]);
+        expect(r.followups).toEqual([]);
+        expect(f.names()).not.toContain("automation_register_reminder");
+        expect(f.names()).toContain("automation_refresh_overdue");                                      // les retards restent à jour
+      }
+    });
+    it("part au nom du service facturation, à toutes les adresses de la facture", async () => {
+      const f = fake({ settings: on, due: [{ ...due({ sent_to: "X@y.fr, compta@y.fr" }), extra_emails: ["achats@y.fr", "compta@y.fr"] }] });
+      f.deps.now = monday;
+      const r = await runDaily(f.deps);
+      expect(r.reminders).toEqual([{ number: "F-2026-009", to: "x@y.fr, compta@y.fr, achats@y.fr", level: 1 }]);
+      const m = clientMail(f);
+      expect(m.fromName).toBe("ProClean Empire - Service facturation");
+      expect(m.subject).toBe("Facture F-2026-009 — rappel d'échéance");
+      expect(m.text).toMatch(/Le service facturation\n\nProClean Empire/);
+      expect(m.text).not.toMatch(/Kevinh|Makaya/i);
+    });
+    it("frais de recouvrement : annoncés seulement à un client professionnel", async () => {
+      const unknown = fake({ settings: on, due: [due()] });
+      unknown.deps.now = monday;
+      await runDaily(unknown.deps);
+      expect(clientMail(unknown).text).not.toMatch(/frais de recouvrement/);
+      const person = fake({ settings: on, due: [due({}, { kind: "particulier" })] });
+      person.deps.now = monday;
+      await runDaily(person.deps);
+      expect(clientMail(person).text).not.toMatch(/frais de recouvrement/);
+      const company = fake({ settings: on, due: [due({}, { kind: "entreprise" })] });
+      company.deps.now = monday;
+      await runDaily(company.deps);
+      expect(clientMail(company).text).toMatch(/frais de recouvrement de 40,00 €/);
+    });
+    it("paiement partiel : la relance demande le reste dû", async () => {
+      const f = fake({ settings: on, due: [due({ paid_amount: 50 })] });
+      f.deps.now = monday;
+      await runDaily(f.deps);
+      expect(clientMail(f).text).toMatch(/dont il reste 70,00 € TTC à régler/);
+    });
+    it("un virement reçu cite la facture : la relance est retenue et le patron prévenu", async () => {
+      const f = fake({ settings: on, due: [due({ issue_date: "2026-09-01" })] });
+      f.deps.now = monday;
+      f.deps.recentCredits = async () => [{ id: "t1", amount: 120, date: "2026-11-13", label: "SOCIETE X", reference: "Reglement F-2026-009" }];
+      const r = await runDaily(f.deps);
+      expect(r.reminders).toEqual([]);
+      expect(r.bankCheck).toBe("faite");
+      expect(r.held).toEqual([expect.objectContaining({ number: "F-2026-009" })]);
+      expect(f.names()).not.toContain("automation_register_reminder");
+      expect(clientMail(f)).toBeUndefined();
+      expect(f.mails.find((m) => m.to === "patron@x.fr").text).toMatch(/Relance de la facture F-2026-009 retenue — virement de 120,00 € reçu le 13\/11\/2026 de « SOCIETE X »/);
+    });
+    it("un virement déjà rattaché ou écarté dans le CRM ne retient pas la relance", async () => {
+      const f = fake({ settings: on, due: [due({ issue_date: "2026-09-01" })], handled: ["t1"] });
+      f.deps.now = monday;
+      f.deps.recentCredits = async () => [{ id: "t1", amount: 120, date: "2026-11-13", label: "SOCIETE X", reference: "Reglement F-2026-009" }];
+      const r = await runDaily(f.deps);
+      expect(r.held).toEqual([]);
+      expect(r.reminders).toHaveLength(1);
+    });
+    it("banque injoignable : la relance part quand même et c'est signalé", async () => {
+      const f = fake({ settings: on, due: [due()] });
+      f.deps.now = monday;
+      f.deps.recentCredits = async () => { throw new Error("la banque ne répond pas"); };
+      const r = await runDaily(f.deps);
+      expect(r.reminders).toHaveLength(1);
+      expect(r.bankCheck).toMatch(/^impossible/);
+      expect(f.mails.find((m) => m.to === "patron@x.fr").text).toMatch(/sans vérifier la banque/);
+    });
+    it("rien à relancer : la banque n'est pas interrogée", async () => {
+      let asked = 0;
+      const f = fake({ settings: on, due: [due({}, { is_reserved: true })] });
+      f.deps.now = monday;
+      f.deps.recentCredits = async () => { asked++; return []; };
+      const r = await runDaily(f.deps);
+      expect(asked).toBe(0);
+      expect(r.bankCheck).toBe("inutile");
+    });
+    it("la facture est jointe quand la base fournit ses lignes", async () => {
+      const item = { ...due({ issue_date: "2026-09-01", total_vat: 20, subject: "Entretien", notes: null }, { id: "c9", address: null, postal_code: null, city: null, siret: null }), lines: [{ position: 0, description: "Entretien", quantity: 1, unit_price_ht: 100, vat_rate: 20 }] };
+      const f = fake({ settings: on, due: [item] });
+      f.deps.now = monday;
+      await runDaily(f.deps);
+      const m = clientMail(f);
+      expect(m.attachment.filename).toBe("F-2026-009.pdf");
+      expect(m.attachment.bytes.length).toBeGreaterThan(500);
+      expect(m.text).toMatch(/Vous trouverez la facture en pièce jointe/);
+      const bare = fake({ settings: on, due: [due()] });
+      bare.deps.now = monday;
+      await runDaily(bare.deps);
+      expect(clientMail(bare).attachment).toBeUndefined();
+      expect(clientMail(bare).text).not.toMatch(/pièce jointe/);
     });
   });
 
@@ -162,7 +261,7 @@ describe("automatisation quotidienne", () => {
     it("génère le planning du mois et du suivant depuis les contrats avec jours de passage (rejouable)", async () => {
       const k = contract({ id: "k2", weekdays: [3], assignee: "Agent A", start_time: "08:00" });
       const f = fake({ contracts: [k] });
-      f.deps.now = new Date("2026-11-15T18:00:00Z");
+      f.deps.now = new Date("2026-11-16T18:00:00Z");
       const r = await runDaily(f.deps);
       const call = f.calls.filter((c) => c.name === "automation_insert_interventions");
       expect(call).toHaveLength(2); // novembre + décembre
@@ -171,7 +270,7 @@ describe("automatisation quotidienne", () => {
     });
     it("signale les contrats actifs sans jours de passage (planning impossible)", async () => {
       const f = fake({ contracts: [contract({ label: "SARB" })] });
-      f.deps.now = new Date("2026-11-15T18:00:00Z");
+      f.deps.now = new Date("2026-11-16T18:00:00Z");
       const r = await runDaily(f.deps);
       expect(r.planning.incompleteContracts).toEqual(["SARB"]);
       expect(f.mails.find((m) => m.to === "patron@x.fr").text).toMatch(/sans jours de passage/);
@@ -183,7 +282,7 @@ describe("automatisation quotidienne", () => {
     });
     it("compte les devis expirés et remonte les alertes d'exception dans le récapitulatif", async () => {
       const f = fake({ expired: 2, alerts: { unassigned_next7: 3, to_confirm: 1, requests_late: 1, overdue_15: 2 } });
-      f.deps.now = new Date("2026-11-15T18:00:00Z");
+      f.deps.now = new Date("2026-11-16T18:00:00Z");
       const r = await runDaily(f.deps);
       expect(r.expiredQuotes).toBe(2);
       const body = f.mails.find((m) => m.to === "patron@x.fr").text;
@@ -192,7 +291,7 @@ describe("automatisation quotidienne", () => {
     });
     it("journalise l'exécution et chaque e-mail, mais pas en simulation", async () => {
       const f = fake({ quotes: [{ id: "q1", number: "DEV-1", total_ttc: 10, valid_until: null, email: "x@y.fr", level: 2 }] });
-      f.deps.now = new Date("2026-11-15T18:00:00Z");
+      f.deps.now = new Date("2026-11-16T18:00:00Z");
       await runDaily(f.deps);
       expect(f.names()).toContain("automation_log_run");
       expect(f.calls.find((c) => c.name === "automation_log_email")?.args).toMatchObject({ p_kind: "relance_devis", p_to: "x@y.fr", p_ok: true });

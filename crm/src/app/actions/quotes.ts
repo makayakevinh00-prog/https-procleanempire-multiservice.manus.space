@@ -12,6 +12,7 @@ import { getSettings, num } from "@/lib/data";
 import { isLargeAmount } from "@/lib/domain/billing";
 import { logEmail } from "@/lib/email-log";
 import { quoteFollowupEmail } from "@/lib/mail-templates";
+import { sentJustNow } from "@/lib/send-guard";
 import { formatEUR, formatDate } from "@/lib/utils";
 import { contractIssues } from "@/lib/domain/contract-check";
 
@@ -99,10 +100,12 @@ export async function sendQuoteEmailAction(id: string, fd: FormData) {
   if (isLargeAmount(num(q.total_ht), settings) && !checked(fd, "ack_large")) flash(back, "error", `Montant ${formatEUR(q.total_ht)} HT au-dessus du seuil d'alerte : confirmation requise.`);
   const to = str(fd, "to") ?? q.clients.email;
   if (!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) flash(back, "error", "Adresse e-mail du destinataire manquante ou invalide.");
+  // Double clic ou page relancée : le client ne reçoit pas deux fois le même devis.
+  if (sentJustNow(q.sent_at, null, [to!])) flash(back, "ok", `Devis ${q.number} déjà envoyé il y a moins de deux minutes : pas de second envoi.`);
   const pdf = await buildPdf("devis", id, { sent: true });
   if (!pdf) flash(back, "error", "PDF introuvable.");
   const mail = quoteEmail({ company: settings.company_name, phone: settings.company_phone, clientName: q.clients.name, number: q.number, subject: q.subject, totalTtc: formatEUR(q.total_ttc), validUntil: q.valid_until ? formatDate(q.valid_until) : null });
-  const res = await sendMail({ to: to!, subject: mail.subject, text: mail.text, html: mail.html, attachment: { filename: pdf!.filename, bytes: pdf!.bytes } });
+  const res = await sendMail({ to: to!, subject: mail.subject, text: mail.text, html: mail.html, fromName: mail.fromName, attachment: { filename: pdf!.filename, bytes: pdf!.bytes } });
   await logEmail(supabase, { kind: "devis", to: to!, subject: mail.subject, ok: res.sent, error: res.sent ? undefined : res.reason, entity: "quote", entityId: id });
   if (!res.sent) flash(back, "error", `Le devis n'a PAS été envoyé : ${res.reason}.`);
   await supabase.from("quotes").update({ status: q.status === "brouillon" ? "envoye" : q.status, sent_at: new Date().toISOString() }).eq("id", id);
@@ -123,7 +126,7 @@ export async function followupQuoteNowAction(id: string, fd: FormData) {
   const settings = await getSettings(supabase);
   const level = (q.followup_count ?? 0) + 1;
   const mail = quoteFollowupEmail({ company: settings.company_name, phone: settings.company_phone, number: q.number, totalTtc: formatEUR(q.total_ttc), validUntil: q.valid_until ? formatDate(q.valid_until) : null, level });
-  const res = await sendMail({ to: q.clients.email, subject: mail.subject, text: mail.text, html: mail.html });
+  const res = await sendMail({ to: q.clients.email, subject: mail.subject, text: mail.text, html: mail.html, fromName: mail.fromName });
   await logEmail(supabase, { kind: "relance_devis", to: q.clients.email, subject: mail.subject, ok: res.sent, error: res.sent ? undefined : res.reason, entity: "quote", entityId: id });
   if (!res.sent) flash(back, "error", `Relance non envoyée : ${res.reason}.`);
   await supabase.from("quotes").update({ followup_count: level, followup_sent_at: new Date().toISOString() }).eq("id", id);

@@ -72,7 +72,7 @@ export function analyseFinance(s: FinanceSnapshot): AgentResult {
           title: `Écrire à ${i.client_name} au sujet de ${name(i)}`,
           summary: `Facture en retard de ${days} jours malgré ${i.reminder_count} relance(s) automatique(s). Le message ci-dessous est un brouillon : rien n'est envoyé.`,
           payload: {
-            brouillon: `Bonjour,\n\nSauf erreur de notre part, la facture ${name(i)} (${formatEUR(rest(i))} TTC, échue le ${fr(i.due_date)}) reste impayée malgré nos relances. Pourriez-vous nous indiquer sous quel délai le règlement sera effectué ?\n\nNous restons à votre disposition.\n\nCordialement,\nProClean Empire`
+            brouillon: `Bonjour,\n\nSauf erreur de notre part, la facture ${name(i)} (${formatEUR(rest(i))} TTC, échue le ${fr(i.due_date)}) reste impayée malgré nos relances. Pourriez-vous nous indiquer sous quel délai le règlement sera effectué ?\n\nNous restons à votre disposition.\n\nCordialement,\nLe service facturation\nProClean Empire`
           },
           entity_type: "invoice", entity_id: i.id, href
         });

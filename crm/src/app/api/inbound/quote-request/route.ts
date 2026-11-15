@@ -2,6 +2,7 @@ import { automationClient, automationSecret } from "@/lib/automation/deps";
 import { verifyInbound } from "@/lib/inbound-auth";
 import { requestType } from "@/lib/request-type";
 import { sendMail } from "@/lib/mail";
+import { senderName } from "@/lib/mail-identity";
 import { REQUEST_TYPE_LABEL } from "@/lib/request-type";
 import { spamScore } from "@/lib/request-spam";
 
@@ -84,7 +85,7 @@ export async function POST(req: Request) {
         `Suivre l'avancement de votre demande : ${tracking}`, "",
         "À très vite,", "L'équipe ProClean Empire", "06 17 21 22 30 · contact@procleanempire.com"
       ].join("\n");
-      const res = await sendMail({ to: s(b.email), subject: `Votre demande ${r.request_number} est bien reçue — ProClean Empire`, text });
+      const res = await sendMail({ to: s(b.email), subject: `Votre demande ${r.request_number} est bien reçue — ProClean Empire`, text, fromName: senderName("ProClean Empire", "commercial") });
       acknowledged = res.sent;
       await automationClient().rpc("automation_log_email", { p_secret: automationSecret(), p_kind: "accuse_reception", p_to: s(b.email), p_subject: "Accusé de réception " + r.request_number, p_ok: res.sent, p_error: res.sent ? null : res.reason, p_entity: "quote_request", p_entity_id: r.id });
     } catch { /* l'accusé ne doit jamais faire échouer la réception */ }

@@ -17,7 +17,12 @@ Source : indications du dirigeant, 5 novembre 2026. À tenir à jour.
 - Factures des conciergeries : **par passage**, générées automatiquement depuis le planning.
 - Validation manuelle des factures ; confirmation au-dessus de 1 500 € HT.
 - Axonaut devait être résilié fin octobre 2026 : ce CRM est le seul outil.
-- Constat du 15/11/2026 : Axonaut envoie encore ses relances automatiques (expéditeur `…@axonaut.fr`, factures F2610-…), en doublon de celles du CRM. Les e-mails d'Axonaut portent le nom du dirigeant deux fois (dernière ligne du texte de relance + signature Axonaut). À couper dans Axonaut par le dirigeant : clé à molette › Modèles › « Textes pour les factures (envois, relances…) » › décocher « envoi automatique de la relance ». Les relances du CRM, elles, sont signées « ProClean Empire », sans nom de personne.
+- **Relances (décision du dirigeant, 15/11/2026)** : toutes les relances partent du CRM, jamais d'Axonaut, et jamais au nom du dirigeant.
+  Elles sont signées du service concerné : « Le service facturation » pour les factures et leurs relances, « Le service commercial » pour les devis et leurs relances (signature et nom d'expéditeur).
+  Elles s'adaptent à la situation : ton selon le niveau (rappel courtois, 2e rappel ferme, dernier rappel), reste dû après un paiement partiel,
+  frais de recouvrement de 40 € annoncés puis ajoutés **pour les fiches « entreprise » seulement** (jamais pour un particulier),
+  envoi les jours ouvrés seulement, aux adresses où la facture est partie, et relance retenue si un virement correspondant vient d'arriver à la banque (lecture Qonto avant chaque relance).
+- Constat du 15/11/2026 : Axonaut envoie encore ses relances automatiques (expéditeur `…@axonaut.fr`, factures F2610-…), en doublon de celles du CRM. Les e-mails d'Axonaut portent le nom du dirigeant deux fois (dernière ligne du texte de relance + signature Axonaut). À couper dans Axonaut par le dirigeant : clé à molette › Modèles › « Textes pour les factures (envois, relances…) » › décocher « envoi automatique de la relance ». Les relances du CRM, elles, sont signées du service facturation, sans nom de personne.
 
 ## Équipe
 - Agent de ménage : Esma Nouali (fiche créée dans Équipe).

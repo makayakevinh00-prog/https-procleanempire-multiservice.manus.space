@@ -17,7 +17,7 @@ import { cancelInvoiceAction, deleteDraftAction, remindInvoiceAction, resendInvo
 import { loadRecipients } from "@/lib/recipients";
 import { RecipientPicker } from "@/components/crm/recipient-picker";
 import { cn, daysBetween, dueInfo, formatDate, formatEUR } from "@/lib/utils";
-import { REMINDER_FEE_EUR, REMINDER_FEE_LEVEL } from "@/lib/domain/reminders";
+import { REMINDER_FEE_EUR, REMINDER_FEE_LEVEL, feeApplies } from "@/lib/domain/reminders";
 import { markInvoicePaidAction, reconcileFromInvoiceAction } from "@/app/actions/payments";
 import { suggestInvoices } from "@/lib/domain/matching";
 import { ACTIVITIES, invoiceActivity, isActivity, type Activity } from "@/lib/domain/activity";
@@ -29,7 +29,7 @@ export default async function InvoicePage({ params }: { params: { id: string } }
   const supabase = createClient();
   await supabase.rpc("refresh_overdue");
   const { data: i } = await supabase.from("invoices")
-    .select("*, clients(id, name, email, is_reserved, reserved_reason, mandate_method), invoice_lines(*), reminders(*), quotes:source_quote_id(id, number)")
+    .select("*, clients(id, name, email, kind, is_reserved, reserved_reason, mandate_method), invoice_lines(*), reminders(*), quotes:source_quote_id(id, number)")
     .eq("id", params.id).maybeSingle();
   if (!i) notFound();
   const settings = await getSettings(supabase);
@@ -99,7 +99,7 @@ export default async function InvoicePage({ params }: { params: { id: string } }
               <div>✉️ {recipients.length ? recipients.map((r) => r.email).join(", ") : <span className="text-red-700">pas d&apos;e-mail</span>}</div>
               <div>Émise le : {formatDate(isDraft ? null : i.issue_date)}</div>
               <div>Échéance : {formatDate(i.due_date)}{(() => { const d = dueInfo(i.due_date, i.status); return d ? <span className={`ml-2 rounded-full px-2 py-0.5 text-xs font-bold ${d.tone === "red" ? "bg-red-100 text-red-800" : d.tone === "orange" ? "bg-orange-100 text-orange-800" : "bg-emerald-100 text-emerald-800"}`}>{d.label}</span> : null; })()}</div>
-              {i.reminder_count >= REMINDER_FEE_LEVEL && !["paye", "annule"].includes(i.status) && <div className="rounded-md bg-red-50 p-2 text-red-800">Frais de recouvrement dus : <b>{formatEUR(REMINDER_FEE_EUR)}</b> (ajoutés à la relance n° {REMINDER_FEE_LEVEL}) · total à régler <b>{formatEUR(Number(i.total_ttc) - Number(i.paid_amount) + REMINDER_FEE_EUR)}</b></div>}
+              {i.reminder_count >= REMINDER_FEE_LEVEL && !["paye", "annule"].includes(i.status) && feeApplies(c.kind) && <div className="rounded-md bg-red-50 p-2 text-red-800">Frais de recouvrement dus : <b>{formatEUR(REMINDER_FEE_EUR)}</b> (ajoutés à la relance n° {REMINDER_FEE_LEVEL}) · total à régler <b>{formatEUR(Number(i.total_ttc) - Number(i.paid_amount) + REMINDER_FEE_EUR)}</b></div>}
               {i.validated_at && <div>Validée le {formatDate(i.validated_at)}</div>}
               {i.sent_at ? <div>Envoyée à {i.sent_to} le {formatDate(i.sent_at)}</div> : !isDraft && i.status !== "annule" && <div className="text-amber-700">E-mail non envoyé</div>}
               {i.paid_at && <div className="text-emerald-700">Payée le {formatDate(i.paid_at)}</div>}
@@ -236,6 +236,7 @@ export default async function InvoicePage({ params }: { params: { id: string } }
             <Card className="lg:col-span-3">
               <CardHeader><CardTitle>Séquence en cas d&apos;impayé</CardTitle>
                 <span className="text-xs text-muted-foreground">{late > 0 ? `${late} jour(s) de retard` : "pas encore en retard"} · s&apos;arrête dès le paiement{c.is_reserved ? " · contact réservé : aucune relance automatique" : ""}</span></CardHeader>
+              <p className="px-4 pt-3 text-xs text-muted-foreground">Les relances partent au nom du <b>service facturation</b>, les jours ouvrés seulement, après vérification qu&apos;aucun virement correspondant n&apos;est arrivé à la banque. {feeApplies(c.kind) ? `Client professionnel : les frais de recouvrement de ${formatEUR(REMINDER_FEE_EUR)} sont annoncés, puis ajoutés à la relance n° ${REMINDER_FEE_LEVEL}.` : "Client particulier : aucuns frais de recouvrement ne sont annoncés ni ajoutés (la loi ne les prévoit qu'entre professionnels) ; la dernière relance propose de trouver une solution."}</p>
               <ol className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
                 {steps.map((st) => (
                   <li key={st.key} className={`rounded-lg border border-l-[5px] p-3 text-sm ${st.kind === "manuel" ? "border-l-red-600" : st.kind === "alerte" ? "border-l-orange-500" : "border-l-blue-500"} ${st.state === "fait" ? "bg-emerald-50" : st.state === "du" ? "bg-amber-50" : ""}`}>

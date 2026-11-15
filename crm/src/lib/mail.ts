@@ -1,4 +1,5 @@
 import "server-only";
+import { fromHeader } from "./mail-identity";
 /** Envoi via Resend. Sans RESEND_API_KEY, rien ne part et l'appelant en est informé (jamais d'échec silencieux). */
 export interface MailInput {
   to: string | string[];
@@ -6,6 +7,8 @@ export interface MailInput {
   text: string;
   html?: string;
   attachment?: { filename: string; bytes: Uint8Array };
+  /** Nom d'expéditeur affiché chez le destinataire (ex. « ProClean Empire - Service facturation »). L'adresse d'envoi ne change pas. */
+  fromName?: string;
 }
 
 export type MailResult = { sent: true } | { sent: false; reason: string };
@@ -21,7 +24,7 @@ export async function sendMail(m: MailInput): Promise<MailResult> {
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       signal: AbortSignal.timeout(15_000),
       body: JSON.stringify({
-        from: process.env.MAIL_FROM ?? "ProClean Empire <contact@procleanempire.com>",
+        from: fromHeader(process.env.MAIL_FROM ?? "ProClean Empire <contact@procleanempire.com>", m.fromName),
         to: Array.isArray(m.to) ? m.to : [m.to],
         reply_to: "contact@procleanempire.com",
         subject: m.subject,

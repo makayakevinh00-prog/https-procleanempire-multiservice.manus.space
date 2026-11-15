@@ -191,7 +191,7 @@ export default async function SettingsPage() {
           <CardHeader><CardTitle>Relances automatiques</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" name="auto_reminders_enabled" defaultChecked={s.auto_reminders_enabled} /> Activer les relances automatiques par e-mail</label>
-            <p className="text-xs text-muted-foreground">Jamais pour un contact réservé, jamais au-dessus du seuil d&apos;alerte, jamais si une relance récente existe.</p>
+            <p className="text-xs text-muted-foreground">Jamais pour un contact réservé, jamais au-dessus du seuil d&apos;alerte, jamais si une relance récente existe. Elles partent au nom du <b>service facturation</b> (les relances de devis, au nom du service commercial), les jours ouvrés seulement, et sont retenues si un virement correspondant vient d&apos;arriver à la banque. Les frais de recouvrement de 40 € ne sont annoncés et ajoutés que pour les clients professionnels.</p>
             <div className={grid}>
               <Field label="1re relance après échéance (jours)"><Input name="reminder_first_after_days" inputMode="numeric" defaultValue={s.reminder_first_after_days} /></Field>
               <Field label="Délai minimum entre relances (jours)"><Input name="reminder_interval_days" inputMode="numeric" defaultValue={s.reminder_interval_days} /></Field>
