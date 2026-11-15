@@ -235,3 +235,76 @@ export async function createCommissionDraftAction(
     "Brouillon de commission créé : relisez-le puis validez-le.",
   );
 }
+
+
+// ───────────── Veille par logement : prix par période, marché, avis, améliorations ─────────────
+const watch = (id: string) => `/conciergerie/veille/${id}`;
+const watched = (id: string, kind: "ok" | "error", msg: string): never => { revalidatePath(watch(id)); return flash(watch(id), kind, msg); };
+const isDate = (v: string | null): v is string => !!v && /^\d{4}-\d{2}-\d{2}$/.test(v);
+const money = (fd: FormData, k: string) => { const v = String(fd.get(k) ?? "").replace(",", ".").trim(); return v === "" || !(Number(v) >= 0) ? null : Math.round(Number(v) * 100) / 100; };
+
+/** Lien de l'annonce et prix de base d'une nuit (utilisé hors période). */
+export async function saveListingWatchAction(id: string, fd: FormData) {
+  await requireAccess("conciergerie");
+  const url = str(fd, "public_url");
+  if (url && !/^https:\/\//.test(url)) watched(id, "error", "Le lien de l'annonce doit commencer par https://");
+  const { error } = await createClient().from("concierge_listings").update({ public_url: url, base_price: money(fd, "base_price") }).eq("id", id);
+  if (error) watched(id, "error", dbMessage(error));
+  watched(id, "ok", "Enregistré.");
+}
+
+export async function addPricePeriodAction(id: string, fd: FormData) {
+  await requireAccess("conciergerie");
+  const label = str(fd, "label"), start = str(fd, "start_date"), end = str(fd, "end_date"), price = money(fd, "price");
+  if (!label || !isDate(start) || !isDate(end) || price == null) watched(id, "error", "Indiquez un nom, les deux dates et le prix de la nuit.");
+  if (end! < start!) watched(id, "error", "La date de fin doit être après la date de début.");
+  const nights = Number(fd.get("min_nights") ?? 0);
+  const { error } = await createClient().from("listing_prices").insert({ listing_id: id, label, start_date: start, end_date: end, price, min_nights: nights >= 1 ? Math.round(nights) : null, note: str(fd, "note") });
+  if (error) watched(id, "error", dbMessage(error));
+  watched(id, "ok", "Période de prix ajoutée. Pensez à reporter ce prix sur Airbnb : le CRM ne peut pas le modifier à votre place.");
+}
+
+export async function addMarketPriceAction(id: string, fd: FormData) {
+  await requireAccess("conciergerie");
+  const label = str(fd, "label"), price = money(fd, "price"), seen = str(fd, "seen_on");
+  if (!label || price == null) watched(id, "error", "Indiquez le logement comparé et son prix par nuit.");
+  const { error } = await createClient().from("listing_market").insert({ listing_id: id, label, price, seen_on: isDate(seen) ? seen : parisToday(), url: str(fd, "url"), note: str(fd, "note") });
+  if (error) watched(id, "error", dbMessage(error));
+  watched(id, "ok", "Prix relevé ajouté.");
+}
+
+export async function addReviewAction(id: string, fd: FormData) {
+  await requireAccess("conciergerie");
+  const rating = Number(String(fd.get("rating") ?? "").replace(",", ".")), comment = str(fd, "comment"), date = str(fd, "review_date");
+  if (!(rating >= 1 && rating <= 5) && !comment) watched(id, "error", "Indiquez une note (1 à 5) ou un commentaire.");
+  const topics = fd.getAll("topics").map(String).filter((t) => /^[a-z]{3,20}$/.test(t)).slice(0, 9);
+  const { error } = await createClient().from("listing_reviews").insert({ listing_id: id, review_date: isDate(date) ? date : parisToday(), source: str(fd, "source") ?? "airbnb", guest: str(fd, "guest"), rating: rating >= 1 && rating <= 5 ? rating : null, comment, topics });
+  if (error) watched(id, "error", dbMessage(error));
+  watched(id, "ok", "Avis ajouté.");
+}
+
+export async function addImprovementAction(id: string, fd: FormData) {
+  await requireAccess("conciergerie");
+  const title = str(fd, "title");
+  if (!title) watched(id, "error", "Décrivez l'amélioration en quelques mots.");
+  const priority = ["basse", "normale", "haute"].includes(String(fd.get("priority"))) ? String(fd.get("priority")) : "normale";
+  const { error } = await createClient().from("listing_improvements").insert({ listing_id: id, title, detail: str(fd, "detail"), priority, cost: money(fd, "cost") });
+  if (error) watched(id, "error", dbMessage(error));
+  watched(id, "ok", "Amélioration ajoutée.");
+}
+
+export async function setImprovementStatusAction(id: string, rowId: string, status: "a_faire" | "en_cours" | "fait") {
+  await requireAccess("conciergerie");
+  const { error } = await createClient().from("listing_improvements").update({ status, done_at: status === "fait" ? new Date().toISOString() : null }).eq("id", rowId).eq("listing_id", id);
+  if (error) watched(id, "error", dbMessage(error));
+  watched(id, "ok", status === "fait" ? "Marquée comme faite." : "Mise à jour.");
+}
+
+/** Supprime une ligne de la veille (période de prix, prix relevé, avis ou amélioration). */
+export async function deleteWatchRowAction(id: string, table: "listing_prices" | "listing_market" | "listing_reviews" | "listing_improvements", rowId: string) {
+  await requireAccess("conciergerie");
+  if (!["listing_prices", "listing_market", "listing_reviews", "listing_improvements"].includes(table)) watched(id, "error", "Suppression impossible.");
+  const { error } = await createClient().from(table).delete().eq("id", rowId).eq("listing_id", id);
+  if (error) watched(id, "error", dbMessage(error));
+  watched(id, "ok", "Supprimé.");
+}

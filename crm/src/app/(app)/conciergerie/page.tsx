@@ -535,6 +535,7 @@ export default async function ConciergeriePage({
                         action={saveListingAction.bind(null, l.id)}
                       />
                       <div className="flex flex-wrap gap-3">
+                        <Link href={`/conciergerie/veille/${l.id}`} className="inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-secondary">Veille : prix, avis, améliorations</Link>
                         {l.ical_url && (
                           <form action={syncListingNowAction.bind(null, l.id)}>
                             <Button size="sm" variant="outline">
