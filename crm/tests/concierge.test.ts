@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { checkIcalUrl, parseIcal } from "../src/lib/concierge/ical";
-import { addDays, buildAlerts, cleaningMessage, commissionOf, desiredCleanings, diffCleanings, recapMessage, sameDayArrival, type Listing, type Stay } from "../src/lib/concierge/plan";
+import { addDays, buildAlerts, cleaningMessage, commissionOf, desiredCleanings, diffCleanings, MANUAL_DATE_MARK, recapMessage, sameDayArrival, type Listing, type Stay } from "../src/lib/concierge/plan";
 
 const AIRBNB = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nDTSTART;VALUE=DATE:20261112\r\nDTEND;VALUE=DATE:20261115\r\nUID:abc-1@airbnb.com\r\nSUMMARY:Reserved\r\nDESCRIPTION:Reservation URL: https://www.airbnb.com/hosting/reservations/details/XYZ\\nPhone Number (Last 4 Digits): 1234\r\nEND:VEVENT\r\nBEGIN:VEVENT\r\nDTSTART;VALUE=DATE:20261120\r\nDTEND;VALUE=DATE:20261122\r\nUID:blk-2@airbnb.com\r\nSUMMARY:Airbnb (Not available)\r\nEND:VEVENT\r\nBEGIN:VEVENT\r\nDTSTART;VALUE=DATE:20261125\r\nDTEND;VALUE=DATE:20261127\r\nUID:abc-3@airbnb.com\r\nSUMMARY:Reserved\r\nEND:VEVENT\r\nEND:VCALENDAR`;
 
@@ -38,6 +38,11 @@ describe("ménages à chaque départ", () => {
     const d2 = desiredCleanings(L, stays, "2026-11-01");
     expect(d2[0]).toMatchObject({ date: "2026-11-08", urgent: true, title: "Ménage — Studio République (arrivée le même jour)" });
     expect(sameDayArrival(stays[0], stays)).toBe(true);
+  });
+  it("diff : un ménage dont le patron a fixé la date à la main n'est pas remis à l'ancienne date", () => {
+    const desired = desiredCleanings(L, stays, "2026-11-10");
+    const ex = [{ id: "i1", source_key: "conc:s2", scheduled_date: "2026-11-11", start_time: "11:00:00", stage: "affectee", title: "Ménage — Studio République", notes: `x\n${MANUAL_DATE_MARK}` }];
+    expect(diffCleanings(ex, desired, []).update).toEqual([]);
   });
   it("diff : crée ce qui manque, déplace seulement ce qui n'est pas commencé, annule un séjour disparu", () => {
     const desired = desiredCleanings(L, stays, "2026-11-10");

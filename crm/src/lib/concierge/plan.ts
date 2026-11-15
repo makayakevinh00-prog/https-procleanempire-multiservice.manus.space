@@ -195,7 +195,9 @@ export function buildAlerts(i: {
   return out.sort((a, b) => rank[a.tone] - rank[b.tone]);
 }
 
-export type ExistingCleaning = { id: string; source_key: string; scheduled_date: string; start_time: string | null; stage: string | null; title: string };
+export type ExistingCleaning = { id: string; source_key: string; scheduled_date: string; start_time: string | null; stage: string | null; title: string; notes?: string | null };
+/** Posé dans les notes d'un ménage dont le patron a choisi lui-même la date : la synchronisation ne le déplace plus. */
+export const MANUAL_DATE_MARK = "[date fixée à la main]";
 export const PLANNED_STAGES = ["brouillon", "planifiee", "affectee"];
 
 /**
@@ -210,7 +212,7 @@ export function diffCleanings(existing: ExistingCleaning[], desired: Desired[], 
     const e = byKey.get(d.sourceKey);
     if (!e) { insert.push(d); continue; }
     const planned = PLANNED_STAGES.includes(e.stage ?? "planifiee");
-    if (planned && (e.scheduled_date !== d.date || (e.start_time ?? "").slice(0, 5) !== d.time || e.title !== d.title)) update.push({ id: e.id, patch: { scheduled_date: d.date, start_time: d.time, title: d.title } });
+    if (planned && !(e.notes ?? "").includes(MANUAL_DATE_MARK) && (e.scheduled_date !== d.date || (e.start_time ?? "").slice(0, 5) !== d.time || e.title !== d.title)) update.push({ id: e.id, patch: { scheduled_date: d.date, start_time: d.time, title: d.title } });
   }
   const cancel = cancelledKeys.map((k) => byKey.get(k)).filter((e): e is ExistingCleaning => !!e && PLANNED_STAGES.includes(e.stage ?? "planifiee")).map((e) => e.id);
   return { insert, update, cancel };

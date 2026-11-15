@@ -1,5 +1,6 @@
 "use server";
 
+import { MANUAL_DATE_MARK } from "@/lib/concierge/plan";
 import { requireOwner } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
@@ -125,7 +126,7 @@ export async function updateMissionAction(id: string, fd: FormData) {
   await requireOwner();
   const back = `/missions/${id}`;
   const sb = createClient();
-  const { data: m } = await sb.from("interventions").select("invoice_id").eq("id", id).maybeSingle();
+  const { data: m } = await sb.from("interventions").select("invoice_id, source_key, scheduled_date, start_time, notes").eq("id", id).maybeSingle();
   if (!m) flash("/missions", "error", "Mission introuvable.");
   if (m!.invoice_id) flash(back, "error", "Mission déjà facturée : date, prix et quantité ne changent plus (annulez la facture d'abord).");
   const title = str(fd, "title"), date = str(fd, "scheduled_date");
@@ -133,8 +134,14 @@ export async function updateMissionAction(id: string, fd: FormData) {
   const billable = checked(fd, "billable");
   const price = numField(fd, "unit_price_ht");
   if (billable && price === null) flash(back, "error", "Une mission facturable doit avoir un prix (ou décochez « facturable »).");
+  // Ménage de conciergerie dont on change la date ou l'heure : on le marque pour que la synchronisation des séjours ne le remette pas à l'ancienne date.
+  const startTime = str(fd, "start_time");
+  const conc = String((m as any).source_key ?? "").startsWith("conc:");
+  const moved = conc && (date !== (m as any).scheduled_date || (startTime ?? "") !== String((m as any).start_time ?? "").slice(0, 5));
+  const notes = moved && !String((m as any).notes ?? "").includes(MANUAL_DATE_MARK) ? `${(m as any).notes ? `${(m as any).notes}\n` : ""}${MANUAL_DATE_MARK}` : undefined;
   const { error } = await sb.from("interventions").update({
-    title, scheduled_date: date, start_time: str(fd, "start_time"), duration_hours: numField(fd, "duration_hours"),
+    ...(notes !== undefined ? { notes } : {}),
+    title, scheduled_date: date, start_time: startTime, duration_hours: numField(fd, "duration_hours"),
     quantity: numField(fd, "quantity") ?? 1, unit_price_ht: billable ? price : null, billable, site_id: str(fd, "site_id")
   }).eq("id", id);
   if (error) flash(back, "error", dbMessage(error));

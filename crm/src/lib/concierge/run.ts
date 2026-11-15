@@ -64,7 +64,7 @@ export async function scheduleCleanings(sb: SupabaseClient, today: string) {
   const { data: st } = await sb.from("concierge_stays").select("id, listing_id, check_in, check_out, cancelled, intervention_id").in("listing_id", listings.map((l) => l.id)).gte("check_out", today);
   const stays = (st ?? []) as Stay[];
   const keys = stays.map((s) => `conc:${s.id}`);
-  const { data: ex } = keys.length ? await sb.from("interventions").select("id, source_key, scheduled_date, start_time, stage, title").in("source_key", keys) : { data: [] };
+  const { data: ex } = keys.length ? await sb.from("interventions").select("id, source_key, scheduled_date, start_time, stage, title, notes").in("source_key", keys) : { data: [] };
   let created = 0, moved = 0, cancelled = 0;
   for (const l of listings) {
     const d = diffCleanings((ex ?? []) as any[], desiredCleanings(l, stays, today), stays.filter((s) => s.listing_id === l.id && s.cancelled).map((s) => `conc:${s.id}`));
