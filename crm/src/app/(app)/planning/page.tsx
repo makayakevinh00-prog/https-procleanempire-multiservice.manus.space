@@ -20,7 +20,7 @@ const shift = (month: string, n: number) => {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
 };
 
-export default async function PlanningPage({ searchParams }: { searchParams: { mois?: string; client?: string; filtre?: string; agent?: string } }) {
+export default async function PlanningPage({ searchParams }: { searchParams: { voir?: string; mois?: string; client?: string; filtre?: string; agent?: string } }) {
   const today = parisToday();
   const month = /^\d{4}-\d{2}$/.test(searchParams.mois ?? "") ? searchParams.mois! : monthOf(today);
   const { start, end } = monthBounds(month);
@@ -49,6 +49,15 @@ export default async function PlanningPage({ searchParams }: { searchParams: { m
   const toConfirm = items.filter((i) => i.status === "planifie" && i.scheduled_date <= today && !i.invoice_id).length;
   const hours = active.reduce((a, i) => a + num(i.duration_hours), 0);
   const billable = active.filter((i) => i.billable && i.unit_price_ht != null).reduce((a, i) => a + num(i.unit_price_ht) * num(i.quantity), 0);
+  // Prestations « au passage » du mois (hors forfait mensuel), regroupées par client : ce que chacun doit, et ce qui est déjà facturé.
+  const perVisit = active.filter((i) => i.billable && i.unit_price_ht != null);
+  const owed = [...perVisit.reduce((m, i) => {
+    const k = i.client_id as string, amt = num(i.unit_price_ht) * num(i.quantity);
+    const c = m.get(k) ?? { id: k, name: i.clients?.name ?? "Client", reserved: !!i.clients?.is_reserved, count: 0, total: 0, done: 0, invoiced: 0 };
+    c.count += 1; c.total += amt; if (i.invoice_id) c.invoiced += amt; else if (i.status === "realise" || i.scheduled_date <= today) c.done += amt;
+    return m.set(k, c);
+  }, new Map<string, { id: string; name: string; reserved: boolean; count: number; total: number; done: number; invoiced: number }>()).values()].sort((a, b) => b.total - a.total);
+  const showOwed = searchParams.voir === "passage";
   const nav = (m: string, agent: string | undefined = searchParams.agent) => `/planning?mois=${m}${searchParams.client ? `&client=${searchParams.client}` : ""}${agent ? `&agent=${agent}` : ""}`;
 
   return (
@@ -90,8 +99,27 @@ export default async function PlanningPage({ searchParams }: { searchParams: { m
       <div className="mb-4 grid grid-cols-3 gap-3 text-center">
         <Card><CardContent className="p-3"><div className="text-xl font-bold">{active.length}</div><div className="text-xs text-muted-foreground">interventions</div></CardContent></Card>
         <Card><CardContent className="p-3"><div className="text-xl font-bold">{hours ? `${hours.toLocaleString("fr-FR")} h` : "—"}</div><div className="text-xs text-muted-foreground">heures prévues</div></CardContent></Card>
-        <Card><CardContent className="p-3"><div className="text-xl font-bold">{formatEUR(billable)}</div><div className="text-xs text-muted-foreground">au passage (HT)</div></CardContent></Card>
+        <Link href={`${nav(month)}${showOwed ? "" : "&voir=passage"}#passage`} className="block"><Card className={`transition-shadow hover:shadow-md ${showOwed ? "ring-2 ring-primary" : ""}`}><CardContent className="p-3"><div className="text-xl font-bold">{formatEUR(billable)}</div><div className="text-xs text-muted-foreground">prestations ponctuelles du mois (HT) · voir qui doit quoi</div></CardContent></Card></Link>
       </div>
+
+      {showOwed && (
+        <Card id="passage" className="mb-4">
+          <CardHeader><CardTitle>Prestations ponctuelles de {monthLabel(month)} : qui doit quoi</CardTitle>
+            <Link href="/facturation-auto"><Button size="sm">Préparer les factures du mois</Button></Link>
+          </CardHeader>
+          {!owed.length ? <Empty>Aucune prestation facturable au passage ce mois-ci.</Empty> : (
+            <ul className="divide-y text-sm">{owed.map((c) => (
+              <li key={c.id} className="flex flex-wrap items-center gap-3 px-5 py-3">
+                <span className="min-w-0 flex-1"><Link href={`/clients/${c.id}`} className="font-semibold hover:underline">{c.name}</Link>
+                  <span className="block text-xs text-muted-foreground">{c.count} prestation(s) · {formatEUR(c.done)} déjà réalisé(s) à facturer{c.invoiced ? ` · ${formatEUR(c.invoiced)} déjà facturé(s)` : ""}{c.total - c.done - c.invoiced > 0 ? ` · ${formatEUR(c.total - c.done - c.invoiced)} encore à venir` : ""}</span></span>
+                <b>{formatEUR(c.total)} HT</b>
+                <Link href={`/planning?mois=${month}&client=${c.id}`} className="text-xs text-primary hover:underline">Voir ses prestations</Link>
+              </li>
+            ))}</ul>
+          )}
+          <p className="px-5 pb-4 pt-2 text-xs text-muted-foreground">En fin de mois : « Préparer les factures du mois » crée une facture brouillon par client avec ces prestations (et les forfaits). Vous les relisez dans Factures, puis vous validez et envoyez. Les prestations couvertes par un forfait mensuel ne sont pas comptées ici.</p>
+        </Card>
+      )}
 
       {!filtre && (
         <MissionCalendar rows={items} month={month} gridStart={addDays(start, 1 - isoWeekday(start))} gridEnd={addDays(end, 7 - isoWeekday(end))} today={today}
