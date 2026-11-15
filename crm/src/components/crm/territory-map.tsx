@@ -31,7 +31,7 @@ export function TerritoryMap({ points, cities, zone, height = 560 }: { points: T
           .bindPopup(`<b>${esc(p.name)}</b><br>${esc(p.sub)}<br><a href="/veille/territoire?zone=${encodeURIComponent(zone)}&fiche=${p.id}#fiche">Ouvrir la fiche</a>`).addTo(map);
       }
       const pts = points.map((p) => [p.lat, p.lng] as [number, number]);
-      if (pts.length > 1) map.fitBounds(pts, { padding: [30, 30] }); else if (pts.length === 1) map.setView(pts[0], 13); else map.setView([49.05, 2.2], 10);
+      if (pts.length > 1) map.fitBounds(pts, { padding: [30, 30] }); else if (pts.length === 1) map.setView(pts[0], 13); else map.setView(({ "95": [49.08, 2.2], "93": [48.91, 2.45], "94": [48.78, 2.47], "75": [48.857, 2.35] } as Record<string, [number, number]>)[zone] ?? [48.86, 2.35], 10);
     })();
     return () => { dead = true; map?.remove(); };
   }, [points, cities, zone]);

@@ -22,7 +22,7 @@ const pct = (n: number) => `${String(n).replace(".", ",")} %`;
 export default async function TerritoryPage({ searchParams }: { searchParams: { zone?: string; etat?: string; secteur?: string; ville?: string; fiche?: string; ok?: string; error?: string } }) {
   const sb = createClient();
   const { data: zs, error: zErr } = await sb.from("territory_zones").select("*").order("rank");
-  if (zErr) return (<><PageHeader title="Territoire commercial" /><Card><Empty>Le territoire s&apos;installe : réessayez dans une minute.</Empty></Card></>);
+  if (zErr) return (<><PageHeader title="Territoire commercial" subtitle="Les entreprises à prospecter, zone par zone." /><div role="alert" className="mb-4 rounded-md bg-amber-50 p-3 text-sm font-medium text-amber-900">La carte est prête, mais la liste des entreprises ne peut pas encore se charger : il manque une autorisation sur la base de données. Demandez à l&apos;assistant de relancer l&apos;installation du territoire, puis cliquez sur « Autoriser ».</div><Card className="p-3"><TerritoryMapLazy points={[]} cities={[]} zone="95" /></Card></>);
   const zones = (zs ?? []) as any[];
   const zone = zones.find((z) => z.code === searchParams.zone) ?? zones.find((z) => z.status === "active") ?? zones[0];
   if (!zone) return (<><PageHeader title="Territoire commercial" /><Card><Empty>Aucune zone. Ajoutez un département ci-dessous.</Empty></Card></>);
@@ -87,7 +87,8 @@ export default async function TerritoryPage({ searchParams }: { searchParams: { 
           {SECTOR_KEYS.filter((k) => all.some((p) => p.sector === k)).map((k) => <Link key={k} href={q({ secteur: k, fiche: null })} className={`rounded-full border px-3 py-1 ${secteur === k ? "border-foreground bg-foreground text-background" : "hover:bg-secondary"}`}>{SECTORS[k].label}</Link>)}
           {ville && <Link href={q({ ville: null })} className="rounded-full border border-foreground bg-foreground px-3 py-1 text-background">{ville} ✕</Link>}
         </div>
-        {!all.length ? <Empty>Aucun établissement chargé pour {zone.label}. Utilisez « Charger les entreprises » ci-dessous.</Empty> : <TerritoryMapLazy points={mapPoints} cities={mapCities} zone={zone.code} />}
+        {!all.length && <div className="mb-3 rounded-md bg-amber-50 p-3 text-sm font-medium text-amber-900">La carte est vide : aucune entreprise n&apos;est encore chargée pour {zone.label}. Descendez jusqu&apos;à « Charger les entreprises », choisissez un secteur et cliquez sur « Charger ».</div>}
+        <TerritoryMapLazy points={mapPoints} cities={mapCities} zone={zone.code} />
         <p className="mt-2 px-1 text-xs text-muted-foreground">Gris : à prospecter · orange : prospect ou devis en cours · vert : client. Les cercles montrent les communes, d&apos;autant plus verts qu&apos;elles sont couvertes. {shown.length} établissement(s) affiché(s){shown.length - located.length > 0 ? `, dont ${shown.length - located.length} sans position connue (absents de la carte)` : ""}{located.length > 6000 ? " ; la carte en montre 6 000" : ""}. Source : annuaire officiel des entreprises.</p>
       </Card>
 

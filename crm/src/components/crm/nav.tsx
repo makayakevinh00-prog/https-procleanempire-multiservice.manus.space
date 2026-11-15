@@ -24,7 +24,7 @@ const GROUPS: Group[] = [
     { href: "/activites", label: "Activités", icon: PieChart },
     { href: "/veille/territoire", label: "Territoire", icon: MapPin },
     { href: "/veille", label: "Veille concurrentielle", icon: Radar },
-    { href: "/croissance", label: "Croissance", icon: TrendingUp }
+    { href: "/croissance", label: "Croissance", icon: TrendingUp, children: [{ href: "/croissance/aides", label: "Aides publiques" }] }
   ] },
   { title: "Opérations", items: [
     { href: "/missions", label: "Missions", icon: ClipboardList },
