@@ -9,14 +9,15 @@ Source : indications du dirigeant, 5 novembre 2026. À tenir à jour.
 | Île-de-France Recyclage | 300 € HT / mois | contrat actif |
 | SARB Optique | 564 € TTC / mois (470 € HT) | contrat actif |
 | Hélène Despic / Easy Stay (conciergerie Lyon) | ménage Airbnb à la prestation, depuis le 15/09/2026 | voir point ouvert ci-dessous |
-| Ahmed El Youssfi (Paris 16e) | 9 % de gestion + forfait ménage 155 € TTC / séjour, révision en décembre | actif, **contact réservé** |
+| Ahmed El Youssfi (Paris 16e) | 9 % de gestion + forfait ménage 155 € TTC / séjour, révision en décembre | actif ; n'est plus « contact réservé » depuis le 05/11/2026 (retiré par le dirigeant) : factures et relances automatiques actives |
 | Concierg'Air | contrat résilié en octobre 2026 | **ne plus inclure dans les rapports, ne plus relancer** |
 
 ## Règles de facturation
 - Factures des contrats : le **27 de chaque mois**.
 - Factures des conciergeries : **par passage**, générées automatiquement depuis le planning.
 - Validation manuelle des factures ; confirmation au-dessus de 1 500 € HT.
-- Axonaut est résilié depuis fin octobre 2026 : ce CRM est le seul outil.
+- Axonaut devait être résilié fin octobre 2026 : ce CRM est le seul outil.
+- Constat du 15/11/2026 : Axonaut envoie encore ses relances automatiques (expéditeur `…@axonaut.fr`, factures F2610-…), en doublon de celles du CRM. Les e-mails d'Axonaut portent le nom du dirigeant deux fois (dernière ligne du texte de relance + signature Axonaut). À couper dans Axonaut par le dirigeant : clé à molette › Modèles › « Textes pour les factures (envois, relances…) » › décocher « envoi automatique de la relance ». Les relances du CRM, elles, sont signées « ProClean Empire », sans nom de personne.
 
 ## Équipe
 - Agent de ménage : Esma Nouali (fiche créée dans Équipe).
