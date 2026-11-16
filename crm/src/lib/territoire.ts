@@ -86,3 +86,6 @@ export function byCity(points: Point[]) {
   }
   return [...m.values()].map((c) => ({ city: c.city, total: c.total, clients: c.clients, enCours: c.enCours, pct: coverage(c.clients, c.total), lat: c.n ? c.lat / c.n : null, lng: c.n ? c.lng / c.n : null })).sort((a, b) => b.total - a.total);
 }
+
+/** Départements d'Île-de-France proposés sur la carte. */
+export const IDF: Record<string, string> = { "75": "Paris", "77": "Seine-et-Marne", "78": "Yvelines", "91": "Essonne", "92": "Hauts-de-Seine", "93": "Seine-Saint-Denis", "94": "Val-de-Marne", "95": "Val-d'Oise" };

@@ -348,6 +348,22 @@ export async function loadTerritoryAction(fd: FormData) {
   terBack(zone!, "ok", `${added} établissement${added > 1 ? "s" : ""} chargé${added > 1 ? "s" : ""} (${SECTORS[sec].label}).${done_ ? " Ce secteur est complet." : " Il en reste : cliquez de nouveau sur « Charger » pour la suite."}${err ? ` Arrêt : ${err}` : ""}`);
 }
 
+/** Enregistre des établissements lus dans l'annuaire officiel par le navigateur (la carte les charge elle-même). Rien n'est cru sur parole : chaque champ est revalidé. */
+export async function saveTargetsAction(zone: string, sector: string, rows: TargetRow[]): Promise<{ saved: number; error?: string }> {
+  await requireAccess("veille");
+  const z = zoneCode(zone);
+  if (!z || !isSector(sector) || !Array.isArray(rows)) return { saved: 0, error: "Données invalides." };
+  const num = (v: unknown, lo: number, hi: number) => { const n = Number(v); return Number.isFinite(n) && n >= lo && n <= hi ? n : null; };
+  const clean = rows.slice(0, 300).filter((r) => r && /^\d{14}$/.test(String(r.siret)) && /^\d{9}$/.test(String(r.siren)) && String(r.name ?? "").trim() && String(r.postal_code ?? "").startsWith(z)).map((r) => ({
+    siret: String(r.siret), siren: String(r.siren), name: String(r.name).slice(0, 180), naf_code: r.naf_code ? String(r.naf_code).slice(0, 10) : null, headcount: r.headcount ? String(r.headcount).slice(0, 3) : null,
+    address: r.address ? String(r.address).slice(0, 200) : null, postal_code: String(r.postal_code), city: r.city ? String(r.city).slice(0, 100) : null, dept: z, lat: num(r.lat, 41, 52), lng: num(r.lng, -6, 10), sector, updated_at: new Date().toISOString()
+  }));
+  if (!clean.length) return { saved: 0 };
+  const up = await createClient().from("territory_targets").upsert(clean, { onConflict: "siret", ignoreDuplicates: false });
+  if (up.error) return { saved: 0, error: dbMessage(up.error) };
+  return { saved: clean.length };
+}
+
 /** Écarter un établissement de la prospection (ou le remettre) : il ne compte plus dans le pourcentage. */
 export async function excludeTargetAction(zone: string, siret: string, excluded: boolean) {
   await requireAccess("veille");
