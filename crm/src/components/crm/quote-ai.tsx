@@ -64,7 +64,7 @@ export function QuoteAi({ clients }: { clients: { id: string; name: string }[] }
           {est.zones.length > 0 && <div><b>Zones et tâches</b><ul className="list-disc pl-5">{est.zones.map((z, i) => <li key={i}><b>{z.zone}</b> : {z.tasks}</li>)}</ul></div>}
           {est.products.length > 0 && <div><b>Produits et matériel à prévoir / acheter</b><ul className="list-disc pl-5">{est.products.map((p, i) => <li key={i}>{p.name} — {p.qty}</li>)}</ul></div>}
           {est.questions.length > 0 && <div><b>À demander au client pour chiffrer juste</b><ul className="list-disc pl-5">{est.questions.map((x, i) => <li key={i}>{x}</li>)}</ul></div>}
-          <Link href={client ? `/devis/new?client=${client}` : "/devis/new"} className="inline-flex h-10 items-center rounded-md bg-foreground px-5 font-medium text-background">Faire le devis avec ces chiffres</Link>
+          <Link href={`/devis/new?${new URLSearchParams({ ...(client ? { client } : {}), objet: `Nettoyage — ${est.frequency || "passage"}`.slice(0, 120), ...(floor ? { prix: String(floor), heures: String(hours) } : {}), note: [est.summary, ...est.zones.map((z) => `${z.zone} : ${z.tasks}`)].join("\n").slice(0, 1200) })}`} className="inline-flex h-10 items-center rounded-md bg-foreground px-5 font-medium text-background">Faire le devis avec ces chiffres</Link>
           <p className="text-xs text-muted-foreground">L&apos;IA estime d&apos;après les photos : à vérifier sur place. Le prix ne descend jamais sous 27 € HT de l&apos;heure.</p>
         </div>
       )}

@@ -24,6 +24,9 @@ export default async function SitePage({ params }: { params: { id: string } }) {
     supabase.from("mission_issues").select("*").eq("site_id", s.id).order("created_at", { ascending: false }).limit(20),
     supabase.from("clients").select("id, name").order("name")
   ]);
+  const { data: media } = await supabase.from("site_media").select("id, kind, path, created_at, staff:staff_id(full_name)").eq("site_id", s.id).eq("uploaded", true).order("created_at", { ascending: false }).limit(24);
+  const signed = ((media ?? []) as any[]).length ? (await supabase.storage.from("site-media").createSignedUrls(((media ?? []) as any[]).map((m) => m.path), 3600)).data ?? [] : [];
+  const urlOf = new Map(signed.map((x) => [x.path, x.signedUrl]));
   const back = `/sites/${s.id}`;
   return (
     <>
@@ -53,6 +56,19 @@ export default async function SitePage({ params }: { params: { id: string } }) {
             ))}
           </div>
           <p className="mt-2 text-xs text-muted-foreground">Chaque nouvelle mission de ce site reçoit cette check-list, pièce par pièce.</p>
+        </div>
+      )}
+      {((media ?? []) as any[]).length > 0 && (
+        <div className="mb-4">
+          <h2 className="mb-2 text-[15px] font-semibold">Vidéos et photos du site ({(media ?? []).length})</h2>
+          <div className="grid gap-3 md:grid-cols-2">
+            {((media ?? []) as any[]).map((m) => urlOf.get(m.path) ? (
+              <Card key={m.id}><CardContent className="space-y-2 py-3">
+                {m.kind === "video" ? <video src={urlOf.get(m.path) ?? undefined} controls preload="metadata" className="w-full rounded-lg bg-black" /> : <img src={urlOf.get(m.path) ?? undefined} alt="" className="w-full rounded-lg" />}
+                <div className="text-xs text-muted-foreground">{new Date(m.created_at).toLocaleDateString("fr-FR")}{m.staff?.full_name ? ` · ${m.staff.full_name}` : ""}</div>
+              </CardContent></Card>
+            ) : null)}
+          </div>
         </div>
       )}
       {s.lat != null && s.lng != null ? (

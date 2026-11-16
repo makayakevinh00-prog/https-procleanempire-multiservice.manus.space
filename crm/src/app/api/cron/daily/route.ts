@@ -79,21 +79,12 @@ export async function GET(req: Request) {
       photos = { candidates: items.length, sent };
     } catch (e) { photos = { error: (e as Error).message }; }
   }
-  // Premier passage de l'entreprise sur un site demain : une tâche pour le patron (enregistrer le site : photos, vidéo, particularités).
-  let premiers: unknown = "non configuré";
-  if (!opts.dryRun && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  // Premier passage de l'entreprise sur un site demain : une tâche pour le patron (enregistrer le site : vidéo, photos, particularités).
+  let premiers: unknown = "ignoré";
+  if (!opts.dryRun) {
     try {
-      const sb = createAdmin(), tomorrow = addDays(parisToday(), 1);
-      const { data: next } = await sb.from("interventions").select("id, site_id, scheduled_date, start_time, clients(name), sites(name)").eq("scheduled_date", tomorrow).not("site_id", "is", null).neq("stage", "annulee");
-      let created = 0;
-      for (const m of (next ?? []) as any[]) {
-        const { count } = await sb.from("interventions").select("id", { count: "exact", head: true }).eq("site_id", m.site_id).lt("scheduled_date", tomorrow).in("stage", ["terminee", "a_verifier", "validee", "facturable", "facturee"]);
-        if (count) continue;
-        const who = m.sites?.name ?? m.clients?.name ?? "un site";
-        const ins = await sb.from("jarvis_tasks").insert({ agent_key: "core", priority: "haute", dedupe_key: `premier-passage:${m.site_id}`, title: `Premier passage demain chez ${who} : enregistrer le site`, detail: `Demain ${tomorrow}${m.start_time ? ` à ${String(m.start_time).slice(0, 5)}` : ""}, premier passage de l'entreprise chez ${m.clients?.name ?? who}. Faire photographier chaque zone par l'agent (« Photo avant »), noter accès, alarme, matériel sur place et points délicats dans la fiche du site (Sites), puis comparer avec l'IA ce qui peut être amélioré.` });
-        if (!ins.error) created++;
-      }
-      premiers = { created };
+      const r = await automationClient().rpc("automation_first_visit_tasks", { p_secret: automationSecret(), p_day: addDays(parisToday(), 1) });
+      premiers = r.error ? { error: r.error.message } : { created: r.data };
     } catch (e) { premiers = { error: (e as Error).message }; }
   }
   return Response.json({ automation, qonto, concierge, nettoyeurs, photos, premiers });
