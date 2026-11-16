@@ -8,6 +8,7 @@ import { PhotoButton } from "@/components/crm/photo-button";
 import { dayLabel, dict } from "@/lib/field-ui";
 import { StagePill } from "@/components/agent/stage-pill";
 import { Invalid } from "@/components/agent/invalid";
+import { ArrivalAssistant } from "@/components/agent/arrival";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Mission — ProClean Empire", robots: { index: false, follow: false }, referrer: "no-referrer" };
@@ -26,6 +27,13 @@ export default async function MissionPage({ params, searchParams }: { params: { 
   if (error) return <Invalid t={t} text={agentMessage(error.message)} />;
   const m = (data as { mission: AgentMission }).mission;
   const nextStage = NEXT[m.stage];
+  // Rappel du process : seulement si la personne n'a encore jamais terminé de mission (première connexion) ou jamais travaillé sur ce lieu.
+  const DONE = ["terminee", "a_verifier", "validee", "facturable", "facturee"];
+  const { data: rep } = await agentClient().rpc("agent_report", { p_token: token });
+  const past = ((rep as { recent?: { id: string; site: string | null; client: string; stage: string }[] } | null)?.recent ?? []).filter((r) => r.id !== m.id && DONE.includes(r.stage));
+  const briefing: "first" | "site" | null = !rep ? null : past.length === 0 ? "first" : past.some((r) => r.client === m.client && r.site === m.site) ? null : "site";
+  const todayParis = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Paris" });
+  const autoArrive = m.date === todayParis && ["planifiee", "affectee", "en_route"].includes(m.stage) && !m.arrived_at;
   const done = m.checklist.filter((c) => c.done).length;
   const editable = ["planifiee", "affectee", "en_route", "arrivee", "en_cours"].includes(m.stage);
   const finished = ["terminee", "a_verifier", "validee", "facturable", "facturee"].includes(m.stage);
@@ -36,6 +44,8 @@ export default async function MissionPage({ params, searchParams }: { params: { 
       <Link href={`/agent/${token}?d=${m.date}`} className="inline-flex items-center gap-1 text-[15px] font-bold text-[var(--a-pri)]"><ChevronLeft className="h-5 w-5" />{t.back}</Link>
       {searchParams.error && <div role="alert" className="rounded-2xl bg-[var(--a-badbg)] p-3 text-sm font-semibold text-[var(--a-bad)]">{searchParams.error}</div>}
       {searchParams.ok && <div role="status" className="rounded-2xl bg-[var(--a-okbg)] p-3 text-sm font-semibold text-[var(--a-ok)]">{searchParams.ok}</div>}
+
+      {(autoArrive || briefing) && <ArrivalAssistant checkIn={agentCheckInAction.bind(null, token, m.id)} auto={autoArrive} briefing={briefing} site={m.site ?? m.client} storeKey={`ap-brief-${token.slice(0, 8)}-${briefing}-${m.client}-${m.site ?? ""}`} />}
 
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
