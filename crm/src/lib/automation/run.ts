@@ -93,7 +93,10 @@ export async function runDaily(deps: Deps, opts: RunOptions = {}): Promise<Repor
     .map((k: any) => k.label);
   if (settings.auto_planning_enabled && !opts.dryRun) {
     try {
-      for (const m of [monthOf(today), nextMonth(monthOf(today))]) {
+      // Agenda toujours plein : 12 mois devant (chaque contrat s'arrête à sa propre fin).
+      const months: string[] = [monthOf(today)];
+      while (months.length < 13) months.push(nextMonth(months[months.length - 1]!));
+      for (const m of months) {
         const visits = contractVisits(contracts, m);
         if (visits.length) report.planning.created += Number(await call("automation_insert_interventions", { p_rows: visits })) || 0;
       }

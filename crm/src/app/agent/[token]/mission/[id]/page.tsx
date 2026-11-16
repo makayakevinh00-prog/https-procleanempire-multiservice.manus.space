@@ -8,6 +8,7 @@ import { PhotoButton } from "@/components/crm/photo-button";
 import { dayLabel, dict } from "@/lib/field-ui";
 import { StagePill } from "@/components/agent/stage-pill";
 import { Invalid } from "@/components/agent/invalid";
+import { AiHelp } from "@/components/agent/ai-help";
 import { ArrivalAssistant } from "@/components/agent/arrival";
 
 export const dynamic = "force-dynamic";
@@ -94,6 +95,8 @@ export default async function MissionPage({ params, searchParams }: { params: { 
       )}
       {finished && <div className="rounded-2xl bg-[var(--a-okbg)] p-3 text-center text-sm font-bold text-[var(--a-ok)]">{m.stage === "terminee" || m.stage === "a_verifier" ? t.finishedWait : t.checked}</div>}
       {m.open_issues > 0 && <div className="flex items-center gap-2 text-sm font-bold text-[var(--a-warn)]"><AlertTriangle className="h-4 w-4" />{t.issuesOpen(m.open_issues)}</div>}
+
+      {editable && <AiHelp token={token} mission={m.id} />}
 
       {(editable || m.stage === "terminee") && (
         <details className="rounded-2xl border border-[var(--a-line)]">

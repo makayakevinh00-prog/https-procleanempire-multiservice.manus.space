@@ -258,13 +258,13 @@ describe("automatisation quotidienne", () => {
   });
 
   describe("planning, expiration, alertes, journal", () => {
-    it("génère le planning du mois et du suivant depuis les contrats avec jours de passage (rejouable)", async () => {
+    it("génère le planning des 13 prochains mois depuis les contrats avec jours de passage (rejouable)", async () => {
       const k = contract({ id: "k2", weekdays: [3], assignee: "Agent A", start_time: "08:00" });
       const f = fake({ contracts: [k] });
       f.deps.now = new Date("2026-11-16T18:00:00Z");
       const r = await runDaily(f.deps);
       const call = f.calls.filter((c) => c.name === "automation_insert_interventions");
-      expect(call).toHaveLength(2); // novembre + décembre
+      expect(call).toHaveLength(13); // novembre 2026 → novembre 2027
       expect(call[0].args.p_rows[0]).toMatchObject({ source_key: "contract:k2:2026-11-04", assignee: "Agent A", billable: false });
       expect(r.planning.created).toBeGreaterThan(5);
     });

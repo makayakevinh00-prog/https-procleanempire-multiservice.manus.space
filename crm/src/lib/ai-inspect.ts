@@ -63,13 +63,19 @@ export function aiErrorLabel(status: number, body: string): string {
 type Part = { type: "text"; text: string } | { type: "image"; source: { type: "base64"; media_type: string; data: string } };
 const imgs = (images: Img[]): Part[] => images.flatMap((i): Part[] => [...(i.room ? [{ type: "text" as const, text: `Pièce : ${str(i.room, 60)}` }] : []), { type: "image", source: { type: "base64", media_type: i.content_type, data: i.b64 } }]);
 
-async function ask(content: Part[]): Promise<{ text: string | null; error: string | null }> {
+export type AiPart = Part;
+export const aiImages = imgs;
+const CLEANING_SYSTEM = "Tu contrôles la propreté de logements de location courte durée pour une entreprise de ménage. Tu décris uniquement ce que tu vois sur les photos ; tu n'inventes rien. Réponds uniquement par un objet JSON valide, en français.";
+async function ask(content: Part[]) { return askWith(CLEANING_SYSTEM, content, 1400); }
+
+/** Appel Anthropic générique (photos + consigne) : même clé, mêmes messages d'erreur que le contrôle des ménages. */
+export async function askWith(system: string, content: Part[], maxTokens: number): Promise<{ text: string | null; error: string | null }> {
   const key = process.env.ANTHROPIC_API_KEY?.trim();
   if (!key) return { text: null, error: "clé d'API absente du serveur (ANTHROPIC_API_KEY)" };
   if (!content.some((c) => c.type === "image")) return { text: null, error: "aucune photo à analyser" };
   const body = JSON.stringify({
-    model: process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5", max_tokens: 1400,
-    system: "Tu contrôles la propreté de logements de location courte durée pour une entreprise de ménage. Tu décris uniquement ce que tu vois sur les photos ; tu n'inventes rien. Réponds uniquement par un objet JSON valide, en français.",
+    model: process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5", max_tokens: maxTokens,
+    system,
     messages: [{ role: "user", content }]
   });
   const call = (auth: Record<string, string>) => fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: AbortSignal.timeout(50_000), headers: { ...auth, "anthropic-version": "2023-06-01", "content-type": "application/json" }, body });

@@ -16,6 +16,8 @@ const FIRST = [
 ];
 const SITE = [
   "Nouveau lieu pour vous : lisez l'accès et les consignes ci-dessous avant de commencer.",
+  "Si c'est la première fois que l'entreprise intervient ici : photographiez chaque zone (« Photo avant ») pour que le site soit enregistré dans le CRM, avec ses particularités.",
+  "Un endroit difficile ? Utilisez « Je suis bloqué » : photographiez, l'aide vous explique comment faire et avec quels produits.",
   "Photos AVANT de chaque pièce avant de toucher à quoi que ce soit, puis photos APRÈS à la fin.",
   "Un doute, un dégât, un objet oublié : signalez-le avec une photo.",
 ];

@@ -34,7 +34,7 @@ export default async function QuotesPage({ searchParams }: { searchParams: { sta
   return (
     <>
       <PageHeader title="Devis" subtitle="Préparez, envoyez et suivez vos devis. Un devis accepté peut devenir un contrat puis une facture en un clic."
-        actions={<Link href="/devis/new" className={cn(buttonVariants({}))}><Plus className="h-5 w-5" /> Nouveau devis</Link>} />
+        actions={<><Link href="/devis/ia" className={cn(buttonVariants({ variant: "outline" }))}>Devis avec l&apos;IA (photos)</Link><Link href="/devis/new" className={cn(buttonVariants({}))}><Plus className="h-5 w-5" /> Nouveau devis</Link></>} />
 
       <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Stat label="Brouillons" value={by("brouillon").length} sub={`${formatEUR(sum(by("brouillon")))} HT`} tone="slate" icon={FilePen} href="/devis?statut=brouillon" />
