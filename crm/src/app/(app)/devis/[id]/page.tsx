@@ -21,6 +21,7 @@ export default async function QuotePage({ params }: { params: { id: string } }) 
     .select("*, clients(id, name, email, is_reserved, reserved_reason), quote_lines(*), invoices:invoice_id(id, number, status)").eq("id", params.id).maybeSingle();
   if (!q) notFound();
   const settings = await getSettings(supabase);
+  const { data: sigs } = await supabase.from("signature_requests").select("id, status, signer_email, signer_name, signed_at, created_at").eq("quote_id", q.id).order("created_at", { ascending: false }).limit(5);
   const { data: mails } = await supabase.from("email_log").select("id, sent_at, kind, to_email, ok, error").eq("entity", "quote").eq("entity_id", q.id).order("sent_at", { ascending: false }).limit(10);
   const c = q.clients;
   const lines = [...q.quote_lines].sort((a: any, b: any) => a.position - b.position);
@@ -121,6 +122,12 @@ export default async function QuotePage({ params }: { params: { id: string } }) 
               {linked?.status === "annule" && <p className="text-xs text-muted-foreground">La facture précédente est annulée : une nouvelle peut être créée.</p>}
             </CardContent>
           </Card>
+          {!!sigs?.length && (
+            <div className="rounded-lg border bg-white p-3 text-sm">
+              <div className="mb-1 font-semibold">Signature en ligne</div>
+              <ul className="space-y-1 text-xs text-muted-foreground">{(sigs as any[]).map((x) => <li key={x.id}>{new Date(x.created_at).toLocaleDateString("fr-FR")} · {x.signer_email} · <b>{x.status === "signe" ? `signé le ${new Date(x.signed_at).toLocaleDateString("fr-FR")} par ${x.signer_name}` : x.status === "en_attente" ? "en attente de signature" : x.status}</b>{x.status === "signe" && <> · <a className="text-primary underline" href={`/api/signature/${x.id}/pdf`}>document signé</a></>}</li>)}</ul>
+            </div>
+          )}
           {!!mails?.length && (
             <Card>
               <CardHeader><CardTitle>Historique des envois</CardTitle></CardHeader>

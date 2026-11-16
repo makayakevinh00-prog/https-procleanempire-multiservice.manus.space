@@ -17,12 +17,12 @@ ${paragraphs.map((p) => `<p style="margin:0 0 14px">${esc(p).replace(/\n/g, "<br
 /** Signature d'un e-mail client : le service concerné, jamais le nom d'une personne. */
 const sign = (company: string, service: Service, phone?: string | null) => signatureLines(company, service, phone);
 
-export function quoteEmail(a: { company: string; phone?: string | null; clientName: string; number: string; subject?: string | null; totalTtc: string; validUntil?: string | null }): Mail {
+export function quoteEmail(a: { company: string; phone?: string | null; clientName: string; number: string; subject?: string | null; totalTtc: string; validUntil?: string | null; signUrl?: string | null }): Mail {
   const subject = `Devis ${a.number}${a.subject ? ` — ${a.subject}` : ""} — ${a.company}`;
   const body = wrap(a.company, [
     "Bonjour,",
     `Suite à votre demande, veuillez trouver ci-joint notre devis ${a.number}${a.subject ? ` (${a.subject})` : ""}, d'un montant de ${a.totalTtc} TTC${a.validUntil ? `, valable jusqu'au ${a.validUntil}` : ""}.`,
-    "Pour l'accepter, il vous suffit de nous le retourner signé avec la mention « bon pour accord », ou de répondre simplement à ce message. Nous restons à votre disposition pour toute question ou pour adapter la prestation.",
+    a.signUrl ? `Pour l'accepter, signez-le directement en ligne, sans impression : ${a.signUrl} (lien personnel, valable 30 jours). Nous restons à votre disposition pour toute question ou pour adapter la prestation.` : "Pour l'accepter, il vous suffit de nous le retourner signé avec la mention « bon pour accord », ou de répondre simplement à ce message. Nous restons à votre disposition pour toute question ou pour adapter la prestation.",
     "Cordialement,"
   ], sign(a.company, "commercial", a.phone));
   return { subject, ...body, fromName: senderName(a.company, "commercial") };
@@ -160,4 +160,30 @@ export function photoReminderEmail(a: { company: string; phone?: string | null; 
     "Cordialement,"
   ], signatureLines(a.company, "entreprise", a.phone));
   return { subject, ...body, fromName: senderName(a.company, "entreprise") };
+}
+
+/** Demande de signature en ligne d'un devis ou d'un contrat (le document est aussi joint pour être lu). Service commercial. */
+export function signatureRequestEmail(a: { company: string; phone?: string | null; kind: "devis" | "contrat"; number: string; title?: string | null; url: string; days: number }): Mail {
+  const what = a.kind === "devis" ? "devis" : "contrat";
+  const subject = `${a.kind === "devis" ? "Devis" : "Contrat"} ${a.number} à signer en ligne — ${a.company}`;
+  const body = wrap(a.company, [
+    "Bonjour,",
+    `Veuillez trouver ci-joint notre ${what} ${a.number}${a.title ? ` (${a.title})` : ""}.`,
+    `Vous pouvez le signer directement en ligne, sans impression ni scan : ${a.url}`,
+    `Le lien est personnel et valable ${a.days} jours. Vous recevrez le document signé par e-mail. Une question ou une modification à demander ? Répondez simplement à ce message.`,
+    "Cordialement,"
+  ], sign(a.company, "commercial", a.phone));
+  return { subject, ...body, fromName: senderName(a.company, "commercial") };
+}
+
+/** Confirmation au signataire, document signé en pièce jointe. */
+export function signatureDoneEmail(a: { company: string; phone?: string | null; kind: "devis" | "contrat"; number: string; name: string }): Mail {
+  const subject = `${a.kind === "devis" ? "Devis" : "Contrat"} ${a.number} signé — ${a.company}`;
+  const body = wrap(a.company, [
+    `Bonjour ${a.name.split(" ")[0]},`,
+    `Nous avons bien reçu votre signature : ${a.kind === "devis" ? "le devis" : "le contrat"} ${a.number} est signé. Vous le trouverez en pièce jointe, avec son certificat de signature.`,
+    a.kind === "devis" ? "Nous revenons vers vous très vite pour planifier la prestation." : "Merci de votre confiance : nous organisons le démarrage avec vous.",
+    "Cordialement,"
+  ], sign(a.company, "commercial", a.phone));
+  return { subject, ...body, fromName: senderName(a.company, "commercial") };
 }

@@ -58,7 +58,7 @@ async function allActions() {
 
 describe("actions serveur appelées directement", () => {
   it("un compte connecté qui n'est PAS le dirigeant est refusé par CHAQUE action du CRM, sans aucun accès aux données", async () => {
-    const actions = (await allActions()).filter((a) => a.file !== "agent.ts" && a.file !== "nettoyeur.ts");
+    const actions = (await allActions()).filter((a) => a.file !== "agent.ts" && a.file !== "nettoyeur.ts" && a.file !== "signer.ts");
     expect(actions.length).toBeGreaterThanOrEqual(80); // 75 du CRM + 5 de JARVIS : le test ne doit jamais se vider
     const fuites: string[] = [];
     for (const a of actions) {
@@ -71,7 +71,7 @@ describe("actions serveur appelées directement", () => {
 
   it("sans session, c'est la même chose", async () => {
     h.user = false;
-    const actions = (await allActions()).filter((a) => a.file !== "agent.ts" && a.file !== "nettoyeur.ts");
+    const actions = (await allActions()).filter((a) => a.file !== "agent.ts" && a.file !== "nettoyeur.ts" && a.file !== "signer.ts");
     const ouvertes: string[] = [];
     for (const a of actions) { h.calls = []; if (!(await run(a.fn))?.includes("ACCES_REFUSE") || h.calls.length) ouvertes.push(`${a.file}#${a.name}`); }
     expect(ouvertes).toEqual([]);
@@ -79,7 +79,7 @@ describe("actions serveur appelées directement", () => {
 
   it("le dirigeant conserve l'accès à CHAQUE action : aucune n'est bloquée par la garde", async () => {
     h.owner = true;
-    const actions = (await allActions()).filter((a) => a.file !== "agent.ts" && a.file !== "nettoyeur.ts");
+    const actions = (await allActions()).filter((a) => a.file !== "agent.ts" && a.file !== "nettoyeur.ts" && a.file !== "signer.ts");
     const bloquees: string[] = [];
     for (const a of actions) { const msg = await run(a.fn); if (msg?.includes("ACCES_REFUSE")) bloquees.push(`${a.file}#${a.name}`); }
     expect(bloquees).toEqual([]);
@@ -93,6 +93,13 @@ describe("actions serveur appelées directement", () => {
       expect(msg, name).toBe("REDIRECT:/nettoyeur/invalide");
       expect(h.calls, name).toEqual([]);
     }
+  });
+  it("les actions de signature en ligne refusent un lien invalide sans interroger la base", async () => {
+    const mod: any = await import("../src/app/actions/signer");
+    h.calls = [];
+    expect(await mod.signDocumentAction("pas-un-lien", "Jean Dupont", "data:image/png;base64,AAAA", true)).toEqual({ error: "Lien invalide." });
+    expect(await mod.refuseDocumentAction("pas-un-lien", "non")).toEqual({ error: "Lien invalide." });
+    expect(h.calls).toEqual([]);
   });
   it("les actions de l'application des agents refusent un jeton invalide sans interroger la base", async () => {
     const mod: any = await import("../src/app/actions/agent");

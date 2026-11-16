@@ -1,5 +1,6 @@
 "use server";
 
+import { createSignatureRequest } from "@/lib/signature-server";
 import { requireAccess, requireOwner } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
@@ -104,7 +105,9 @@ export async function sendQuoteEmailAction(id: string, fd: FormData) {
   if (sentJustNow(q.sent_at, null, [to!])) flash(back, "ok", `Devis ${q.number} déjà envoyé il y a moins de deux minutes : pas de second envoi.`);
   const pdf = await buildPdf("devis", id, { sent: true });
   if (!pdf) flash(back, "error", "PDF introuvable.");
-  const mail = quoteEmail({ company: settings.company_name, phone: settings.company_phone, clientName: q.clients.name, number: q.number, subject: q.subject, totalTtc: formatEUR(q.total_ttc), validUntil: q.valid_until ? formatDate(q.valid_until) : null });
+  // Signature en ligne : un lien personnel est ajouté au mail (si la préparation échoue, le devis part quand même, à signer à l'ancienne).
+  const sig = await createSignatureRequest("devis", id, to!).catch(() => null);
+  const mail = quoteEmail({ company: settings.company_name, phone: settings.company_phone, clientName: q.clients.name, number: q.number, subject: q.subject, totalTtc: formatEUR(q.total_ttc), validUntil: q.valid_until ? formatDate(q.valid_until) : null, signUrl: sig && "url" in sig ? sig.url : null });
   const res = await sendMail({ to: to!, subject: mail.subject, text: mail.text, html: mail.html, fromName: mail.fromName, attachment: { filename: pdf!.filename, bytes: pdf!.bytes } });
   await logEmail(supabase, { kind: "devis", to: to!, subject: mail.subject, ok: res.sent, error: res.sent ? undefined : res.reason, entity: "quote", entityId: id });
   if (!res.sent) flash(back, "error", `Le devis n'a PAS été envoyé : ${res.reason}.`);
