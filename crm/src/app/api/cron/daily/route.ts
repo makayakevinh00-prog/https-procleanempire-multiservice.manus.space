@@ -6,6 +6,7 @@ import { runConcierge } from "@/lib/concierge/run";
 import { addDays, isoWeekday, parisToday } from "@/lib/domain/dates";
 import { automationClient, automationSecret } from "@/lib/automation/deps";
 import { sendMail, mailConfigured } from "@/lib/mail";
+import { photoReminderEmail } from "@/lib/mail-templates";
 import { syncMarketplace } from "@/lib/marketplace/sync";
 
 export const dynamic = "force-dynamic";
@@ -61,5 +62,22 @@ export async function GET(req: Request) {
       nettoyeurs = { sync, unfilled: left.length, payouts };
     } catch (e) { nettoyeurs = { error: (e as Error).message }; }
   }
-  return Response.json({ automation, qonto, concierge, nettoyeurs });
+  // Agents : hier, ni arrivée pointée ni photo, et l'application n'est pas installée → rappel par e-mail (une seule fois par mission).
+  let photos: unknown = "non configuré";
+  if (!opts.dryRun && mailConfigured()) {
+    try {
+      const a = automationClient(), sec = automationSecret(), yesterday = addDays(parisToday(), -1);
+      const r = await a.rpc("automation_photo_reminders", { p_secret: sec, p_day: yesterday });
+      const items = (r.data ?? []) as { intervention_id: string; staff_id: string; name: string; email: string; client: string; address: string | null; date: string; arrived: boolean }[];
+      let sent = 0;
+      for (const it of items) {
+        const day = new Date(`${it.date}T12:00:00`).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
+        const m = photoReminderEmail({ company: "ProClean Empire", name: it.name, client: it.client, address: it.address, date: day, arrived: it.arrived, appUrl: `https://proclean-crm.vercel.app/connexion` });
+        const res = await sendMail({ to: it.email, subject: m.subject, text: m.text, html: m.html, fromName: m.fromName }).catch(() => ({ sent: false as const }));
+        if (res.sent) { sent++; await a.rpc("automation_photo_reminder_done", { p_secret: sec, p_intervention: it.intervention_id, p_staff: it.staff_id }); }
+      }
+      photos = { candidates: items.length, sent };
+    } catch (e) { photos = { error: (e as Error).message }; }
+  }
+  return Response.json({ automation, qonto, concierge, nettoyeurs, photos });
 }

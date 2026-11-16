@@ -8,6 +8,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { geocodeAddress } from "@/lib/geo";
 import { dbMessage, flash, numField, str } from "@/lib/data";
+import { isEmployment } from "@/lib/employment";
 import { isStage, MANUAL_STAGES, STAGE_LABEL } from "@/lib/domain/missions";
 
 /** Retour sûr : uniquement un chemin interne. */
@@ -64,7 +65,8 @@ export async function saveStaffAction(fd: FormData) {
     role: str(fd, "role") === "responsable" ? "responsable" : "agent",
     weekly_capacity_hours: numField(fd, "weekly_capacity_hours"), notes: str(fd, "notes"),
     skills: (str(fd, "skills") ?? "").split(",").map((s) => s.trim()).filter(Boolean),
-    active: str(fd, "active") !== "non"
+    active: str(fd, "active") !== "non",
+    employment: isEmployment(str(fd, "employment")) ? str(fd, "employment") : "salarie"
   };
   const supabase = createClient();
   const { error } = id ? await supabase.from("staff").update(row).eq("id", id) : await supabase.from("staff").insert(row);

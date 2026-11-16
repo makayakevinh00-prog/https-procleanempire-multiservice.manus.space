@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/form";
 import { Badge, ReservedBadge } from "@/components/ui/badge";
 import { addInterventionAction, deleteInterventionAction, generateFromContractsAction, markPastDoneAction, setInterventionStatusAction } from "@/app/actions/planning";
+import { statusByName } from "@/lib/employment";
 import { formatEUR } from "@/lib/utils";
 import { MissionCalendar } from "@/components/crm/mission-calendar";
 
@@ -38,7 +39,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: { v
   else if (searchParams.agent && /^[0-9a-f-]{36}$/i.test(searchParams.agent)) q = q.eq("staff_id", searchParams.agent);
   const [{ data: rows, error }, { data: clients }, services, { data: staffList }] = await Promise.all([
     q, supabase.from("clients").select("id, name, is_reserved").neq("status", "inactif").order("name"), loadServices(supabase),
-    supabase.from("staff").select("id, full_name").eq("active", true).order("full_name")
+    supabase.from("staff").select("id, full_name, employment").eq("active", true).order("full_name")
   ]);
   if (error) throw new Error(error.message);
 
@@ -60,6 +61,8 @@ export default async function PlanningPage({ searchParams }: { searchParams: { v
   const showOwed = searchParams.voir === "passage";
   const nav = (m: string, agent: string | undefined = searchParams.agent) => `/planning?mois=${m}${searchParams.client ? `&client=${searchParams.client}` : ""}${agent ? `&agent=${agent}` : ""}`;
 
+  const { data: cl } = await supabase.from("cleaners").select("full_name, statut_pro");
+  const statuses = statusByName((staffList ?? []) as any[], (cl ?? []) as any[]);
   return (
     <>
       <PageHeader title="Planning" subtitle="Les passages réalisés alimentent la facture mensuelle automatique de chaque client."
@@ -167,7 +170,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: { v
                     <span className="min-w-0 flex-1">
                       <Link href={`/clients/${i.clients.id}`} className="font-medium hover:underline">{i.clients.name}</Link>
                       {i.clients.is_reserved && <ReservedBadge className="ml-2" />}
-                      <span className="block truncate text-muted-foreground">{i.title}{i.assignee ? ` · ${i.assignee}` : ""}{i.duration_hours ? ` · ${num(i.duration_hours)} h` : ""}</span>
+                      <span className="block truncate text-muted-foreground">{i.title}{i.assignee ? ` · ${i.assignee}${statuses.get(i.assignee) ? ` (${statuses.get(i.assignee)})` : ""}` : ""}{i.duration_hours ? ` · ${num(i.duration_hours)} h` : ""}</span>
                     </span>
                     <span className="w-28 text-right">{i.billable && i.unit_price_ht != null ? formatEUR(num(i.unit_price_ht) * num(i.quantity)) : <span className="text-xs text-muted-foreground">forfait</span>}</span>
                     <span className="w-24">

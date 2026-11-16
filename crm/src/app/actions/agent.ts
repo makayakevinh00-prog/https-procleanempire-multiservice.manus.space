@@ -76,3 +76,9 @@ export async function agentRequestDeletionAction(token: string) {
   revalidatePath(PAGE(token, "donnees"));
   redirect(`${PAGE(token, "donnees")}?ok=1`);
 }
+
+/** L'application s'ouvre (installée si ouverte depuis l'écran d'accueil). Silencieux : aucune erreur n'est montrée à l'agent. */
+export async function agentMarkAppAction(token: string, installed: boolean): Promise<void> {
+  guard(token);
+  await agentClient().rpc("agent_mark_app", { p_token: token, p_installed: installed });
+}

@@ -7,6 +7,7 @@ import { generateAgentLinkAction, revokeAgentLinkAction, saveStaffAction } from 
 import { ConfirmAction } from "@/components/crm/confirm-action";
 import { deleteStaffAction } from "@/app/actions/manage";
 import { uploadPayslipAction, deletePayslipAction } from "@/app/actions/nettoyeurs";
+import { EMPLOYMENT, type Employment } from "@/lib/employment";
 import { PageHeader, Empty } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ function StaffFields({ s }: { s?: any }) {
       <Field label="E-mail"><Input name="email" type="email" defaultValue={s?.email ?? ""} /></Field>
       <Field label="Secteur habituel" hint="Ville ou département, pour les suggestions."><Input name="zone" defaultValue={s?.zone ?? ""} placeholder="Paris, 95…" /></Field>
       <Field label="Heures max / semaine"><Input name="weekly_capacity_hours" type="number" step="0.5" min="0" defaultValue={s?.weekly_capacity_hours ?? ""} /></Field>
+      <Field label="Statut *" hint="Salarié(e) de ProClean, ou indépendant(e) / entrepreneur qui nettoie pour vous."><Select name="employment" defaultValue={s?.employment ?? "salarie"}>{(Object.keys(EMPLOYMENT) as Employment[]).map((k) => <option key={k} value={k}>{EMPLOYMENT[k].label}</option>)}</Select></Field>
       <Field label="Rôle"><Select name="role" defaultValue={s?.role ?? "agent"}><option value="agent">Agent</option><option value="responsable">Responsable</option></Select></Field>
       <Field label="Compétences (séparées par des virgules)" className="sm:col-span-2"><Input name="skills" defaultValue={(s?.skills ?? []).join(", ")} placeholder="vitres, Airbnb, bureaux…" /></Field>
       {s && <Field label="Actif"><Select name="active" defaultValue={s.active ? "oui" : "non"}><option value="oui">Oui</option><option value="non">Non (n&apos;est plus proposé)</option></Select></Field>}
@@ -74,7 +76,7 @@ export default async function TeamPage() {
                   <div>
                     <div className="text-base font-bold text-slate-900">{s.full_name}</div>
                     {s.deletion_requested_at && <div role="status" className="mt-1 inline-block rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-900">Demande d&apos;effacement des données reçue le {new Date(s.deletion_requested_at).toLocaleDateString("fr-FR")}</div>}
-                    <div className="text-xs text-slate-500">{s.role === "responsable" ? "Responsable" : "Agent"}{s.zone ? ` · ${s.zone}` : ""}{!s.active ? " · inactif" : ""}</div>
+                    <div className="text-xs text-slate-500"><b className={EMPLOYMENT[(s.employment as Employment) ?? "salarie"]?.independent ? "text-violet-700" : "text-emerald-700"}>{EMPLOYMENT[(s.employment as Employment) ?? "salarie"]?.label ?? "Salarié(e) ProClean"}</b> · {s.role === "responsable" ? "Responsable" : "Agent"}{s.zone ? ` · ${s.zone}` : ""}{!s.active ? " · inactif" : ""}</div>
                   </div>
                   <Link href={`/missions?vue=semaine&agent=${s.id}`} className="text-xs font-semibold text-primary hover:underline">Ses missions</Link>
                 </div>

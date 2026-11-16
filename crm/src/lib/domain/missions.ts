@@ -45,7 +45,7 @@ export function nextStage(s: Stage): Stage | null {
   return flow[s] ?? null;
 }
 
-export type StaffLite = { id: string; full_name: string; zone: string | null; weekly_capacity_hours: number | null; active: boolean };
+export type StaffLite = { id: string; full_name: string; zone: string | null; weekly_capacity_hours: number | null; active: boolean; employment?: string | null };
 export type MissionLite = { id: string; staff_id: string | null; site_id: string | null; scheduled_date: string; start_time: string | null; duration_hours: number | null; stage: string; city?: string | null };
 
 export type Suggestion = { staff: StaffLite; score: number; reasons: string[]; blocking: string[] };

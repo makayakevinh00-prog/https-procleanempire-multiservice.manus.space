@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { employmentShort } from "@/lib/employment";
 import { notFound } from "next/navigation";
 import { CheckSquare, Square, AlertTriangle, History, UserCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -36,7 +37,7 @@ export default async function MissionPage({ params }: { params: { id: string } }
   if (!m) notFound();
   const monday = addDays(m.scheduled_date, 1 - isoWeekday(m.scheduled_date));
   const [{ data: staff }, { data: week }, { data: issues }, { data: history }, { data: photos }, { data: allSites }] = await Promise.all([
-    supabase.from("staff").select("id, full_name, zone, weekly_capacity_hours, active").order("full_name"),
+    supabase.from("staff").select("id, full_name, zone, weekly_capacity_hours, active, employment").order("full_name"),
     supabase.from("interventions").select("id, staff_id, site_id, scheduled_date, start_time, duration_hours, stage").gte("scheduled_date", monday).lte("scheduled_date", addDays(monday, 6)),
     supabase.from("mission_issues").select("*").eq("intervention_id", m.id).order("created_at", { ascending: false }),
     supabase.from("change_log").select("at, actor, action, changes").eq("table_name", "interventions").eq("row_id", m.id).order("at", { ascending: false }).limit(30),
@@ -247,7 +248,7 @@ export default async function MissionPage({ params }: { params: { id: string } }
                   <ul className="space-y-2">{suggestions.map((s, n) => (
                     <li key={s.staff.id} className={`rounded-lg border p-2.5 ${s.blocking.length ? "border-slate-200 bg-slate-50 opacity-70" : n === 0 ? "border-emerald-300 bg-emerald-50" : "border-slate-200"}`}>
                       <div className="flex items-center justify-between gap-2">
-                        <b>{s.staff.full_name}{n === 0 && !s.blocking.length ? " · suggéré" : ""}</b>
+                        <b>{s.staff.full_name}{employmentShort(s.staff.employment) ? ` · ${employmentShort(s.staff.employment)}` : ""}{n === 0 && !s.blocking.length ? " · suggéré" : ""}</b>
                         {m.staff_id === s.staff.id ? <span className="text-xs text-emerald-700">affecté</span> : (
                           <form action={assignStaffAction.bind(null, m.id)}><input type="hidden" name="back" value={back} /><input type="hidden" name="staff_id" value={s.staff.id} />
                             <Button size="sm" variant={s.blocking.length ? "ghost" : "outline"}>Affecter</Button></form>

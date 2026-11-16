@@ -147,3 +147,17 @@ export function digestEmail(a: { company: string; day: string; lines: string[]; 
   const body = wrap(a.company, paragraphs.length ? paragraphs : ["Rien à signaler."], ["ProClean CRM — message automatique"]);
   return { subject, ...body, fromName: a.company };
 }
+
+/** Rappel à l'agent qui n'a pas pointé sa présence ou envoyé de photos : photos des pièces par réponse à ce message, tant que l'application n'est pas installée. Écrit au nom de l'entreprise, jamais d'une personne. */
+export function photoReminderEmail(a: { company: string; phone?: string | null; name: string; client: string; address?: string | null; date: string; appUrl: string; arrived: boolean }): Mail {
+  const subject = `Photos de votre ménage du ${a.date} — ${a.client}`;
+  const first = a.name.split(" ")[0];
+  const body = wrap(a.company, [
+    `Bonjour ${first},`,
+    `Nous n'avons ${a.arrived ? "reçu aucune photo" : "ni votre arrivée ni de photo"} pour votre ménage du ${a.date} chez ${a.client}${a.address ? ` (${a.address})` : ""}.`,
+    "Merci de nous répondre à ce message avec les photos de chaque pièce (avant et après le ménage). Si le ménage n'a pas eu lieu, dites-le-nous simplement dans votre réponse.",
+    `Pour que ce soit automatique à l'avenir : ouvrez ${a.appUrl} sur votre téléphone, entrez votre adresse e-mail pour recevoir votre code de connexion, puis ajoutez l'application à l'écran d'accueil. Elle pointe votre arrivée avec la localisation et envoie les photos directement. Ce rappel s'arrête dès que l'application est installée.`,
+    "Cordialement,"
+  ], signatureLines(a.company, "entreprise", a.phone));
+  return { subject, ...body, fromName: senderName(a.company, "entreprise") };
+}

@@ -18,6 +18,7 @@ import { StageBadge } from "@/components/crm/mission";
 import { loadVerdicts } from "@/lib/mission-verdicts";
 import { getSettings } from "@/lib/data";
 import { Search } from "lucide-react";
+import { statusByName } from "@/lib/employment";
 
 const VERDICT = { conforme: "bg-[#e6f1ea] text-[#2f7a55]", a_verifier: "bg-[#f7ecdb] text-[#8f5a12]", non_conforme: "bg-[#f6e4e1] text-[#b3382c]", en_attente: "bg-secondary text-muted-foreground" } as const;
 const VIEWS = [["liste", "Liste"], ["calendrier", "Calendrier"], ["jour", "Aujourd'hui"], ["semaine", "Semaine"], ["mois", "Mois"], ["agent", "Par agent"], ["site", "Par site"], ["statut", "Par statut"]] as const;
@@ -53,7 +54,7 @@ export default async function MissionsPage({ searchParams }: { searchParams: { q
   };
   const model = await loadActivityModel(supabase);
   const [{ data, error }, { data: staff }, { data: sites }, { count: openIssues }] = await Promise.all([
-    selectResilient<any>(build, cols), supabase.from("staff").select("id, full_name").eq("active", true).order("full_name"),
+    selectResilient<any>(build, cols), supabase.from("staff").select("id, full_name, employment").eq("active", true).order("full_name"),
     supabase.from("sites").select("id, name").eq("status", "actif").order("name"),
     supabase.from("mission_issues").select("id", { count: "exact", head: true }).eq("status", "ouverte")
   ]);
@@ -98,6 +99,8 @@ export default async function MissionsPage({ searchParams }: { searchParams: { q
   const toCheck = rows.filter((r) => ["terminee", "a_verifier"].includes(r.stage) && !r.invoice_id).length;
   const label = view === "jour" ? formatDate(anchor) : isMonth ? monthLabel(anchor.slice(0, 7)) : `semaine du ${formatDate(range.start)}`;
 
+  const { data: cl } = await supabase.from("cleaners").select("full_name, statut_pro");
+  const statuses = statusByName((staff ?? []) as any[], (cl ?? []) as any[]);
   return (
     <>
       <PageHeader title="Missions" subtitle="Chaque passage chez un client, de la planification à la facture."
@@ -171,7 +174,7 @@ export default async function MissionsPage({ searchParams }: { searchParams: { q
                   <tr key={m.id} className="border-b border-border/50 last:border-0 hover:bg-secondary/40">
                     <td className="px-5 py-3.5"><Link href={`/missions/${m.id}`} className="font-semibold text-foreground hover:underline">{m.sites?.name ?? m.clients?.name ?? "—"}</Link>
                       <div className="text-[12.5px] text-muted-foreground">{m.sites?.name ? `${m.clients?.name ?? ""} · ` : ""}{m.title}{m.sites?.city ? ` · ${m.sites.city}` : ""}</div></td>
-                    <td className={`px-5 py-3.5 ${m.assignee ? "" : "font-medium text-[#8f5a12]"}`}>{m.assignee ?? "Sans agent"}</td>
+                    <td className={`px-5 py-3.5 ${m.assignee ? "" : "font-medium text-[#8f5a12]"}`}>{m.assignee ?? "Sans agent"}{m.assignee && statuses.get(m.assignee) ? <span className="ml-1.5 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-600">{statuses.get(m.assignee)}</span> : null}</td>
                     <td className="num px-5 py-3.5 whitespace-nowrap">{formatDate(m.scheduled_date)}<div className="text-[12.5px] text-muted-foreground">{m.start_time ? m.start_time.slice(0, 5) : "—"}{m.arrived_at ? ` · arrivée ${fmt(m.arrived_at)}` : ""}</div></td>
                     <td className="num px-5 py-3.5 whitespace-nowrap">{endPlanned ?? "—"}<div className="text-[12.5px] text-muted-foreground">{m.departed_at ? `départ ${fmt(m.departed_at)}` : ""}</div></td>
                     <td className="px-5 py-3.5"><StageBadge stage={m.stage} /></td>
