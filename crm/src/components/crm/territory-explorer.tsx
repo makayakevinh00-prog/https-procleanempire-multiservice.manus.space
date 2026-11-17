@@ -16,7 +16,11 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
  * Carte simple du territoire : les départements d'Île-de-France se cliquent ; une fois un département choisi, ses entreprises apparaissent
  * (gris = à prospecter, orange = en cours, vert = client) et la liste par commune dit où passer. Les entreprises se chargent depuis l'annuaire officiel, par le navigateur.
  */
-export function TerritoryExplorer({ zone, points }: { zone: string; points: XPoint[] }) {
+export type XClient = { id: string; name: string; address: string | null; postal: string | null; city: string | null; lat: number | null; lng: number | null };
+const RADII = [1, 2, 3, 5];
+const km = (a: [number, number], b: [number, number]) => { const r = Math.PI / 180, dLa = (b[0] - a[0]) * r, dLo = (b[1] - a[1]) * r, h = Math.sin(dLa / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLo / 2) ** 2; return 12742 * Math.asin(Math.sqrt(h)); };
+
+export function TerritoryExplorer({ zone, points, clients }: { zone: string; points: XPoint[]; clients: XClient[] }) {
   const router = useRouter();
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
@@ -28,6 +32,32 @@ export function TerritoryExplorer({ zone, points }: { zone: string; points: XPoi
   const [msg, setMsg] = useState("");
   const [loadSector, setLoadSector] = useState<SectorKey>("sante");
   const [size, setSize] = useState("3");
+  const [radius, setRadius] = useState(3);
+  const [showClients, setShowClients] = useState(true);
+  const [around, setAround] = useState<string | null>(null);
+  const [placed, setPlaced] = useState<Record<string, [number, number]>>({});
+  const clayer = useRef<any>(null);
+
+  // Clients sans position enregistrée : on la cherche dans l'adresse officielle (navigateur), à défaut au centre de leur commune.
+  useEffect(() => {
+    let dead = false;
+    (async () => {
+      for (const c of clients) {
+        if (dead || c.lat != null || placed[c.id] || (!c.city && !c.postal && !c.address)) continue;
+        try {
+          const q = [c.address, c.postal, c.city].filter(Boolean).join(" ");
+          const r = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(q)}&limit=1`);
+          const f = (await r.json())?.features?.[0]?.geometry?.coordinates;
+          if (Array.isArray(f) && !dead) setPlaced((p) => ({ ...p, [c.id]: [f[1], f[0]] }));
+        } catch { /* ce client reste hors carte */ }
+        await sleep(150);
+      }
+    })();
+    return () => { dead = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clients]);
+  const located = useMemo(() => clients.flatMap((c) => { const p: [number, number] | null = c.lat != null && c.lng != null ? [c.lat, c.lng] : placed[c.id] ?? null; return p ? [{ ...c, pos: p }] : []; }), [clients, placed]);
+  const aroundClient = located.find((c) => c.id === around) ?? null;
 
   const all = useMemo(() => { const m = new Map<string, XPoint>(); for (const p of [...extra, ...points]) m.set(p.siret, p); return [...m.values()]; }, [points, extra]);
   const inSector = useMemo(() => all.filter((p) => sector === "tous" || p.sector === sector), [all, sector]);
@@ -41,7 +71,8 @@ export function TerritoryExplorer({ zone, points }: { zone: string; points: XPoi
     }
     return [...m.values()].sort((a, b) => b.todo - a.todo || b.total - a.total);
   }, [inSector]);
-  const shown = useMemo(() => inSector.filter((p) => !city || p.city === city), [inSector, city]);
+  const shown = useMemo(() => inSector.filter((p) => (!city || p.city === city) && (!aroundClient || (p.lat != null && p.lng != null && km(aroundClient.pos, [p.lat, p.lng]) <= radius))), [inSector, city, aroundClient, radius]);
+  const perClient = useMemo(() => located.map((c) => ({ c, n: all.filter((p) => p.state === "cible" && p.lat != null && p.lng != null && km(c.pos, [p.lat, p.lng]) <= radius).length })).sort((a, b) => b.n - a.n), [located, all, radius]);
   const list = useMemo(() => shown.filter((p) => p.state !== "client").sort((a, b) => Object.keys(HEADCOUNT).indexOf(b.headcount ?? "") - Object.keys(HEADCOUNT).indexOf(a.headcount ?? "")).slice(0, 60), [shown]);
 
   // Carte et contours des départements (une seule fois).
@@ -51,7 +82,7 @@ export function TerritoryExplorer({ zone, points }: { zone: string; points: XPoi
       const L = (await import("leaflet")).default;
       if (dead || !el.current || mapRef.current) return;
       const map = L.map(el.current, { preferCanvas: true });
-      mapRef.current = map; layer.current = L.layerGroup().addTo(map);
+      mapRef.current = map; layer.current = L.layerGroup().addTo(map); clayer.current = L.layerGroup().addTo(map);
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap", maxZoom: 19 }).addTo(map);
       map.setView([48.75, 2.4], 8);
       const bounds: any[] = [];
@@ -88,6 +119,23 @@ export function TerritoryExplorer({ zone, points }: { zone: string; points: XPoi
       if (city) { const c = cities.find((x) => x.city === city); if (c && c.n) mapRef.current.setView([c.lat / c.n, c.lng / c.n], 14); }
     })();
   }, [shown, city, cities]);
+
+  // Mes clients : repère bleu, avec le cadre de leur secteur (cercle) pour chercher des clients autour.
+  useEffect(() => {
+    (async () => {
+      const L = (await import("leaflet")).default;
+      if (!mapRef.current || !clayer.current) { await sleep(600); }
+      if (!mapRef.current || !clayer.current) return;
+      clayer.current.clearLayers();
+      if (!showClients) return;
+      for (const c of located) {
+        L.circle(c.pos, { radius: radius * 1000, color: "#2563eb", weight: c.id === around ? 3 : 1.5, dashArray: "6 5", fillColor: "#3b82f6", fillOpacity: c.id === around ? 0.16 : 0.07 }).addTo(clayer.current);
+        L.circleMarker(c.pos, { radius: 9, color: "#fff", weight: 2.5, fillColor: "#1d4ed8", fillOpacity: 1 })
+          .bindTooltip(c.name, { permanent: located.length <= 12, direction: "top", offset: [0, -8] }).on("click", () => setAround(c.id)).addTo(clayer.current);
+      }
+    })();
+  }, [located, radius, showClients, around, zone]);
+  useEffect(() => { if (aroundClient && mapRef.current) mapRef.current.setView(aroundClient.pos, radius <= 2 ? 14 : radius <= 3 ? 13 : 12); }, [aroundClient, radius]);
 
   async function load() {
     if (busy) return;
@@ -137,6 +185,14 @@ export function TerritoryExplorer({ zone, points }: { zone: string; points: XPoi
           <p className="mt-1 text-xs text-muted-foreground"><span style={{ color: COLOR.cible }}>●</span> à prospecter · <span style={{ color: COLOR.en_cours }}>●</span> en cours · <span style={{ color: COLOR.client }}>●</span> client. Cliquez un département sur la carte pour le choisir, un point pour voir l&apos;entreprise et l&apos;itinéraire.</p>
         </div>
         <aside className="space-y-3">
+          <div className="rounded-xl border bg-white p-3 text-sm">
+            <div className="mb-2 flex items-center justify-between"><b>Mes clients et leur secteur</b><label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={showClients} onChange={(e) => setShowClients(e.target.checked)} /> afficher</label></div>
+            <div className="mb-2 flex flex-wrap items-center gap-1.5"><span className="text-xs text-muted-foreground">Rayon :</span>{RADII.map((r) => <button key={r} type="button" onClick={() => setRadius(r)} className={`${btn} ${radius === r ? "border-foreground bg-foreground text-background" : ""}`}>{r} km</button>)}</div>
+            {around && <button type="button" onClick={() => setAround(null)} className="mb-2 rounded-full border border-foreground bg-foreground px-3 py-1 text-xs text-background">Autour de {aroundClient?.name} ✕</button>}
+            {located.length ? <ul className="max-h-48 divide-y overflow-auto">{perClient.map(({ c, n }) => <li key={c.id}><button type="button" onClick={() => setAround(c.id === around ? null : c.id)} className={`flex w-full items-center justify-between py-1.5 text-left hover:bg-secondary ${c.id === around ? "font-semibold" : ""}`}><span>{c.name}</span><span className="text-xs text-muted-foreground">{n} à prospecter autour</span></button></li>)}</ul> : <p className="text-xs text-muted-foreground">Position de vos clients en cours de recherche…</p>}
+            {clients.length > located.length && <p className="mt-1 text-xs text-muted-foreground">{clients.length - located.length} client(s) sans adresse exploitable (hors carte).</p>}
+            <p className="mt-1 text-xs text-muted-foreground">Les points de prospection ci-dessous (gris) comptent ceux déjà chargés pour le département choisi.</p>
+          </div>
           <div className="rounded-xl border bg-white p-3 text-sm">
             <b>Charger les entreprises du {IDF[zone] ?? zone}</b>
             <div className="mt-2 grid grid-cols-2 gap-2">

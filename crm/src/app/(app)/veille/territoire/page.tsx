@@ -11,6 +11,8 @@ export const metadata = { title: "Territoire commercial" };
 export default async function TerritoryPage({ searchParams }: { searchParams: { zone?: string; ok?: string; error?: string } }) {
   const zone = searchParams.zone && searchParams.zone in IDF ? searchParams.zone : "95";
   const { data, error } = await createClient().rpc("territory_data", { p_dept: zone });
+  const { data: cl } = await createClient().from("clients").select("id, name, address, postal_code, city, sites(lat, lng)").eq("status", "actif").order("name");
+  const clients = ((cl ?? []) as any[]).map((c) => { const st = (c.sites ?? []).find((x: any) => x.lat != null && x.lng != null); return { id: c.id as string, name: c.name as string, address: c.address ?? null, postal: c.postal_code ?? null, city: c.city ?? null, lat: st?.lat ?? null, lng: st?.lng ?? null }; });
   const points = ((data as { targets?: any[][] } | null)?.targets ?? []).map(pointOf);
   return (
     <>
@@ -18,7 +20,7 @@ export default async function TerritoryPage({ searchParams }: { searchParams: { 
       {searchParams.error && <div role="alert" className="mb-3 rounded-md bg-red-50 p-3 text-sm font-medium text-red-800">{searchParams.error}</div>}
       {searchParams.ok && <div role="status" className="mb-3 rounded-md bg-emerald-50 p-3 text-sm font-medium text-emerald-800">{searchParams.ok}</div>}
       {error && <div role="alert" className="mb-3 rounded-md bg-amber-50 p-3 text-sm font-medium text-amber-900">La liste des entreprises n&apos;a pas pu être lue ({error.message}). La carte reste utilisable.</div>}
-      <TerritoryExplorerLazy zone={zone} points={points} />
+      <TerritoryExplorerLazy zone={zone} points={points} clients={clients} />
       <p className="mt-4 text-sm text-muted-foreground"><Link href={`/veille/territoire/avance?zone=${zone}`} className="text-primary hover:underline">Objectifs de couverture, ouverture des zones et réglages →</Link></p>
     </>
   );
