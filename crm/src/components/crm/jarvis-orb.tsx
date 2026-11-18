@@ -31,22 +31,55 @@ export function JarvisOrb() {
   const [mute, setMute] = useState(false);
   const rec = useRef<any>(null);
 
-  const say = useCallback((text: string) => {
+  const audio = useRef<HTMLAudioElement | null>(null);
+  const proVoice = useRef<boolean | null>(null);   // null = pas encore essayé, false = voix premium non configurée
+
+  /** Voix du navigateur, la plus naturelle trouvée (voix françaises « améliorées » ou Google), phrase par phrase pour de vraies pauses. */
+  const speakLocal = useCallback((text: string) => {
+    if (!("speechSynthesis" in window)) return;
+    const synth = window.speechSynthesis;
+    const voices = synth.getVoices().filter((x) => x.lang.toLowerCase().startsWith("fr"));
+    const best = voices.find((x) => /thomas|google|premium|enhanced|am[eé]lior/i.test(x.name)) ?? voices.find((x) => /male|homme|daniel|paul/i.test(x.name)) ?? voices[0];
+    const parts = text.match(/[^.!?]+[.!?]*/g) ?? [text];
+    parts.forEach((part, i) => {
+      const u = new SpeechSynthesisUtterance(part.trim());
+      u.lang = "fr-FR"; u.rate = 0.94; u.pitch = 0.78; u.volume = 1;
+      if (best) u.voice = best;
+      if (i === 0) u.onstart = () => setTalking(true);
+      if (i === parts.length - 1) { u.onend = () => setTalking(false); u.onerror = () => setTalking(false); }
+      synth.speak(u);
+    });
+  }, []);
+
+  const say = useCallback(async (text: string) => {
     setReply(text);
-    if (mute || typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "fr-FR"; u.rate = 1.02; u.pitch = 0.9;
-    const v = window.speechSynthesis.getVoices().find((x) => x.lang.startsWith("fr")); if (v) u.voice = v;
-    u.onstart = () => setTalking(true); u.onend = () => setTalking(false); u.onerror = () => setTalking(false);
-    window.speechSynthesis.speak(u);
-  }, [mute]);
+    if (mute || typeof window === "undefined") return;
+    window.speechSynthesis?.cancel(); audio.current?.pause();
+    if (proVoice.current !== false) {
+      try {
+        setTalking(true);
+        const r = await fetch("/api/jarvis/voice", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }) });
+        if (r.ok) {
+          proVoice.current = true;
+          const a = new Audio(URL.createObjectURL(await r.blob()));
+          audio.current = a; a.onended = () => setTalking(false); a.onerror = () => setTalking(false);
+          await a.play();
+          return;
+        }
+        if (r.status === 503) proVoice.current = false;   // pas de voix premium configurée : on garde la voix du navigateur
+      } catch { /* repli sur la voix du navigateur */ }
+      setTalking(false);
+    }
+    speakLocal(text);
+  }, [mute, speakLocal]);
 
   const load = useCallback(async () => {
     try { const r = await fetch("/api/jarvis/brief", { cache: "no-store" }); if (r.ok) { const j = (await r.json()) as Brief; setBrief(j); return j; } } catch { /* hors ligne */ }
     return null;
   }, []);
   useEffect(() => { if (open && !brief) void load(); }, [open, brief, load]);
+  // Raccourci téléphone : l'adresse du CRM avec ?jarvis=1 ouvre Jarvis et lance l'écoute.
+  useEffect(() => { if (new URLSearchParams(window.location.search).get("jarvis") === "1") setOpen(true); }, []);
   useEffect(() => { const t = setInterval(() => { if (open && document.visibilityState === "visible") void load(); }, 60000); return () => clearInterval(t); }, [open, load]);
   useEffect(() => () => { try { window.speechSynthesis?.cancel(); rec.current?.stop(); } catch { /* rien */ } }, []);
 
@@ -57,7 +90,7 @@ export function JarvisOrb() {
     if (/mode jarvis|futuriste/.test(t)) { applyTheme("verre", "cyan", true); say("Mode Jarvis activé."); return; }
     if (/mode classique|style classique/.test(t)) { applyTheme("classique", null, false); say("Style classique rétabli."); return; }
     if (/briefing|resume|point du jour|quoi de neuf/.test(t)) { void load().then((b) => b && say(b.say)); return; }
-    if (/tais|silence|stop/.test(t)) { window.speechSynthesis?.cancel(); setTalking(false); return; }
+    if (/tais|silence|stop/.test(t)) { window.speechSynthesis?.cancel(); audio.current?.pause(); setTalking(false); return; }
     const hit = ROUTES.find(([re]) => re.test(t));
     if (hit) { say(`J'ouvre ${hit[2]}.`); router.push(hit[1]); return; }
     say("Je n'ai pas compris. Essayez : ouvre les factures, cherche un client, ou donne-moi le briefing.");

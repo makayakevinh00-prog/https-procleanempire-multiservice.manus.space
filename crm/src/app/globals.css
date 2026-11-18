@@ -218,3 +218,5 @@ html[data-hud="on"] .hud-glow { opacity: 1; }
   html[data-hud="on"] body::before, html[data-hud="on"] body::after, .jarvis-orb i, .jarvis-orb.is-live { animation: none; }
   .hud-glow, .hud-ripple { display: none; }
 }
+
+@media (max-width: 767px) { .jarvis-orb { bottom: 88px; right: 16px; } .jarvis-panel { bottom: 178px; right: 16px; } }
