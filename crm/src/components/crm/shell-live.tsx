@@ -10,7 +10,11 @@ import type { Perms } from "@/lib/team";
 type SignOut = () => Promise<void>;
 
 const counts = requestCache(async (): Promise<Record<string, number>> => {
-  try { return menuCountsFrom(await loadActionsCached()); } catch { return {}; }
+  let out: Record<string, number> = {};
+  try { out = menuCountsFrom(await loadActionsCached()); } catch { /* pastilles absentes */ }
+  // Messages non lus des agents.
+  try { const { count } = await createClient().from("team_messages").select("id", { count: "exact", head: true }).eq("from_owner", false).is("read_at", null); if (count) out = { ...out, "/messages": count }; } catch { /* table absente */ }
+  return out;
 });
 /** E-mail affiché en haut : lu dans le jeton déjà vérifié par le middleware (signature contrôlée localement, aucun appel réseau). Affichage seulement. */
 const email = requestCache(async (): Promise<string> => {

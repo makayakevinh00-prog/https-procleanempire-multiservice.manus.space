@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { AnimatedValue } from "@/components/ui/animated-value";
 
 /** Courbe discrète : uniquement des valeurs réelles, pas de décor. */
 export function Sparkline({ values, label }: { values: number[]; label: string }) {
@@ -24,7 +25,7 @@ export function Stat({ label, value, unit, hint, tone, href, children }: {
     <Link href={href} className="group block min-w-0 rounded-lg px-1 py-5 transition-colors hover:bg-secondary/40 sm:px-5 sm:first:pl-0">
       <div className="text-[13px] text-muted-foreground">{label}</div>
       <div className="num mt-1.5 whitespace-nowrap text-[clamp(26px,2.8vw,36px)] font-semibold leading-none tracking-[-0.03em] text-foreground">
-        {value}{unit && <small className="ml-1 text-[0.5em] font-medium tracking-normal text-muted-foreground">{unit}</small>}
+        <AnimatedValue value={value} />{unit && <small className="ml-1 text-[0.5em] font-medium tracking-normal text-muted-foreground">{unit}</small>}
       </div>
       <div className={cn("num mt-2 text-[13px]", tone === "ok" ? "text-success" : tone === "warn" ? "text-warning" : tone === "err" ? "text-destructive" : "text-muted-foreground")}>{hint}</div>
       {children}

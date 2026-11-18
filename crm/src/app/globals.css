@@ -141,3 +141,14 @@ html[data-skin="verre"] a > .bg-card:hover, html[data-skin="verre"] a.block > di
   html[data-skin="verre"] main > * { animation: none; }
   html[data-skin="verre"] aside a:hover, html[data-skin="verre"] a > .bg-card:hover { transform: none; }
 }
+
+/* Graphiques et onglets : les barres poussent, les anneaux se dessinent, le soulignement des onglets glisse. */
+@keyframes bar-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes donut-in { from { stroke-dasharray: 0 400; } }
+@keyframes tab-in { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+svg g.group > path { transform-box: fill-box; transform-origin: bottom; animation: bar-grow 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+svg circle[transform^="rotate"][stroke-dashoffset] { animation: donut-in 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+nav[aria-label="Sections"] a[aria-current="page"]::after { animation: tab-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both; transform-origin: left; }
+@media (prefers-reduced-motion: reduce) {
+  svg g.group > path, svg circle[transform^="rotate"][stroke-dashoffset], nav[aria-label="Sections"] a[aria-current="page"]::after { animation: none; }
+}
