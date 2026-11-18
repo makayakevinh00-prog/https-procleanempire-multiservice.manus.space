@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fr" suppressHydrationWarning>
       <head>
         {/* Style et couleur choisis : appliqués avant l'affichage (aucun clignotement). */}
-        <script dangerouslySetInnerHTML={{ __html: `try{var t=JSON.parse(localStorage.getItem("pce-theme")||"null");if(t){var h=document.documentElement;if(t.skin)h.dataset.skin=t.skin;if(t.accent)h.dataset.accent=t.accent}}catch(e){}` }} />
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=JSON.parse(localStorage.getItem("pce-theme")||"null");if(t){var h=document.documentElement;if(t.skin)h.dataset.skin=t.skin;if(t.hud)h.dataset.hud="on";if(t.accent)h.dataset.accent=t.accent}}catch(e){}` }} />
       </head>
       <body className={inter.className}>{children}</body>
     </html>

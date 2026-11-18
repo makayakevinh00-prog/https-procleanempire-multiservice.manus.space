@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getAccess } from "@/lib/auth";
 import { SidebarLive, TopbarLive } from "@/components/crm/shell-live";
 import { Flash } from "@/components/crm/flash";
+import { HudFx } from "@/components/crm/hud-fx";
+import { JarvisOrb } from "@/components/crm/jarvis-orb";
 import { CommandK } from "@/components/crm/command-k";
 import { IntroLens } from "@/components/crm/intro-lens";
 import { QontoAutoSync } from "@/components/crm/qonto-auto";
@@ -32,6 +34,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen">
       <IntroLens />
       {access.kind === "owner" && <CommandK />}
+      {access.kind === "owner" && <><HudFx /><JarvisOrb /></>}
       {process.env.VERCEL_ENV === "preview" && (
         <div role="note" className="sticky top-0 z-50 bg-[#f1d27a] px-4 py-1 text-center text-xs font-medium text-foreground">
           BASE DE TEST · données fictives, aucun e-mail réel, aucun accès à la production

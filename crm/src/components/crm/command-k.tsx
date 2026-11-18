@@ -31,9 +31,9 @@ export function CommandK() {
 
   useEffect(() => {
     const key = (e: KeyboardEvent) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setOpen((v) => !v); } else if (e.key === "Escape") close(); };
-    const ev = () => setOpen(true);
-    window.addEventListener("keydown", key); window.addEventListener(OPEN_EVENT, ev);
-    return () => { window.removeEventListener("keydown", key); window.removeEventListener(OPEN_EVENT, ev); };
+    const ev = (e: Event) => { const q0 = (e as CustomEvent<{ q?: string }>).detail?.q; if (q0) setQ(q0); setOpen(true); };
+    window.addEventListener("keydown", key); window.addEventListener(OPEN_EVENT, ev as EventListener);
+    return () => { window.removeEventListener("keydown", key); window.removeEventListener(OPEN_EVENT, ev as EventListener); };
   }, [close]);
   useEffect(() => { if (open) setTimeout(() => input.current?.focus(), 30); }, [open]);
 
@@ -54,9 +54,10 @@ export function CommandK() {
   const base: Cmd[] = useMemo(() => [
     ...PAGES.map(([h, l]) => ({ id: `p${h}`, group: "Aller à", label: l, run: () => go(h) })),
     ...CREATE.map(([h, l]) => ({ id: `c${h}`, group: "Créer", label: l, run: () => go(h) })),
-    { id: "s-classique", group: "Style", label: "Style classique", run: () => { applyTheme("classique", document.documentElement.dataset.accent ?? null); close(); } },
-    { id: "s-verre", group: "Style", label: "Style vert dépoli", run: () => { applyTheme("verre", document.documentElement.dataset.accent ?? "vert"); close(); } },
-    ...ACCENTS.map((a) => ({ id: `a-${a.id}`, group: "Style", label: `Couleur ${a.label.toLowerCase()}`, run: () => { applyTheme(document.documentElement.dataset.skin ?? "classique", a.id); close(); } }))
+    { id: "s-classique", group: "Style", label: "Style classique", run: () => { applyTheme("classique", document.documentElement.dataset.accent ?? null, false); close(); } },
+    { id: "s-jarvis", group: "Style", label: "Mode Jarvis (HUD)", run: () => { applyTheme("verre", "cyan", true); close(); } },
+    { id: "s-verre", group: "Style", label: "Style vert dépoli", run: () => { applyTheme("verre", document.documentElement.dataset.accent ?? "vert", false); close(); } },
+    ...ACCENTS.map((a) => ({ id: `a-${a.id}`, group: "Style", label: `Couleur ${a.label.toLowerCase()}`, run: () => { const d = document.documentElement.dataset; applyTheme(d.skin ?? "classique", a.id, d.hud === "on"); close(); } }))
   ], [go, close]);
   const list = useMemo(() => {
     const n = norm(q.trim());
