@@ -19,6 +19,8 @@ export function getNavLinks(locale: Locale = defaultLocale) {
     { label: t.airbnb, href: "/menage-airbnb" },
     { label: t.offices, href: "/nettoyage-bureaux" },
     { label: t.concierge, href: "/conciergerie-entreprise" },
-    { label: t.contact, href: "/contact" }
+    { label: t.contact, href: "/contact" },
+    // Application des nettoyeurs indépendants (projet séparé).
+    { label: t.cleaner, href: "https://proclean-crm.vercel.app/nettoyeur" }
   ];
 }

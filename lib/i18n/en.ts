@@ -11,6 +11,7 @@ export const en: Dictionary = {
     offices: "Offices & shops",
     concierge: "Corporate concierge",
     contact: "Contact",
+    cleaner: "Become a cleaner",
     mainLabel: "Main navigation",
     mobileLabel: "Mobile navigation",
     openMenu: "Open menu",

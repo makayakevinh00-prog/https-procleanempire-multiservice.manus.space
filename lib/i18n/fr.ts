@@ -6,6 +6,7 @@ export const fr = {
     offices: "Bureaux & commerces",
     concierge: "Conciergerie d'entreprise",
     contact: "Contact",
+    cleaner: "Devenir nettoyeur",
     mainLabel: "Navigation principale",
     mobileLabel: "Navigation mobile",
     openMenu: "Ouvrir le menu",
