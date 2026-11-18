@@ -19,8 +19,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr" suppressHydrationWarning>
       <head>
-        {/* Style et couleur choisis : appliqués avant l'affichage (aucun clignotement). */}
-        <script dangerouslySetInnerHTML={{ __html: `try{var t=JSON.parse(localStorage.getItem("pce-theme")||"null");if(t){var h=document.documentElement;if(t.skin)h.dataset.skin=t.skin;if(t.hud)h.dataset.hud="on";if(t.accent)h.dataset.accent=t.accent}}catch(e){}` }} />
+        {/* Couleur choisie : appliquée avant l'affichage (aucun clignotement). Les anciens styles sombres sont retirés. */}
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=JSON.parse(localStorage.getItem("pce-theme")||"null");if(t){var ok=["vert","bleu","violet","ambre","rose"];if(t.accent&&ok.indexOf(t.accent)>-1)document.documentElement.dataset.accent=t.accent;if(t.skin&&t.skin!=="classique"||t.hud||(t.accent&&ok.indexOf(t.accent)<0))localStorage.setItem("pce-theme",JSON.stringify({skin:"classique",accent:ok.indexOf(t.accent)>-1?t.accent:null}))}}catch(e){}` }} />
       </head>
       <body className={inter.className}>{children}</body>
     </html>

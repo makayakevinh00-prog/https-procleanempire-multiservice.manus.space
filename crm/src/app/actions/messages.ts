@@ -22,11 +22,3 @@ export async function markAgentMessagesReadAction(staffId: string): Promise<void
   if (!/^[0-9a-f-]{36}$/i.test(staffId)) return;
   await createClient().from("team_messages").update({ read_at: new Date().toISOString() }).eq("staff_id", staffId).eq("from_owner", false).is("read_at", null);
 }
-
-/** Valide ou refuse une proposition de Jarvis depuis la bulle (sans changer de page). Valider crée une tâche : aucun envoi, aucun argent. */
-export async function decideProposalAction(id: string, approve: boolean): Promise<{ ok: boolean }> {
-  await requireOwner();
-  if (!/^[0-9a-f-]{36}$/i.test(id)) return { ok: false };
-  const { error } = await createClient().rpc("jarvis_decide_action", { p_id: id, p_decision: approve ? "approve" : "reject", p_note: null });
-  return { ok: !error };
-}

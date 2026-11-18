@@ -54,10 +54,8 @@ export function CommandK() {
   const base: Cmd[] = useMemo(() => [
     ...PAGES.map(([h, l]) => ({ id: `p${h}`, group: "Aller à", label: l, run: () => go(h) })),
     ...CREATE.map(([h, l]) => ({ id: `c${h}`, group: "Créer", label: l, run: () => go(h) })),
-    { id: "s-classique", group: "Style", label: "Style classique", run: () => { applyTheme("classique", document.documentElement.dataset.accent ?? null, false); close(); } },
-    { id: "s-jarvis", group: "Style", label: "Mode Jarvis (HUD)", run: () => { applyTheme("verre", "cyan", true); close(); } },
-    { id: "s-verre", group: "Style", label: "Style vert dépoli", run: () => { applyTheme("verre", document.documentElement.dataset.accent ?? "vert", false); close(); } },
-    ...ACCENTS.map((a) => ({ id: `a-${a.id}`, group: "Style", label: `Couleur ${a.label.toLowerCase()}`, run: () => { const d = document.documentElement.dataset; applyTheme(d.skin ?? "classique", a.id, d.hud === "on"); close(); } }))
+    ...ACCENTS.map((a) => ({ id: `a-${a.id}`, group: "Style", label: `Couleur ${a.label.toLowerCase()}`, run: () => { applyTheme(a.id); close(); } })),
+    { id: "a-origine", group: "Style", label: "Couleurs d'origine", run: () => { applyTheme(null); close(); } }
   ], [go, close]);
   const list = useMemo(() => {
     const n = norm(q.trim());
