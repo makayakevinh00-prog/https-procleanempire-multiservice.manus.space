@@ -319,39 +319,6 @@ export function ImmersiveLanding() {
         </div>
       </section>
 
-      {/* SUR LE TERRAIN */}
-      <section className="bg-[#0b1326] text-white" aria-labelledby="lp-terrain">
-        <div className="mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-12 px-6 py-20 md:px-12 md:py-28 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-end lg:gap-20">
-          <Reveal>
-            <p className={`${LABEL} text-[#8db8ff]`}>Sur le terrain</p>
-            <h2 id="lp-terrain" className="mt-6 font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl xl:text-6xl">
-              Nos équipes, en tenue, chez vous.
-            </h2>
-            <p className="mt-6 max-w-md text-lg leading-relaxed text-slate-300">
-              Vitrines, étagères, salles de bain : chaque surface est reprise à la main, dans le détail, par une équipe ProClean Empire identifiable.
-            </p>
-          </Reveal>
-          <div className="grid grid-cols-2 gap-4 md:gap-6">
-            <Reveal>
-              <figure>
-                <div className="relative aspect-[3/4] overflow-hidden">
-                  <Image src={`${P}/equipe-vitrine.webp`} alt="Agent ProClean Empire en tenue nettoyant les étagères en verre d'une boutique" fill sizes="(min-width: 1024px) 28vw, 45vw" className="object-cover" />
-                </div>
-                <figcaption className={`${LABEL} mt-4 text-slate-400`}>Boutique · présentoirs</figcaption>
-              </figure>
-            </Reveal>
-            <Reveal>
-              <figure className="lg:mt-16">
-                <div className="relative aspect-[3/4] overflow-hidden">
-                  <Image src={`${P}/equipe-salle-de-bain.webp`} alt="Agent ProClean Empire en tenue nettoyant une douche dans un logement" fill sizes="(min-width: 1024px) 28vw, 45vw" className="object-cover object-[50%_35%]" />
-                </div>
-                <figcaption className={`${LABEL} mt-4 text-slate-400`}>Logement · salle de bain</figcaption>
-              </figure>
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
       {/* CHAPITRE 1 : AIRBNB */}
       <Chapter
         index="01"
