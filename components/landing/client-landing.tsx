@@ -30,6 +30,25 @@ function Tick() {
   );
 }
 
+/** Photo de chantier avec une carte animée posée dessus. */
+function PhotoStack({ src, alt, children }: { src: string; alt: string; children: ReactNode }) {
+  return (
+    <div className="mx-auto w-full max-w-lg">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-mist shadow-[0_40px_80px_-40px_rgba(11,19,38,0.5)]">
+        <Image src={src} alt={alt} fill sizes="(min-width: 1024px) 512px, 100vw" className="object-cover" />
+      </div>
+      <div className="relative z-10 -mt-24 px-2 sm:-mt-28 sm:px-8">{children}</div>
+    </div>
+  );
+}
+
+const gallery = [
+  { src: "/media/photos/landing/table-fleurs.webp", alt: "Table de salle à manger en verre, bouquet et coupe de chocolats pour l'accueil des voyageurs", label: "Accueil des voyageurs", tall: true },
+  { src: "/media/photos/landing/decoration-salon.webp", alt: "Commode blanche, sculpture et tableau dépoussiérés dans un salon", label: "Surfaces et décoration" },
+  { src: "/media/photos/landing/sol-chambre.webp", alt: "Parquet d'une chambre lavé et brillant", label: "Sols lavés" },
+  { src: "/media/photos/landing/boutique-salon-attente.webp", alt: "Coin d'attente d'une boutique : fauteuils en cuir, table basse et sol propres", label: "Espace d'accueil d'une boutique", tall: true }
+];
+
 function Offer({
   eyebrow,
   title,
@@ -50,7 +69,7 @@ function Offer({
   flip?: boolean;
 }) {
   return (
-    <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-20">
+    <div className="grid grid-cols-[minmax(0,1fr)] items-center gap-10 lg:grid-cols-2 lg:gap-20">
       <Reveal className={flip ? "lg:order-2" : ""}>
         <p className={EYEBROW}>{eyebrow}</p>
         <h3 className={`mt-3 ${H2}`}>{title}</h3>
@@ -142,16 +161,16 @@ export function ClientLanding() {
       {/* HERO */}
       <section className="relative isolate overflow-hidden bg-[#0b1326] text-white">
         <Image
-          src="/media/photos/hero-showcase.webp"
+          src="/media/photos/landing/salon-haussmannien.webp"
           alt=""
           fill
           priority
           sizes="100vw"
-          className="-z-20 object-cover opacity-25"
+          className="-z-20 object-cover opacity-70"
         />
         <div
           aria-hidden
-          className="absolute inset-0 -z-10 bg-[linear-gradient(100deg,#0b1326_35%,rgba(11,19,38,0.75)_70%,rgba(11,19,38,0.55))]"
+          className="absolute inset-0 -z-10 bg-[linear-gradient(100deg,#0b1326_30%,rgba(11,19,38,0.6)_62%,rgba(11,19,38,0.3))]"
         />
         <div className="mx-auto grid max-w-[1400px] items-center gap-12 px-6 pb-20 pt-14 md:px-8 md:pb-28 md:pt-24 lg:grid-cols-[1.15fr_1fr] lg:gap-16">
           <div>
@@ -231,7 +250,7 @@ export function ClientLanding() {
           ]}
           href="/menage-airbnb"
           linkLabel="Tout sur le ménage Airbnb"
-          visual={<ChecklistCard tone="light" />}
+          visual={<PhotoStack src="/media/photos/landing/chambre-serviettes.webp" alt="Chambre préparée pour l'arrivée des voyageurs : lit fait, serviettes roulées sur la couette"><ChecklistCard tone="light" /></PhotoStack>}
         />
         <Offer
           flip
@@ -246,7 +265,7 @@ export function ClientLanding() {
           ]}
           href="/nettoyage-bureaux"
           linkLabel="Tout sur le nettoyage de bureaux"
-          visual={<PlanningCard />}
+          visual={<PhotoStack src="/media/photos/landing/boutique-presentoirs.webp" alt="Présentoirs de lunettes d'une boutique, étagères et vitres nettoyées"><PlanningCard /></PhotoStack>}
         />
         <Reveal className="rounded-3xl bg-mist p-6 sm:p-10">
           <p className={EYEBROW}>Et aussi</p>
@@ -263,6 +282,63 @@ export function ClientLanding() {
             ))}
           </ul>
         </Reveal>
+      </section>
+
+      {/* PHOTOS */}
+      <section className="bg-mist" aria-labelledby="lp-photos">
+        <div className="section">
+          <Reveal className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className={EYEBROW}>Sur le terrain</p>
+              <h2 id="lp-photos" className={`mt-3 ${H2}`}>Le résultat, en photos.</h2>
+            </div>
+            <Link href="/realisations" className="inline-flex min-h-11 items-center font-semibold text-[#1559bd] underline-offset-4 hover:underline">
+              Voir nos réalisations ›
+            </Link>
+          </Reveal>
+          <ul className="mt-10 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+            {gallery.map((photo, index) => (
+              <Reveal as="li" key={photo.src} delay={index * 0.08} y={24} className={photo.tall ? "lg:mt-10" : ""}>
+                <figure className="group relative aspect-[3/4] overflow-hidden rounded-3xl bg-white">
+                  <Image src={photo.src} alt={photo.alt} fill sizes="(min-width: 1024px) 25vw, 50vw" className="object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
+                  <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-4 pb-4 pt-12 text-sm font-semibold text-white">{photo.label}</figcaption>
+                </figure>
+              </Reveal>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* NOËL */}
+      <section className="section" aria-labelledby="lp-noel">
+        <div className="grid grid-cols-[minmax(0,1fr)] items-center gap-10 overflow-hidden rounded-[2rem] bg-[#0b1326] p-6 text-white sm:p-10 lg:grid-cols-[1fr_1.1fr] lg:gap-14 lg:p-14">
+          <Reveal>
+            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-sm font-medium text-amber-200">
+              <span className="h-2 w-2 rounded-full bg-amber-300" aria-hidden />
+              De saison
+            </p>
+            <h2 id="lp-noel" className="mt-5 font-display text-3xl font-semibold tracking-tight [text-wrap:balance] sm:text-4xl md:text-5xl">
+              Décoration de Noël pour vos bureaux et votre boutique.
+            </h2>
+            <p className="mt-4 max-w-lg text-lg leading-relaxed text-slate-200">
+              Sapin, paquets et mise en scène de votre espace d&apos;accueil : nous installons le décor et nous revenons le retirer après les fêtes.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+              <a href="#devis" className="btn-pill min-h-12">Demander mon devis</a>
+              <Link href="/blog/decoration-noel-bureaux-commerces-val-doise" className="inline-flex min-h-11 items-center font-semibold text-[#8db8ff] underline-offset-4 hover:underline">
+                Lire notre guide ›
+              </Link>
+            </div>
+          </Reveal>
+          <Reveal delay={0.12} className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="relative aspect-[3/4] overflow-hidden rounded-3xl">
+              <Image src="/media/photos/landing/noel-sapin.webp" alt="Sapin de Noël décoré de boules dorées, bleues et bordeaux à l'entrée d'une boutique, avec des paquets au pied" fill sizes="(min-width: 1024px) 300px, 50vw" className="object-cover" />
+            </div>
+            <div className="relative mt-8 aspect-[3/4] overflow-hidden rounded-3xl">
+              <Image src="/media/photos/landing/noel-cadeaux.webp" alt="Paquets cadeaux emballés et disposés au pied d'un sapin de Noël" fill sizes="(min-width: 1024px) 300px, 50vw" className="object-cover" />
+            </div>
+          </Reveal>
+        </div>
       </section>
 
       {/* ÉTAPES */}
