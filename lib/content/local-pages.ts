@@ -57,7 +57,7 @@ export const localPages: LocalPage[] = [
         }
       ],
       steps: [
-        { title: "Vous nous écrivez", text: "Le formulaire prend deux minutes ; vous pouvez aussi nous appeler." },
+        { title: "Vous nous écrivez", text: "Le formulaire prend deux minutes ; vous pouvez aussi nous écrire sur WhatsApp." },
         { title: "Devis sous 24 h", text: "Un prix clair, avant toute intervention." },
         { title: "Nous intervenons", text: "Rapidement, puisque nous sommes sur place." }
       ],

@@ -5,7 +5,7 @@ import { Reveal } from "@/components/home/reveal";
 export const metadata = buildMetadata({
   title: "Contact, rendez-vous et devis — Pontoise et Île-de-France",
   description:
-    "Prenez rendez-vous, demandez un devis ou appelez ProClean Empire : ménage Airbnb, nettoyage de bureaux et commerces, conciergerie d'entreprise à Pontoise et en Île-de-France.",
+    "Prenez rendez-vous, demandez un devis ou écrivez à ProClean Empire : ménage Airbnb, nettoyage de bureaux et commerces, conciergerie d'entreprise à Pontoise et en Île-de-France.",
   path: "/contact"
 });
 
@@ -47,9 +47,9 @@ export default function ContactPage() {
       external: false
     },
     {
-      href: siteConfig.phoneHref,
+      href: siteConfig.bookingUrl,
       label: "Je veux parler à quelqu'un",
-      text: `Appelez-nous au ${siteConfig.phone}.`,
+      text: "Réservez un échange avec nous.",
       primary: false,
       external: false
     },
@@ -107,11 +107,7 @@ export default function ContactPage() {
             ))}
           </div>
           <p className="mt-6 text-sm text-slate-600">
-            Par téléphone :{" "}
-            <a href={siteConfig.phoneHref} className="font-semibold text-[#1d6fe0]">
-              {siteConfig.phone}
-            </a>{" "}
-            · {siteConfig.email} · {siteConfig.hours}
+            {siteConfig.email} · {siteConfig.hours}
           </p>
         </div>
       </section>
@@ -124,7 +120,7 @@ export default function ContactPage() {
             <p className="mt-4 max-w-2xl text-lg text-slate-600">
               {siteConfig.onlineBookingUrl
                 ? "Réservez directement un créneau en ligne, ou écrivez-nous sur WhatsApp et nous fixons le créneau ensemble."
-                : "Choisissez le type de rendez-vous : écrivez-nous sur WhatsApp ou appelez-nous, et nous fixons le créneau ensemble."}
+                : "Choisissez le type de rendez-vous : écrivez-nous sur WhatsApp ou par e-mail, et nous fixons le créneau ensemble."}
             </p>
             {siteConfig.onlineBookingUrl ? (
               <a href={siteConfig.onlineBookingUrl} target="_blank" rel="noopener noreferrer" className="btn-pill mt-8 inline-flex">
@@ -154,9 +150,6 @@ export default function ContactPage() {
                       aria-label={`Demander un rendez-vous « ${type.title} » sur WhatsApp`}
                     >
                       Demander un créneau
-                    </a>
-                    <a href={siteConfig.phoneHref} className="text-sm font-semibold text-[#1d6fe0]">
-                      ou {siteConfig.phone}
                     </a>
                   </div>
                 </article>

@@ -20,7 +20,6 @@ export function Footer() {
   const actions = [
     { label: "Prendre RDV", href: siteConfig.bookingUrl },
     { label: "Demander un devis", href: "/contact#devis" },
-    { label: "Nous appeler", href: siteConfig.phoneHref },
     { label: "Laisser un avis Google", href: siteConfig.googleReviewsUrl }
   ];
 
@@ -40,7 +39,7 @@ export function Footer() {
             d&apos;entreprise. Pontoise, Val-d&apos;Oise et Île-de-France.
           </p>
           <p className="text-sm text-slate-300">
-            {siteConfig.phone} · {siteConfig.email}
+            {siteConfig.email}
           </p>
         </div>
         <div>

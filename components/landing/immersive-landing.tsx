@@ -3,8 +3,8 @@ import Link from "next/link";
 import { ReactNode } from "react";
 import { Reveal } from "@/components/home/reveal";
 import { QuoteForm } from "@/components/forms/quote-form";
+import { CountUp, ParallaxPhoto, Statement } from "@/components/landing/motion";
 import { PartnersMarquee } from "@/components/phase1/partners-marquee";
-import { CountUp, ParallaxPhoto } from "@/components/landing/motion";
 import { commitments } from "@/lib/content/phase1";
 import { siteConfig } from "@/lib/site";
 
@@ -13,6 +13,14 @@ const LINK =
   "inline-flex min-h-11 items-center gap-2 border-b border-current pb-0.5 text-base font-semibold transition-opacity duration-200 hover:opacity-70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4";
 
 const P = "/media/photos/landing";
+/* Enseignes clientes, sous leur nom commercial. */
+const clients = [
+  { name: "Nike" },
+  { name: "Grand Optical" },
+  { name: "The French Optical" },
+  { name: "Société d'exploitation IDF Recyclage" },
+  { name: "Easy Stay" }
+];
 
 /** Chapitre plein écran : la photo reste en place pendant que le texte défile à côté. */
 function Chapter({
@@ -160,7 +168,6 @@ const zones = [
   { label: "Pontoise", href: "/nettoyage-pontoise" },
   { label: "Cergy", href: "/nettoyage-cergy" },
   { label: "Paris", href: "/nettoyage-paris" },
-  { label: "Paris 16e", href: "/entreprise-de-nettoyage-paris-16" },
   { label: "Saint-Ouen", href: "/nettoyage-saint-ouen" },
   {
     label: "Seine-Saint-Denis",
@@ -204,7 +211,7 @@ export function ImmersiveLanding() {
         <div className="grid lg:min-h-[calc(100svh-4rem)] lg:grid-cols-[1.05fr_1fr]">
           <div className="flex flex-col justify-between gap-12 px-6 pb-12 pt-12 md:px-12 md:pt-16 lg:px-16 lg:pb-16 xl:px-24">
             <p className={`${LABEL} text-slate-300`}>
-              Entreprise de nettoyage · Val-d&apos;Oise et Paris
+              Facility service · Val-d&apos;Oise et Paris
             </p>
             <div>
               <h1 className="font-display text-[2.9rem] font-semibold leading-[1] tracking-tight sm:text-7xl xl:text-[5.25rem]">
@@ -220,9 +227,9 @@ export function ImmersiveLanding() {
                 <a href="#devis" className="btn-pill min-h-14 px-9 text-lg">
                   Demander un devis
                 </a>
-                <a href={siteConfig.phoneHref} className={`${LINK} self-start sm:ml-4 sm:self-auto`}>
-                  {siteConfig.phone}
-                </a>
+                <Link href={siteConfig.bookingUrl} className={`${LINK} self-start sm:ml-4 sm:self-auto`}>
+                  Prendre rendez-vous
+                </Link>
               </div>
             </div>
             <a
@@ -251,13 +258,14 @@ export function ImmersiveLanding() {
             src={`${P}/salon-haussmannien.webp`}
             alt="Salon haussmannien rangé et prêt à accueillir des voyageurs"
             priority
+            zoom
             sizes="(min-width: 1024px) 50vw, 100vw"
             className="aspect-[4/5] w-full lg:aspect-auto lg:h-full"
           />
         </div>
       </section>
 
-      <PartnersMarquee />
+      <PartnersMarquee items={clients} />
 
       {/* CHIFFRES */}
       <section
@@ -281,7 +289,7 @@ export function ImmersiveLanding() {
                   j/7
                 </>
               ),
-              label: "pour nous écrire ou nous appeler",
+              label: "pour nous écrire",
             },
             { value: <>11h–14h</>, label: "le créneau entre deux voyageurs" },
             {
@@ -302,6 +310,46 @@ export function ImmersiveLanding() {
             </div>
           ))}
         </dl>
+      </section>
+
+      {/* PHRASE */}
+      <section className="bg-mist">
+        <div className="mx-auto max-w-[1400px] px-6 py-24 md:px-12 md:py-36">
+          <Statement text="Un seul interlocuteur. Des horaires tenus. Un résultat contrôlé avant de partir." />
+        </div>
+      </section>
+
+      {/* SUR LE TERRAIN */}
+      <section className="bg-[#0b1326] text-white" aria-labelledby="lp-terrain">
+        <div className="mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-12 px-6 py-20 md:px-12 md:py-28 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-end lg:gap-20">
+          <Reveal>
+            <p className={`${LABEL} text-[#8db8ff]`}>Sur le terrain</p>
+            <h2 id="lp-terrain" className="mt-6 font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl xl:text-6xl">
+              Nos équipes, en tenue, chez vous.
+            </h2>
+            <p className="mt-6 max-w-md text-lg leading-relaxed text-slate-300">
+              Vitrines, étagères, salles de bain : chaque surface est reprise à la main, dans le détail, par une équipe ProClean Empire identifiable.
+            </p>
+          </Reveal>
+          <div className="grid grid-cols-2 gap-4 md:gap-6">
+            <Reveal>
+              <figure>
+                <div className="relative aspect-[3/4] overflow-hidden">
+                  <Image src={`${P}/equipe-vitrine.webp`} alt="Agent ProClean Empire en tenue nettoyant les étagères en verre d'une boutique" fill sizes="(min-width: 1024px) 28vw, 45vw" className="object-cover" />
+                </div>
+                <figcaption className={`${LABEL} mt-4 text-slate-400`}>Boutique · présentoirs</figcaption>
+              </figure>
+            </Reveal>
+            <Reveal>
+              <figure className="lg:mt-16">
+                <div className="relative aspect-[3/4] overflow-hidden">
+                  <Image src={`${P}/equipe-salle-de-bain.webp`} alt="Agent ProClean Empire en tenue nettoyant une douche dans un logement" fill sizes="(min-width: 1024px) 28vw, 45vw" className="object-cover object-[50%_35%]" />
+                </div>
+                <figcaption className={`${LABEL} mt-4 text-slate-400`}>Logement · salle de bain</figcaption>
+              </figure>
+            </Reveal>
+          </div>
+        </div>
       </section>
 
       {/* CHAPITRE 1 : AIRBNB */}

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { PageHero } from "@/components/sections/page-hero";
-import { buildMetadata, siteConfig } from "@/lib/site";
+import { buildMetadata } from "@/lib/site";
 
 // Page volontairement discrète (règle §7.4) : hors menu, hors plan du site, non indexée.
 export const metadata = {
@@ -44,9 +44,6 @@ export default function ProprietairesPage() {
             <Link href="/contact#devis" className="btn-pill">
               En parler avec nous
             </Link>
-            <a href={siteConfig.phoneHref} className="btn-pill-ghost text-ink">
-              Appeler le {siteConfig.phone}
-            </a>
           </>
         }
       />

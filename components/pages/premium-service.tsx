@@ -139,10 +139,6 @@ export function PremiumService(props: PremiumServiceProps) {
               {siteConfig.promise} Vous préférez en parler ?{" "}
               <a href={siteConfig.bookingUrl} className="font-semibold text-[#1d6fe0]">
                 Réservez un appel de 20 min
-              </a>{" "}
-              ou appelez le{" "}
-              <a href={siteConfig.phoneHref} className="font-semibold text-[#1d6fe0]">
-                {siteConfig.phone}
               </a>
               .
             </p>

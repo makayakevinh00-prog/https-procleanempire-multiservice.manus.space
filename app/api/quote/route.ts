@@ -117,7 +117,7 @@ async function forwardToN8n(lead: Lead): Promise<void> {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const FAILURE_MESSAGE = `L'envoi automatique n'a pas fonctionné. Envoyez-nous votre demande en un clic ci-dessous (e-mail ou WhatsApp), ou appelez-nous au ${siteConfig.phone}.`;
+const FAILURE_MESSAGE = `L'envoi automatique n'a pas fonctionné. Envoyez-nous votre demande en un clic ci-dessous (e-mail ou WhatsApp).`;
 
 const SERVICE_LABELS = new Set(quoteServices.map((service) => service.label));
 const MIN_FILL_MS = 3_000;
@@ -158,7 +158,7 @@ export async function POST(request: NextRequest) {
     console.warn("[devis] Trop de demandes depuis la même adresse", ip);
     return NextResponse.json(
       {
-        error: `Trop de demandes en peu de temps. Merci de réessayer dans quelques minutes ou de nous appeler au ${siteConfig.phone}.`,
+        error: `Trop de demandes en peu de temps. Merci de réessayer dans quelques minutes ou de nous écrire à ${siteConfig.email}.`,
       },
       { status: 429 },
     );

@@ -121,7 +121,7 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
         const data = await response.json().catch(() => null);
         if (response.status >= 500 || data?.fallback) setFallback({ text: summary, code: data?.code });
         throw new Error(
-          data?.error ?? `Votre demande n'a pas pu être envoyée. Merci de nous appeler au ${siteConfig.phone}.`
+          data?.error ?? `Votre demande n'a pas pu être envoyée. Merci de nous écrire à ${siteConfig.email}.`
         );
       }
       const data = await response.json().catch(() => null);
@@ -138,7 +138,7 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
       setError(
         err instanceof Error && err.message
           ? err.message
-          : `Votre demande n'a pas pu être envoyée. Merci de nous appeler au ${siteConfig.phone}.`
+          : `Votre demande n'a pas pu être envoyée. Merci de nous écrire à ${siteConfig.email}.`
       );
     } finally {
       setSubmitting(false);
@@ -176,11 +176,7 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
           <pre className="mt-3 whitespace-pre-wrap rounded-xl bg-mist p-4 font-sans">{handoff}</pre>
         </details>
         <p className="mt-6 text-sm text-slate-600">
-          Ou appelez-nous :{" "}
-          <a href={siteConfig.phoneHref} className="font-semibold text-[#1d6fe0]">
-            {siteConfig.phone}
-          </a>{" "}
-          · {siteConfig.email}
+          Ou écrivez-nous : {siteConfig.email}
         </p>
       </div>
     );
@@ -205,8 +201,8 @@ export function QuoteForm({ defaultService }: { defaultService?: string }) {
         {receipt.reference ? (
           <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">Référence : {receipt.reference}</p>
         ) : null}
-        <a href={siteConfig.phoneHref} className="btn-pill-ghost mt-8 text-ink">
-          Une urgence ? {siteConfig.phone}
+        <a href={siteConfig.whatsappHref} target="_blank" rel="noopener noreferrer" className="btn-pill-ghost mt-8 text-ink">
+          Une urgence ? Écrivez-nous sur WhatsApp
         </a>
       </div>
     );

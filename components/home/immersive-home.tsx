@@ -555,9 +555,6 @@ function FinalCta() {
             <Link href={siteConfig.bookingUrl} className="btn-pill-ghost text-ink">
               Prendre RDV
             </Link>
-            <a href={siteConfig.phoneHref} className="btn-pill-ghost text-ink">
-              Appeler le {siteConfig.phone}
-            </a>
           </div>
         </Reveal>
       </div>

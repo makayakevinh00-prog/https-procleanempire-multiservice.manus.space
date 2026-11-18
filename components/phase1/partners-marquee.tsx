@@ -1,7 +1,8 @@
-import { partners } from "@/lib/content/phase1";
+import { partners as defaultPartners } from "@/lib/content/phase1";
 
 /** Bannière défilante « Ils nous font confiance » (noms en texte, liste dans lib/content/phase1.ts). */
-export function PartnersMarquee() {
+export function PartnersMarquee({ items }: { items?: { name: string }[] } = {}) {
+  const partners = items ?? defaultPartners;
   if (partners.length === 0) {
     return null;
   }
