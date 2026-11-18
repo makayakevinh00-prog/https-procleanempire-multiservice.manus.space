@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Bell, ChevronDown, FilePlus, MapPin, Plus, Receipt, Repeat, Search, UserCog, UserPlus, CalendarPlus, LogOut, KeyRound } from "lucide-react";
+import { PROFILE_LINKS } from "@/lib/nav-sections";
 import { OPEN_EVENT } from "@/components/crm/command-k";
 import { ThemeSwitcher } from "@/components/crm/theme-switcher";
 import { Avatar } from "@/components/ui/avatar";
@@ -73,7 +74,7 @@ export function Topbar({ actionsCount, email, signOut, team = false }: { actions
           {user && (
             <div role="menu" className="absolute right-0 mt-2 w-64 rounded-xl border border-border bg-white p-1.5 shadow-[0_8px_30px_rgba(17,18,20,0.10)]">
               <div className="truncate border-b border-border px-3 pb-2 pt-1 text-sm text-muted-foreground">{email}</div>
-              {!team && <Link href="/compte" role="menuitem" onClick={() => setUser(false)} className="mt-1 flex items-center gap-3 rounded-lg px-3 py-2 text-[14px] text-foreground hover:bg-secondary/70"><KeyRound className="h-[18px] w-[18px] text-muted-foreground" /> Mon compte</Link>}
+              {!team && PROFILE_LINKS.map((l, i) => <Link key={l.href} href={l.href} role="menuitem" onClick={() => setUser(false)} className={`flex items-center gap-3 rounded-lg px-3 py-2 text-[14px] text-foreground hover:bg-secondary/70 ${i === 0 ? "mt-1" : ""}`}><KeyRound className="h-[18px] w-[18px] text-muted-foreground" /> {l.label}</Link>)}
               <form action={signOut}><button role="menuitem" className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[14px] text-foreground hover:bg-secondary/70"><LogOut className="h-[17px] w-[17px] text-muted-foreground" /> Se déconnecter</button></form>
             </div>
           )}

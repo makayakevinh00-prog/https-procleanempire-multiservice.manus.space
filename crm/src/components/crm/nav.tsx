@@ -7,100 +7,36 @@ import { usePathname } from "next/navigation";
 import { Home, ListChecks, Users, MapPin, ClipboardList, FileText, Receipt, UserCog, Package, Settings, LogOut, Bell, Search, X, LayoutGrid, Truck, ChevronsLeft, PieChart, Calculator, Repeat, CalendarDays, Radar, TrendingUp, BarChart3, KeyRound, Brush, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { pathAllowed, type Perms } from "@/lib/team";
+import { PROFILE_LINKS, SECTIONS_NAV, sectionOfPath, type Section } from "@/lib/nav-sections";
 
-type Item = { href: string; label: string; icon: any; children?: { href: string; label: string }[] };
-type Group = { title?: string; items: Item[] };
-
-/** Rubriques rangées par thème (JARVIS et l'Open space restent accessibles depuis Paramètres) pour que le menu se lise d'un coup d'œil. */
-const GROUPS: Group[] = [
-  { items: [
-    { href: "/", label: "Accueil", icon: Home },
-    { href: "/actions", label: "Actions à faire", icon: ListChecks }
-  ] },
-  { title: "Commercial", items: [
-    { href: "/clients", label: "Clients", icon: Users, children: [{ href: "/demandes", label: "Demandes du site" }] },
-    { href: "/devis", label: "Devis", icon: FileText },
-    { href: "/contrats", label: "Contrats", icon: Repeat },
-    { href: "/activites", label: "Activités", icon: PieChart },
-    { href: "/veille/territoire", label: "Territoire", icon: MapPin },
-    { href: "/veille", label: "Veille concurrentielle", icon: Radar },
-    { href: "/croissance", label: "Croissance", icon: TrendingUp, children: [{ href: "/croissance/aides", label: "Aides publiques" }] }
-  ] },
-  { title: "Opérations", items: [
-    { href: "/missions", label: "Missions", icon: ClipboardList },
-    { href: "/planning", label: "Planning", icon: CalendarDays },
-    { href: "/sites", label: "Sites", icon: MapPin },
-    { href: "/conciergerie", label: "Conciergerie", icon: KeyRound },
-    { href: "/nettoyeurs", label: "Nettoyeurs", icon: Brush },
-    { href: "/messages", label: "Messages", icon: MessageCircle },
-    { href: "/equipe", label: "Équipe", icon: UserCog, children: [{ href: "/recrutement", label: "Recrutement" }] }
-  ] },
-  { title: "Finance", items: [
-    { href: "/comptabilite", label: "Comptabilité", icon: Calculator },
-    { href: "/analyses", label: "Analyses", icon: BarChart3 },
-    { href: "/factures", label: "Factures", icon: Receipt, children: [{ href: "/facturation-auto", label: "Facturation automatique" }, { href: "/paiements", label: "Paiements" }] }
-  ] },
-  { title: "Gestion", items: [
-    { href: "/fournisseurs", label: "Fournisseurs", icon: Truck },
-    { href: "/catalogue", label: "Catalogue", icon: Package },
-    { href: "/parametres", label: "Paramètres", icon: Settings, children: [{ href: "/journal", label: "Journal" }, { href: "/compte", label: "Mon compte" }] }
-  ] }
-];
-const ALL = GROUPS.flatMap((g) => g.items);
-
-function isActive(path: string, href: string) {
-  return href === "/" ? path === "/" : path === href || path.startsWith(href + "/");
-}
-
-/** Menu d'une personne de l'équipe : son accueil et les seules sections ouvertes par le patron (null = patron, tout le menu). */
-function groupsFor(perms: Perms | null | undefined): Group[] {
-  if (!perms) return GROUPS;
-  const home: Group = { items: [{ href: "/bienvenue", label: "Mon espace", icon: Home }] };
-  const kept = GROUPS.map((g) => ({
-    ...g,
-    items: g.items.filter((i) => pathAllowed(perms, i.href) && i.href !== "/").map((i) => ({ ...i, children: i.children?.filter((c) => pathAllowed(perms, c.href)) }))
-  })).filter((g) => g.items.length);
+/** Rubriques visibles : le patron voit tout ; une personne de l'équipe, seulement les onglets que ses droits ouvrent. */
+function sectionsFor(perms: Perms | null | undefined): Section[] {
+  if (!perms) return SECTIONS_NAV;
+  const home: Section = { key: "espace", label: "Mon espace", icon: Home, tabs: [{ href: "/bienvenue", label: "Mon espace" }] };
+  const kept = SECTIONS_NAV.map((s) => ({ ...s, tabs: s.tabs.filter((t) => t.href !== "/" && pathAllowed(perms, t.href)) })).filter((s) => s.tabs.length);
   return [home, ...kept];
 }
 
 function Links({ counts = {}, onNavigate, slim = false, perms = null }: { counts?: Record<string, number>; onNavigate?: () => void; slim?: boolean; perms?: Perms | null }) {
   const path = usePathname();
+  const current = sectionOfPath(path)?.key ?? (path.startsWith("/bienvenue") ? "espace" : null);
   return (
-    <nav className="flex flex-col gap-3">
-      {groupsFor(perms).map((g, gi) => (
-        <div key={gi} className="flex flex-col gap-0.5">
-          {g.title && !slim && <div className="px-3 pb-1 pt-2 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">{g.title}</div>}
-          {g.title && slim && <div className="mx-3 my-1 border-t border-border" aria-hidden />}
-          {g.items.map(({ href, label, icon: Icon, children }) => {
-            const self = isActive(path, href);
-            const open = self || !!children?.some((c) => isActive(path, c.href));
-            const n = counts[href] ?? 0;
-            return (
-              <div key={href}>
-                <Link href={href} onClick={onNavigate} title={label} aria-current={self ? "page" : undefined}
-                  className={cn("relative flex items-center gap-3 rounded-lg px-3 py-2 text-[14px] transition-colors", slim && "justify-center px-0",
-                    self ? "bg-secondary font-medium text-foreground" : "text-secondary-foreground/80 hover:bg-secondary/70 hover:text-foreground")}>
-                  {self && <span className="absolute inset-y-2 -left-4 w-0.5 rounded bg-foreground" aria-hidden />}
-                  <Icon className="h-[18px] w-[18px] shrink-0 opacity-80" strokeWidth={1.6} />
-                  {!slim && <span className="flex-1">{label}</span>}
-                  {!slim && n > 0 && <span className="num text-xs text-muted-foreground">{n}</span>}
-                  {slim && n > 0 && <span className="absolute right-2 top-1.5 h-1.5 w-1.5 rounded-full bg-foreground" aria-label={`${n} à traiter`} />}
-                </Link>
-                {!slim && children && open && (
-                  <div className="ml-[21px] mt-0.5 flex flex-col gap-0.5 border-l border-border pl-3">
-                    {children.map((c) => (
-                      <Link key={c.href} href={c.href} onClick={onNavigate}
-                        className={cn("rounded-md px-2 py-1.5 text-[13px]", isActive(path, c.href) ? "font-medium text-foreground" : "text-muted-foreground hover:text-foreground")}>
-                        {c.label}{counts[c.href] > 0 ? ` (${counts[c.href]})` : ""}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      ))}
+    <nav className="flex flex-col gap-1">
+      {sectionsFor(perms).map(({ key, label, icon: Icon, tabs }) => {
+        const self = current === key;
+        const n = tabs.reduce((t, x) => t + (counts[x.href] ?? 0), 0);
+        return (
+          <Link key={key} href={tabs[0].href} onClick={onNavigate} title={label} aria-current={self ? "page" : undefined}
+            className={cn("relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] transition-colors", slim && "justify-center px-0",
+              self ? "bg-secondary font-medium text-foreground" : "text-secondary-foreground/80 hover:bg-secondary/70 hover:text-foreground")}>
+            {self && <span className="absolute inset-y-2 -left-4 w-0.5 rounded bg-foreground" aria-hidden />}
+            <Icon className="h-[18px] w-[18px] shrink-0 opacity-80" strokeWidth={1.6} />
+            {!slim && <span className="flex-1">{label}</span>}
+            {!slim && n > 0 && <span className="num rounded-full bg-secondary px-2 text-xs text-muted-foreground">{n}</span>}
+            {slim && n > 0 && <span className="absolute right-2 top-1.5 h-1.5 w-1.5 rounded-full bg-foreground" aria-label={`${n} à traiter`} />}
+          </Link>
+        );
+      })}
     </nav>
   );
 }
@@ -124,8 +60,8 @@ function Brand({ compact = false, slim = false }: { compact?: boolean; slim?: bo
 const TABBAR = [
   { href: "/", label: "Accueil", icon: Home },
   { href: "/clients", label: "Clients", icon: Users },
-  { href: "/missions", label: "Missions", icon: ClipboardList },
-  { href: "/factures", label: "Factures", icon: Receipt }
+  { href: "/missions", label: "Terrain", icon: ClipboardList },
+  { href: "/factures", label: "Argent", icon: Receipt }
 ];
 
 export function Sidebar({ signOut, counts, perms = null }: { signOut: () => Promise<void>; counts?: Record<string, number>; perms?: Perms | null }) {
@@ -175,7 +111,7 @@ export function Sidebar({ signOut, counts, perms = null }: { signOut: () => Prom
       <nav aria-label="Navigation principale" className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
         <div className="mx-auto grid max-w-md grid-cols-5">
           {(perms ? [{ href: "/bienvenue", label: "Mon espace", icon: Home }, ...TABBAR.filter((t) => t.href !== "/" && pathAllowed(perms, t.href))] : TABBAR).map(({ href, label, icon: Icon }) => {
-            const on = isActive(path, href);
+            const on = (sectionOfPath(path)?.key ?? "") === (sectionOfPath(href)?.key ?? "?") || (href === "/" && path === "/");
             return (
               <Link key={href} href={href} className={cn("flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium", on ? "text-foreground" : "text-muted-foreground")}>
                 <Icon className="h-6 w-6" strokeWidth={on ? 2 : 1.5} />{label}
@@ -194,6 +130,7 @@ export function Sidebar({ signOut, counts, perms = null }: { signOut: () => Prom
           <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-3xl bg-[#fbfaf8] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
             <div className="mb-3 flex items-center justify-between"><Brand compact /><button onClick={() => setOpen(false)} className="rounded-lg p-2 text-muted-foreground" aria-label="Fermer"><X className="h-6 w-6" /></button></div>
             <Links counts={counts} onNavigate={() => setOpen(false)} perms={perms} />
+            {!perms && <div className="mt-3 flex flex-col gap-0.5 border-t border-border pt-3">{PROFILE_LINKS.map((l) => <Link key={l.href} href={l.href} onClick={() => setOpen(false)} className="rounded-lg px-3 py-2 text-[14px] text-muted-foreground hover:bg-secondary/70 hover:text-foreground">{l.label}</Link>)}</div>}
             <div className="mt-3 border-t border-border pt-3">{logout(false)}</div>
           </div>
         </div>
@@ -202,4 +139,3 @@ export function Sidebar({ signOut, counts, perms = null }: { signOut: () => Prom
   );
 }
 
-export { ALL as NAV_ITEMS };

@@ -193,10 +193,10 @@ export default async function Dashboard({ searchParams }: { searchParams?: { moi
         <CardHeader><CardTitle>Meilleurs clients (12 mois, HT)</CardTitle></CardHeader>
         <CardContent>{topClients.length ? <RankBars rows={topClients} /> : <Empty>Aucune facture émise.</Empty>}</CardContent>
       </Card>
-      <Link href="/jarvis/openspace" className="mt-8 flex items-center gap-4 rounded-2xl bg-card px-5 py-4 text-[15px] text-secondary-foreground shadow-[0_1px_2px_rgba(17,18,20,0.04),0_8px_24px_rgba(17,18,20,0.04)] transition-colors hover:bg-secondary/40">
+      <Link href="/jarvis" className="mt-8 flex items-center gap-4 rounded-2xl bg-card px-5 py-4 text-[15px] text-secondary-foreground shadow-[0_1px_2px_rgba(17,18,20,0.04),0_8px_24px_rgba(17,18,20,0.04)] transition-colors hover:bg-secondary/40">
         <Sparkles className="h-5 w-5 text-primary" strokeWidth={1.5} />
         <span><b className="font-medium text-foreground">JARVIS</b> · vos agents et leurs alertes</span>
-        <span className="ml-auto inline-flex items-center gap-1 text-[13px] font-medium text-primary">Entrer dans les locaux <ArrowRight className="h-4 w-4" /></span>
+        <span className="ml-auto inline-flex items-center gap-1 text-[13px] font-medium text-primary">Ouvrir la supervision <ArrowRight className="h-4 w-4" /></span>
       </Link>
 
     </>

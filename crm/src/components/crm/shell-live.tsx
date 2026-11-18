@@ -4,6 +4,7 @@ import { requestCache } from "@/lib/request-cache";
 import { loadActionsCached } from "@/lib/actions-request";
 import { menuCountsFrom } from "@/lib/actions";
 import { Sidebar } from "@/components/crm/nav";
+import { SectionTabs } from "@/components/crm/section-tabs";
 import { Topbar } from "@/components/crm/topbar";
 import type { Perms } from "@/lib/team";
 
@@ -39,3 +40,10 @@ export async function TopbarCounts({ signOut }: { signOut: SignOut }) {
 }
 
 async function TopbarTeam({ signOut }: { signOut: SignOut }) { return <Topbar actionsCount={0} email={await email()} signOut={signOut} team />; }
+
+/** Onglets de la rubrique : affichés tout de suite, les pastilles de comptage arrivent ensuite. */
+export function SectionTabsLive({ perms = null }: { perms?: Perms | null }) {
+  if (perms) return <SectionTabs perms={perms} />;
+  return <Suspense fallback={<SectionTabs />}><SectionTabsCounts /></Suspense>;
+}
+async function SectionTabsCounts() { return <SectionTabs counts={await counts()} />; }

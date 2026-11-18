@@ -38,7 +38,6 @@ export default async function SettingsPage() {
           <div className="flex flex-wrap gap-3 font-medium">
             <Link href="/jarvis" className="text-primary hover:underline">Supervision JARVIS</Link>
             <Link href="/jarvis/alertes" className="text-primary hover:underline">Alertes</Link>
-            <Link href="/jarvis/openspace" className="text-primary hover:underline">Open space</Link>
           </div>
         </CardContent>
       </Card>

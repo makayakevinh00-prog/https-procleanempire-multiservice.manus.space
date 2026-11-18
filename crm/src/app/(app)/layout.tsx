@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getAccess } from "@/lib/auth";
-import { SidebarLive, TopbarLive } from "@/components/crm/shell-live";
+import { SectionTabsLive, SidebarLive, TopbarLive } from "@/components/crm/shell-live";
 import { Flash } from "@/components/crm/flash";
 import { CommandK } from "@/components/crm/command-k";
 import { QontoAutoSync } from "@/components/crm/qonto-auto";
@@ -41,6 +41,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <TopbarLive signOut={signOut} team={access.kind === "team"} />
         <main className="mx-auto max-w-[1400px] px-4 pb-28 pt-6 md:px-10 md:pb-12 md:pt-8">
           <Flash />
+          <SectionTabsLive perms={access.kind === "team" ? access.perms : null} />
           {children}
         </main>
       </div>

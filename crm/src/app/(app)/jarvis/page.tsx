@@ -48,7 +48,6 @@ export default async function JarvisPage() {
         title="JARVIS"
         subtitle="Supervision des agents : ce qu'ils ont repéré, ce qu'ils proposent, ce qui attend votre validation. Un agent observe et propose ; rien n'est envoyé ni modifié sans vous."
         actions={<>
-          <Link href="/jarvis/openspace" className="text-sm font-semibold text-primary underline">Ouvrir l&apos;open space</Link>
           {!missing && (
             <form action={runAgentAction.bind(null, "finance")}>
               <Button type="submit"><Play className="h-4 w-4" /> Lancer l&apos;agent Finance</Button>

@@ -3,18 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, CornerDownLeft } from "lucide-react";
+import { allPages } from "@/lib/nav-sections";
 import { applyTheme, ACCENTS } from "@/components/crm/theme-switcher";
 
 type Cmd = { id: string; group: string; label: string; sub?: string; run: () => void };
 export const OPEN_EVENT = "pce-cmdk";
 
-const PAGES: [string, string][] = [
-  ["/", "Accueil"], ["/actions", "Actions à faire"], ["/clients", "Clients"], ["/demandes", "Demandes du site"], ["/devis", "Devis"], ["/devis/ia", "Devis avec l'IA (photos)"], ["/contrats", "Contrats"],
-  ["/activites", "Activités"], ["/veille/territoire", "Territoire (carte)"], ["/veille", "Veille concurrentielle"], ["/croissance", "Croissance"], ["/croissance/aides", "Aides publiques"],
-  ["/missions", "Missions"], ["/planning", "Planning"], ["/sites", "Sites"], ["/conciergerie", "Conciergerie"], ["/nettoyeurs", "Nettoyeurs"], ["/messages", "Messages"], ["/equipe", "Équipe"], ["/recrutement", "Recrutement"],
-  ["/comptabilite", "Comptabilité"], ["/analyses", "Analyses"], ["/factures", "Factures"], ["/facturation-auto", "Facturation automatique"], ["/paiements", "Paiements"],
-  ["/fournisseurs", "Fournisseurs"], ["/catalogue", "Catalogue"], ["/parametres", "Paramètres"], ["/journal", "Journal"], ["/compte", "Mon compte"], ["/jarvis", "JARVIS"]
-];
+const PAGES: [string, string][] = allPages().map((t) => [t.href, t.label]);
 const CREATE: [string, string][] = [["/clients/new", "Nouveau client"], ["/devis/new", "Nouveau devis"], ["/factures/new", "Nouvelle facture"], ["/contrats/new", "Nouveau contrat"], ["/sites/new", "Nouveau site"], ["/equipe#ajout", "Nouvel agent"]];
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
