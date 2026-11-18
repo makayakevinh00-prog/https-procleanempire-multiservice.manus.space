@@ -98,6 +98,11 @@ export function Footer() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link href="/empire-os" className="transition hover:text-white">
+                Empire OS, notre logiciel
+              </Link>
+            </li>
           </ul>
         </div>
         <div>

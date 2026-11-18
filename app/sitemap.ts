@@ -34,6 +34,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/apres-chantier",
     "/remise-en-etat",
     "/zones-intervention",
+    "/empire-os",
     ...localPages.map((page) => `/${page.slug}`)
   ];
 

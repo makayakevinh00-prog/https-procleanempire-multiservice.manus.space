@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
+import { usePathname } from "next/navigation";
 import { siteConfig } from "@/lib/site";
 import { getDictionary } from "@/lib/i18n";
 
@@ -13,6 +14,9 @@ const t = getDictionary("fr");
  */
 export function BookingButton() {
   const reduce = useReducedMotion();
+  const pathname = usePathname();
+  // Page logiciel (Empire OS) : son seul appel à l'action est la liste d'attente.
+  if (pathname === "/empire-os") return null;
   return (
     <>
       <motion.div
