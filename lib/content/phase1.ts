@@ -135,10 +135,10 @@ export type Partner = {
  * Retirer une ligne ci-dessous suffit à retirer le nom du site.
  */
 export const partners: Partner[] = [
-  { name: "SEA" },
-  { name: "SARB Optique" },
-  { name: "Île-de-France Recyclage" },
-  { name: "Concierg'Air" },
+  { name: "Nike" },
+  { name: "Grand Optical" },
+  { name: "The French Optical" },
+  { name: "Société d'exploitation IDF Recyclage" },
   { name: "Easy Stay" }
 ];
 

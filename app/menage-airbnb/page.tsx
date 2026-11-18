@@ -15,7 +15,7 @@ export default function MenageAirbnbPage() {
       eyebrow="Ménage Airbnb · Location courte durée"
       title="Ménage Airbnb dans le Val-d'Oise (95) : un logement prêt pour chaque voyageur."
       lead="Pour les conciergeries et les propriétaires : nous préparons votre logement entre le départ et l'arrivée, le jour que vous fixez, avec le même niveau d'exigence à chaque passage."
-      image={{ src: "/media/photos/airbnb-salon-table-basse.webp", alt: "Salon d'un logement Airbnb préparé pour l'arrivée des voyageurs" }}
+      image={{ src: "/media/photos/landing/chambre-serviettes.webp", alt: "Chambre d'un logement Airbnb préparée pour l'arrivée des voyageurs : lit fait, serviettes roulées" }}
       serviceId="airbnb"
       ctaLabel="Demander un devis pour mon Airbnb"
       intro={[
@@ -67,10 +67,10 @@ export default function MenageAirbnbPage() {
         { question: "Comment est facturé le ménage ?", answer: "Au passage, avec une facture mensuelle pour les conciergeries et propriétaires réguliers." }
       ]}
       aside={
-        <section className="bg-white">
-          <div className="mx-auto max-w-[1200px] px-5 pb-20 md:px-8 md:pb-28">
-            <h2 className="text-2xl font-bold text-ink">Ménage Airbnb près de chez vous</h2>
-            <ul className="mt-5 flex flex-wrap gap-3">
+        <section className="border-t border-slate-200 bg-white">
+          <div className="mx-auto max-w-[1680px] px-6 py-16 md:px-12 md:py-20">
+            <h2 className="text-[12px] font-semibold uppercase tracking-[0.24em] text-slate-600">Ménage Airbnb près de chez vous</h2>
+            <ul className="mt-6 flex flex-wrap gap-x-10 gap-y-3">
               {[
                 { href: "/nettoyage-pontoise", label: "Pontoise" },
                 { href: "/nettoyage-cergy", label: "Cergy" },
@@ -78,7 +78,7 @@ export default function MenageAirbnbPage() {
                 { href: "/nettoyage-saint-ouen", label: "Saint-Ouen-sur-Seine" }
               ].map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="btn-pill-ghost text-ink">
+                  <Link href={link.href} className="inline-flex min-h-11 items-center border-b border-ink/40 pb-0.5 text-lg font-semibold text-ink transition-colors hover:border-ink">
                     {link.label}
                   </Link>
                 </li>

@@ -1,4 +1,4 @@
-import { ImmersiveHome } from "@/components/home/immersive-home";
+import { ImmersiveLanding } from "@/components/landing/immersive-landing";
 import { buildMetadata } from "@/lib/site";
 
 export const metadata = buildMetadata({
@@ -9,5 +9,5 @@ export const metadata = buildMetadata({
 });
 
 export default function HomePage() {
-  return <ImmersiveHome />;
+  return <ImmersiveLanding />;
 }

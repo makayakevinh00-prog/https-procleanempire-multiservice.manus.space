@@ -76,7 +76,7 @@ export function Header() {
         <div className="flex items-center gap-2">
           <Link
             href={siteConfig.bookingUrl}
-            className="hidden rounded-full bg-[#1d6fe0] px-4 py-1.5 text-[13px] font-semibold text-white transition hover:bg-[#1559bd] sm:inline-flex"
+            className="hidden rounded-full bg-[#0a1020] px-4 py-1.5 text-[13px] font-semibold text-white transition hover:bg-[#16224a] sm:inline-flex"
           >
             {t.cta.booking}
           </Link>
