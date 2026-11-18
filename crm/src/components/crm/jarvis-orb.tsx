@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Mic, Volume2, VolumeX, X } from "lucide-react";
+import { Mic, Send, Volume2, VolumeX, X } from "lucide-react";
 import { applyTheme } from "@/components/crm/theme-switcher";
 import { OPEN_EVENT } from "@/components/crm/command-k";
+import { decideProposalAction } from "@/app/actions/messages";
+import { LEVELS, parseLevel, type Level } from "@/lib/jarvis/autonomy";
 
 type Item = { id: string; label: string; value: string; say: string; href: string; tone: "ok" | "warn" | "err" | "info" };
 type Brief = { greeting: string; items: Item[]; say: string };
@@ -30,6 +32,16 @@ export function JarvisOrb() {
   const [reply, setReply] = useState("");
   const [mute, setMute] = useState(false);
   const rec = useRef<any>(null);
+  const [level, setLevel] = useState<Level>(0);
+  const [alerts, setAlerts] = useState<{ id: string; say: string; href: string; severity: string }[]>([]);
+  const [props, setProps] = useState<{ id: string; title: string; summary: string | null; level: string }[]>([]);
+  const [alert, setAlert] = useState(false);
+  const [chat, setChat] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
+  const [text, setText] = useState("");
+  const [thinking, setThinking] = useState(false);
+  const chatRef = useRef(chat); chatRef.current = chat;
+  const sayRef = useRef<(t: string) => void>(() => undefined);
+  const seen = useRef<Set<string>>(new Set());
 
   const audio = useRef<HTMLAudioElement | null>(null);
   const proVoice = useRef<boolean | null>(null);   // null = pas encore essayé, false = voix premium non configurée
@@ -73,6 +85,55 @@ export function JarvisOrb() {
     speakLocal(text);
   }, [mute, speakLocal]);
 
+  sayRef.current = (t: string) => void say(t);
+  useEffect(() => {
+    try { setLevel(parseLevel(localStorage.getItem("jarvis-niveau"))); seen.current = new Set(JSON.parse(localStorage.getItem("jarvis-seen") ?? "[]")); } catch { /* sans mémoire */ }
+  }, []);
+  const chooseLevel = (l: Level) => { setLevel(l); try { localStorage.setItem("jarvis-niveau", String(l)); } catch { /* rien */ } };
+
+  // Veille : toutes les 45 s, Jarvis regarde ce qui se passe. Ce qui est nouveau est dit à voix haute (une seule fois) et la bulle s'illumine.
+  useEffect(() => {
+    let dead = false;
+    const tick = async () => {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const r = await fetch(`/api/jarvis/watch?niveau=${level}`, { cache: "no-store" });
+        if (!r.ok || dead) return;
+        const j = (await r.json()) as { events: { id: string; say: string; href: string; severity: string }[]; proposals: { id: string; title: string; summary: string | null; level: string }[] };
+        setProps(j.proposals);
+        const fresh = j.events.filter((e) => !seen.current.has(e.id));
+        setAlerts(j.events);
+        if (fresh.length) {
+          fresh.forEach((e) => seen.current.add(e.id));
+          try { localStorage.setItem("jarvis-seen", JSON.stringify([...seen.current].slice(-200))); } catch { /* rien */ }
+          setAlert(true);
+          const line = fresh.slice(0, 2).map((e) => e.say).join(" ");
+          sayRef.current(line);
+          try { if ("Notification" in window && Notification.permission === "granted") new Notification("Jarvis", { body: line }); } catch { /* rien */ }
+        }
+      } catch { /* hors ligne */ }
+    };
+    const first = setTimeout(tick, 4000), t = setInterval(tick, 45000);
+    return () => { dead = true; clearTimeout(first); clearInterval(t); };
+  }, [level]);
+
+  const decide = useCallback(async (id: string, ok: boolean) => {
+    setProps((p) => p.filter((x) => x.id !== id));
+    try { const r = await decideProposalAction(id, ok); say(r.ok ? (ok ? "C'est validé." : "Très bien, j'annule.") : "Je n'ai pas pu enregistrer votre décision."); } catch { say("Je n'ai pas pu enregistrer votre décision."); }
+  }, [say]);
+
+  const ask = useCallback(async (q: string) => {
+    const msgs = [...chatRef.current, { role: "user" as const, content: q }];
+    setChat(msgs); setThinking(true);
+    try {
+      const r = await fetch("/api/jarvis/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: msgs, niveau: level }) });
+      const j = await r.json().catch(() => ({}));
+      const reply = r.ok ? String(j.reply ?? "") : String(j.error ?? "Je n'ai pas pu répondre.");
+      setChat([...msgs, { role: "assistant", content: reply }]); void say(reply);
+    } catch { const m = "Je n'arrive pas à joindre mon cerveau pour le moment."; setChat([...msgs, { role: "assistant", content: m }]); void say(m); }
+    setThinking(false);
+  }, [level, say]);
+
   const load = useCallback(async () => {
     try { const r = await fetch("/api/jarvis/brief", { cache: "no-store" }); if (r.ok) { const j = (await r.json()) as Brief; setBrief(j); return j; } } catch { /* hors ligne */ }
     return null;
@@ -90,11 +151,13 @@ export function JarvisOrb() {
     if (/mode jarvis|futuriste/.test(t)) { applyTheme("verre", "cyan", true); say("Mode Jarvis activé."); return; }
     if (/mode classique|style classique/.test(t)) { applyTheme("classique", null, false); say("Style classique rétabli."); return; }
     if (/briefing|resume|point du jour|quoi de neuf/.test(t)) { void load().then((b) => b && say(b.say)); return; }
+    if (/^(oui|ok|valide|vas y|d accord|c est bon)\b/.test(t) && props[0]) { void decide(props[0].id, true); return; }
+    if (/^(non|annule|refuse|pas maintenant)\b/.test(t) && props[0]) { void decide(props[0].id, false); return; }
     if (/tais|silence|stop/.test(t)) { window.speechSynthesis?.cancel(); audio.current?.pause(); setTalking(false); return; }
     const hit = ROUTES.find(([re]) => re.test(t));
     if (hit) { say(`J'ouvre ${hit[2]}.`); router.push(hit[1]); return; }
-    say("Je n'ai pas compris. Essayez : ouvre les factures, cherche un client, ou donne-moi le briefing.");
-  }, [load, router, say]);
+    void ask(raw);
+  }, [load, router, say, props, decide, ask]);
 
   const listen = useCallback(() => {
     const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition;
@@ -111,7 +174,7 @@ export function JarvisOrb() {
 
   return (
     <>
-      <button type="button" onClick={() => setOpen((v) => !v)} aria-label="Jarvis" aria-expanded={open} className={`jarvis-orb ${talking || listening ? "is-live" : ""}`}><i /><i /><i /></button>
+      <button type="button" onClick={() => { setOpen((v) => !v); setAlert(false); try { if ("Notification" in window && Notification.permission === "default") void Notification.requestPermission(); } catch { /* rien */ } }} aria-label="Jarvis" aria-expanded={open} className={`jarvis-orb ${talking || listening || alert ? "is-live" : ""}`}><i /><i /><i /></button>
       {open && (
         <section role="dialog" aria-label="Jarvis" className="jarvis-panel">
           <header className="flex items-center justify-between gap-2 border-b border-white/10 px-4 py-3">
@@ -137,6 +200,31 @@ export function JarvisOrb() {
             </div>
             {heard && <p className="text-[13px] opacity-80">Vous : « {heard} »</p>}
             {reply && <p className="text-[13px] text-[hsl(var(--ac,190_100%_50%))]">Jarvis : {reply}</p>}
+            {props.length > 0 && (
+              <div className="space-y-2 rounded-xl border border-amber-400/40 bg-amber-400/5 p-3">
+                <b className="text-[12px] uppercase tracking-wider text-amber-300">À valider ({props.length})</b>
+                {props.map((p) => (
+                  <div key={p.id} className="space-y-1.5">
+                    <p className="text-[13px]"><b>{p.title}</b>{p.summary ? ` — ${p.summary}` : ""}</p>
+                    <div className="flex gap-2"><button type="button" onClick={() => void decide(p.id, true)} className="jarvis-btn flex-1" style={{ height: 34 }}>Oui</button><button type="button" onClick={() => void decide(p.id, false)} className="jarvis-btn flex-1" style={{ height: 34 }}>Non</button></div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {alerts.length > 0 && <ul className="space-y-1 text-[12.5px]">{alerts.slice(0, 4).map((a) => <li key={a.id}><button type="button" onClick={() => router.push(a.href)} className={`text-left underline-offset-2 hover:underline ${a.severity === "err" ? "text-red-300" : a.severity === "warn" ? "text-amber-300" : ""}`}>• {a.say}</button></li>)}</ul>}
+            <div className="max-h-40 space-y-1.5 overflow-auto text-[13px]">
+              {chat.map((m, i) => <p key={i} className={m.role === "user" ? "opacity-80" : "text-[hsl(var(--ac,190_100%_50%))]"}>{m.role === "user" ? "Vous" : "Jarvis"} : {m.content}</p>)}
+              {thinking && <p className="opacity-60">Jarvis réfléchit…</p>}
+            </div>
+            <form onSubmit={(e) => { e.preventDefault(); const q = text.trim(); if (q) { setText(""); run(q); } }} className="flex gap-2">
+              <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Parlez-lui ou écrivez…" aria-label="Message à Jarvis" className="h-10 min-w-0 flex-1 rounded-xl border border-white/15 bg-white/5 px-3 text-[14px] outline-none" />
+              <button aria-label="Envoyer" className="jarvis-btn" style={{ width: 40 }}><Send className="h-4 w-4" /></button>
+            </form>
+            <div>
+              <div className="mb-1 text-[11px] uppercase tracking-wider opacity-60">Autonomie · l&apos;argent reste toujours à vous</div>
+              <div className="grid grid-cols-3 gap-1.5">{LEVELS.map((l) => <button key={l.id} type="button" onClick={() => chooseLevel(l.id)} title={l.help} className={`jarvis-btn ${level === l.id ? "is-on" : ""}`} style={{ height: 32, fontSize: 12 }}>{l.label}</button>)}</div>
+              <p className="mt-1 text-[11px] opacity-55">{LEVELS.find((l) => l.id === level)?.help}</p>
+            </div>
             <p className="text-[11px] opacity-50">Dites : « ouvre les factures », « cherche Dupont », « mode Jarvis », « briefing ».</p>
           </div>
         </section>
