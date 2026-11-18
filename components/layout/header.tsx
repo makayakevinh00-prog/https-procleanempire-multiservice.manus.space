@@ -15,21 +15,13 @@ const t = getDictionary("fr");
 export function Header() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  // Sur l'accueil, l'en-tête est transparent au-dessus du hero plein écran.
-  const overHero = pathname === "/" && !scrolled && !menuOpen;
+  // L'en-tête reste plein sur toutes les pages (la nouvelle ouverture de l'accueil commence sous l'en-tête).
+  const overHero = false;
 
   return (
     <header
@@ -141,7 +133,5 @@ export function Header() {
 
 /** Réserve la hauteur de l'en-tête fixe, sauf sur l'accueil (hero plein écran). */
 export function HeaderSpacer() {
-  const pathname = usePathname();
-  if (pathname === "/") return null;
   return <div aria-hidden className="h-16" />;
 }
