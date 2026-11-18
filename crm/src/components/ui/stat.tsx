@@ -10,12 +10,12 @@ const TONES = {
 /** Petite carte de chiffre placée au-dessus des listes (comme un tableau de bord miniature). */
 export function Stat({ label, value, sub, tone = "slate", href, icon: Icon }: { label: string; value: string | number; sub?: string; tone?: keyof typeof TONES; href?: string; icon?: React.ComponentType<{ className?: string }> }) {
   const body = (
-    <div className="flex h-full items-center gap-3 rounded-2xl border border-slate-200/70 bg-card p-4 sm:gap-4 sm:p-5 shadow-[0_1px_2px_rgba(15,23,42,0.05)] transition-shadow hover:shadow-md">
+    <div className="flex h-full items-center gap-3 pce-card pce-lift rounded-2xl border border-border/60 bg-card p-4 sm:gap-4 sm:p-5 shadow-[0_1px_2px_rgba(17,18,20,0.04)]">
       {Icon && <span className={cn("hidden h-12 w-12 shrink-0 items-center justify-center rounded-xl sm:flex", TONES[tone])}><Icon className="h-6 w-6" /></span>}
       <div className="min-w-0">
-        <div className="text-[13px] font-medium text-slate-500">{label}</div>
-        <div className="truncate text-xl font-extrabold sm:text-2xl tracking-tight text-slate-900"><AnimatedValue value={value} /></div>
-        {sub && <div className="truncate text-xs text-slate-500">{sub}</div>}
+        <div className="text-[13px] font-medium text-muted-foreground">{label}</div>
+        <div className="truncate text-xl font-semibold sm:text-2xl tracking-tight text-foreground"><AnimatedValue value={value} /></div>
+        {sub && <div className="truncate text-xs text-muted-foreground">{sub}</div>}
       </div>
     </div>
   );

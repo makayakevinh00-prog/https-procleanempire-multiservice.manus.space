@@ -4,8 +4,8 @@ export function PageHeader({ title, subtitle, actions }: { title: string; subtit
   return (
     <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
-        <h1 className="text-[30px] font-semibold leading-tight tracking-[-0.025em] text-foreground">{title}</h1>
-        {subtitle && <p className="mt-1.5 max-w-3xl text-[15px] text-muted-foreground">{subtitle}</p>}
+        <h1 className="pce-title text-[clamp(32px,4vw,44px)] leading-[1.05] text-foreground">{title}</h1>
+        {subtitle && <p className="mt-2.5 max-w-3xl text-[15px] text-muted-foreground">{subtitle}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-3">{actions}</div>}
     </div>

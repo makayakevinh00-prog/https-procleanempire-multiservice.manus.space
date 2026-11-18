@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import "@fontsource-variable/fraunces/opsz.css";
+import "@fontsource-variable/fraunces/opsz-italic.css";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
@@ -20,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fr" suppressHydrationWarning>
       <head>
         {/* Couleur choisie : appliquée avant l'affichage (aucun clignotement). Les anciens styles sombres sont retirés. */}
-        <script dangerouslySetInnerHTML={{ __html: `try{var t=JSON.parse(localStorage.getItem("pce-theme")||"null");if(t){var ok=["vert","bleu","violet","ambre","rose"];if(t.accent&&ok.indexOf(t.accent)>-1)document.documentElement.dataset.accent=t.accent;if(t.skin&&t.skin!=="classique"||t.hud||(t.accent&&ok.indexOf(t.accent)<0))localStorage.setItem("pce-theme",JSON.stringify({skin:"classique",accent:ok.indexOf(t.accent)>-1?t.accent:null}))}}catch(e){}` }} />
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=JSON.parse(localStorage.getItem("pce-theme")||"null");if(t){var ok=["vert","bleu","violet","ambre","rose"];if(t.accent&&ok.indexOf(t.accent)>-1)document.documentElement.dataset.accent=t.accent;if(t.skin&&t.skin!=="classique"||t.hud||(t.accent&&ok.indexOf(t.accent)<0))localStorage.setItem("pce-theme",JSON.stringify({skin:"classique",accent:ok.indexOf(t.accent)>-1?t.accent:null}))}}catch(e){}try{if(!sessionStorage.getItem("pce-lit"))document.documentElement.classList.add("lights-on")}catch(e){}` }} />
       </head>
       <body className={inter.className}>{children}</body>
     </html>

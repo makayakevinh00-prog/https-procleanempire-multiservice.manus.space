@@ -63,3 +63,72 @@ nav[aria-label="Sections"] a[aria-current="page"]::after { animation: tab-in 0.3
 @media (prefers-reduced-motion: reduce) {
   [style*="cockpit-in"], [style*="cockpit-grow"] { animation: none !important; }
 }
+
+/* ───────── Habillage vivant, commun à toutes les pages ───────── */
+
+/* Titres de page : la même serif éditoriale que le site. */
+.pce-title { font-family: "Fraunces Variable", "Iowan Old Style", Georgia, serif; font-optical-sizing: auto; font-weight: 400; letter-spacing: -0.022em; }
+.pce-title em { font-style: italic; font-weight: 360; }
+
+/* Lumière d'ambiance : un halo discret de la couleur choisie, en haut de chaque page. */
+.pce-ambient { position: fixed; inset: 0 0 auto 0; height: 460px; z-index: -1; pointer-events: none;
+  background: radial-gradient(900px 380px at 18% -8%, hsl(var(--primary) / 0.11), transparent 70%), radial-gradient(700px 320px at 92% -12%, hsl(var(--primary) / 0.07), transparent 70%);
+  animation: pce-ambient-in 1.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes pce-ambient-in { from { opacity: 0; transform: translateY(-24px); } to { opacity: 1; transform: none; } }
+
+/* La pièce qui s'allume : une seule fois par ouverture du CRM. */
+html.lights-on body:has(.pce-app)::before { content: ""; position: fixed; inset: 0; z-index: 100; pointer-events: none; background: #0a1020; animation: pce-lights 1.5s cubic-bezier(0.65, 0, 0.35, 1) both; }
+html.lights-on .pce-app { animation: pce-wake 1.5s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+@keyframes pce-lights { 0% { opacity: 1; } 25% { opacity: 0.92; } 100% { opacity: 0; } }
+@keyframes pce-wake { from { filter: brightness(0.6) saturate(0.6); } to { filter: none; } }
+
+/* Chaque page entre en scène : ses blocs montent l'un après l'autre, les lignes de tableau suivent. */
+@keyframes pce-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes pce-row { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+.page-enter > * { animation: pce-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+.page-enter > *:nth-child(2) { animation-delay: 60ms; }
+.page-enter > *:nth-child(3) { animation-delay: 120ms; }
+.page-enter > *:nth-child(4) { animation-delay: 180ms; }
+.page-enter > *:nth-child(5) { animation-delay: 240ms; }
+.page-enter > *:nth-child(n + 6) { animation-delay: 300ms; }
+.page-enter tbody tr { animation: pce-row 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+.page-enter tbody tr:nth-child(1) { animation-delay: 140ms; } .page-enter tbody tr:nth-child(2) { animation-delay: 170ms; }
+.page-enter tbody tr:nth-child(3) { animation-delay: 200ms; } .page-enter tbody tr:nth-child(4) { animation-delay: 230ms; }
+.page-enter tbody tr:nth-child(5) { animation-delay: 260ms; } .page-enter tbody tr:nth-child(6) { animation-delay: 290ms; }
+.page-enter tbody tr:nth-child(7) { animation-delay: 320ms; } .page-enter tbody tr:nth-child(8) { animation-delay: 350ms; }
+.page-enter tbody tr:nth-child(9) { animation-delay: 380ms; } .page-enter tbody tr:nth-child(10) { animation-delay: 410ms; }
+.page-enter tbody tr:nth-child(n + 11) { animation-delay: 440ms; }
+
+/* Cartes : un reflet suit la souris, la carte se soulève quand elle est cliquable. */
+.pce-card { position: relative; transition: box-shadow 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease; }
+.pce-card::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity 0.35s ease;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 0%), hsl(var(--primary) / 0.08), transparent 62%); }
+@media (hover: hover) {
+  .pce-card:hover::before { opacity: 1; }
+  .pce-card:hover { border-color: hsl(var(--primary) / 0.22); box-shadow: 0 1px 2px rgba(17, 18, 20, 0.05), 0 14px 34px rgba(17, 18, 20, 0.07); }
+  a:hover > .pce-card, a.pce-lift:hover, .pce-lift:hover { transform: translateY(-2px); }
+}
+
+/* Lignes de tableau : un filet de couleur apparaît à gauche au survol. */
+tbody tr { position: relative; }
+@media (hover: hover) { tbody tr:hover > td:first-child { box-shadow: inset 2px 0 0 hsl(var(--primary)); } }
+
+/* Menu : le repère de la rubrique active glisse en place, l'icône réagit au survol. */
+@keyframes pce-ind { from { transform: scaleY(0); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }
+.pce-nav-ind { animation: pce-ind 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; transform-origin: center; }
+.pce-nav-link svg { transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+@media (hover: hover) { .pce-nav-link:hover svg { transform: translateX(2px) scale(1.06); } }
+
+/* Chargement : une lueur traverse les blocs en attente. */
+@keyframes pce-shimmer { to { background-position: -200% 0; } }
+.pce-skeleton { background: linear-gradient(100deg, hsl(var(--secondary)) 30%, hsl(var(--card)) 50%, hsl(var(--secondary)) 70%); background-size: 200% 100%; animation: pce-shimmer 1.4s linear infinite; }
+
+/* Pastille « en direct » : un point qui respire. */
+@keyframes pce-pulse { 0%, 100% { box-shadow: 0 0 0 0 currentColor; opacity: 1; } 60% { box-shadow: 0 0 0 5px transparent; opacity: 0.75; } }
+.pce-live-dot { display: inline-block; height: 6px; width: 6px; border-radius: 9999px; background: currentColor; animation: pce-pulse 1.8s ease-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pce-ambient, .page-enter > *, .page-enter tbody tr, .pce-nav-ind, .pce-skeleton, .pce-live-dot, html.lights-on .pce-app { animation: none !important; }
+  html.lights-on body:has(.pce-app)::before { display: none; }
+  .pce-card, .pce-nav-link svg { transition: none; }
+}

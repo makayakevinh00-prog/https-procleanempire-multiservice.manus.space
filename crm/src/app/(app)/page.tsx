@@ -97,13 +97,15 @@ export default async function Dashboard({ searchParams }: { searchParams?: { moi
     toInvoice.length ? `${toInvoice.length} devis accepté${toInvoice.length > 1 ? "s" : ""} à facturer` : null
   ].filter(Boolean) as string[];
   const dateLabel = new Date().toLocaleDateString("fr-FR", { timeZone: "Europe/Paris", weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const hour = Number(new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris", hour: "numeric", hour12: false }).replace(/\D/g, ""));
+  const greeting = hour >= 18 || hour < 5 ? "Bonsoir" : "Bonjour";
   const monthlySeries = series.map((d) => d.value);
   const ordered = [...actions.filter((a) => a.count === undefined && a.tone !== "blue"), ...actions.filter((a) => a.count !== undefined && a.tone !== "blue")];
 
   return (
     <>
       <header className="mb-2">
-        <h1 className="text-[clamp(28px,4vw,38px)] font-semibold leading-[1.15] tracking-[-0.025em] text-foreground">Bonjour</h1>
+        <h1 className="pce-title text-[clamp(36px,5vw,56px)] leading-[1.02] text-foreground">{greeting}, <em>Kevinh.</em></h1>
         <p className="mt-1 text-[15px] text-muted-foreground">{dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1)}</p>
         <p className="mt-3 max-w-[62ch] text-[15px] text-secondary-foreground">
           <b className="font-medium text-foreground">{actionsCount} point{actionsCount > 1 ? "s" : ""} à traiter</b>, {bits.join(", ")}.

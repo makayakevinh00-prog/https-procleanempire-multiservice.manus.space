@@ -5,6 +5,7 @@ import { SectionTabsLive, SidebarLive, TopbarLive } from "@/components/crm/shell
 import { Flash } from "@/components/crm/flash";
 import { CommandK } from "@/components/crm/command-k";
 import { QontoAutoSync } from "@/components/crm/qonto-auto";
+import { Alive } from "@/components/crm/alive";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     );
   }
   return (
-    <div className="min-h-screen">
+    <div className="pce-app min-h-screen">
+      <div aria-hidden className="pce-ambient" />
+      <Alive />
       {access.kind === "owner" && <CommandK />}
       {process.env.VERCEL_ENV === "preview" && (
         <div role="note" className="sticky top-0 z-50 bg-[#f1d27a] px-4 py-1 text-center text-xs font-medium text-foreground">
