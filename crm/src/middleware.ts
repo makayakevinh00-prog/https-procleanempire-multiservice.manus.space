@@ -20,7 +20,8 @@ export async function middleware(request: NextRequest) {
 
   const { data } = await supabase.auth.getUser();
   const { pathname } = request.nextUrl;
-  const isPublic = PUBLIC.some((p) => pathname.startsWith(p));
+  // « /nettoyeur » exact : page de présentation publique de l'application nettoyeur (à ne pas confondre avec /nettoyeurs, réservé au patron).
+  const isPublic = pathname === "/nettoyeur" || PUBLIC.some((p) => pathname.startsWith(p));
 
   if (!data.user && !isPublic) {
     const url = request.nextUrl.clone();
