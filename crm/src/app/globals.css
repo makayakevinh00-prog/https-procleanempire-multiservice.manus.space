@@ -56,3 +56,10 @@ nav[aria-label="Sections"] a[aria-current="page"]::after { animation: tab-in 0.3
 @media (prefers-reduced-motion: reduce) {
   svg g.group > path, svg circle[transform^="rotate"][stroke-dashoffset], nav[aria-label="Sections"] a[aria-current="page"]::after { animation: none; }
 }
+
+/* Accueil-cockpit : apparition des blocs et remplissage des barres (désactivés si le système demande moins de mouvement). */
+@keyframes cockpit-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes cockpit-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) {
+  [style*="cockpit-in"], [style*="cockpit-grow"] { animation: none !important; }
+}

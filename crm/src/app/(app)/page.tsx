@@ -9,7 +9,9 @@ import { parisToday } from "@/lib/domain/dates";
 import { Empty } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ClientName } from "@/components/crm/client-name";
-import { MonthlyBars, Donut, RankBars } from "@/components/crm/charts";
+import { Donut, RankBars } from "@/components/crm/charts";
+import { Cockpit, RevenueCurve } from "@/components/crm/cockpit";
+import { loadCockpit } from "@/lib/cockpit";
 import { Row, Sparkline, Stat } from "@/components/crm/home-kit";
 import { Objectives } from "@/components/crm/objectifs";
 import { daysBetween, formatDate, formatEUR, formatHours, round2 } from "@/lib/utils";
@@ -75,6 +77,7 @@ export default async function Dashboard({ searchParams }: { searchParams?: { moi
   });
   const rec = summarize(rows, settings);
   const mrr = round2(rows.reduce((a, r) => a + (monthlyRevenueHt(r.contract) ?? 0), 0));
+  const cockpit = await loadCockpit(supabase, today, { billedMonth, billedPrev, recurring: mrr });
   const lateAmount = round2(late.reduce((a, i) => a + num(i.total_ttc) - num(i.paid_amount), 0));
 
   const picked = series.find((d) => d.key === searchParams?.mois);
@@ -114,6 +117,8 @@ export default async function Dashboard({ searchParams }: { searchParams?: { moi
           <span>aucune action automatique.</span>
         </div>
       )}
+
+      <Cockpit goal={cockpit.goal} activities={cockpit.activities} week={cockpit.week} />
 
       <section aria-label="Indicateurs" className="mt-9 grid grid-cols-2 border-t border-border sm:grid-cols-3 sm:divide-x sm:divide-border xl:grid-cols-5">
         <Stat label="CA récurrent par mois" value={eur0(mrr)} unit="HT" href="/contrats" hint={`${rows.length} contrat${rows.length > 1 ? "s" : ""} actif${rows.length > 1 ? "s" : ""}`} />
@@ -158,8 +163,8 @@ export default async function Dashboard({ searchParams }: { searchParams?: { moi
             <span className="text-xs text-muted-foreground">12 mois : <b className="num font-medium text-foreground">{formatEUR(total12)}</b></span>
           </CardHeader>
           <CardContent className="pt-3">
-            <MonthlyBars data={series} />
-            <p className="mt-2 text-xs text-muted-foreground">Mois en cours en plus clair (incomplet). {firstData && firstData.key !== series[0].key ? `Historique disponible à partir de ${firstData.label} (factures reprises d'Axonaut).` : ""} Survolez une barre pour le montant exact, cliquez pour voir les clients. <Link href="/analyses" className="font-medium text-primary hover:underline">Toutes les analyses</Link></p>
+            <RevenueCurve data={series} />
+            <p className="mt-2 text-xs text-muted-foreground">Mois en cours en plus clair (incomplet). {firstData && firstData.key !== series[0].key ? `Historique disponible à partir de ${firstData.label} (factures reprises d'Axonaut).` : ""} Passez la souris sur la courbe pour le montant exact, cliquez sur un mois pour voir les clients. <Link href="/analyses" className="font-medium text-primary hover:underline">Toutes les analyses</Link></p>
             {picked && (
               <div id="detail-mois" className="mt-4 rounded-xl bg-secondary/50 p-4">
                 <div className="mb-3 flex items-baseline justify-between gap-3">
