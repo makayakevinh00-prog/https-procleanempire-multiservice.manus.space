@@ -35,3 +35,109 @@
 @keyframes jarvis-flow { to { stroke-dashoffset: -16; } }
 .jarvis-flow { stroke-dasharray: 4 4; animation: jarvis-flow 1s linear infinite; }
 @media (prefers-reduced-motion: reduce) { .jarvis-flow { animation: none; } }
+
+/* Habillages du CRM : « Classique » (l'ancien style, par défaut) et « Vert dépoli » (verre sombre lumineux), + une couleur d'accent au choix.
+   Tout passe par des variables : aucune page n'est modifiée. Réglage gardé dans le navigateur (voir ThemeSwitcher). */
+
+html[data-accent="vert"]   { --ac: 152 62% 46%; --ac-2: 172 66% 40%; }
+html[data-accent="bleu"]   { --ac: 212 92% 58%; --ac-2: 232 80% 62%; }
+html[data-accent="violet"] { --ac: 262 82% 66%; --ac-2: 292 70% 60%; }
+html[data-accent="ambre"]  { --ac: 38 96% 54%;  --ac-2: 18 90% 55%; }
+html[data-accent="rose"]   { --ac: 336 82% 62%; --ac-2: 8 80% 60%; }
+
+/* La couleur choisie colore aussi le style classique (boutons, focus, graphiques). */
+html[data-accent] { --primary: var(--ac); --ring: var(--ac); }
+html[data-accent] svg [fill="#2b4c7e"] { fill: hsl(var(--ac)); }
+html[data-accent] svg [stroke="#2b4c7e"] { stroke: hsl(var(--ac)); }
+
+/* ───────────── Vert dépoli ───────────── */
+html[data-skin="verre"] {
+  color-scheme: dark;
+  --background: 160 32% 5%;
+  --foreground: 150 18% 94%;
+  --card: 160 24% 12%;
+  --card-foreground: 150 18% 94%;
+  --primary-foreground: 160 40% 6%;
+  --secondary: 160 18% 16%;
+  --secondary-foreground: 150 14% 88%;
+  --muted: 160 16% 14%;
+  --muted-foreground: 150 10% 66%;
+  --border: 150 22% 24%;
+  --success: 152 55% 52%;
+  --warning: 38 90% 58%;
+  --destructive: 5 72% 58%;
+}
+html[data-skin="verre"] body {
+  background:
+    radial-gradient(1100px 650px at 8% -12%, hsl(var(--ac) / 0.20), transparent 62%),
+    radial-gradient(900px 600px at 100% 6%, hsl(var(--ac-2) / 0.14), transparent 58%),
+    radial-gradient(700px 500px at 60% 110%, hsl(var(--ac) / 0.10), transparent 60%),
+    hsl(var(--background));
+  background-attachment: fixed;
+}
+
+/* Verre : les cartes et champs deviennent translucides et floutés. */
+html[data-skin="verre"] .bg-card,
+html[data-skin="verre"] .bg-white {
+  background-color: hsl(150 30% 100% / 0.055) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  border-color: hsl(150 30% 100% / 0.12);
+  box-shadow: 0 1px 0 hsl(150 30% 100% / 0.06) inset, 0 8px 30px rgb(0 0 0 / 0.25);
+}
+html[data-skin="verre"] .bg-white\/95, html[data-skin="verre"] .bg-background\/85 { background-color: hsl(160 30% 6% / 0.72) !important; }
+html[data-skin="verre"] .bg-slate-50 { background-color: hsl(150 30% 100% / 0.045) !important; }
+html[data-skin="verre"] .bg-slate-100 { background-color: hsl(150 30% 100% / 0.08) !important; }
+html[data-skin="verre"] .bg-slate-200 { background-color: hsl(150 30% 100% / 0.13) !important; }
+html[data-skin="verre"] .bg-\[\#fbfaf8\] { background-color: hsl(160 32% 5% / 0.55) !important; -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px); }
+html[data-skin="verre"] .hover\:bg-slate-50:hover { background-color: hsl(var(--ac) / 0.10) !important; }
+html[data-skin="verre"] .text-slate-900, html[data-skin="verre"] .text-slate-800 { color: hsl(150 18% 95%) !important; }
+html[data-skin="verre"] .text-slate-700, html[data-skin="verre"] .text-slate-600 { color: hsl(150 14% 82%) !important; }
+html[data-skin="verre"] .text-slate-500 { color: hsl(150 10% 68%) !important; }
+html[data-skin="verre"] .text-slate-400, html[data-skin="verre"] .text-slate-300 { color: hsl(150 8% 58%) !important; }
+html[data-skin="verre"] .border-slate-100, html[data-skin="verre"] .border-slate-200, html[data-skin="verre"] .border-slate-200\/70 { border-color: hsl(150 30% 100% / 0.10) !important; }
+html[data-skin="verre"] .border-slate-300 { border-color: hsl(150 30% 100% / 0.18) !important; }
+html[data-skin="verre"] .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: hsl(150 30% 100% / 0.08) !important; }
+html[data-skin="verre"] input, html[data-skin="verre"] select, html[data-skin="verre"] textarea { color: hsl(var(--foreground)); }
+html[data-skin="verre"] option { background: hsl(160 28% 10%); color: hsl(150 18% 94%); }
+html[data-skin="verre"] ::placeholder { color: hsl(150 8% 52%); }
+html[data-skin="verre"] table thead { background-color: hsl(150 30% 100% / 0.05) !important; }
+html[data-skin="verre"] svg line[stroke="#e6e4de"] { stroke: hsl(150 30% 100% / 0.12); }
+html[data-skin="verre"] svg .fill-slate-400, html[data-skin="verre"] svg .fill-slate-500 { fill: hsl(150 10% 68%); }
+html[data-skin="verre"] svg .fill-slate-700, html[data-skin="verre"] svg .fill-slate-900 { fill: hsl(150 18% 94%); }
+html[data-skin="verre"] svg circle[fill="#fff"] { fill: hsl(160 30% 8%); }
+html[data-skin="verre"] ::selection { background: hsl(var(--ac) / 0.35); }
+html[data-skin="verre"] a:focus-visible, html[data-skin="verre"] button:focus-visible { outline: 2px solid hsl(var(--ac)); outline-offset: 2px; }
+/* Pastilles pâles (alertes, états) : texte foncé conservé, léger halo. */
+html[data-skin="verre"] [class*="bg-[#e6f1ea]"], html[data-skin="verre"] [class*="bg-[#f7ecdb]"], html[data-skin="verre"] [class*="bg-[#f6e4e1]"], html[data-skin="verre"] [class*="bg-[#e8edf5]"] { box-shadow: 0 0 0 1px rgb(0 0 0 / 0.08); }
+
+/* Mouvement : les blocs montent doucement, les menus glissent, les cartes réagissent. */
+@keyframes skin-rise { from { opacity: 0; transform: translateY(14px) scale(0.985); } to { opacity: 1; transform: none; } }
+html[data-skin="verre"] main > * { animation: skin-rise 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+html[data-skin="verre"] main > *:nth-child(2) { animation-delay: 0.05s; }
+html[data-skin="verre"] main > *:nth-child(3) { animation-delay: 0.10s; }
+html[data-skin="verre"] main > *:nth-child(4) { animation-delay: 0.15s; }
+html[data-skin="verre"] main > *:nth-child(5) { animation-delay: 0.20s; }
+html[data-skin="verre"] main > *:nth-child(n+6) { animation-delay: 0.25s; }
+html[data-skin="verre"] aside nav a, html[data-skin="verre"] aside a { transition: transform 0.18s ease, background-color 0.18s ease; }
+html[data-skin="verre"] aside a:hover { transform: translateX(3px); }
+html[data-skin="verre"] .bg-card { transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
+html[data-skin="verre"] a > .bg-card:hover, html[data-skin="verre"] a.block > div.bg-card:hover { transform: translateY(-2px); border-color: hsl(var(--ac) / 0.55); box-shadow: 0 10px 40px hsl(var(--ac) / 0.18); }
+
+/* Ouverture « en loupe » : un disque de lumière s'élargit et révèle l'application. */
+@property --lens { syntax: "<percentage>"; initial-value: 0%; inherits: false; }
+@keyframes lens-open { from { --lens: 0%; } to { --lens: 82%; } }
+@keyframes lens-ring { 0% { transform: translate(-50%, -50%) scale(0.05); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(5.2); opacity: 0; } }
+.intro-lens {
+  position: fixed; inset: 0; z-index: 200; pointer-events: none;
+  background: radial-gradient(circle at 50% 46%, hsl(var(--ac) / 0.35), hsl(160 40% 3%) 60%);
+  -webkit-mask-image: radial-gradient(circle at 50% 46%, transparent var(--lens), #000 calc(var(--lens) + 1.5%));
+  mask-image: radial-gradient(circle at 50% 46%, transparent var(--lens), #000 calc(var(--lens) + 1.5%));
+  animation: lens-open 1.25s cubic-bezier(0.65, 0, 0.25, 1) 0.25s forwards;
+}
+.intro-lens::after { content: ""; position: absolute; left: 50%; top: 46%; width: 36vmin; height: 36vmin; border-radius: 9999px; border: 2px solid hsl(var(--ac) / 0.9); box-shadow: 0 0 60px hsl(var(--ac) / 0.7), inset 0 0 40px hsl(var(--ac) / 0.4); animation: lens-ring 1.25s cubic-bezier(0.65, 0, 0.25, 1) 0.25s forwards; }
+@media (prefers-reduced-motion: reduce) {
+  .intro-lens { display: none; }
+  html[data-skin="verre"] main > * { animation: none; }
+  html[data-skin="verre"] aside a:hover, html[data-skin="verre"] a > .bg-card:hover { transform: none; }
+}

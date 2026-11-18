@@ -1,3 +1,6 @@
+"use client";
+
+import { useRef, useState } from "react";
 import { formatEUR } from "@/lib/utils";
 
 /** Palette sobre, lisible aussi pour les daltoniens : bleu, orange, vert, gris. Le texte reste en encre neutre. */
@@ -79,12 +82,27 @@ export function LineChart({
     padL +
     (labels.length <= 1 ? 0 : (i * (W - padL - padR)) / (labels.length - 1));
   const y = (v: number) => H - padB - (v / top) * (H - padB - padT);
+  // La courbe suit la souris : trait vertical et bulle avec les valeurs du mois le plus proche.
+  const ref = useRef<SVGSVGElement>(null);
+  const [hover, setHover] = useState<number | null>(null);
+  const onMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    const r = ref.current?.getBoundingClientRect();
+    if (!r || labels.length === 0) return;
+    const px = ((e.clientX - r.left) / r.width) * W;
+    let best = 0, gap = Infinity;
+    for (let i = 0; i < labels.length; i++) { const g = Math.abs(x(i) - px); if (g < gap) { gap = g; best = i; } }
+    setHover(best);
+  };
+  const tipW = 150, tipH = 18 + series.length * 16;
   return (
     <svg
+      ref={ref}
       viewBox={`0 0 ${W} ${H}`}
       className="h-auto w-full"
       role="img"
       aria-label={label}
+      onMouseMove={onMove}
+      onMouseLeave={() => setHover(null)}
     >
       {[0, top / 2, top].map((t) => (
         <g key={t}>
@@ -142,6 +160,17 @@ export function LineChart({
           ))}
         </g>
       ))}
+      {hover !== null && (
+        <g className="pointer-events-none">
+          <line x1={x(hover)} x2={x(hover)} y1={padT} y2={H - padB} stroke="currentColor" strokeOpacity={0.35} strokeDasharray="3 3" />
+          {series.map((s) => <circle key={s.name} cx={x(hover)} cy={y(s.values[hover] ?? 0)} r={5.5} fill={s.color} stroke="#fff" strokeWidth={2} />)}
+          <g transform={`translate(${Math.min(Math.max(x(hover) + 10, padL), W - tipW - 4)},${padT + 2})`}>
+            <rect width={tipW} height={tipH} rx={6} fill="#111214" fillOpacity={0.92} />
+            <text x={8} y={14} className="fill-white text-[11px] font-semibold">{labels[hover]}</text>
+            {series.map((s, k) => <text key={s.name} x={8} y={30 + k * 16} className="text-[11px]" fill={s.color === "#2b4c7e" ? "#9db8e6" : s.color}>{`${s.name} : ${eur0(s.values[hover] ?? 0)}`}</text>)}
+          </g>
+        </g>
+      )}
     </svg>
   );
 }

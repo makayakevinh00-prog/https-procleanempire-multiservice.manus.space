@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { AnimatedValue } from "@/components/ui/animated-value";
 
 const TONES = {
   blue: "bg-blue-50 text-blue-700", green: "bg-emerald-50 text-emerald-700", orange: "bg-orange-50 text-orange-700",
@@ -13,7 +14,7 @@ export function Stat({ label, value, sub, tone = "slate", href, icon: Icon }: { 
       {Icon && <span className={cn("hidden h-12 w-12 shrink-0 items-center justify-center rounded-xl sm:flex", TONES[tone])}><Icon className="h-6 w-6" /></span>}
       <div className="min-w-0">
         <div className="text-[13px] font-medium text-slate-500">{label}</div>
-        <div className="truncate text-xl font-extrabold sm:text-2xl tracking-tight text-slate-900">{value}</div>
+        <div className="truncate text-xl font-extrabold sm:text-2xl tracking-tight text-slate-900"><AnimatedValue value={value} /></div>
         {sub && <div className="truncate text-xs text-slate-500">{sub}</div>}
       </div>
     </div>

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Bell, ChevronDown, FilePlus, MapPin, Plus, Receipt, Repeat, Search, UserCog, UserPlus, CalendarPlus, LogOut, KeyRound } from "lucide-react";
+import { OPEN_EVENT } from "@/components/crm/command-k";
+import { ThemeSwitcher } from "@/components/crm/theme-switcher";
 import { Avatar } from "@/components/ui/avatar";
 
 const CREATE = [
@@ -36,11 +38,13 @@ export function Topbar({ actionsCount, email, signOut, team = false }: { actions
     <div className="sticky top-0 z-20 hidden items-center gap-4 border-b border-border/70 bg-background/85 px-10 py-3 backdrop-blur md:flex">
       <form action="/recherche" className="relative max-w-xl flex-1">
         <Search className="pointer-events-none absolute left-4 top-3 h-[17px] w-[17px] text-muted-foreground" />
+        <button type="button" onClick={() => window.dispatchEvent(new Event(OPEN_EVENT))} aria-label="Recherche rapide (Commande K)" className="absolute right-3 top-2.5 rounded-md border border-border px-2 py-0.5 text-[11px] text-muted-foreground transition hover:bg-secondary/70">⌘K</button>
         <input name="q" placeholder="Rechercher un client, un site, une facture, un téléphone…" aria-label="Recherche"
           className="h-10 w-full rounded-xl border border-border bg-card pl-11 pr-4 text-[14px] shadow-[0_1px_2px_rgba(17,18,20,0.04)] placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10" />
       </form>
 
       <div className="ml-auto flex items-center gap-3">
+        <ThemeSwitcher />
         {!team && <div className="relative" ref={cRef}>
           <button onClick={() => setCreate((v) => !v)} aria-haspopup="menu" aria-expanded={create}
             className="flex h-10 items-center gap-2 rounded-xl bg-foreground px-4 text-[14px] font-medium text-background transition hover:bg-foreground/90 active:scale-[0.98]">
