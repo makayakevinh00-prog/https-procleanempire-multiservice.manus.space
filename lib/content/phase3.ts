@@ -32,7 +32,7 @@ export const videosPageContent = {
     "Une bibliothèque vidéo structurée pour montrer nos méthodes, nos standards et nos interventions terrain.",
   youtubeChannelUrl: "https://www.youtube.com/@ProCleanEmpire",
   placeholder:
-    "[A REMPLIR PAR VOUS] Ajoutez la liste des vidéos réelles (titre, lien YouTube, description, catégorie)."
+    "[A REMPLIR PAR VOUS] Ajoutez la liste des vidéos réelles (titre, lien YouTube, description, catégorie).",
 };
 
 export const videosList: VideoEntry[] = [
@@ -41,35 +41,35 @@ export const videosList: VideoEntry[] = [
     title: "Intervention terrain - Extrait 5",
     youtubeUrl: "https://youtube.com/shorts/KBKYsuuAkxo",
     description: "Extrait d'une intervention ProClean Empire, filmée sur site.",
-    category: "Interventions"
+    category: "Interventions",
   },
   {
     id: "intervention-terrain-1",
     title: "Intervention terrain - Extrait 1",
     youtubeUrl: "https://www.youtube.com/shorts/ek2_qMkBMYA",
     description: "Extrait d'une intervention ProClean Empire, filmée sur site.",
-    category: "Interventions"
+    category: "Interventions",
   },
   {
     id: "intervention-terrain-2",
     title: "Intervention terrain - Extrait 2",
     youtubeUrl: "https://www.youtube.com/shorts/UlTWulbv2Hs",
     description: "Extrait d'une intervention ProClean Empire, filmée sur site.",
-    category: "Interventions"
+    category: "Interventions",
   },
   {
     id: "intervention-terrain-3",
     title: "Intervention terrain - Extrait 3",
     youtubeUrl: "https://www.youtube.com/shorts/RvO-vX_zr3k",
     description: "Extrait d'une intervention ProClean Empire, filmée sur site.",
-    category: "Interventions"
+    category: "Interventions",
   },
   {
     id: "intervention-terrain-4",
     title: "Intervention terrain - Extrait 4",
     youtubeUrl: "https://youtube.com/shorts/zB8DzPshsR0",
     description: "Extrait d'une intervention ProClean Empire, filmée sur site.",
-    category: "Interventions"
+    category: "Interventions",
   },
   {
     id: "presentation-proclean-empire",
@@ -78,24 +78,26 @@ export const videosList: VideoEntry[] = [
     poster: "/media/photos/nettoyage-avion-cessna.webp",
     description:
       "Présentation de notre approche, de nos standards qualité et de nos interventions sur le terrain.",
-    category: "Présentation"
+    category: "Présentation",
   },
   {
     id: "demonstration-nettoyage-1",
     title: "Démonstration d'entretien - Intérieur automobile",
     videoSrc: "/media/videos/proclean-demonstration-1.mp4",
     poster: "/media/photos/interieur-auto-apres.webp",
-    description: "Intervention détaillage et remise en état d'un intérieur automobile.",
-    category: "Demonstrations"
+    description:
+      "Intervention détaillage et remise en état d'un intérieur automobile.",
+    category: "Demonstrations",
   },
   {
     id: "demonstration-nettoyage-2",
     title: "Démonstration d'entretien - Sièges et garnitures",
     videoSrc: "/media/videos/proclean-demonstration-2.mp4",
     poster: "/media/photos/banquette-arriere-apres.webp",
-    description: "Traitement et remise en état des sièges et garnitures textiles/cuir.",
-    category: "Demonstrations"
-  }
+    description:
+      "Traitement et remise en état des sièges et garnitures textiles/cuir.",
+    category: "Demonstrations",
+  },
 ];
 
 export const realisationsVideos: VideoEntry[] = [
@@ -103,15 +105,17 @@ export const realisationsVideos: VideoEntry[] = [
     id: "realisation-extrait-video-1",
     title: "Entretien d'un logement Airbnb",
     youtubeUrl: "https://www.youtube.com/shorts/pNpWpXeaPZo",
-    description: "Extrait vidéo d'une intervention ProClean Empire, en complément des études de cas.",
-    category: "Interventions"
+    description:
+      "Extrait vidéo d'une intervention ProClean Empire, en complément des études de cas.",
+    category: "Interventions",
   },
   {
     id: "realisation-extrait-video-2",
     title: "Extrait d'intervention filmée sur site",
     youtubeUrl: "https://youtube.com/shorts/EK7Mhawwy_0",
-    description: "Extrait vidéo d'une intervention ProClean Empire, en complément des études de cas.",
-    category: "Interventions"
+    description:
+      "Extrait vidéo d'une intervention ProClean Empire, en complément des études de cas.",
+    category: "Interventions",
   },
   {
     id: "realisation-extrait-video-3",
@@ -119,8 +123,8 @@ export const realisationsVideos: VideoEntry[] = [
     youtubeUrl: "https://youtube.com/shorts/B5YLOZT_glU",
     description:
       "Découvrez comment ProClean Empire accompagne les entreprises dans l'entretien de leurs locaux professionnels grâce à des prestations organisées, des méthodes éprouvées et un contrôle qualité permanent.",
-    category: "Interventions"
-  }
+    category: "Interventions",
+  },
 ];
 
 export const realisationsSectors = [
@@ -129,7 +133,7 @@ export const realisationsSectors = [
   { emoji: "🏨", label: "Hôtels" },
   { emoji: "🍽️", label: "Restaurants" },
   { emoji: "🏢", label: "Copropriétés" },
-  { emoji: "🪟", label: "Vitrerie professionnelle" }
+  { emoji: "🪟", label: "Vitrerie professionnelle" },
 ];
 
 export const blogPageContent = {
@@ -142,10 +146,9 @@ export const blogPageContent = {
     "Conciergerie d'entreprise",
     "Conseils",
     "Hygiène",
-    "Entreprise"
+    "Entreprise",
   ] as BlogCategory[],
-  placeholder:
-    "Nos premiers articles arrivent bientôt."
+  placeholder: "Nos premiers articles arrivent bientôt.",
 };
 
 export type BlogPost = {
@@ -166,16 +169,17 @@ export const blogPosts: BlogPost[] = [
     excerpt:
       "Un passage par semaine ou chaque jour ? Les repères pour choisir le bon rythme d'entretien de vos bureaux et commerces à Cergy, Pontoise et dans le Val-d'Oise.",
     date: "19 octobre 2026",
-    href: "/blog/nettoyage-bureaux-cergy-pontoise-frequence"
+    href: "/blog/nettoyage-bureaux-cergy-pontoise-frequence",
   },
   {
     id: "menage-airbnb-val-doise-entre-deux-voyageurs",
-    title: "Ménage Airbnb dans le Val-d'Oise : préparer son logement entre deux voyageurs",
+    title:
+      "Ménage Airbnb dans le Val-d'Oise : préparer son logement entre deux voyageurs",
     category: "Ménage Airbnb",
     excerpt:
       "Check-out, linge, consommables et rotations rapides : les étapes d'un ménage de fin de séjour réussi pour les hôtes et conciergeries de Pontoise, Cergy et du Val-d'Oise.",
     date: "19 octobre 2026",
-    href: "/blog/menage-airbnb-val-doise-entre-deux-voyageurs"
+    href: "/blog/menage-airbnb-val-doise-entre-deux-voyageurs",
   },
   {
     id: "decoration-noel-bureaux-commerces-val-doise",
@@ -184,15 +188,16 @@ export const blogPosts: BlogPost[] = [
     excerpt:
       "Vitrine, accueil, open space : comment préparer une décoration de Noël réussie pour vos locaux à Cergy, Pontoise ou Roissy, quand la commander et comment la faire installer sans perturber votre activité.",
     date: "19 octobre 2026",
-    href: "/blog/decoration-noel-bureaux-commerces-val-doise"
+    href: "/blog/decoration-noel-bureaux-commerces-val-doise",
   },
   {
     id: "offre-nouvelle-annee-2026",
-    title: "Offre exclusive 2026 : bien démarrer l'année avec des espaces conformes à vos standards",
+    title:
+      "Offre exclusive 2026 : bien démarrer l'année avec des espaces conformes à vos standards",
     category: "Entreprise",
     excerpt:
       "L'année 2026 pointe le bout de son nez et avec elle, l'envie de renouveau. Pour bien démarrer, ProClean Empire a préparé une offre exclusive dédiée aussi bien aux entreprises qu'aux particuliers.",
-    date: "28 décembre 2025"
+    date: "28 décembre 2025",
   },
   {
     id: "un-seul-prestataire-plusieurs-expertises",
@@ -200,44 +205,47 @@ export const blogPosts: BlogPost[] = [
     category: "Conseils",
     excerpt:
       "Bureaux, flottes automobiles, aéronefs, locations Airbnb : ProClean Empire réunit plusieurs expertises au sein d'une seule organisation. Pour nos clients, cela signifie un interlocuteur unique, un même niveau d'exigence et un pilotage simplifié de l'ensemble de leurs prestations.",
-    date: "15 décembre 2025"
+    date: "15 décembre 2025",
   },
   {
     id: "qui-est-proclean-empire",
-    title: "ProClean Empire : une organisation pensée pour les entreprises exigeantes",
+    title:
+      "ProClean Empire : une organisation pensée pour les entreprises exigeantes",
     category: "Entreprise",
     excerpt:
       "Fondée par Kevinh Makaya, ProClean Empire accompagne les entreprises avec des prestations d'entretien et de detailing automobile haut de gamme. Notre organisation repose sur des protocoles clairs, des équipes formées et un contrôle qualité systématique à chaque intervention.",
-    date: "2 décembre 2025"
-  }
+    date: "2 décembre 2025",
+  },
 ];
 
 export const socialLinks = [
   {
     label: "YouTube",
     href: "https://www.youtube.com/@ProCleanEmpire",
-    description: "Présentation, démonstrations et interventions en conditions réelles."
+    description:
+      "Présentation, démonstrations et interventions en conditions réelles.",
   },
   {
     label: "LinkedIn",
-    href: "https://www.linkedin.com/company/procelan-empire",
-    description: "Actualités entreprise, coulisses et preuve de sérieux B2B."
+    href: "https://www.linkedin.com/company/proclean-empire",
+    description: "Actualités entreprise, coulisses et preuve de sérieux B2B.",
   },
   {
     label: "Instagram",
     href: "https://www.instagram.com/proclean_empire/",
-    description: "Avant/Après, quotidien des équipes et standards qualité."
+    description: "Avant/Après, quotidien des équipes et standards qualité.",
   },
   {
     label: "Facebook",
     href: "https://www.facebook.com/people/Proclean-Empire/61575993812750/",
-    description: "Vie de l'entreprise, avis clients et mises à jour locales."
+    description: "Vie de l'entreprise, avis clients et mises à jour locales.",
   },
   {
     label: "TikTok",
     href: "https://www.tiktok.com/@procleanempire",
-    description: "Vidéos courtes d'interventions et coulisses des équipes terrain."
-  }
+    description:
+      "Vidéos courtes d'interventions et coulisses des équipes terrain.",
+  },
 ];
 
 export const faqThemes = [
@@ -246,5 +254,5 @@ export const faqThemes = [
   "Qualité",
   "Contrat",
   "Zone",
-  "Technique"
+  "Technique",
 ] as const;

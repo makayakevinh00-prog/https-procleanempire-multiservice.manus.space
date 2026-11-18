@@ -10,7 +10,7 @@ export const metadata = buildMetadata({
   title: "Nos services de nettoyage à Pontoise et en Île-de-France",
   description:
     "Découvrez nos prestations de propreté pour bureaux, commerces, hôtels, restaurants, vitrerie et interventions spécialisées.",
-  path: "/services"
+  path: "/services",
 });
 
 export default function ServicesPage() {
@@ -21,7 +21,7 @@ export default function ServicesPage() {
         description="Des solutions d'entretien construites pour vos contraintes métier: image de marque, fréquentation, hygiène et continuité d'activité."
         breadcrumbs={[
           { label: "Accueil", href: "/" },
-          { label: "Nos services" }
+          { label: "Nos services" },
         ]}
         actions={
           <>
@@ -35,6 +35,29 @@ export default function ServicesPage() {
         }
       />
       <section className="section pt-0">
+        <div className="card p-6 md:p-8">
+          <p className="text-sm leading-relaxed text-slate-700">
+            Vous cherchez le{" "}
+            <Link
+              href="/menage-airbnb"
+              className="font-semibold text-brand-700 underline"
+            >
+              ménage Airbnb
+            </Link>{" "}
+            ou la{" "}
+            <Link
+              href="/conciergerie-entreprise"
+              className="font-semibold text-brand-700 underline"
+            >
+              conciergerie d&apos;entreprise
+            </Link>{" "}
+            ? Ce sont nos deux offres phares, chacune avec sa page dédiée. Vous
+            trouverez ci-dessous nos prestations de nettoyage professionnel à la
+            carte.
+          </p>
+        </div>
+      </section>
+      <section className="section pt-0">
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {services.map((service) => (
             <ServiceCard key={service.slug} service={service} />
@@ -45,10 +68,12 @@ export default function ServicesPage() {
       <section className="section pt-0">
         <div className="card p-6 md:p-8">
           <p className="text-sm leading-relaxed text-slate-700">
-            ProClean Empire accompagne les entreprises dans la gestion de leurs prestations de
-            propreté grâce à une organisation rigoureuse, des équipes qualifiées et un suivi
-            qualité permanent. Nous construisons des solutions adaptées aux contraintes de chaque
-            site afin de garantir un environnement de travail conforme, structuré et valorisant.
+            ProClean Empire accompagne les entreprises dans la gestion de leurs
+            prestations de propreté grâce à une organisation rigoureuse, des
+            équipes qualifiées et un suivi qualité permanent. Nous construisons
+            des solutions adaptées aux contraintes de chaque site afin de
+            garantir un environnement de travail conforme, structuré et
+            valorisant.
           </p>
         </div>
       </section>

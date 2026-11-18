@@ -5,13 +5,14 @@ export const fr = {
     airbnb: "Ménage Airbnb",
     offices: "Bureaux & commerces",
     concierge: "Conciergerie d'entreprise",
+    detailing: "Auto & avion",
     contact: "Contact",
     mainLabel: "Navigation principale",
     mobileLabel: "Navigation mobile",
     openMenu: "Ouvrir le menu",
     closeMenu: "Fermer le menu",
     homeLabel: "ProClean Empire — accueil",
-    skipToContent: "Aller au contenu"
+    skipToContent: "Aller au contenu",
   },
   cta: {
     booking: "Prendre RDV",
@@ -20,11 +21,11 @@ export const fr = {
     whatsapp: "WhatsApp",
     quote: "Demander un devis",
     review: "Laisser un avis",
-    quickContact: "Contact rapide"
+    quickContact: "Contact rapide",
   },
   common: {
-    logoAlt: "Logo ProClean Empire"
-  }
+    logoAlt: "Logo ProClean Empire",
+  },
 };
 
 export type Dictionary = typeof fr;
