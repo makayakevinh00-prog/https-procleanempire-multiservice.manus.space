@@ -1,16 +1,31 @@
-import Image from "next/image";
+import "./landing.css";
 import Link from "next/link";
 import { ReactNode } from "react";
 import { Reveal } from "@/components/home/reveal";
 import { QuoteForm } from "@/components/forms/quote-form";
-import { CountUp, ParallaxPhoto, Statement } from "@/components/landing/motion";
+import {
+  CountUp,
+  FadeIn,
+  HorizontalGallery,
+  LineRise,
+  ParallaxPhoto,
+  ScrollBand,
+  ScrollProgress,
+  Statement,
+  TimelineRail,
+  type GalleryPhoto
+} from "@/components/landing/motion";
 import { PartnersMarquee } from "@/components/phase1/partners-marquee";
 import { commitments } from "@/lib/content/phase1";
 import { siteConfig } from "@/lib/site";
 
-const LABEL = "text-[13px] font-semibold uppercase tracking-[0.2em]";
+const NAVY = "bg-[#0a1020]";
+const PAPER = "bg-[#f4f1ea]";
+const LABEL = "text-[12px] font-semibold uppercase tracking-[0.24em]";
+const H2 = "lp-serif text-[2.6rem] leading-[1.02] [text-wrap:balance] sm:text-6xl xl:text-[4.75rem]";
 const LINK =
   "inline-flex min-h-11 items-center gap-2 border-b border-current pb-0.5 text-base font-semibold transition-opacity duration-200 hover:opacity-70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4";
+const FOCUS = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4";
 
 const P = "/media/photos/landing";
 /* Enseignes clientes, sous leur nom commercial. */
@@ -22,101 +37,80 @@ const clients = [
   { name: "Easy Stay" }
 ];
 
-/** Chapitre plein écran : la photo reste en place pendant que le texte défile à côté. */
-function Chapter({
-  index,
-  label,
-  title,
-  lead,
-  photo,
-  flip,
-  dark,
-  children,
-}: {
-  index: string;
-  label: string;
-  title: ReactNode;
-  lead: string;
-  photo: { src: string; alt: string };
-  flip?: boolean;
-  dark?: boolean;
-  children: ReactNode;
-}) {
+/** Bouton principal : pastille pleine et flèche dans un rond qui avance au survol. */
+function Cta({ href, children, tone = "light" }: { href: string; children: ReactNode; tone?: "light" | "dark" }) {
+  const light = tone === "light";
   return (
-    <section className={dark ? "bg-[#0b1326] text-white" : "bg-white text-ink"}>
-      <div className="grid lg:grid-cols-2">
-        <div
-          className={`lg:sticky lg:top-16 lg:h-[calc(100svh-4rem)] ${flip ? "lg:order-2" : ""}`}
-        >
-          <ParallaxPhoto
-            src={photo.src}
-            alt={photo.alt}
-            sizes="(min-width: 1024px) 50vw, 100vw"
-            className="aspect-[4/5] w-full lg:aspect-auto lg:h-full"
-          />
-        </div>
-        <div className="px-6 py-16 md:px-12 md:py-24 lg:px-16 lg:py-32 xl:px-24">
-          <Reveal>
-            <p
-              className={`${LABEL} ${dark ? "text-[#8db8ff]" : "text-[#1559bd]"}`}
-            >
-              <span className="mr-3 tabular-nums opacity-60">{index}</span>
-              {label}
-            </p>
-            <h2 className="mt-6 font-display text-4xl font-semibold leading-[1.04] tracking-tight [text-wrap:balance] sm:text-5xl xl:text-6xl">
-              {title}
-            </h2>
-            <p
-              className={`mt-6 max-w-xl text-lg leading-relaxed sm:text-xl ${dark ? "text-slate-300" : "text-slate-700"}`}
-            >
-              {lead}
-            </p>
-          </Reveal>
-          {children}
-        </div>
-      </div>
-    </section>
+    <a
+      href={href}
+      className={`group inline-flex min-h-14 items-center gap-5 self-start rounded-full py-2 pl-7 pr-2 text-base font-semibold transition-colors duration-200 ${FOCUS} ${
+        light
+          ? "bg-white text-[#0a1020] hover:bg-[#dfe9fb] focus-visible:outline-white"
+          : "bg-[#0a1020] text-white hover:bg-[#16224a] focus-visible:outline-[#0a1020]"
+      }`}
+    >
+      {children}
+      <span
+        aria-hidden
+        className={`flex h-10 w-10 items-center justify-center rounded-full transition-transform duration-300 group-hover:translate-x-1 motion-reduce:transition-none ${
+          light ? "bg-[#0a1020] text-white" : "bg-white text-[#0a1020]"
+        }`}
+      >
+        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 12h14M13 6l6 6-6 6" />
+        </svg>
+      </span>
+    </a>
   );
 }
 
-/** Ligne de fiche : un repère à gauche, sa description à droite, séparés par un filet. */
-function Row({
-  mark,
-  title,
-  text,
-  dark,
-}: {
-  mark: string;
-  title: string;
-  text: string;
-  dark?: boolean;
-}) {
+/** En-tête de chapitre : numéro, rubrique, grand titre serif, chapeau. */
+function ChapterHead({ index, label, title, lead, dark }: { index: string; label: string; title: ReactNode; lead: string; dark?: boolean }) {
   return (
-    <Reveal
-      as="li"
-      y={20}
-      className={`grid grid-cols-[5.5rem_minmax(0,1fr)] gap-4 border-t py-6 sm:grid-cols-[8rem_minmax(0,1fr)] ${dark ? "border-white/15" : "border-slate-200"}`}
-    >
-      <span
-        className={`font-display text-2xl font-semibold tabular-nums tracking-tight sm:text-3xl ${dark ? "text-[#8db8ff]" : "text-[#1559bd]"}`}
-      >
-        {mark}
+    <Reveal>
+      <p className={`${LABEL} flex items-center gap-4 ${dark ? "text-white/70" : "text-slate-600"}`}>
+        <span className="lp-serif whitespace-nowrap text-2xl normal-case tracking-normal">
+          <em>N° {index}</em>
+        </span>
+        <span aria-hidden className={`h-px w-10 ${dark ? "bg-white/40" : "bg-slate-400"}`} />
+        {label}
+      </p>
+      <h2 className={`${H2} mt-8`}>{title}</h2>
+      <p className={`mt-8 max-w-xl text-lg leading-relaxed sm:text-xl ${dark ? "text-slate-300" : "text-slate-700"}`}>{lead}</p>
+    </Reveal>
+  );
+}
+
+/** Étape de frise : l'heure en serif, puis ce qui se passe. */
+function Moment({ mark, title, text }: { mark: string; title: string; text: string }) {
+  return (
+    <Reveal as="li" y={20} className="relative grid grid-cols-[5.5rem_minmax(0,1fr)] gap-4 py-7 pl-8 sm:grid-cols-[7.5rem_minmax(0,1fr)] sm:pl-10">
+      <span aria-hidden className="absolute left-[-4px] top-[2.6rem] h-[9px] w-[9px] rounded-full bg-[#0a1020]" />
+      <span className="lp-serif text-3xl sm:text-4xl">
+        <em>{mark}</em>
       </span>
       <span>
-        <span className="block font-display text-xl font-semibold tracking-tight">
-          {title}
-        </span>
-        <span
-          className={`mt-1.5 block text-base leading-relaxed ${dark ? "text-slate-300" : "text-slate-700"}`}
-        >
-          {text}
-        </span>
+        <span className="block text-xl font-semibold tracking-tight text-ink">{title}</span>
+        <span className="mt-1.5 block text-base leading-relaxed text-slate-700">{text}</span>
       </span>
     </Reveal>
   );
 }
 
-const gallery = [
+/** Fait posé sur fond sombre : un mot-repère en serif, puis l'explication. */
+function Fact({ mark, title, text, delay = 0 }: { mark: string; title: string; text: string; delay?: number }) {
+  return (
+    <Reveal as="li" y={20} delay={delay} className="border-t border-white/20 py-7">
+      <span className="lp-serif block text-3xl text-[#9ec1ff]">
+        <em>{mark}</em>
+      </span>
+      <span className="mt-3 block text-xl font-semibold tracking-tight text-white">{title}</span>
+      <span className="mt-1.5 block text-base leading-relaxed text-slate-300">{text}</span>
+    </Reveal>
+  );
+}
+
+const gallery: GalleryPhoto[] = [
   {
     src: `${P}/table-fleurs.webp`,
     alt: "Table de salle à manger en verre, bouquet et coupe de chocolats pour l'accueil des voyageurs",
@@ -202,300 +196,237 @@ const faq = [
 
 const rating = Number(siteConfig.googleRating.value.replace(",", "."));
 
-/** Page d'atterrissage clients, en chapitres : une grande photo, une promesse, les faits. */
+/** Page d'atterrissage clients : une ouverture, trois chapitres, une galerie, un devis. */
 export function ImmersiveLanding() {
   return (
-    <div className="bg-white">
+    <div className="bg-white text-ink">
+      <ScrollProgress />
+
       {/* OUVERTURE */}
-      <section className="bg-[#0b1326] text-white">
-        <div className="grid lg:min-h-[calc(100svh-4rem)] lg:grid-cols-[1.05fr_1fr]">
-          <div className="flex flex-col justify-between gap-12 px-6 pb-12 pt-12 md:px-12 md:pt-16 lg:px-16 lg:pb-16 xl:px-24">
-            <p className={`${LABEL} text-slate-300`}>
-              Facility service · Val-d&apos;Oise et Paris
-            </p>
+      <section className={`lp-grain ${NAVY} overflow-hidden text-white`}>
+        <div className="mx-auto grid max-w-[1680px] grid-cols-[minmax(0,1fr)] lg:min-h-[calc(100svh-4rem)] lg:grid-cols-12">
+          <div className="relative z-10 flex flex-col justify-between gap-14 px-6 pb-10 pt-10 md:px-12 lg:col-span-7 lg:row-start-1 lg:pb-12 lg:pt-12">
+            <FadeIn className={`${LABEL} flex flex-wrap items-center gap-x-4 gap-y-2 text-white/75`}>
+              <span>Facility service</span>
+              <span aria-hidden className="h-px w-10 bg-white/40" />
+              <span>Val-d&apos;Oise · Paris</span>
+            </FadeIn>
+
             <div>
-              <h1 className="font-display text-[2.9rem] font-semibold leading-[1] tracking-tight sm:text-7xl xl:text-[5.25rem]">
-                <span className="block">Vous ouvrez la porte.</span>
-                <span className="block text-[#8db8ff]">Tout est prêt.</span>
+              <h1 className="lp-serif text-[3.15rem] leading-[0.95] sm:text-7xl lg:w-[150%] lg:whitespace-nowrap lg:text-[clamp(4.5rem,6.7vw,7.75rem)]">
+                <LineRise delay={0.1}>Vous ouvrez la porte.</LineRise>
+                <LineRise delay={0.24} className="text-[#9ec1ff]">
+                  <em>Tout est prêt.</em>
+                </LineRise>
               </h1>
-              <p className="mt-8 max-w-xl text-lg leading-relaxed text-slate-300 sm:text-xl">
-                Logements Airbnb, bureaux, commerces : ProClean Empire prend en
-                charge la propreté de vos espaces, du premier devis au contrôle
-                final.
-              </p>
-              <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <a href="#devis" className="btn-pill min-h-14 px-9 text-lg">
-                  Demander un devis
-                </a>
-                <Link href={siteConfig.bookingUrl} className={`${LINK} self-start sm:ml-4 sm:self-auto`}>
-                  Prendre rendez-vous
-                </Link>
-              </div>
+              <FadeIn delay={0.55} className="mt-10 grid gap-8 lg:max-w-[34rem]">
+                <p className="text-lg leading-relaxed text-slate-300 sm:text-xl">
+                  Logements Airbnb, bureaux, commerces : ProClean Empire prend en charge la propreté de vos espaces, du premier devis au contrôle final.
+                </p>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
+                  <Cta href="#devis">Demander un devis</Cta>
+                  <Link href={siteConfig.bookingUrl} className={`${LINK} self-start text-white focus-visible:outline-white sm:self-auto`}>
+                    Prendre rendez-vous
+                  </Link>
+                </div>
+              </FadeIn>
             </div>
-            <a
-              href={siteConfig.googleReviewsUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex min-h-11 items-center gap-3 text-sm text-slate-300 transition-colors duration-200 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-            >
-              <span className="flex gap-0.5 text-amber-300" aria-hidden>
-                {[0, 1, 2, 3, 4].map((star) => (
-                  <svg
-                    key={star}
-                    viewBox="0 0 24 24"
-                    className="h-4 w-4"
-                    fill="currentColor"
-                  >
-                    <path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 17.6l-5.9 3.1 1.2-6.6L2.5 9.5l6.6-.9L12 2.5z" />
-                  </svg>
-                ))}
+
+            <FadeIn delay={0.8} className="flex flex-wrap items-center justify-between gap-4 border-t border-white/15 pt-6">
+              <a
+                href={siteConfig.googleReviewsUrl}
+                target="_blank"
+                rel="noreferrer"
+                className={`flex min-h-11 items-center gap-3 text-sm text-slate-300 transition-colors duration-200 hover:text-white ${FOCUS} focus-visible:outline-white`}
+              >
+                <span className="flex gap-0.5 text-amber-300" aria-hidden>
+                  {[0, 1, 2, 3, 4].map((star) => (
+                    <svg key={star} viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+                      <path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 17.6l-5.9 3.1 1.2-6.6L2.5 9.5l6.6-.9L12 2.5z" />
+                    </svg>
+                  ))}
+                </span>
+                {siteConfig.googleRating.value}/5 sur {siteConfig.googleRating.count} avis Google
+              </a>
+              <span aria-hidden className={`${LABEL} hidden items-center gap-3 text-white/60 lg:flex`}>
+                Défiler
+                <span className="h-10 w-px bg-white/40" />
               </span>
-              {siteConfig.googleRating.value}/5 sur{" "}
-              {siteConfig.googleRating.count} avis Google
-            </a>
+            </FadeIn>
           </div>
-          <ParallaxPhoto
-            src={`${P}/salon-haussmannien.webp`}
-            alt="Salon haussmannien rangé et prêt à accueillir des voyageurs"
-            priority
-            zoom
-            sizes="(min-width: 1024px) 50vw, 100vw"
-            className="aspect-[4/5] w-full lg:aspect-auto lg:h-full"
-          />
+
+          <div className="relative lg:col-span-5 lg:col-start-8 lg:row-start-1">
+            <ParallaxPhoto
+              src={`${P}/salon-haussmannien.webp`}
+              alt="Salon haussmannien rangé et prêt à accueillir des voyageurs"
+              priority
+              curtain
+              sizes="(min-width: 1024px) 42vw, 100vw"
+              className="aspect-[4/5] w-full lg:aspect-auto lg:h-full"
+            />
+            <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#0a1020]/75 via-[#0a1020]/15 to-transparent max-lg:hidden" />
+          </div>
         </div>
       </section>
 
       <PartnersMarquee items={clients} />
 
-      {/* CHIFFRES */}
-      <section
-        className="mx-auto max-w-[1400px] px-6 py-16 md:px-12 md:py-24"
-        aria-label="Nos repères"
-      >
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-12 lg:grid-cols-4">
-          {[
-            {
-              value: (
-                <>
-                  <CountUp to={24} /> h
-                </>
-              ),
-              label: "pour recevoir votre devis",
-            },
-            {
-              value: (
-                <>
-                  <CountUp to={7} />
-                  j/7
-                </>
-              ),
-              label: "pour nous écrire",
-            },
-            { value: <>11h–14h</>, label: "le créneau entre deux voyageurs" },
-            {
-              value: (
-                <>
-                  <CountUp to={rating} decimals={1} />
-                  /5
-                </>
-              ),
-              label: `sur ${siteConfig.googleRating.count} avis Google`,
-            },
-          ].map((item) => (
-            <div key={item.label} className="border-t border-ink pt-5">
-              <dd className="font-display text-5xl font-semibold tracking-tight text-ink sm:text-6xl xl:text-7xl">
-                {item.value}
-              </dd>
-              <dt className="mt-3 text-base text-slate-700">{item.label}</dt>
-            </div>
-          ))}
-        </dl>
-      </section>
-
-      {/* PHRASE */}
-      <section className="bg-mist">
-        <div className="mx-auto max-w-[1400px] px-6 py-24 md:px-12 md:py-36">
-          <Statement text="Un seul interlocuteur. Des horaires tenus. Un résultat contrôlé avant de partir." />
+      {/* MANIFESTE ET REPÈRES */}
+      <section className={PAPER} aria-label="Notre manière de travailler">
+        <div className="mx-auto max-w-[1680px] px-6 py-24 md:px-12 md:py-40">
+          <div className="grid gap-10 lg:grid-cols-12">
+            <p className={`${LABEL} text-slate-600 lg:col-span-3 lg:pt-5`}>Notre manière de travailler</p>
+            <Statement
+              text="Un seul interlocuteur. Des horaires tenus. Un résultat contrôlé avant de partir."
+              className="lp-serif text-[2.5rem] leading-[1.06] text-ink sm:text-6xl lg:col-span-9 xl:text-[5.25rem]"
+            />
+          </div>
+          <dl className="mt-20 grid grid-cols-2 gap-x-6 gap-y-12 md:mt-32 lg:grid-cols-4">
+            {[
+              { value: <><CountUp to={24} /> h</>, label: "pour recevoir votre devis" },
+              { value: <><CountUp to={7} />j/7</>, label: "pour nous écrire" },
+              { value: <>11h–14h</>, label: "le créneau entre deux voyageurs" },
+              { value: <><CountUp to={rating} decimals={1} />/5</>, label: `sur ${siteConfig.googleRating.count} avis Google` }
+            ].map((item) => (
+              <div key={item.label} className="border-t border-ink/80 pt-5">
+                <dd className="lp-serif text-5xl text-ink sm:text-6xl xl:text-7xl">{item.value}</dd>
+                <dt className="mt-3 text-base text-slate-700">{item.label}</dt>
+              </div>
+            ))}
+          </dl>
         </div>
       </section>
 
       {/* CHAPITRE 1 : AIRBNB */}
-      <Chapter
-        index="01"
-        label="Ménage Airbnb"
-        title={<>11h, vos voyageurs partent. 14h, le logement est prêt.</>}
-        lead="Pour les propriétaires et les conciergeries : nous préparons le logement entre un départ et une arrivée, avec la même exigence à chaque passage."
-        photo={{
-          src: `${P}/chambre-serviettes.webp`,
-          alt: "Chambre préparée pour l'arrivée des voyageurs : lit fait, serviettes roulées sur la couette",
-        }}
-      >
-        <ul className="mt-12">
-          <Row
-            mark="Le jour"
-            title="C'est vous qui le fixez"
-            text="Votre calendrier de réservations fait foi : nous ne déplaçons jamais un ménage, même un lundi ou un week-end."
-          />
-          <Row
-            mark="11h"
-            title="Nous entrons dans le logement"
-            text="Lits refaits, draps changés, salle de bain désinfectée, cuisine et vaisselle vérifiées."
-          />
-          <Row
-            mark="Puis"
-            title="Le détail qui se voit"
-            text="Sols aspirés et lavés, consommables contrôlés, coussins et décoration remis en place."
-          />
-          <Row
-            mark="14h"
-            title="Tour complet avant de partir"
-            text="Vous êtes prévenu au moindre imprévu. Linge de lit et serviettes en option."
-          />
-        </ul>
-        <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
-          <a href="#devis" className="btn-pill min-h-12">
-            Demander un devis
-          </a>
-          <Link href="/menage-airbnb" className={`${LINK} text-[#1559bd]`}>
-            Tout sur le ménage Airbnb
-          </Link>
+      <section className="bg-white">
+        <div className="grid lg:grid-cols-2">
+          <div className="lg:sticky lg:top-16 lg:h-[calc(100svh-4rem)]">
+            <ParallaxPhoto
+              curtain
+              src={`${P}/chambre-serviettes.webp`}
+              alt="Chambre préparée pour l'arrivée des voyageurs : lit fait, serviettes roulées sur la couette"
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              className="aspect-[4/5] w-full lg:aspect-auto lg:h-full"
+            />
+          </div>
+          <div className="px-6 py-16 md:px-12 md:py-24 lg:px-16 lg:py-36 xl:px-24">
+            <ChapterHead
+              index="01"
+              label="Ménage Airbnb"
+              title={<>11h, vos voyageurs partent. <em>14h, le logement est prêt.</em></>}
+              lead="Pour les propriétaires et les conciergeries : nous préparons le logement entre un départ et une arrivée, avec la même exigence à chaque passage."
+            />
+            <TimelineRail className="mt-14">
+              <Moment mark="Le jour" title="C'est vous qui le fixez" text="Votre calendrier de réservations fait foi : nous ne déplaçons jamais un ménage, même un lundi ou un week-end." />
+              <Moment mark="11h" title="Nous entrons dans le logement" text="Lits refaits, draps changés, salle de bain désinfectée, cuisine et vaisselle vérifiées." />
+              <Moment mark="Puis" title="Le détail qui se voit" text="Sols aspirés et lavés, consommables contrôlés, coussins et décoration remis en place." />
+              <Moment mark="14h" title="Tour complet avant de partir" text="Vous êtes prévenu au moindre imprévu. Linge de lit et serviettes en option." />
+            </TimelineRail>
+            <div className="mt-12 flex flex-wrap items-center gap-x-8 gap-y-4">
+              <Cta href="#devis" tone="dark">Demander un devis</Cta>
+              <Link href="/menage-airbnb" className={`${LINK} text-ink focus-visible:outline-ink`}>
+                Tout sur le ménage Airbnb
+              </Link>
+            </div>
+          </div>
         </div>
-      </Chapter>
+      </section>
+
+      {/* BANDE DE MOTS */}
+      <section className={`lp-grain ${NAVY} overflow-hidden py-10 text-white md:py-16`} aria-hidden>
+        <ScrollBand>
+          {[0, 1].map((copy) => (
+            <span key={copy} className="lp-serif flex items-center text-[18vw] leading-none lg:text-[11vw]">
+              <span className="px-[3vw]">Logements</span>
+              <em className="lp-outline px-[3vw]">Bureaux</em>
+              <span className="px-[3vw]">Commerces</span>
+              <em className="lp-outline px-[3vw]">Vitrines</em>
+            </span>
+          ))}
+        </ScrollBand>
+      </section>
 
       {/* CHAPITRE 2 : BUREAUX ET COMMERCES */}
-      <Chapter
-        flip
-        dark
-        index="02"
-        label="Bureaux et commerces"
-        title={<>Vos équipes arrivent. Nous sommes déjà passés.</>}
-        lead="Entretien régulier ou passage ponctuel : nous intervenons en dehors de vos heures d'ouverture pour ne déranger ni vos équipes ni vos clients."
-        photo={{
-          src: `${P}/boutique-presentoirs.webp`,
-          alt: "Présentoirs de lunettes d'une boutique, étagères et vitres nettoyées",
-        }}
-      >
-        <ul className="mt-12">
-          <Row
-            dark
-            mark="Quand"
-            title="En dehors de vos horaires"
-            text="Tôt le matin, en soirée ou le week-end, selon votre activité."
-          />
-          <Row
-            dark
-            mark="Rythme"
-            title="La fréquence qui vous convient"
-            text="Quotidien, plusieurs fois par semaine, hebdomadaire ou ponctuel."
-          />
-          <Row
-            dark
-            mark="Quoi"
-            title="Tout ce que vos clients voient"
-            text="Sols, surfaces, sanitaires, présentoirs, et la vitrerie si vous le souhaitez."
-          />
-          <Row
-            dark
-            mark="Qui"
-            title="Un seul interlocuteur"
-            text="Pour tous vos sites, de la première visite au suivi des passages."
-          />
-        </ul>
-        <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
-          <a href="#devis" className="btn-pill min-h-12">
-            Demander un devis
-          </a>
-          <Link href="/nettoyage-bureaux" className={`${LINK} text-[#8db8ff]`}>
-            Tout sur le nettoyage de bureaux
-          </Link>
-        </div>
-      </Chapter>
-
-      {/* PHOTOS */}
-      <section
-        className="overflow-hidden py-20 md:py-28"
-        aria-labelledby="lp-photos"
-      >
-        <Reveal className="mx-auto flex max-w-[1400px] flex-wrap items-end justify-between gap-6 px-6 md:px-12">
-          <div>
-            <p className={`${LABEL} text-[#1559bd]`}>Sur le terrain</p>
-            <h2
-              id="lp-photos"
-              className="mt-5 font-display text-4xl font-semibold leading-[1.04] tracking-tight text-ink sm:text-5xl xl:text-6xl"
-            >
-              Ce que nous laissons derrière nous.
-            </h2>
+      <section className={`lp-grain ${NAVY} text-white`}>
+        <div className="mx-auto grid max-w-[1680px] gap-14 px-6 pb-20 pt-10 md:px-12 md:pb-32 lg:grid-cols-12 lg:gap-10">
+          <div className="lg:col-span-7">
+            <ChapterHead
+              dark
+              index="02"
+              label="Bureaux et commerces"
+              title={<>Vos équipes arrivent. <em>Nous sommes déjà passés.</em></>}
+              lead="Entretien régulier ou passage ponctuel : nous intervenons en dehors de vos heures d'ouverture pour ne déranger ni vos équipes ni vos clients."
+            />
+            <ul className="mt-14 grid sm:grid-cols-2 sm:gap-x-10">
+              <Fact mark="Quand" title="En dehors de vos horaires" text="Tôt le matin, en soirée ou le week-end, selon votre activité." />
+              <Fact delay={0.08} mark="Rythme" title="La fréquence qui vous convient" text="Quotidien, plusieurs fois par semaine, hebdomadaire ou ponctuel." />
+              <Fact mark="Quoi" title="Tout ce que vos clients voient" text="Sols, surfaces, sanitaires, présentoirs, et la vitrerie si vous le souhaitez." />
+              <Fact delay={0.08} mark="Qui" title="Un seul interlocuteur" text="Pour tous vos sites, de la première visite au suivi des passages." />
+            </ul>
+            <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
+              <Cta href="#devis">Demander un devis</Cta>
+              <Link href="/nettoyage-bureaux" className={`${LINK} text-white focus-visible:outline-white`}>
+                Tout sur le nettoyage de bureaux
+              </Link>
+            </div>
           </div>
-          <Link href="/realisations" className={`${LINK} text-[#1559bd]`}>
-            Toutes nos réalisations
-          </Link>
-        </Reveal>
-        <ul
-          tabIndex={0}
-          aria-label="Photos de nos prestations, à faire défiler"
-          className="mt-12 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-6 px-6 pb-6 [scrollbar-width:thin] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1d6fe0] md:gap-4 md:scroll-px-12 md:px-12"
-        >
-          {gallery.map((photo, index) => (
-            <li
-              key={photo.src}
-              className="w-[76vw] shrink-0 snap-start sm:w-[400px]"
-            >
-              <figure>
-                <div className="group relative aspect-[3/4] overflow-hidden bg-mist">
-                  <Image
-                    src={photo.src}
-                    alt={photo.alt}
-                    fill
-                    sizes="(min-width: 640px) 400px, 76vw"
-                    className="object-cover transition-transform duration-700 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-                  />
-                </div>
-                <figcaption className="mt-4 flex items-baseline gap-3 text-base font-semibold text-ink">
-                  <span className="text-sm tabular-nums text-slate-500">
-                    0{index + 1}
-                  </span>
-                  {photo.label}
-                </figcaption>
-              </figure>
-            </li>
-          ))}
-        </ul>
+          <div className="lg:col-span-4 lg:col-start-9">
+            <div className="lg:sticky lg:top-28">
+              <ParallaxPhoto
+                curtain
+                src={`${P}/boutique-presentoirs.webp`}
+                alt="Présentoirs de lunettes d'une boutique, étagères et vitres nettoyées"
+                sizes="(min-width: 1024px) 32vw, 100vw"
+                className="aspect-[3/4] w-full"
+              />
+              <p className={`${LABEL} mt-4 text-white/60`}>Boutique d&apos;optique · présentoirs</p>
+            </div>
+          </div>
+        </div>
+
+        {/* GALERIE */}
+        <div className="border-t border-white/15">
+          <HorizontalGallery
+            photos={gallery}
+            intro={
+              <div>
+                <p className={`${LABEL} text-white/70`}>Sur le terrain</p>
+                <h2 className={`${H2} mt-6`}>
+                  Ce que nous laissons <em>derrière nous.</em>
+                </h2>
+                <Link href="/realisations" className={`${LINK} mt-8 text-white focus-visible:outline-white`}>
+                  Toutes nos réalisations
+                </Link>
+              </div>
+            }
+          />
+        </div>
       </section>
 
       {/* ENGAGEMENTS */}
-      <section className="bg-mist" aria-labelledby="lp-engagements">
-        <div className="mx-auto grid max-w-[1400px] gap-12 px-6 py-20 md:px-12 md:py-28 lg:grid-cols-[1fr_1.4fr] lg:gap-20">
-          <Reveal>
-            <p className={`${LABEL} text-[#1559bd]`}>Nos engagements</p>
-            <h2
-              id="lp-engagements"
-              className="mt-5 font-display text-4xl font-semibold leading-[1.04] tracking-tight text-ink [text-wrap:balance] sm:text-5xl xl:text-6xl"
-            >
-              Une organisation, pas une promesse.
-            </h2>
-            <p className="mt-6 max-w-md text-lg leading-relaxed text-slate-700">
-              Derrière chaque passage, il y a une méthode : des protocoles, des
-              horaires tenus et un contrôle du résultat.
-            </p>
+      <section className={PAPER} aria-labelledby="lp-engagements">
+        <div className="mx-auto grid max-w-[1680px] gap-14 px-6 py-24 md:px-12 md:py-36 lg:grid-cols-12 lg:gap-10">
+          <Reveal className="lg:col-span-5">
+            <div className="lg:sticky lg:top-32">
+              <p className={`${LABEL} text-slate-600`}>Nos engagements</p>
+              <h2 id="lp-engagements" className={`${H2} mt-6`}>
+                Une organisation, <em>pas une promesse.</em>
+              </h2>
+              <p className="mt-8 max-w-md text-lg leading-relaxed text-slate-700">
+                Derrière chaque passage, il y a une méthode : des protocoles, des horaires tenus et un contrôle du résultat.
+              </p>
+            </div>
           </Reveal>
-          <ol className="grid sm:grid-cols-2 sm:gap-x-10">
+          <ol className="lg:col-span-6 lg:col-start-7">
             {commitments.map((item, index) => (
-              <Reveal
-                as="li"
-                key={item.title}
-                y={20}
-                delay={(index % 2) * 0.08}
-                className="border-t border-slate-300 py-6"
-              >
-                <span className="text-sm font-semibold tabular-nums text-[#1559bd]">
-                  0{index + 1}
+              <Reveal as="li" key={item.title} y={20} className="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-4 border-t border-ink/25 py-8 sm:grid-cols-[5rem_minmax(0,1fr)]">
+                <span className="lp-serif text-3xl text-slate-500">
+                  <em>{String(index + 1).padStart(2, "0")}</em>
                 </span>
-                <h3 className="mt-2 font-display text-xl font-semibold tracking-tight text-ink">
-                  {item.title}
-                </h3>
-                <p className="mt-1.5 text-base leading-relaxed text-slate-700">
-                  {item.description}
-                </p>
+                <div>
+                  <h3 className="text-2xl font-semibold tracking-tight text-ink">{item.title}</h3>
+                  <p className="mt-2 text-lg leading-relaxed text-slate-700">{item.description}</p>
+                </div>
               </Reveal>
             ))}
           </ol>
@@ -503,176 +434,114 @@ export function ImmersiveLanding() {
       </section>
 
       {/* CHAPITRE 3 : NOËL */}
-      <Chapter
-        dark
-        index="03"
-        label="De saison"
-        title={<>Votre boutique en habits de fête.</>}
-        lead="Sapin, paquets et mise en scène de votre espace d'accueil : nous construisons le décor avec vous, nous l'installons et nous revenons le retirer après les fêtes."
-        photo={{
-          src: `${P}/noel-sapin.webp`,
-          alt: "Sapin de Noël décoré de boules dorées, bleues et bordeaux à l'entrée d'une boutique, avec des paquets au pied",
-        }}
-      >
-        <ul className="mt-12">
-          <Row
-            dark
-            mark="Nov."
-            title="Pose du décor"
-            text="Fin novembre ou tout début décembre, sans perturber votre activité."
-          />
-          <Row
-            dark
-            mark="Déc."
-            title="Un décor qui reste impeccable"
-            text="Un contrôle pendant les fêtes."
-          />
-          <Row
-            dark
-            mark="Janv."
-            title="Dépose et nettoyage"
-            text="Nous retirons le décor et remettons les lieux en état."
-          />
-        </ul>
-        <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
-          <a href="#devis" className="btn-pill min-h-12">
-            Demander un devis
-          </a>
-          <Link
-            href="/blog/decoration-noel-bureaux-commerces-val-doise"
-            className={`${LINK} text-[#8db8ff]`}
-          >
-            Lire notre guide
-          </Link>
+      <section className="bg-white">
+        <div className="grid lg:grid-cols-2">
+          <div className="px-6 py-16 md:px-12 md:py-24 lg:px-16 lg:py-36 xl:px-24">
+            <ChapterHead
+              index="03"
+              label="De saison"
+              title={<>Votre boutique <em>en habits de fête.</em></>}
+              lead="Sapin, paquets et mise en scène de votre espace d'accueil : nous construisons le décor avec vous, nous l'installons et nous revenons le retirer après les fêtes."
+            />
+            <TimelineRail className="mt-14">
+              <Moment mark="Nov." title="Pose du décor" text="Fin novembre ou tout début décembre, sans perturber votre activité." />
+              <Moment mark="Déc." title="Un décor qui reste impeccable" text="Un contrôle pendant les fêtes." />
+              <Moment mark="Janv." title="Dépose et nettoyage" text="Nous retirons le décor et remettons les lieux en état." />
+            </TimelineRail>
+            <div className="mt-12 flex flex-wrap items-center gap-x-8 gap-y-4">
+              <Cta href="#devis" tone="dark">Demander un devis</Cta>
+              <Link href="/blog/decoration-noel-bureaux-commerces-val-doise" className={`${LINK} text-ink focus-visible:outline-ink`}>
+                Lire notre guide
+              </Link>
+            </div>
+          </div>
+          <div className="max-lg:order-first lg:sticky lg:top-16 lg:h-[calc(100svh-4rem)]">
+            <ParallaxPhoto
+              curtain
+              src={`${P}/noel-sapin.webp`}
+              alt="Sapin de Noël décoré de boules dorées, bleues et bordeaux à l'entrée d'une boutique, avec des paquets au pied"
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              className="aspect-[4/5] w-full lg:aspect-auto lg:h-full"
+            />
+          </div>
         </div>
-      </Chapter>
+      </section>
 
       {/* MÉTHODE */}
-      <section
-        className="mx-auto max-w-[1400px] px-6 py-20 md:px-12 md:py-28"
-        aria-labelledby="lp-methode"
-      >
-        <Reveal>
-          <p className={`${LABEL} text-[#1559bd]`}>Comment ça marche</p>
-          <h2
-            id="lp-methode"
-            className="mt-5 max-w-4xl font-display text-4xl font-semibold leading-[1.04] tracking-tight text-ink [text-wrap:balance] sm:text-5xl xl:text-6xl"
-          >
-            Trois étapes, et vous n&apos;y pensez plus.
-          </h2>
-        </Reveal>
-        <ol className="mt-14 grid gap-10 lg:grid-cols-3 lg:gap-12">
-          {steps.map((step, index) => (
-            <Reveal
-              as="li"
-              key={step.title}
-              delay={index * 0.1}
-              y={24}
-              className="border-t border-ink pt-6"
-            >
-              <span
-                className="block font-display text-7xl font-semibold tracking-tight text-slate-200 xl:text-8xl"
-                aria-hidden
-              >
-                0{index + 1}
-              </span>
-              <h3 className="mt-4 font-display text-2xl font-semibold tracking-tight text-ink">
-                {step.title}
-              </h3>
-              <p className="mt-2 text-lg leading-relaxed text-slate-700">
-                {step.text}
-              </p>
-            </Reveal>
-          ))}
-        </ol>
+      <section className="border-t border-slate-200" aria-labelledby="lp-methode">
+        <div className="mx-auto max-w-[1680px] px-6 py-24 md:px-12 md:py-36">
+          <Reveal className="grid gap-8 lg:grid-cols-12">
+            <p className={`${LABEL} text-slate-600 lg:col-span-3 lg:pt-5`}>Comment ça marche</p>
+            <h2 id="lp-methode" className={`${H2} lg:col-span-9`}>
+              Trois étapes, <em>et vous n&apos;y pensez plus.</em>
+            </h2>
+          </Reveal>
+          <ol className="mt-16 grid gap-12 lg:mt-24 lg:grid-cols-3 lg:gap-0">
+            {steps.map((step, index) => (
+              <Reveal as="li" key={step.title} delay={index * 0.1} y={24} className="border-t border-ink pt-6 lg:border-l lg:border-t-0 lg:border-slate-300 lg:px-10 lg:pt-0 lg:first:border-l-0 lg:first:pl-0">
+                <span className="lp-serif block text-8xl text-ink xl:text-9xl" aria-hidden>
+                  <em>{index + 1}</em>
+                </span>
+                <h3 className="mt-8 text-2xl font-semibold tracking-tight text-ink">{step.title}</h3>
+                <p className="mt-3 text-lg leading-relaxed text-slate-700">{step.text}</p>
+              </Reveal>
+            ))}
+          </ol>
+        </div>
       </section>
 
       {/* ZONES ET AUTRES PRESTATIONS */}
-      <section className="border-t border-slate-200" aria-labelledby="lp-zones">
-        <div className="mx-auto grid max-w-[1400px] gap-14 px-6 py-20 md:px-12 md:py-28 lg:grid-cols-2 lg:gap-20">
-          <Reveal>
-            <p className={`${LABEL} text-[#1559bd]`}>Où nous intervenons</p>
-            <h2 id="lp-zones" className="sr-only">
-              Zones d&apos;intervention
-            </h2>
-            <ul className="mt-6 font-display text-3xl font-semibold leading-snug tracking-tight text-ink sm:text-4xl">
-              {zones.map((zone) => (
-                <li key={zone.href} className="border-b border-slate-200">
-                  <Link
-                    href={zone.href}
-                    className="group flex min-h-14 items-center justify-between gap-4 py-3 transition-colors duration-200 hover:text-[#1559bd] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1d6fe0]"
-                  >
-                    {zone.label}
-                    <span
-                      aria-hidden
-                      className="text-xl text-slate-400 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#1559bd] motion-reduce:transition-none"
+      <section className={PAPER} aria-labelledby="lp-zones">
+        <div className="mx-auto grid max-w-[1680px] gap-16 px-6 py-24 md:px-12 md:py-36 lg:grid-cols-2 lg:gap-24">
+          {[
+            { id: "lp-zones", label: "Où nous intervenons", items: zones, more: { href: "/zones-intervention", label: "Toutes les zones" } },
+            { id: "lp-autres", label: "Et aussi", items: others, more: null }
+          ].map((group, groupIndex) => (
+            <Reveal key={group.id} delay={groupIndex * 0.1}>
+              <h2 id={group.id} className={`${LABEL} text-slate-600`}>
+                {group.label}
+              </h2>
+              <ul className="lp-serif mt-8 text-4xl leading-tight text-ink sm:text-5xl">
+                {group.items.map((item) => (
+                  <li key={item.href} className="border-b border-ink/20">
+                    <Link
+                      href={item.href}
+                      className={`group flex min-h-16 items-center justify-between gap-4 py-4 transition-[padding,color] duration-300 hover:pl-3 hover:text-[#1559bd] motion-reduce:transition-none ${FOCUS} focus-visible:outline-[#1d6fe0]`}
                     >
-                      →
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            <Link
-              href="/zones-intervention"
-              className={`${LINK} mt-8 text-[#1559bd]`}
-            >
-              Toutes les zones
-            </Link>
-          </Reveal>
-          <Reveal delay={0.1}>
-            <p className={`${LABEL} text-[#1559bd]`}>Et aussi</p>
-            <ul className="mt-6 font-display text-3xl font-semibold leading-snug tracking-tight text-ink sm:text-4xl">
-              {others.map((item) => (
-                <li key={item.href} className="border-b border-slate-200">
-                  <Link
-                    href={item.href}
-                    className="group flex min-h-14 items-center justify-between gap-4 py-3 transition-colors duration-200 hover:text-[#1559bd] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1d6fe0]"
-                  >
-                    {item.label}
-                    <span
-                      aria-hidden
-                      className="text-xl text-slate-400 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#1559bd] motion-reduce:transition-none"
-                    >
-                      →
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </Reveal>
+                      {item.label}
+                      <svg aria-hidden viewBox="0 0 24 24" className="h-6 w-6 shrink-0 text-slate-400 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-[#1559bd] motion-reduce:transition-none" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12h14M13 6l6 6-6 6" />
+                      </svg>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              {group.more ? (
+                <Link href={group.more.href} className={`${LINK} mt-10 text-ink focus-visible:outline-ink`}>
+                  {group.more.label}
+                </Link>
+              ) : null}
+            </Reveal>
+          ))}
         </div>
       </section>
 
       {/* QUESTIONS */}
-      <section className="bg-mist" aria-labelledby="lp-faq">
-        <div className="mx-auto grid max-w-[1400px] gap-10 px-6 py-20 md:px-12 md:py-28 lg:grid-cols-[1fr_1.4fr] lg:gap-20">
-          <h2
-            id="lp-faq"
-            className="font-display text-4xl font-semibold leading-[1.04] tracking-tight text-ink sm:text-5xl"
-          >
-            Questions fréquentes
+      <section aria-labelledby="lp-faq">
+        <div className="mx-auto grid max-w-[1680px] gap-12 px-6 py-24 md:px-12 md:py-36 lg:grid-cols-12 lg:gap-10">
+          <h2 id="lp-faq" className={`${H2} lg:col-span-5`}>
+            Questions <em>fréquentes</em>
           </h2>
-          <div className="border-b border-slate-300">
+          <div className="border-b border-ink/25 lg:col-span-6 lg:col-start-7">
             {faq.map((item) => (
-              <details key={item.q} className="group border-t border-slate-300">
-                <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-6 py-5 font-display text-xl font-semibold tracking-tight text-ink [&::-webkit-details-marker]:hidden">
+              <details key={item.q} className="group border-t border-ink/25">
+                <summary className={`flex min-h-20 cursor-pointer list-none items-center justify-between gap-6 py-6 text-xl font-semibold tracking-tight text-ink sm:text-2xl [&::-webkit-details-marker]:hidden ${FOCUS} focus-visible:outline-[#1d6fe0]`}>
                   {item.q}
-                  <svg
-                    viewBox="0 0 24 24"
-                    className="h-6 w-6 shrink-0 text-ink transition-transform duration-200 group-open:rotate-45 motion-reduce:transition-none"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    aria-hidden
-                  >
+                  <svg viewBox="0 0 24 24" className="h-6 w-6 shrink-0 text-ink transition-transform duration-200 group-open:rotate-45 motion-reduce:transition-none" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden>
                     <path d="M12 5v14M5 12h14" />
                   </svg>
                 </summary>
-                <p className="max-w-2xl pb-6 text-lg leading-relaxed text-slate-700">
-                  {item.a}
-                </p>
+                <p className="max-w-2xl pb-8 text-lg leading-relaxed text-slate-700">{item.a}</p>
               </details>
             ))}
           </div>
@@ -681,23 +550,18 @@ export function ImmersiveLanding() {
 
       {/* DEVIS */}
       <section id="devis" className="scroll-mt-16" aria-labelledby="lp-devis">
-        <div className="bg-[#0b1326] text-white">
-          <div className="mx-auto max-w-[1400px] px-6 py-20 md:px-12 md:py-28">
+        <div className={`lp-grain ${NAVY} text-white`}>
+          <div className="mx-auto max-w-[1680px] px-6 py-24 md:px-12 md:py-40">
             <Reveal>
-              <p className={`${LABEL} text-[#8db8ff]`}>Devis gratuit</p>
-              <h2
-                id="lp-devis"
-                className="mt-5 max-w-4xl font-display text-5xl font-semibold leading-[0.98] tracking-tight [text-wrap:balance] sm:text-7xl"
-              >
-                Parlons de vos espaces.
+              <p className={`${LABEL} text-white/70`}>Devis gratuit</p>
+              <h2 id="lp-devis" className="lp-serif mt-8 text-[3.4rem] leading-[0.95] sm:text-8xl xl:text-[10rem]">
+                Parlons de <em className="text-[#9ec1ff]">vos espaces.</em>
               </h2>
-              <p className="mt-6 max-w-2xl text-lg leading-relaxed text-slate-300 sm:text-xl">
-                Quelques informations suffisent. {siteConfig.promise}
-              </p>
+              <p className="mt-10 max-w-2xl text-lg leading-relaxed text-slate-300 sm:text-xl">Quelques informations suffisent. {siteConfig.promise}</p>
             </Reveal>
           </div>
         </div>
-        <div className="mx-auto max-w-[1000px] px-5 py-16 md:px-8 md:py-20">
+        <div className="mx-auto max-w-[1000px] px-5 py-16 md:px-8 md:py-24">
           <QuoteForm />
         </div>
       </section>
