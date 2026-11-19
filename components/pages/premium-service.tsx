@@ -59,7 +59,7 @@ export function PremiumService(props: PremiumServiceProps) {
             </FadeIn>
           </div>
           <div className="relative lg:col-span-5 lg:col-start-8">
-            <ParallaxPhoto src={props.image.src} alt={props.image.alt} priority curtain sizes="(min-width: 1024px) 42vw, 100vw" className="aspect-[4/5] w-full lg:aspect-auto lg:h-full" />
+            <ParallaxPhoto src={props.image.src} alt={props.image.alt} priority curtain sizes="(min-width: 1024px) 42vw, 100vw" className="aspect-[3/2] w-full lg:aspect-auto lg:h-full" />
           </div>
         </div>
       </section>

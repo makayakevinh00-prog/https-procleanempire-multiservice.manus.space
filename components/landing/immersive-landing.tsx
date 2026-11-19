@@ -70,36 +70,14 @@ function Fact({ mark, title, text, delay = 0 }: { mark: string; title: string; t
 }
 
 const gallery: GalleryPhoto[] = [
-  {
-    src: `${P}/table-fleurs.webp`,
-    alt: "Table de salle à manger en verre, bouquet et coupe de chocolats pour l'accueil des voyageurs",
-    label: "Accueil des voyageurs",
-  },
-  {
-    src: `${P}/chambre-serviettes.webp`,
-    alt: "Chambre préparée : lit fait, serviettes roulées sur la couette",
-    label: "Chambre et linge",
-  },
-  {
-    src: `${P}/decoration-salon.webp`,
-    alt: "Commode blanche, sculpture et tableau dépoussiérés dans un salon",
-    label: "Surfaces et décoration",
-  },
-  {
-    src: `${P}/boutique-salon-attente.webp`,
-    alt: "Coin d'attente d'une boutique : fauteuils en cuir, table basse et sol propres",
-    label: "Accueil d'une boutique",
-  },
-  {
-    src: `${P}/sol-chambre.webp`,
-    alt: "Parquet d'une chambre lavé et brillant",
-    label: "Sols lavés",
-  },
-  {
-    src: `${P}/noel-cadeaux.webp`,
-    alt: "Paquets cadeaux disposés au pied d'un sapin de Noël dans une boutique",
-    label: "Décor de Noël",
-  },
+  { src: `${P}/appart-salle-a-manger.webp`, alt: "Salle à manger lumineuse : table en verre, chaises vertes et grandes fenêtres", label: "Salle à manger" },
+  { src: `${P}/appart-chambre-etageres.webp`, alt: "Chambre claire avec lit fait, serviettes roulées et bibliothèque blanche", label: "Chambre et linge" },
+  { src: `${P}/appart-cuisine.webp`, alt: "Cuisine blanche ouverte sur le séjour, sol noir brillant", label: "Cuisine" },
+  { src: `${P}/appart-serviettes.webp`, alt: "Serviettes pliées et roulées posées sur un lit blanc", label: "Le détail qui se voit" },
+  { src: `${P}/appart-salon-tv.webp`, alt: "Salon avec canapé blanc, table basse en verre et parquet clair", label: "Séjour" },
+  { src: `${P}/appart-entree.webp`, alt: "Entrée blanche donnant sur le séjour, parquet clair", label: "Entrée" },
+  { src: `${P}/appart-terrasse.webp`, alt: "Petite terrasse avec deux fauteuils et une table basse", label: "Terrasse" },
+  { src: `${P}/appart-chambre-patio.webp`, alt: "Chambre avec lit blanc, coussins colorés et fenêtres sur patio", label: "Seconde chambre" }
 ];
 
 const steps = [
@@ -165,7 +143,7 @@ export function ImmersiveLanding() {
       {/* OUVERTURE */}
       <section className={`lp-grain ${NAVY} overflow-hidden text-[#101828]`}>
         <div className="mx-auto grid max-w-[1680px] grid-cols-[minmax(0,1fr)] lg:min-h-[calc(100svh-4rem)] lg:grid-cols-12">
-          <div className="relative z-10 flex flex-col justify-between gap-14 px-6 pb-10 pt-10 md:px-12 lg:col-span-7 lg:row-start-1 lg:pb-12 lg:pt-12">
+          <div className="relative z-10 flex flex-col justify-between gap-14 px-6 pb-10 pt-10 md:px-12 lg:col-span-6 lg:row-start-1 lg:pb-12 lg:pt-12">
             <FadeIn className={`${LABEL} flex flex-wrap items-center gap-x-4 gap-y-2 text-[#667085]`}>
               <span>Facility service</span>
               <span aria-hidden className="h-px w-10 bg-[#101828]/30" />
@@ -173,7 +151,7 @@ export function ImmersiveLanding() {
             </FadeIn>
 
             <div>
-              <h1 className="lp-serif text-[3.15rem] leading-[0.95] sm:text-7xl lg:whitespace-nowrap lg:text-[clamp(3.25rem,4.7vw,5.75rem)]">
+              <h1 className="lp-serif text-[3.15rem] leading-[0.95] sm:text-7xl lg:whitespace-nowrap lg:text-[clamp(2.75rem,3.9vw,5rem)]">
                 <LineRise delay={0.1}>Vous ouvrez la porte.</LineRise>
                 <LineRise delay={0.24} className="text-[#1d6fe0]">
                   <em>Tout est prêt.</em>
@@ -215,15 +193,26 @@ export function ImmersiveLanding() {
             </FadeIn>
           </div>
 
-          <div className="relative lg:col-span-5 lg:col-start-8 lg:row-start-1">
-            <ParallaxPhoto
-              src={`${P}/salon-haussmannien.webp`}
-              alt="Salon haussmannien rangé et prêt à accueillir des voyageurs"
-              priority
-              curtain
-              sizes="(min-width: 1024px) 42vw, 100vw"
-              className="aspect-[4/5] w-full lg:aspect-auto lg:h-full"
-            />
+          <div className="relative flex items-center px-6 pb-16 md:px-12 lg:col-span-6 lg:col-start-7 lg:row-start-1 lg:py-12 lg:pl-4 lg:pr-12">
+            <div className="relative w-full">
+              <ParallaxPhoto
+                src={`${P}/appart-salon-large.webp`}
+                alt="Grand salon haussmannien lumineux : canapé blanc, table basse en verre, moulures et fenêtres sur balcon"
+                priority
+                curtain
+                sizes="(min-width: 1024px) 46vw, 100vw"
+                className="aspect-[3/2] w-full rounded-[2rem] shadow-[0_40px_70px_-30px_rgba(16,24,40,0.45)]"
+              />
+              <div className="absolute -bottom-10 -left-3 w-[44%] overflow-hidden rounded-3xl border-[6px] border-white shadow-[0_30px_60px_-30px_rgba(16,24,40,0.5)] lg:-left-10">
+                <ParallaxPhoto
+                  src={`${P}/appart-serviettes.webp`}
+                  alt="Serviettes pliées et roulées sur un lit blanc"
+                  curtain
+                  sizes="(min-width: 1024px) 20vw, 44vw"
+                  className="aspect-[4/3] w-full"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -259,13 +248,13 @@ export function ImmersiveLanding() {
       {/* CHAPITRE 1 : AIRBNB */}
       <section className="bg-white">
         <div className="grid lg:grid-cols-2">
-          <div className="lg:sticky lg:top-16 lg:h-[calc(100svh-4rem)]">
+          <div className="flex items-center px-6 pt-16 md:px-12 lg:sticky lg:top-16 lg:h-[calc(100svh-4rem)] lg:py-12 lg:pr-4">
             <ParallaxPhoto
               curtain
-              src={`${P}/chambre-serviettes.webp`}
-              alt="Chambre préparée pour l'arrivée des voyageurs : lit fait, serviettes roulées sur la couette"
-              sizes="(min-width: 1024px) 50vw, 100vw"
-              className="aspect-[4/5] w-full lg:aspect-auto lg:h-full"
+              src={`${P}/appart-chambre-fenetres.webp`}
+              alt="Chambre préparée pour l'arrivée des voyageurs : lit blanc, serviettes roulées, fenêtres sur les arbres"
+              sizes="(min-width: 1024px) 46vw, 100vw"
+              className="aspect-[3/2] w-full rounded-[2rem] shadow-[0_40px_70px_-30px_rgba(16,24,40,0.45)]"
             />
           </div>
           <div className="px-6 py-16 md:px-12 md:py-24 lg:px-16 lg:py-36 xl:px-24">

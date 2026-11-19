@@ -179,10 +179,10 @@ export function HorizontalGallery({ photos, intro }: { photos: GalleryPhoto[]; i
   const bar = useTransform(scrollYProgress, [0, 1], [0.08, 1]);
 
   const items = photos.map((photo, index) => (
-    <li key={photo.src} className={pinned ? "w-[26vw] min-w-[320px] shrink-0" : "w-[76vw] shrink-0 snap-start sm:w-[400px]"}>
+    <li key={photo.src} className={pinned ? "w-[38vw] min-w-[460px] shrink-0" : "w-[84vw] shrink-0 snap-start sm:w-[520px]"}>
       <figure className={pinned && index % 2 === 1 ? "translate-y-10" : ""}>
-        <div className="relative aspect-[3/4] overflow-hidden bg-[#dbe6fc]">
-          <Image src={photo.src} alt={photo.alt} fill sizes="(min-width: 1024px) 26vw, (min-width: 640px) 400px, 76vw" className="object-cover" />
+        <div className="relative aspect-[3/2] overflow-hidden rounded-2xl bg-[#dbe6fc]">
+          <Image src={photo.src} alt={photo.alt} fill sizes="(min-width: 1024px) 38vw, (min-width: 640px) 520px, 84vw" className="object-cover" />
         </div>
         <figcaption className="mt-4 flex items-baseline gap-3 text-base text-[#101828]">
           <span className="text-sm tabular-nums text-[#667085]">{String(index + 1).padStart(2, "0")}</span>
