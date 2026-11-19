@@ -56,6 +56,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       addressLocality: siteConfig.city,
       addressRegion: siteConfig.region,
       addressCountry: "FR"
+    },
+    // Avis Google réels (relevé du 19/10/2026, cf. siteConfig.googleRating) : rich snippet étoiles dans les résultats Google.
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: siteConfig.googleRating.value.replace(",", "."),
+      reviewCount: siteConfig.googleRating.count,
+      bestRating: "5"
     }
   };
 
