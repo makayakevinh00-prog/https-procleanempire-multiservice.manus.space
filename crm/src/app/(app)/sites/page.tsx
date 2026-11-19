@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Table, Td, Th, Tr } from "@/components/ui/table";
 import { ClientName } from "@/components/crm/client-name";
 import { StatusBadge } from "@/components/ui/badge";
+import { TerritoireSwitch } from "@/components/crm/territoire-switch";
 
 export default async function SitesPage({ searchParams }: { searchParams: { q?: string } }) {
   const supabase = createClient();
@@ -20,8 +21,9 @@ export default async function SitesPage({ searchParams }: { searchParams: { q?: 
   const rows = (data ?? []) as any[];
   return (
     <>
-      <PageHeader title="Sites" subtitle={`${rows.length} lieu(x) d'intervention${issues ? ` · ${issues} problème(s) ouvert(s)` : ""}`}
+      <PageHeader title="Territoire" subtitle={`Vos sites : ${rows.length} lieu(x) d'intervention${issues ? ` · ${issues} problème(s) ouvert(s)` : ""}`}
         actions={<><Link href="/contrats"><Button variant="outline">Contrats</Button></Link><Link href="/sites/new"><Button><Plus className="h-4 w-4" /> Nouveau site</Button></Link></>} />
+      <TerritoireSwitch active="sites" sites={rows.length} />
       <form className="mb-4"><input name="q" defaultValue={q} placeholder="Rechercher un site, une adresse, une ville…" className="h-10 w-full max-w-sm rounded-md border bg-card px-3 text-sm" /></form>
       <Card>
         {!rows.length ? <Empty>Aucun site. Un site est créé pour chaque contrat ; vous pouvez aussi en ajouter.</Empty> : (

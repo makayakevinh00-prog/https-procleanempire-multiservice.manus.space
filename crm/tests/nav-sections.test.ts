@@ -28,6 +28,9 @@ describe("navigation en 7 rubriques", () => {
     expect(sectionOfPath("/factures/new")?.key).toBe("argent");
     expect(sectionOfPath("/conciergerie/veille/abc")?.key).toBe("clients");
     expect(sectionOfPath("/")?.key).toBe("accueil");
+    expect(sectionOfPath("/calendrier")?.key).toBe("accueil");
+    expect(sectionOfPath("/sites/abc")?.key).toBe("croissance");
+    expect(activeTab("/sites", SECTIONS_NAV.find((x) => x.key === "croissance")!.tabs)?.label).toBe("Territoire");
     expect(sectionOfPath("/actions")?.key).toBe("accueil");
     expect(sectionOfPath("/parametres")).toBeNull();
   });

@@ -24,6 +24,8 @@ import { ACTIVITIES, invoiceActivity, isActivity, type Activity } from "@/lib/do
 import { ActivityChip } from "@/components/crm/activity-ui";
 import { loadActivityModel } from "@/lib/activity-data";
 import { setInvoiceActivityAction } from "@/app/actions/activity";
+import { loadPriceCheck } from "@/lib/price-check-data";
+import { PriceCheckCard } from "@/components/crm/price-check-card";
 
 export default async function InvoicePage({ params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -53,6 +55,7 @@ export default async function InvoicePage({ params }: { params: { id: string } }
   const reservedName = c.is_reserved ? c.name : null;
   const largeAmount = isLargeAmount(num(i.total_ht), settings)
     ? { totalHt: formatEUR(i.total_ht), threshold: formatEUR(settings.large_amount_threshold_ht) } : null;
+  const price = isDraft ? await loadPriceCheck(supabase, i) : null;
   const lastReminderDays = i.last_reminder_at ? daysBetween(i.last_reminder_at) : null;
   const tooSoon = lastReminderDays !== null && lastReminderDays < settings.reminder_interval_days;
 
@@ -108,17 +111,26 @@ export default async function InvoicePage({ params }: { params: { id: string } }
             </CardContent>
           </Card>
 
+          {price && <PriceCheckCard price={price} totalHt={Number(i.total_ht)} />}
+
           <Card>
             <CardHeader><CardTitle>Actions</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               {isDraft && (
                 <>
+                  {price?.verdict === "bloquant" && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-900"><b>Envoi bloqué par le contrôle des prix.</b> Corrigez le brouillon (bouton « Modifier ») : la facture ne peut pas partir en l&apos;état.</p>}
                   <ConfirmAction action={validateInvoiceAction.bind(null, i.id)} label="Valider & Envoyer" className="w-full"
                     title={`Valider la facture de ${formatEUR(i.total_ttc)} TTC ?`}
                     description={<>Un numéro définitif sera attribué à <b>{c.name}</b> et la facture ne sera <b>plus modifiable</b>. Cette action est la validation manuelle obligatoire.</>}
                     confirmLabel="Oui, valider" reservedName={reservedName} largeAmount={largeAmount}
                     extra={
                       <div className="space-y-3">
+                        {price?.verdict === "a_confirmer" && (
+                          <label className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                            <input type="checkbox" name="ack_price" required className="mt-1" />
+                            <span><b>⚠️ Contrôle des prix : {price.findings.map((f) => f.title).join(" · ")}.</b> J&apos;ai vérifié le prix et je confirme l&apos;envoi de cette facture.</span>
+                          </label>
+                        )}
                         <label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" name="send_email" defaultChecked={recipients.length > 0} /> Envoyer la facture par e-mail</label>
                         <RecipientPicker recipients={recipients} />
                         <label className="block text-sm">

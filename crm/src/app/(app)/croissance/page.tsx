@@ -281,17 +281,30 @@ export default async function GrowthPage() {
         title="Croissance"
         subtitle="Les caps à franchir et où vous en êtes, d'après vos vrais chiffres."
       />
-      <Link href="/veille/territoire" className="mb-4 block rounded-xl border bg-white p-4 text-sm hover:bg-secondary">
-        <b>Territoire commercial</b> — la carte des entreprises à prospecter zone par zone (95, puis 93, 94, 75), ce qui est déjà signé, et quand ouvrir la zone suivante. →
-      </Link>
-      <Link href="/croissance/aides" className="mb-4 block rounded-xl border bg-white p-4 text-sm hover:bg-secondary">
-        <b>Aides publiques</b> — subventions, prêts, aides à l&apos;embauche et à la formation qui s&apos;adressent à une entreprise comme la vôtre. →
-      </Link>
-      <div className="grid gap-4 lg:grid-cols-2">
-        {cards.map((c) => {
-          const v = verdict(c.criteria);
+      {/* Vue d'ensemble : chaque cap et son état, d'un coup d'œil. Le détail s'ouvre en dessous. */}
+      <div className="mb-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        {cards.map((c, k) => {
+          const v = verdict(c.criteria), done = c.criteria.filter((x) => isMet(x)).length;
           return (
-            <Card key={c.title}>
+            <a key={c.title} href={`#cap-${k}`} className="pce-lift flex items-center justify-between gap-3 rounded-xl border bg-white px-4 py-3">
+              <span className="min-w-0">
+                <span className="block truncate text-[14px] font-semibold text-foreground">{c.title}</span>
+                <span className="num block text-[12px] text-muted-foreground">{done} critère{done > 1 ? "s" : ""} sur {c.criteria.length}</span>
+              </span>
+              <Badge tone={TONE[v]}>{c.words?.[v] ?? WORDS[v]}</Badge>
+            </a>
+          );
+        })}
+      </div>
+      <div className="mb-5 flex flex-wrap gap-2 text-[13px]">
+        <Link href="/veille/territoire" title="La carte des entreprises à prospecter zone par zone (95, puis 93, 94, 75), ce qui est déjà signé, et quand ouvrir la zone suivante." className="inline-flex min-h-[40px] items-center rounded-full border bg-white px-4 font-medium hover:bg-secondary">Territoire commercial →</Link>
+        <Link href="/croissance/aides" title="Subventions, prêts, aides à l'embauche et à la formation qui s'adressent à une entreprise comme la vôtre." className="inline-flex min-h-[40px] items-center rounded-full border bg-white px-4 font-medium hover:bg-secondary">Aides publiques →</Link>
+      </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        {cards.map((c, k) => {
+          const v = verdict(c.criteria), done = c.criteria.filter((x) => isMet(x)).length;
+          return (
+            <Card key={c.title} id={`cap-${k}`} className="scroll-mt-28">
               <CardContent className="p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -304,6 +317,11 @@ export default async function GrowthPage() {
                   </div>
                   <Badge tone={TONE[v]}>{c.words?.[v] ?? WORDS[v]}</Badge>
                 </div>
+                <details className="group mt-4" open={v !== "pret" && done > 0 && done < c.criteria.length}>
+                  <summary className="flex min-h-[40px] cursor-pointer list-none items-center justify-between rounded-lg bg-secondary px-3 text-[13px] font-medium text-foreground">
+                    <span className="num">{done} critère{done > 1 ? "s" : ""} sur {c.criteria.length} atteint{done > 1 ? "s" : ""}</span>
+                    <span className="text-primary group-open:hidden">Voir le détail</span><span className="hidden text-primary group-open:inline">Replier</span>
+                  </summary>
                 <ul className="mt-4 space-y-4">
                   {c.criteria.map((k) => {
                     const pr = progress(k),
@@ -337,6 +355,7 @@ export default async function GrowthPage() {
                     );
                   })}
                 </ul>
+                </details>
                 {c.foot && (
                   <p className="mt-3 text-xs text-muted-foreground">
                     {c.foot}

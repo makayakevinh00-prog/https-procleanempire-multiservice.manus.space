@@ -147,11 +147,11 @@ export default async function MissionsPage({ searchParams }: { searchParams: { q
         </details>
       </div>
 
-      <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {[[rows.filter((r) => r.stage !== "annulee").length, "missions", ""], [unassigned, "sans intervenant", unassigned ? "text-orange-600" : ""],
-          [toCheck, "à vérifier", toCheck ? "text-amber-600" : ""], [openIssues ?? 0, "problème(s) ouvert(s)", openIssues ? "text-red-600" : ""]].map(([n, l, c], k) => {
-          const body = <Card className="p-4"><div className={`text-3xl font-bold ${c}`}>{n}</div><div className="text-xs text-slate-500">{l}</div></Card>;
-          return k === 3 ? <Link key={l as string} href="/missions/problemes">{body}</Link> : <div key={l as string}>{body}</div>;
+      <div className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border bg-card px-4 py-2.5 text-[13px] text-muted-foreground">
+        {[[rows.filter((r) => r.stage !== "annulee").length, "missions", "text-foreground"], [unassigned, "sans intervenant", unassigned ? "text-orange-600" : "text-foreground"],
+          [toCheck, "à vérifier", toCheck ? "text-amber-600" : "text-foreground"], [openIssues ?? 0, "problème(s) ouvert(s)", openIssues ? "text-red-600" : "text-foreground"]].map(([n, l, c], k) => {
+          const body = <span className="inline-flex items-baseline gap-1.5"><b className={`num text-[18px] font-bold ${c}`}>{n}</b>{l}</span>;
+          return k === 3 ? <Link key={l as string} href="/missions/problemes" className="hover:underline">{body}</Link> : k === 2 ? <Link key={l as string} href="/missions/a-verifier" className="hover:underline">{body}</Link> : <span key={l as string}>{body}</span>;
         })}
       </div>
 

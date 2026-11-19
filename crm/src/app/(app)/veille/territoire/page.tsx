@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/crm/page-header";
 import { IDF, pointOf } from "@/lib/territoire";
+import { TerritoireSwitch } from "@/components/crm/territoire-switch";
 import { TerritoryExplorerLazy } from "@/components/crm/territory-explorer-lazy";
 
 export const revalidate = 0;
@@ -17,6 +18,7 @@ export default async function TerritoryPage({ searchParams }: { searchParams: { 
   return (
     <>
       <PageHeader title="Territoire commercial" subtitle="Choisissez un département, voyez les entreprises autour de vous et décidez où passer chaque jour." />
+      <TerritoireSwitch active="prospection" />
       {searchParams.error && <div role="alert" className="mb-3 rounded-md bg-red-50 p-3 text-sm font-medium text-red-800">{searchParams.error}</div>}
       {searchParams.ok && <div role="status" className="mb-3 rounded-md bg-emerald-50 p-3 text-sm font-medium text-emerald-800">{searchParams.ok}</div>}
       {error && <div role="alert" className="mb-3 rounded-md bg-amber-50 p-3 text-sm font-medium text-amber-900">La liste des entreprises n&apos;a pas pu être lue ({error.message}). La carte reste utilisable.</div>}

@@ -18,6 +18,7 @@ import { logEmail } from "@/lib/email-log";
 import { pickRecipients } from "@/lib/recipients";
 import { syncQonto } from "@/lib/qonto";
 import { createAdmin } from "@/lib/supabase/server";
+import { loadPriceCheck } from "@/lib/price-check-data";
 
 export async function createInvoiceAction(fd: FormData) {
   await requireAccess("finances");
@@ -92,6 +93,14 @@ export async function validateInvoiceAction(id: string, fd: FormData) {
   if (invalid.length) flash(back, "error", `Adresse(s) invalide(s) : ${invalid.join(", ")}.`);
   if (sendEmail && !to.length) flash(back, "error", "Cochez au moins une adresse e-mail (ou décochez l'envoi).");
   const paymentId = str(fd, "payment_id");
+
+  // Contrôle des prix : une facture incohérente ne part pas ; un écart avec le contrat exige une confirmation explicite.
+  const { data: draft } = await supabase.from("invoices").select("id, client_id, total_ht, issue_date, invoice_lines(description, quantity, unit_price_ht)").eq("id", id).maybeSingle();
+  if (draft) {
+    const price = await loadPriceCheck(supabase, draft as any);
+    if (price.verdict === "bloquant") flash(back, "error", `Contrôle des prix : ${price.findings.filter((f) => f.level === "bloquant").map((f) => f.title).join(" · ")}. La facture n'a pas été envoyée.`);
+    if (price.verdict === "a_confirmer" && !checked(fd, "ack_price")) flash(back, "error", `Contrôle des prix : ${price.findings.map((f) => f.title).join(" · ")}. Cochez « J'ai vérifié le prix » pour l'envoyer quand même.`);
+  }
 
   const { data: inv, error } = await supabase.rpc("validate_invoice", {
     p_invoice_id: id, p_ack_large: checked(fd, "ack_large"), p_ack_reserved: checked(fd, "ack_reserved")

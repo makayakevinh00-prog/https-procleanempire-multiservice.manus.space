@@ -476,17 +476,36 @@ export default async function CataloguePage({
         <CardContent className="border-t pt-4">{form}</CardContent>
       </details>
 
+      {/* Accès direct à chaque famille : la page reste courte, on ouvre ce dont on a besoin. */}
+      <nav aria-label="Familles de prestations" className="mb-4 flex flex-wrap gap-2">
+        {[...CATEGORY_ORDER, ""].map((cat) => {
+          const n = shown.filter((r) => (r.s.category ?? "") === cat).length;
+          if (!n) return null;
+          return (
+            <a key={cat || "autres"} href={`#famille-${cat || "autres"}`} className="inline-flex min-h-[40px] items-center gap-2 rounded-full border bg-white px-4 text-[13px] font-medium hover:bg-secondary">
+              {cat ? CATEGORY[cat] : "À classer"} <span className="num text-muted-foreground">{n}</span>
+            </a>
+          );
+        })}
+      </nav>
+
       {[...CATEGORY_ORDER, ""].map((cat) => {
         const list = shown.filter((r) => (r.s.category ?? "") === cat);
+        const alerts = list.filter((r) => r.ev.status === "perte" || r.ev.status === "sous_cible").length;
         if (!list.length && cat !== "commerces") return null;
         return (
-          <Card key={cat || "autres"} className="mb-4">
+          <Card key={cat || "autres"} id={`famille-${cat || "autres"}`} className="mb-4 scroll-mt-28">
+            <details className="group" open={shown.length <= 12 || alerts > 0 || list.some((r) => r.s.id === edited?.id)}>
+            <summary className="cursor-pointer list-none">
             <CardHeader>
               <CardTitle>{cat ? CATEGORY[cat] : "À classer"}</CardTitle>
-              <span className="text-xs text-muted-foreground">
+              <span className="flex items-center gap-3 text-xs text-muted-foreground">
+                {alerts > 0 && <span className="rounded-full bg-[#f7ecdb] px-2 py-0.5 font-medium text-[#8f5a12]">{alerts} à revoir</span>}
                 {list.length} prestation{list.length > 1 ? "s" : ""}
+                <span className="font-medium text-primary group-open:hidden">Ouvrir</span><span className="hidden font-medium text-primary group-open:inline">Replier</span>
               </span>
             </CardHeader>
+            </summary>
             {!list.length ? (
               <Empty>
                 Aucune prestation pour les commerces : ajoutez-en une, ou
@@ -597,6 +616,7 @@ export default async function CataloguePage({
                 </tbody>
               </Table>
             )}
+            </details>
           </Card>
         );
       })}

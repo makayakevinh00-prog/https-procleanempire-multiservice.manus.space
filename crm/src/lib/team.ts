@@ -10,7 +10,7 @@ export const SECTIONS = [
   { key: "clients", label: "Clients et demandes", hint: "Fiches clients, demandes du site, sites d'intervention", routes: ["/clients", "/demandes", "/api/entreprises"] },
   { key: "devis", label: "Devis", hint: "Création et suivi des devis (le patron valide et envoie)", routes: ["/devis", "/api/devis"] },
   { key: "contrats", label: "Contrats", hint: "Contrats récurrents", routes: ["/contrats", "/api/contrats"] },
-  { key: "missions", label: "Missions et planning", hint: "Interventions, planning, sites", routes: ["/missions", "/planning", "/sites", "/sur-place", "/api/missions"] },
+  { key: "missions", label: "Missions et planning", hint: "Interventions, planning, sites", routes: ["/missions", "/planning", "/calendrier", "/sites", "/sur-place", "/api/missions"] },
   { key: "rh", label: "Équipe et RH", hint: "Agents, prestataires, recrutement", routes: ["/equipe", "/recrutement"] },
   { key: "conciergerie", label: "Conciergerie", hint: "Logements gérés, réservations, ménages", routes: ["/conciergerie"] },
   { key: "veille", label: "Veille concurrentielle", hint: "Concurrents, certifications, formations", routes: ["/veille"] },

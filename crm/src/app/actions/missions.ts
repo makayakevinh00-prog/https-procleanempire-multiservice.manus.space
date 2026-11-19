@@ -95,6 +95,32 @@ export async function setStageAction(id: string, fd: FormData) {
   flash(back, "ok", `Mission passée à « ${STAGE_LABEL[stage!]} ».`);
 }
 
+/**
+ * Validation groupée : passe d'un coup à « Validée » les missions cochées dans la file de contrôle.
+ * Mêmes garde-fous que la validation à l'unité, appliqués mission par mission : seules les missions terminées ou à vérifier,
+ * non facturées et sans anomalie ouverte sont validées ; les autres sont laissées telles quelles et comptées dans le message.
+ */
+export async function validateMissionsAction(fd: FormData) {
+  await requireAccess("missions");
+  const back = backOf(fd, "/missions/a-verifier");
+  const ids = [...new Set(fd.getAll("ids").map((v) => String(v)).filter((v) => /^[0-9a-f-]{36}$/i.test(v)))].slice(0, 100);
+  if (!ids.length) flash(back, "error", "Cochez au moins une mission à valider.");
+  const supabase = createClient();
+  const [{ data: rows, error: readError }, { data: issues }] = await Promise.all([
+    supabase.from("interventions").select("id, stage, invoice_id").in("id", ids),
+    supabase.from("mission_issues").select("intervention_id").in("intervention_id", ids).eq("status", "ouverte")
+  ]);
+  if (readError) flash(back, "error", dbMessage(readError));
+  const blocked = new Set(((issues ?? []) as any[]).map((i) => i.intervention_id as string));
+  const ok = ((rows ?? []) as any[]).filter((r) => ["terminee", "a_verifier"].includes(r.stage) && !r.invoice_id && !blocked.has(r.id)).map((r) => r.id as string);
+  const skipped = ids.length - ok.length;
+  if (!ok.length) flash(back, "error", "Aucune mission validée : elles ont une anomalie ouverte, sont déjà facturées ou ne sont plus à contrôler.");
+  const { error } = await supabase.from("interventions").update({ stage: "validee" }).in("id", ok).in("stage", ["terminee", "a_verifier"]).is("invoice_id", null);
+  if (error) flash(back, "error", dbMessage(error));
+  refresh();
+  flash(back, "ok", `${ok.length} mission${ok.length > 1 ? "s validées" : " validée"}${skipped ? ` · ${skipped} laissée${skipped > 1 ? "s" : ""} de côté (anomalie ouverte ou déjà traitée)` : ""}.`);
+}
+
 export async function assignStaffAction(id: string, fd: FormData) {
   await requireAccess("missions");
   const back = backOf(fd, `/missions/${id}`);
