@@ -4,7 +4,7 @@ import { ReactNode } from "react";
 import { Reveal } from "@/components/home/reveal";
 import { QuoteForm } from "@/components/forms/quote-form";
 import { FadeIn, ParallaxPhoto, ScrollProgress } from "@/components/landing/motion";
-import { Cta, FOCUS, H2, LABEL, LINK, NAVY, PAPER } from "@/components/landing/ui";
+import { Cta, FOCUS, H2, LABEL, LINK, NAVY, PAPER, SOFT } from "@/components/landing/ui";
 import { siteConfig } from "@/lib/site";
 
 export type PremiumServiceProps = {
@@ -40,21 +40,21 @@ export function PremiumService(props: PremiumServiceProps) {
       <ScrollProgress />
 
       {/* Ouverture */}
-      <section className={`lp-grain ${NAVY} overflow-hidden text-white`}>
+      <section className={`lp-grain ${NAVY} overflow-hidden text-[#101828]`}>
         <div className="mx-auto grid max-w-[1680px] grid-cols-[minmax(0,1fr)] lg:min-h-[calc(100svh-4rem)] lg:grid-cols-12">
           <div className="flex flex-col justify-between gap-12 px-6 pb-10 pt-10 md:px-12 lg:col-span-7 lg:pb-12 lg:pt-12">
-            <FadeIn className={`${LABEL} text-white/75`}>{props.eyebrow}</FadeIn>
+            <FadeIn className={`${LABEL} text-[#667085]`}>{props.eyebrow}</FadeIn>
             <FadeIn delay={0.15}>
               <h1 className="lp-serif text-[2.6rem] leading-[1.02] [text-wrap:balance] sm:text-6xl xl:text-[4.75rem]">{props.title}</h1>
-              <p className="mt-8 max-w-xl text-lg leading-relaxed text-slate-300 sm:text-xl">{props.lead}</p>
+              <p className="mt-8 max-w-xl text-lg leading-relaxed text-[#475467] sm:text-xl">{props.lead}</p>
               <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
                 <Cta href="#devis">{props.ctaLabel}</Cta>
-                <Link href={siteConfig.bookingUrl} className={`${LINK} self-start text-white focus-visible:outline-white sm:self-auto`}>
+                <Link href={siteConfig.bookingUrl} className={`${LINK} self-start text-[#101828] focus-visible:outline-[#1e3a6e] sm:self-auto`}>
                   Prendre rendez-vous
                 </Link>
               </div>
             </FadeIn>
-            <FadeIn delay={0.5} className="border-t border-white/15 pt-6 text-sm text-slate-300">
+            <FadeIn delay={0.5} className="border-t border-[#101828]/15 pt-6 text-sm text-[#475467]">
               Sans engagement · Pontoise, Val-d&apos;Oise et Île-de-France
             </FadeIn>
           </div>
@@ -108,7 +108,7 @@ export function PremiumService(props: PremiumServiceProps) {
       {props.aside}
 
       {/* Comment ça se passe */}
-      <section className={`lp-grain ${NAVY} text-white`}>
+      <section className={`lp-grain ${NAVY} text-[#101828]`}>
         <div className="mx-auto max-w-[1680px] px-6 py-24 md:px-12 md:py-36">
           <Reveal>
             <h2 className={H2}>
@@ -117,12 +117,12 @@ export function PremiumService(props: PremiumServiceProps) {
           </Reveal>
           <ol className="mt-16 grid gap-12 lg:mt-24 lg:grid-cols-3 lg:gap-0">
             {props.steps.map((step, index) => (
-              <Reveal as="li" key={step.title} delay={0.1 * index} y={24} className="border-t border-white/30 pt-6 lg:border-l lg:border-t-0 lg:border-white/20 lg:px-10 lg:pt-0 lg:first:border-l-0 lg:first:pl-0">
-                <span className="lp-serif block text-8xl text-[#9ec1ff] xl:text-9xl" aria-hidden>
+              <Reveal as="li" key={step.title} delay={0.1 * index} y={24} className="border-t border-[#101828]/15 pt-6 lg:border-l lg:border-t-0 lg:border-[#101828]/15 lg:px-10 lg:pt-0 lg:first:border-l-0 lg:first:pl-0">
+                <span className="lp-serif block text-8xl text-[#1d6fe0] xl:text-9xl" aria-hidden>
                   <em>{index + 1}</em>
                 </span>
                 <h3 className="mt-8 text-2xl font-semibold tracking-tight">{step.title}</h3>
-                <p className="mt-3 text-lg leading-relaxed text-slate-300">{step.text}</p>
+                <p className="mt-3 text-lg leading-relaxed text-[#475467]">{step.text}</p>
               </Reveal>
             ))}
           </ol>
@@ -153,14 +153,14 @@ export function PremiumService(props: PremiumServiceProps) {
 
       {/* Devis contextualisé */}
       <section id="devis" className="scroll-mt-16">
-        <div className={`lp-grain ${NAVY} text-white`}>
+        <div className={`lp-grain ${SOFT} text-[#101828]`}>
           <div className="mx-auto max-w-[1680px] px-6 py-24 md:px-12 md:py-36">
             <Reveal>
-              <p className={`${LABEL} text-white/70`}>Devis gratuit</p>
+              <p className={`${LABEL} text-[#667085]`}>Devis gratuit</p>
               <h2 className="lp-serif mt-8 max-w-5xl text-[2.9rem] leading-[0.98] [text-wrap:balance] sm:text-7xl xl:text-8xl">{props.ctaLabel}</h2>
-              <p className="mt-10 max-w-2xl text-lg leading-relaxed text-slate-300 sm:text-xl">
+              <p className="mt-10 max-w-2xl text-lg leading-relaxed text-[#475467] sm:text-xl">
                 {siteConfig.promise} Vous préférez en parler ?{" "}
-                <a href={siteConfig.bookingUrl} className="font-semibold text-white underline underline-offset-4">
+                <a href={siteConfig.bookingUrl} className="font-semibold text-[#101828] underline underline-offset-4">
                   Réservez un échange de 20 min
                 </a>
                 .

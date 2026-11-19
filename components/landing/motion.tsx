@@ -66,7 +66,7 @@ export function ParallaxPhoto({
   const y = useTransform(scrollYProgress, [0, 1], ["-6%", "6%"]);
   const hidden = curtain && !reduce && !inView;
   return (
-    <div ref={ref} className={`relative overflow-hidden bg-[#0a1020] ${className}`}>
+    <div ref={ref} className={`relative overflow-hidden bg-[#1e3a6e] ${className}`}>
       <motion.div
         className="absolute inset-0"
         initial={false}
@@ -122,7 +122,7 @@ export function TimelineRail({ children, className = "" }: { children: ReactNode
   return (
     <ol ref={ref} className={`relative ${className}`}>
       <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px bg-slate-300" />
-      <motion.span aria-hidden style={reduce ? undefined : { scaleY: scrollYProgress }} className="absolute bottom-0 left-0 top-0 w-px origin-top bg-[#0b1326]" />
+      <motion.span aria-hidden style={reduce ? undefined : { scaleY: scrollYProgress }} className="absolute bottom-0 left-0 top-0 w-px origin-top bg-[#1e3a6e]" />
       {children}
     </ol>
   );
@@ -181,11 +181,11 @@ export function HorizontalGallery({ photos, intro }: { photos: GalleryPhoto[]; i
   const items = photos.map((photo, index) => (
     <li key={photo.src} className={pinned ? "w-[26vw] min-w-[320px] shrink-0" : "w-[76vw] shrink-0 snap-start sm:w-[400px]"}>
       <figure className={pinned && index % 2 === 1 ? "translate-y-10" : ""}>
-        <div className="relative aspect-[3/4] overflow-hidden bg-white/5">
+        <div className="relative aspect-[3/4] overflow-hidden bg-[#dbe6fc]">
           <Image src={photo.src} alt={photo.alt} fill sizes="(min-width: 1024px) 26vw, (min-width: 640px) 400px, 76vw" className="object-cover" />
         </div>
-        <figcaption className="mt-4 flex items-baseline gap-3 text-base text-white">
-          <span className="text-sm tabular-nums text-white/60">{String(index + 1).padStart(2, "0")}</span>
+        <figcaption className="mt-4 flex items-baseline gap-3 text-base text-[#101828]">
+          <span className="text-sm tabular-nums text-[#667085]">{String(index + 1).padStart(2, "0")}</span>
           {photo.label}
         </figcaption>
       </figure>
@@ -206,8 +206,8 @@ export function HorizontalGallery({ photos, intro }: { photos: GalleryPhoto[]; i
             <li className="w-[34vw] min-w-[420px] shrink-0 pr-10">{intro}</li>
             {items}
           </motion.ul>
-          <div aria-hidden className="absolute bottom-8 left-12 right-12 h-px bg-white/20">
-            <motion.div style={{ scaleX: bar }} className="h-px origin-left bg-white" />
+          <div aria-hidden className="absolute bottom-8 left-12 right-12 h-px bg-[#1e3a6e]/20">
+            <motion.div style={{ scaleX: bar }} className="h-px origin-left bg-[#1e3a6e]" />
           </div>
         </div>
       ) : (
@@ -216,7 +216,7 @@ export function HorizontalGallery({ photos, intro }: { photos: GalleryPhoto[]; i
           <ul
             tabIndex={0}
             aria-label="Photos de nos prestations, à faire défiler"
-            className="mt-12 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-6 px-6 pb-6 [scrollbar-width:thin] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white md:gap-4 md:scroll-px-12 md:px-12"
+            className="mt-12 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-6 px-6 pb-6 [scrollbar-width:thin] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1e3a6e] md:gap-4 md:scroll-px-12 md:px-12"
           >
             {items}
           </ul>

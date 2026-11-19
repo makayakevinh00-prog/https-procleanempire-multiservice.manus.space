@@ -24,7 +24,7 @@ export function Footer() {
   ];
 
   return (
-    <footer className="border-t border-slate-200 bg-slate-950 text-slate-200">
+    <footer className="bg-[#1e3a6e] text-slate-200">
       <div className="section grid gap-10 md:grid-cols-2 lg:grid-cols-6">
         <div className="space-y-4">
           <Image
@@ -148,7 +148,7 @@ export function Footer() {
           </ul>
         </div>
       </div>
-      <div className="border-t border-slate-800 px-6 py-6 text-center text-xs text-slate-400 md:px-8">
+      <div className="border-t border-white/15 px-6 py-6 text-center text-xs text-slate-300 md:px-8">
         <p>© {new Date().getFullYear()} ProClean Empire. Tous droits réservés.</p>
         <p className="mt-2">
           Propriétaire ?{" "}

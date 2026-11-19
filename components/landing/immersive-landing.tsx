@@ -18,7 +18,7 @@ import {
 import { PartnersMarquee } from "@/components/phase1/partners-marquee";
 import { commitments } from "@/lib/content/phase1";
 import { siteConfig } from "@/lib/site";
-import { Cta, FOCUS, H2, LABEL, LINK, NAVY, PAPER } from "@/components/landing/ui";
+import { Cta, FOCUS, H2, LABEL, LINK, NAVY, PAPER, SOFT } from "@/components/landing/ui";
 import { SeoText } from "@/components/landing/seo-text";
 import { ReviewsPremiumSection } from "@/components/phase1/reviews-premium-section";
 
@@ -27,15 +27,15 @@ const P = "/media/photos/landing";
 function ChapterHead({ index, label, title, lead, dark }: { index: string; label: string; title: ReactNode; lead: string; dark?: boolean }) {
   return (
     <Reveal>
-      <p className={`${LABEL} flex items-center gap-4 ${dark ? "text-white/70" : "text-slate-600"}`}>
+      <p className={`${LABEL} flex items-center gap-4 ${dark ? "text-[#667085]" : "text-slate-600"}`}>
         <span className="lp-serif whitespace-nowrap text-2xl normal-case tracking-normal">
           <em>N° {index}</em>
         </span>
-        <span aria-hidden className={`h-px w-10 ${dark ? "bg-white/40" : "bg-slate-400"}`} />
+        <span aria-hidden className={`h-px w-10 ${dark ? "bg-[#101828]/30" : "bg-slate-400"}`} />
         {label}
       </p>
       <h2 className={`${H2} mt-8`}>{title}</h2>
-      <p className={`mt-8 max-w-xl text-lg leading-relaxed sm:text-xl ${dark ? "text-slate-300" : "text-slate-700"}`}>{lead}</p>
+      <p className={`mt-8 max-w-xl text-lg leading-relaxed sm:text-xl ${dark ? "text-[#475467]" : "text-slate-700"}`}>{lead}</p>
     </Reveal>
   );
 }
@@ -44,7 +44,7 @@ function ChapterHead({ index, label, title, lead, dark }: { index: string; label
 function Moment({ mark, title, text }: { mark: string; title: string; text: string }) {
   return (
     <Reveal as="li" y={20} className="relative grid grid-cols-[5.5rem_minmax(0,1fr)] gap-4 py-7 pl-8 sm:grid-cols-[7.5rem_minmax(0,1fr)] sm:pl-10">
-      <span aria-hidden className="absolute left-[-4px] top-[2.6rem] h-[9px] w-[9px] rounded-full bg-[#0a1020]" />
+      <span aria-hidden className="absolute left-[-4px] top-[2.6rem] h-[9px] w-[9px] rounded-full bg-[#1e3a6e]" />
       <span className="lp-serif text-3xl sm:text-4xl">
         <em>{mark}</em>
       </span>
@@ -59,12 +59,12 @@ function Moment({ mark, title, text }: { mark: string; title: string; text: stri
 /** Fait posé sur fond sombre : un mot-repère en serif, puis l'explication. */
 function Fact({ mark, title, text, delay = 0 }: { mark: string; title: string; text: string; delay?: number }) {
   return (
-    <Reveal as="li" y={20} delay={delay} className="border-t border-white/20 py-7">
-      <span className="lp-serif block text-3xl text-[#9ec1ff]">
+    <Reveal as="li" y={20} delay={delay} className="border-t border-[#101828]/15 py-7">
+      <span className="lp-serif block text-3xl text-[#1d6fe0]">
         <em>{mark}</em>
       </span>
-      <span className="mt-3 block text-xl font-semibold tracking-tight text-white">{title}</span>
-      <span className="mt-1.5 block text-base leading-relaxed text-slate-300">{text}</span>
+      <span className="mt-3 block text-xl font-semibold tracking-tight text-[#101828]">{title}</span>
+      <span className="mt-1.5 block text-base leading-relaxed text-[#475467]">{text}</span>
     </Reveal>
   );
 }
@@ -163,41 +163,41 @@ export function ImmersiveLanding() {
       <ScrollProgress />
 
       {/* OUVERTURE */}
-      <section className={`lp-grain ${NAVY} overflow-hidden text-white`}>
+      <section className={`lp-grain ${NAVY} overflow-hidden text-[#101828]`}>
         <div className="mx-auto grid max-w-[1680px] grid-cols-[minmax(0,1fr)] lg:min-h-[calc(100svh-4rem)] lg:grid-cols-12">
           <div className="relative z-10 flex flex-col justify-between gap-14 px-6 pb-10 pt-10 md:px-12 lg:col-span-7 lg:row-start-1 lg:pb-12 lg:pt-12">
-            <FadeIn className={`${LABEL} flex flex-wrap items-center gap-x-4 gap-y-2 text-white/75`}>
+            <FadeIn className={`${LABEL} flex flex-wrap items-center gap-x-4 gap-y-2 text-[#667085]`}>
               <span>Facility service</span>
-              <span aria-hidden className="h-px w-10 bg-white/40" />
+              <span aria-hidden className="h-px w-10 bg-[#101828]/30" />
               <span>Val-d&apos;Oise · Paris</span>
             </FadeIn>
 
             <div>
-              <h1 className="lp-serif text-[3.15rem] leading-[0.95] sm:text-7xl lg:w-[150%] lg:whitespace-nowrap lg:text-[clamp(4.5rem,6.7vw,7.75rem)]">
+              <h1 className="lp-serif text-[3.15rem] leading-[0.95] sm:text-7xl lg:whitespace-nowrap lg:text-[clamp(3.25rem,4.7vw,5.75rem)]">
                 <LineRise delay={0.1}>Vous ouvrez la porte.</LineRise>
-                <LineRise delay={0.24} className="text-[#9ec1ff]">
+                <LineRise delay={0.24} className="text-[#1d6fe0]">
                   <em>Tout est prêt.</em>
                 </LineRise>
               </h1>
               <FadeIn delay={0.55} className="mt-10 grid gap-8 lg:max-w-[34rem]">
-                <p className="text-lg leading-relaxed text-slate-300 sm:text-xl">
+                <p className="text-lg leading-relaxed text-[#475467] sm:text-xl">
                   Logements Airbnb, bureaux, commerces : ProClean Empire prend en charge la propreté de vos espaces, du premier devis au contrôle final.
                 </p>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
                   <Cta href="#devis">Demander un devis</Cta>
-                  <Link href={siteConfig.bookingUrl} className={`${LINK} self-start text-white focus-visible:outline-white sm:self-auto`}>
+                  <Link href={siteConfig.bookingUrl} className={`${LINK} self-start text-[#101828] focus-visible:outline-[#1e3a6e] sm:self-auto`}>
                     Prendre rendez-vous
                   </Link>
                 </div>
               </FadeIn>
             </div>
 
-            <FadeIn delay={0.8} className="flex flex-wrap items-center justify-between gap-4 border-t border-white/15 pt-6">
+            <FadeIn delay={0.8} className="flex flex-wrap items-center justify-between gap-4 border-t border-[#101828]/15 pt-6">
               <a
                 href={siteConfig.googleReviewsUrl}
                 target="_blank"
                 rel="noreferrer"
-                className={`flex min-h-11 items-center gap-3 text-sm text-slate-300 transition-colors duration-200 hover:text-white ${FOCUS} focus-visible:outline-white`}
+                className={`flex min-h-11 items-center gap-3 text-sm text-[#475467] transition-colors duration-200 hover:text-[#101828] ${FOCUS} focus-visible:outline-[#1e3a6e]`}
               >
                 <span className="flex gap-0.5 text-amber-300" aria-hidden>
                   {[0, 1, 2, 3, 4].map((star) => (
@@ -208,9 +208,9 @@ export function ImmersiveLanding() {
                 </span>
                 {siteConfig.googleRating.value}/5 sur {siteConfig.googleRating.count} avis Google
               </a>
-              <span aria-hidden className={`${LABEL} hidden items-center gap-3 text-white/60 lg:flex`}>
+              <span aria-hidden className={`${LABEL} hidden items-center gap-3 text-[#667085] lg:flex`}>
                 Défiler
-                <span className="h-10 w-px bg-white/40" />
+                <span className="h-10 w-px bg-[#101828]/30" />
               </span>
             </FadeIn>
           </div>
@@ -224,7 +224,6 @@ export function ImmersiveLanding() {
               sizes="(min-width: 1024px) 42vw, 100vw"
               className="aspect-[4/5] w-full lg:aspect-auto lg:h-full"
             />
-            <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#0a1020]/75 via-[#0a1020]/15 to-transparent max-lg:hidden" />
           </div>
         </div>
       </section>
@@ -283,7 +282,7 @@ export function ImmersiveLanding() {
               <Moment mark="14h" title="Tour complet avant de partir" text="Vous êtes prévenu au moindre imprévu. Linge de lit et serviettes en option." />
             </TimelineRail>
             <div className="mt-12 flex flex-wrap items-center gap-x-8 gap-y-4">
-              <Cta href="#devis" tone="dark">Demander un devis</Cta>
+              <Cta href="#devis">Demander un devis</Cta>
               <Link href="/menage-airbnb" className={`${LINK} text-ink focus-visible:outline-ink`}>
                 Tout sur le ménage Airbnb
               </Link>
@@ -293,7 +292,7 @@ export function ImmersiveLanding() {
       </section>
 
       {/* BANDE DE MOTS */}
-      <section className={`lp-grain ${NAVY} overflow-hidden py-10 text-white md:py-16`} aria-hidden>
+      <section className={`lp-grain ${SOFT} overflow-hidden py-10 text-[#1e3a6e] md:py-16`} aria-hidden>
         <ScrollBand>
           {[0, 1].map((copy) => (
             <span key={copy} className="lp-serif flex items-center text-[18vw] leading-none lg:text-[11vw]">
@@ -307,7 +306,7 @@ export function ImmersiveLanding() {
       </section>
 
       {/* CHAPITRE 2 : BUREAUX ET COMMERCES */}
-      <section className={`lp-grain ${NAVY} text-white`}>
+      <section className={`lp-grain ${NAVY} text-[#101828]`}>
         <div className="mx-auto grid max-w-[1680px] gap-14 px-6 pb-20 pt-10 md:px-12 md:pb-32 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-7">
             <ChapterHead
@@ -325,7 +324,7 @@ export function ImmersiveLanding() {
             </ul>
             <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
               <Cta href="#devis">Demander un devis</Cta>
-              <Link href="/nettoyage-bureaux" className={`${LINK} text-white focus-visible:outline-white`}>
+              <Link href="/nettoyage-bureaux" className={`${LINK} text-[#101828] focus-visible:outline-[#1e3a6e]`}>
                 Tout sur le nettoyage de bureaux
               </Link>
             </div>
@@ -339,22 +338,22 @@ export function ImmersiveLanding() {
                 sizes="(min-width: 1024px) 32vw, 100vw"
                 className="aspect-[3/4] w-full"
               />
-              <p className={`${LABEL} mt-4 text-white/60`}>Boutique d&apos;optique · présentoirs</p>
+              <p className={`${LABEL} mt-4 text-[#667085]`}>Boutique d&apos;optique · présentoirs</p>
             </div>
           </div>
         </div>
 
         {/* GALERIE */}
-        <div className="border-t border-white/15">
+        <div className="border-t border-[#101828]/15">
           <HorizontalGallery
             photos={gallery}
             intro={
               <div>
-                <p className={`${LABEL} text-white/70`}>Sur le terrain</p>
+                <p className={`${LABEL} text-[#667085]`}>Sur le terrain</p>
                 <h2 className={`${H2} mt-6`}>
                   Ce que nous laissons <em>derrière nous.</em>
                 </h2>
-                <Link href="/realisations" className={`${LINK} mt-8 text-white focus-visible:outline-white`}>
+                <Link href="/realisations" className={`${LINK} mt-8 text-[#101828] focus-visible:outline-[#1e3a6e]`}>
                   Toutes nos réalisations
                 </Link>
               </div>
@@ -409,7 +408,7 @@ export function ImmersiveLanding() {
               <Moment mark="Janv." title="Dépose et nettoyage" text="Nous retirons le décor et remettons les lieux en état." />
             </TimelineRail>
             <div className="mt-12 flex flex-wrap items-center gap-x-8 gap-y-4">
-              <Cta href="#devis" tone="dark">Demander un devis</Cta>
+              <Cta href="#devis">Demander un devis</Cta>
               <Link href="/blog/decoration-noel-bureaux-commerces-val-doise" className={`${LINK} text-ink focus-visible:outline-ink`}>
                 Lire notre guide
               </Link>
@@ -514,14 +513,14 @@ export function ImmersiveLanding() {
 
       {/* DEVIS */}
       <section id="devis" className="scroll-mt-16" aria-labelledby="lp-devis">
-        <div className={`lp-grain ${NAVY} text-white`}>
+        <div className={`lp-grain ${SOFT} text-[#101828]`}>
           <div className="mx-auto max-w-[1680px] px-6 py-24 md:px-12 md:py-40">
             <Reveal>
-              <p className={`${LABEL} text-white/70`}>Devis gratuit</p>
+              <p className={`${LABEL} text-[#667085]`}>Devis gratuit</p>
               <h2 id="lp-devis" className="lp-serif mt-8 text-[3.4rem] leading-[0.95] sm:text-8xl xl:text-[10rem]">
-                Parlons de <em className="text-[#9ec1ff]">vos espaces.</em>
+                Parlons de <em className="text-[#1d6fe0]">vos espaces.</em>
               </h2>
-              <p className="mt-10 max-w-2xl text-lg leading-relaxed text-slate-300 sm:text-xl">Quelques informations suffisent. {siteConfig.promise}</p>
+              <p className="mt-10 max-w-2xl text-lg leading-relaxed text-[#475467] sm:text-xl">Quelques informations suffisent. {siteConfig.promise}</p>
             </Reveal>
           </div>
         </div>

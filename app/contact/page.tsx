@@ -67,7 +67,7 @@ export default function ContactPage() {
   return (
     <>
       {/* 1. Choix immédiat */}
-      <section className="bg-[#f4f1ea]">
+      <section className="bg-[#f0f4fc]">
         <div className="mx-auto max-w-[1680px] px-6 pb-24 pt-16 md:px-12 md:pb-36 md:pt-28">
           <Reveal>
             <p className={`${LABEL} mb-8 text-slate-600`}>
@@ -89,7 +89,7 @@ export default function ContactPage() {
                   {...(action.external ? { target: "_blank", rel: "noreferrer" } : {})}
                   className={`group flex h-full min-h-56 flex-col justify-between p-8 transition-colors duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1d6fe0] ${
                     action.primary
-                      ? "bg-[#0a1020] text-white hover:bg-[#16224a]"
+                      ? "bg-[#1e3a6e] text-white hover:bg-[#17305c]"
                       : "bg-white text-ink hover:bg-[#fbfaf7]"
                   }`}
                 >
@@ -129,7 +129,7 @@ export default function ContactPage() {
                 : "Choisissez le type de rendez-vous : écrivez-nous sur WhatsApp ou par e-mail, et nous fixons le créneau ensemble."}
             </p>
             {siteConfig.onlineBookingUrl ? (
-              <a href={siteConfig.onlineBookingUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-12 items-center rounded-full bg-[#0a1020] px-6 text-base font-semibold text-white transition-colors hover:bg-[#16224a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0a1020] mt-8">
+              <a href={siteConfig.onlineBookingUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-12 items-center rounded-full bg-[#1e3a6e] px-6 text-base font-semibold text-white transition-colors hover:bg-[#17305c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1e3a6e] mt-8">
                 Réserver un créneau en ligne
               </a>
             ) : null}
@@ -152,7 +152,7 @@ export default function ContactPage() {
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex min-h-12 items-center rounded-full bg-[#0a1020] px-6 text-base font-semibold text-white transition-colors hover:bg-[#16224a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0a1020]"
+                      className="inline-flex min-h-12 items-center rounded-full bg-[#1e3a6e] px-6 text-base font-semibold text-white transition-colors hover:bg-[#17305c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1e3a6e]"
                       aria-label={`Demander un rendez-vous « ${type.title} » sur WhatsApp`}
                     >
                       Demander un créneau
@@ -166,7 +166,7 @@ export default function ContactPage() {
       </section>
 
       {/* 3. Devis */}
-      <section id="devis" className="scroll-mt-16 bg-[#f4f1ea]">
+      <section id="devis" className="scroll-mt-16 bg-[#f0f4fc]">
         <div className="mx-auto max-w-[1000px] px-5 py-24 md:px-8 md:py-36">
           <Reveal>
             <h2 className={H2}>
