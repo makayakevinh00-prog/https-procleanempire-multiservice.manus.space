@@ -120,7 +120,7 @@ export default async function MissionsPage({ searchParams }: { searchParams: { q
         <div className="ml-auto flex overflow-hidden rounded-lg border bg-card text-sm font-medium shadow-sm" aria-label="Affichage">
           {VIEWS.filter(([v]) => !["agent", "site", "statut"].includes(v)).map(([v, l]) => (
             <Link key={v} href={params({ vue: v, date: v === "jour" ? today : anchor })} aria-current={view === v ? "true" : undefined}
-              className={`px-3 py-2 ${view === v ? "bg-foreground text-background" : "hover:bg-muted"}`}>{l}</Link>
+              className={`px-3 py-2 ${view === v ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>{l}</Link>
           ))}
         </div>
       </div>

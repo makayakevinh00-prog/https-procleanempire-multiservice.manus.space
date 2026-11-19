@@ -28,7 +28,7 @@ export default async function ComptaProofs({ searchParams }: { searchParams: { p
       <h1 className="mb-1 text-2xl font-semibold tracking-tight">Justificatifs de dépenses</h1>
       <p className="mb-4 max-w-3xl text-[15px] text-muted-foreground">Période : <b className="font-medium capitalize text-foreground">{period.label}</b>. Les justificatifs sont ceux joints par le dirigeant aux paiements fournisseurs ; pour les achats non enregistrés ici, voir Qonto.</p>
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        {chips.map(([p, l]) => <Link key={p} href={`/compta/justificatifs?periode=${p}${onlyMissing ? "&manquants=1" : ""}`} className={`rounded-full border px-3 py-1 text-sm ${period.key === p ? "border-foreground bg-foreground text-background" : "bg-card hover:bg-muted"}`}>{l}</Link>)}
+        {chips.map(([p, l]) => <Link key={p} href={`/compta/justificatifs?periode=${p}${onlyMissing ? "&manquants=1" : ""}`} className={`rounded-full border px-3 py-1 text-sm ${period.key === p ? "border-foreground bg-primary text-primary-foreground" : "bg-card hover:bg-muted"}`}>{l}</Link>)}
         <Link href={`/compta/justificatifs?periode=${period.key}${onlyMissing ? "" : "&manquants=1"}`} className={`ml-auto rounded-full border px-3 py-1 text-sm ${onlyMissing ? "border-warning bg-warning/10" : "bg-card hover:bg-muted"}`}>{onlyMissing ? "Voir tout" : `Seulement les manquants (${missing})`}</Link>
         <a href={`/api/compta/export?type=fournisseurs&periode=${period.key}`} className="rounded-full border bg-card px-3 py-1 text-sm hover:bg-muted">Export CSV</a>
       </div>

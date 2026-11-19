@@ -177,7 +177,7 @@ export function TerritoryExplorer({ zone, points, clients }: { zone: string; poi
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        {Object.entries(IDF).map(([code, nom]) => <button key={code} type="button" onClick={() => router.push(`/veille/territoire?zone=${code}`)} className={`${btn} ${code === zone ? "border-foreground bg-foreground text-background" : "bg-white hover:bg-secondary"}`}>{nom} ({code})</button>)}
+        {Object.entries(IDF).map(([code, nom]) => <button key={code} type="button" onClick={() => router.push(`/veille/territoire?zone=${code}`)} className={`${btn} ${code === zone ? "border-foreground bg-primary text-primary-foreground" : "bg-white hover:bg-secondary"}`}>{nom} ({code})</button>)}
       </div>
       <div className="grid gap-3 lg:grid-cols-[1fr_380px]">
         <div>
@@ -187,7 +187,7 @@ export function TerritoryExplorer({ zone, points, clients }: { zone: string; poi
         <aside className="space-y-3">
           <div className="rounded-xl border bg-white p-3 text-sm">
             <div className="mb-2 flex items-center justify-between"><b>Mes clients et leur secteur</b><label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={showClients} onChange={(e) => setShowClients(e.target.checked)} /> afficher</label></div>
-            <div className="mb-2 flex flex-wrap items-center gap-1.5"><span className="text-xs text-muted-foreground">Rayon :</span>{RADII.map((r) => <button key={r} type="button" onClick={() => setRadius(r)} className={`${btn} ${radius === r ? "border-foreground bg-foreground text-background" : ""}`}>{r} km</button>)}</div>
+            <div className="mb-2 flex flex-wrap items-center gap-1.5"><span className="text-xs text-muted-foreground">Rayon :</span>{RADII.map((r) => <button key={r} type="button" onClick={() => setRadius(r)} className={`${btn} ${radius === r ? "border-foreground bg-primary text-primary-foreground" : ""}`}>{r} km</button>)}</div>
             {around && <button type="button" onClick={() => setAround(null)} className="mb-2 rounded-full border border-foreground bg-foreground px-3 py-1 text-xs text-background">Autour de {aroundClient?.name} ✕</button>}
             {located.length ? <ul className="max-h-48 divide-y overflow-auto">{perClient.map(({ c, n }) => <li key={c.id}><button type="button" onClick={() => setAround(c.id === around ? null : c.id)} className={`flex w-full items-center justify-between py-1.5 text-left hover:bg-secondary ${c.id === around ? "font-semibold" : ""}`}><span>{c.name}</span><span className="text-xs text-muted-foreground">{n} à prospecter autour</span></button></li>)}</ul> : <p className="text-xs text-muted-foreground">Position de vos clients en cours de recherche…</p>}
             {clients.length > located.length && <p className="mt-1 text-xs text-muted-foreground">{clients.length - located.length} client(s) sans adresse exploitable (hors carte).</p>}
@@ -204,8 +204,8 @@ export function TerritoryExplorer({ zone, points, clients }: { zone: string; poi
           </div>
           <div className="rounded-xl border bg-white p-3 text-sm">
             <div className="mb-2 flex flex-wrap items-center gap-1.5">
-              <button type="button" onClick={() => setSector("tous")} className={`${btn} ${sector === "tous" ? "border-foreground bg-foreground text-background" : ""}`}>Tous</button>
-              {SECTOR_KEYS.filter((k) => all.some((p) => p.sector === k)).map((k) => <button key={k} type="button" onClick={() => setSector(k)} className={`${btn} ${sector === k ? "border-foreground bg-foreground text-background" : ""}`}>{SECTORS[k].label}</button>)}
+              <button type="button" onClick={() => setSector("tous")} className={`${btn} ${sector === "tous" ? "border-foreground bg-primary text-primary-foreground" : ""}`}>Tous</button>
+              {SECTOR_KEYS.filter((k) => all.some((p) => p.sector === k)).map((k) => <button key={k} type="button" onClick={() => setSector(k)} className={`${btn} ${sector === k ? "border-foreground bg-primary text-primary-foreground" : ""}`}>{SECTORS[k].label}</button>)}
             </div>
             <b>Où aller ? {city ? <button type="button" onClick={() => setCity(null)} className="ml-1 rounded-full border px-2 text-xs">{city} ✕</button> : "Communes avec le plus à prospecter"}</b>
             {!city && (cities.length ? <ul className="mt-2 max-h-56 divide-y overflow-auto">{cities.slice(0, 40).map((c) => <li key={c.city}><button type="button" onClick={() => setCity(c.city)} className="flex w-full items-center justify-between py-1.5 text-left hover:bg-secondary"><span>{c.city}</span><span className="text-xs text-muted-foreground">{c.todo} à voir · {c.total} au total</span></button></li>)}</ul> : <p className="mt-2 text-xs text-muted-foreground">Aucune entreprise chargée pour ce département : utilisez « Charger sur la carte » ci-dessus.</p>)}

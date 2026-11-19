@@ -18,7 +18,7 @@ export function ActivityTabs({ current, counts, href, pole }: { current: string;
           const on = current === t.key;
           return (
             <Link key={t.key || "all"} href={href(t.key)} aria-current={on ? "page" : undefined}
-              className={cn("flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-1.5 text-[14px] transition-colors", on ? "border-foreground bg-foreground text-background" : "border-border bg-card text-secondary-foreground hover:bg-secondary/70")}>
+              className={cn("flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-1.5 text-[14px] transition-colors", on ? "border-foreground bg-primary text-primary-foreground" : "border-border bg-card text-secondary-foreground hover:bg-secondary/70")}>
               {t.label}<span className={cn("num text-xs", on ? "text-background/70" : "text-muted-foreground")}>{t.n}</span>
             </Link>
           );
@@ -35,7 +35,7 @@ export function ActivityTabs({ current, counts, href, pole }: { current: string;
         const on = current === t.key;
         return (
           <Link key={t.key || "all"} href={href(t.key)} aria-current={on ? "page" : undefined}
-            className={cn("flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-1.5 text-[14px] transition-colors", on ? "border-foreground bg-foreground text-background" : "border-border bg-card text-secondary-foreground hover:bg-secondary/70")}>
+            className={cn("flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-1.5 text-[14px] transition-colors", on ? "border-foreground bg-primary text-primary-foreground" : "border-border bg-card text-secondary-foreground hover:bg-secondary/70")}>
             {t.label}<span className={cn("num text-xs", on ? "text-background/70" : "text-muted-foreground")}>{t.n}</span>
           </Link>
         );

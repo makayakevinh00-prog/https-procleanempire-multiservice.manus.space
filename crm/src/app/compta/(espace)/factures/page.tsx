@@ -29,7 +29,7 @@ export default async function ComptaInvoices({ searchParams }: { searchParams: {
       <h1 className="mb-1 text-2xl font-semibold tracking-tight">Factures émises</h1>
       <p className="mb-4 text-[15px] text-muted-foreground">Période : <b className="font-medium text-foreground capitalize">{period.label}</b>. Chaque facture se télécharge en PDF, ou toutes ensemble.</p>
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        {chips.map(([p, l]) => <Link key={p} href={`/compta/factures?periode=${p}`} className={`rounded-full border px-3 py-1 text-sm ${period.key === p ? "border-foreground bg-foreground text-background" : "bg-card hover:bg-muted"}`}>{l}</Link>)}
+        {chips.map(([p, l]) => <Link key={p} href={`/compta/factures?periode=${p}`} className={`rounded-full border px-3 py-1 text-sm ${period.key === p ? "border-foreground bg-primary text-primary-foreground" : "bg-card hover:bg-muted"}`}>{l}</Link>)}
         <form action="/compta/factures" className="ml-auto flex gap-2">
           <input type="hidden" name="periode" value={period.key} />
           <input name="q" defaultValue={searchParams.q ?? ""} placeholder="N° ou client…" aria-label="Rechercher" className="h-9 w-44 rounded-lg border bg-card px-3 text-sm" />

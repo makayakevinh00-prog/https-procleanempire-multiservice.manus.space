@@ -10,7 +10,7 @@ export const metadata = { title: "Aides publiques" };
 export default function AidesPage({ searchParams }: { searchParams: { besoin?: string } }) {
   const need = isNeed(searchParams.besoin) ? searchParams.besoin : null;
   const list = byNeed(need), top = AIDES.filter((a) => a.priority);
-  const pill = (on: boolean) => `rounded-full border px-3 py-1 text-sm ${on ? "border-foreground bg-foreground text-background" : "bg-white hover:bg-secondary"}`;
+  const pill = (on: boolean) => `rounded-full border px-3 py-1 text-sm ${on ? "border-foreground bg-primary text-primary-foreground" : "bg-white hover:bg-secondary"}`;
   return (
     <>
       <PageHeader title="Aides publiques" subtitle="Les financements publics qui s'adressent à une entreprise comme la vôtre : petite entreprise de propreté et de conciergerie, dans le Val-d'Oise." />

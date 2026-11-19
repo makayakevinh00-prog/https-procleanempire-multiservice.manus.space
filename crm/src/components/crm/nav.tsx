@@ -84,7 +84,7 @@ export function Sidebar({ signOut, counts, perms = null }: { signOut: () => Prom
   return (
     <>
       {/* Ordinateur : menu fin, repliable */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[var(--nav-w)] flex-col overflow-y-auto border-r border-border bg-[#fbfaf8] px-4 pb-5 pt-12 transition-[width] duration-200 md:flex">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[var(--nav-w)] flex-col overflow-y-auto border-r border-border bg-white px-4 pb-5 pt-12 transition-[width] duration-200 md:flex">
         <div className={cn("mb-6", slim ? "flex justify-center" : "px-1")}><Brand slim={slim} /></div>
         <Links counts={counts} slim={slim} perms={perms} />
         <div className="mt-auto flex flex-col gap-0.5 border-t border-border pt-3">
@@ -97,7 +97,7 @@ export function Sidebar({ signOut, counts, perms = null }: { signOut: () => Prom
       </aside>
 
       {/* Téléphone : barre du haut */}
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-[#fbfaf8] px-4 py-2.5 md:hidden">
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-white px-4 py-2.5 md:hidden">
         <Brand compact />
         <div className="flex items-center gap-1">
           <Link href="/recherche" aria-label="Rechercher" className="rounded-lg p-2.5 text-foreground active:bg-secondary"><Search className="h-5 w-5" strokeWidth={1.6} /></Link>
@@ -127,7 +127,7 @@ export function Sidebar({ signOut, counts, perms = null }: { signOut: () => Prom
       {open && (
         <div className="fixed inset-0 z-40 md:hidden" role="dialog" aria-modal="true" aria-label="Menu">
           <button className="absolute inset-0 bg-foreground/40" aria-label="Fermer" onClick={() => setOpen(false)} />
-          <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-3xl bg-[#fbfaf8] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+          <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
             <div className="mb-3 flex items-center justify-between"><Brand compact /><button onClick={() => setOpen(false)} className="rounded-lg p-2 text-muted-foreground" aria-label="Fermer"><X className="h-6 w-6" /></button></div>
             <Links counts={counts} onNavigate={() => setOpen(false)} perms={perms} />
             {!perms && <div className="mt-3 flex flex-col gap-0.5 border-t border-border pt-3">{PROFILE_LINKS.map((l) => <Link key={l.href} href={l.href} onClick={() => setOpen(false)} className="rounded-lg px-3 py-2 text-[14px] text-muted-foreground hover:bg-secondary/70 hover:text-foreground">{l.label}</Link>)}</div>}

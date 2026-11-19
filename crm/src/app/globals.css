@@ -4,22 +4,22 @@
 
 @layer base {
   :root {
-    --background: 45 14% 96%;
-    --foreground: 220 8% 7%;
+    --background: 220 60% 98%;
+    --foreground: 220 43% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 220 8% 7%;
-    --primary: 215 50% 33%;
+    --card-foreground: 220 43% 11%;
+    --primary: 219 57% 27%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 45 8% 92%;
-    --secondary-foreground: 220 8% 20%;
-    --muted: 45 8% 93%;
-    --muted-foreground: 220 7% 44%;
+    --secondary: 220 67% 96%;
+    --secondary-foreground: 220 30% 22%;
+    --muted: 220 55% 96%;
+    --muted-foreground: 220 13% 46%;
     --destructive: 5 61% 44%;
     --destructive-foreground: 0 0% 100%;
     --success: 150 44% 33%;
     --warning: 36 75% 41%;
-    --border: 45 12% 88%;
-    --ring: 215 50% 33%;
+    --border: 220 37% 92%;
+    --ring: 219 57% 27%;
     --nav-w: 248px;
   }
   html[data-nav="slim"] { --nav-w: 76px; }
@@ -66,9 +66,9 @@ nav[aria-label="Sections"] a[aria-current="page"]::after { animation: tab-in 0.3
 
 /* ───────── Habillage vivant, commun à toutes les pages ───────── */
 
-/* Titres de page : la même serif éditoriale que le site. */
-.pce-title { font-family: "Fraunces Variable", "Iowan Old Style", Georgia, serif; font-optical-sizing: auto; font-weight: 400; letter-spacing: -0.022em; }
-.pce-title em { font-style: italic; font-weight: 360; }
+/* Titres de page : la même écriture que le site — sans empattement, très grasse, serrée ; le mot fort en bleu. */
+.pce-title { font-weight: 800; letter-spacing: -0.04em; }
+.pce-title em { font-style: normal; color: #1d6fe0; }
 
 /* Lumière d'ambiance : un halo discret de la couleur choisie, en haut de chaque page. */
 .pce-ambient { position: fixed; inset: 0 0 auto 0; height: 460px; z-index: -1; pointer-events: none;
@@ -77,7 +77,7 @@ nav[aria-label="Sections"] a[aria-current="page"]::after { animation: tab-in 0.3
 @keyframes pce-ambient-in { from { opacity: 0; transform: translateY(-24px); } to { opacity: 1; transform: none; } }
 
 /* La pièce qui s'allume : une seule fois par ouverture du CRM. */
-html.lights-on body:has(.pce-app)::before { content: ""; position: fixed; inset: 0; z-index: 100; pointer-events: none; background: #0a1020; animation: pce-lights 1.5s cubic-bezier(0.65, 0, 0.35, 1) both; }
+html.lights-on body:has(.pce-app)::before { content: ""; position: fixed; inset: 0; z-index: 100; pointer-events: none; background: #1e3a6e; animation: pce-lights 1.5s cubic-bezier(0.65, 0, 0.35, 1) both; }
 html.lights-on .pce-app { animation: pce-wake 1.5s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
 @keyframes pce-lights { 0% { opacity: 1; } 25% { opacity: 0.92; } 100% { opacity: 0; } }
 @keyframes pce-wake { from { filter: brightness(0.6) saturate(0.6); } to { filter: none; } }
