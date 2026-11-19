@@ -44,12 +44,15 @@ export default function MenageAirbnbPage() {
           ]
         },
         {
-          heading: "Nous intervenons à Paris.",
+          heading: "Les plus beaux quartiers de Paris.",
           items: [
-            { title: "Paris, tous arrondissements", text: "Studios, deux-pièces et appartements familiaux en location courte durée, du centre aux arrondissements extérieurs." },
-            { title: "Ouest parisien", text: "16e et 17e : appartements proches de l'Arc de Triomphe et des Champs-Élysées, très demandés par les voyageurs." },
-            { title: "Nord et est parisien", text: "18e et 20e : logements de quartier, rotations rapprochées entre deux réservations." },
-            { title: "Saint-Ouen-sur-Seine", text: "Aux portes de Paris : ménage de fin de séjour dans les mêmes conditions." }
+            { title: "Trocadéro, Passy et Auteuil (16e)", text: "Appartements familiaux et pied-à-terre face à la tour Eiffel, à deux pas de l'Arc de Triomphe." },
+            { title: "Champs-Élysées et Triangle d'or (8e)", text: "Logements haut de gamme entre l'avenue Montaigne, George-V et le parc Monceau." },
+            { title: "Tour Eiffel et Invalides (7e)", text: "Appartements du Champ-de-Mars, du Gros-Caillou et du faubourg Saint-Germain." },
+            { title: "Saint-Germain-des-Prés et Luxembourg (6e)", text: "Studios et appartements de caractère au cœur de la rive gauche." },
+            { title: "Le Marais et les îles (3e, 4e)", text: "Logements de charme entre la place des Vosges, l'île Saint-Louis et l'Hôtel de Ville." },
+            { title: "Louvre, Palais-Royal et Opéra (1er, 2e, 9e)", text: "Appartements du centre historique, à quelques pas des grands magasins et des musées." },
+            { title: "Monceau, Ternes et Batignolles (17e)", text: "Immeubles haussmanniens de la plaine Monceau et des abords de l'Étoile." }
           ]
         },
         {
@@ -70,7 +73,7 @@ export default function MenageAirbnbPage() {
         { question: "Intervenez-vous le week-end et les jours fériés ?", answer: "Oui : le ménage suit vos réservations, quel que soit le jour." },
         { question: "Comment se passe la remise des clés ?", answer: "Boîte à clés, digicode ou remise en main propre : nous nous adaptons à votre organisation." },
         { question: "Fournissez-vous les produits et le matériel ?", answer: "Oui, nous venons avec nos produits et notre matériel professionnels." },
-        { question: "Où intervenez-vous ?", answer: "À Paris, dans tous les arrondissements, et à Saint-Ouen-sur-Seine. Demandez-nous pour votre adresse exacte." },
+        { question: "Où intervenez-vous ?", answer: "À Paris, dans les quartiers les plus recherchés : 16e, 8e, 7e, 6e, le Marais, le centre historique et le 17e. Demandez-nous pour votre adresse exacte." },
         { question: "Comment est facturé le ménage ?", answer: "Au passage, avec une facture mensuelle pour les conciergeries et propriétaires réguliers." }
       ]}
       aside={
@@ -80,8 +83,7 @@ export default function MenageAirbnbPage() {
             <ul className="mt-6 flex flex-wrap gap-x-10 gap-y-3">
               {[
                 { href: "/menage-airbnb-paris", label: "Ménage fin de séjour à Paris" },
-                { href: "/entreprise-de-nettoyage-paris-16", label: "Paris 16e" },
-                { href: "/nettoyage-saint-ouen", label: "Saint-Ouen-sur-Seine" }
+                { href: "/entreprise-de-nettoyage-paris-16", label: "Paris 16e" }
               ].map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="inline-flex min-h-11 items-center border-b border-ink/40 pb-0.5 text-lg font-semibold text-ink transition-colors hover:border-ink">
@@ -99,7 +101,7 @@ export default function MenageAirbnbPage() {
         serviceType: "Ménage Airbnb / location courte durée",
         name: "Ménage Airbnb",
         provider: { "@type": "LocalBusiness", name: siteConfig.name, telephone: siteConfig.phone, url: siteConfig.url },
-        areaServed: ["Paris", "Saint-Ouen-sur-Seine"],
+        areaServed: ["Paris"],
         url: `${siteConfig.url}/menage-airbnb`
       }}
     />
