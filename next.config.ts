@@ -4,11 +4,19 @@ import { STANDALONE_PAGES } from "./lib/standalone-pages";
 const nextConfig: NextConfig = {
   // Une seule page par prestation (audit P0-6) : /services/<slug> renvoie vers la page principale /<slug>.
   async redirects() {
-    return [...STANDALONE_PAGES].map((slug) => ({
-      source: `/services/${slug}`,
-      destination: `/${slug}`,
-      permanent: true
-    }));
+    return [
+      ...[...STANDALONE_PAGES].map((slug) => ({
+        source: `/services/${slug}`,
+        destination: `/${slug}`,
+        permanent: true
+      })),
+      // L'article sur le ménage Airbnb parle désormais de Paris : l'ancienne adresse y renvoie.
+      {
+        source: "/blog/menage-airbnb-val-doise-entre-deux-voyageurs",
+        destination: "/blog/menage-airbnb-paris-entre-deux-voyageurs",
+        permanent: true
+      }
+    ];
   },
   images: {
     unoptimized: true,

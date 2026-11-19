@@ -6,7 +6,7 @@ import { QuoteForm } from "@/components/forms/quote-form";
 export const metadata = buildMetadata({
   title: "Devis de nettoyage gratuit à Pontoise, Val-d'Oise et Paris",
   description:
-    "Devis gratuit sous 24 h pour le nettoyage de bureaux, commerces, ménage Airbnb, remise en état ou detailing à Pontoise, dans le Val-d'Oise et à Paris.",
+    "Devis gratuit sous 24 h pour le nettoyage de bureaux, commerces, remise en état ou detailing à Pontoise, dans le Val-d'Oise et à Paris, et pour le ménage Airbnb à Paris.",
   path: "/devis"
 });
 

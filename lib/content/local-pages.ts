@@ -28,26 +28,25 @@ export const localPages: LocalPage[] = [
     slug: "nettoyage-pontoise",
     city: "Pontoise",
     postalCode: "95300",
-    metaTitle: "Ménage Airbnb et nettoyage de bureaux à Pontoise (95)",
+    metaTitle: "Nettoyage de bureaux et de commerces à Pontoise (95)",
     metaDescription:
-      "Entreprise de nettoyage basée à Pontoise : ménage Airbnb entre deux voyageurs, nettoyage de bureaux et commerces, conciergerie d'entreprise. Intervention rapide dans tout Pontoise. Devis sous 24 h.",
+      "Entreprise de nettoyage basée à Pontoise : nettoyage de bureaux et commerces, remise en état, conciergerie d'entreprise. Intervention rapide dans tout Pontoise. Devis sous 24 h.",
     props: {
       eyebrow: "Pontoise · Val-d'Oise (95)",
       title: "Votre équipe de nettoyage, à Pontoise.",
-      lead: "ProClean Empire est installée à Pontoise. Logements en location courte durée, bureaux, boutiques du centre-ville ou parties communes : nous sommes à quelques minutes de chez vous.",
-      image: { src: "/media/photos/airbnb-entree-logement.webp", alt: "Entrée d'un logement préparé pour des voyageurs à Pontoise" },
-      serviceId: "airbnb",
+      lead: "ProClean Empire est installée à Pontoise. Bureaux, cabinets, boutiques du centre-ville ou parties communes : nous sommes à quelques minutes de chez vous.",
+      image: { src: "/media/photos/landing/boutique-accueil.webp", alt: "Accueil d'une boutique entretenue par ProClean Empire" },
+      serviceId: "bureaux",
       ctaLabel: "Demander un devis à Pontoise",
       intro: [
         { title: "Notre ville", text: "Notre siège est à Pontoise : c'est ici que nous sommes le plus réactifs." },
-        { title: "Airbnb et courte durée", text: "Ménage entre deux voyageurs, le jour que vous fixez, entre 11h et 14h." },
-        { title: "Commerces et bureaux", text: "Entretien régulier ou ponctuel, avant l'ouverture ou après la fermeture." }
+        { title: "Commerces et bureaux", text: "Entretien régulier ou ponctuel, avant l'ouverture ou après la fermeture." },
+        { title: "Remise en état", text: "Après travaux, avant une mise en location ou à la fin d'un bail." }
       ],
       blocks: [
         {
           heading: "Ce que nous faisons à Pontoise.",
           items: [
-            { title: "Ménage Airbnb", text: "Studios et appartements du centre historique comme des quartiers résidentiels." },
             { title: "Bureaux et cabinets", text: "Professions libérales, agences et petites entreprises : un entretien à votre rythme." },
             { title: "Boutiques", text: "Surface de vente, comptoir et vitrine intérieure prêts à l'ouverture." },
             { title: "Halls d'immeuble", text: "Parties communes propres pour les résidents et les visiteurs." },
@@ -72,28 +71,27 @@ export const localPages: LocalPage[] = [
     slug: "nettoyage-cergy",
     city: "Cergy",
     postalCode: "95000",
-    metaTitle: "Nettoyage de bureaux et ménage Airbnb à Cergy (95)",
+    metaTitle: "Nettoyage de bureaux et de commerces à Cergy (95)",
     metaDescription:
-      "Nettoyage de bureaux, commerces et ménage Airbnb à Cergy et dans l'agglomération de Cergy-Pontoise : passages réguliers ou ponctuels, produits professionnels, devis sous 24 h.",
+      "Nettoyage de bureaux et de commerces à Cergy et dans l'agglomération de Cergy-Pontoise : passages réguliers ou ponctuels, produits professionnels, devis sous 24 h.",
     props: {
       eyebrow: "Cergy · Agglomération de Cergy-Pontoise",
       title: "Des locaux nets à Cergy, à vos horaires.",
-      lead: "Entreprises, commerces et propriétaires de Cergy : nous entretenons vos espaces de travail et préparons vos logements en location courte durée, depuis notre base voisine de Pontoise.",
+      lead: "Entreprises et commerces de Cergy : nous entretenons vos espaces de travail et vos points de vente, depuis notre base voisine de Pontoise.",
       image: { src: "/media/photos/hero-showcase.webp", alt: "Bureaux modernes entretenus par ProClean Empire à Cergy" },
       serviceId: "bureaux",
       ctaLabel: "Demander un devis à Cergy",
       intro: [
         { title: "Espaces de travail", text: "Bureaux, plateaux et salles de réunion entretenus sans perturber vos équipes." },
-        { title: "Logements meublés", text: "Ménage entre deux locataires ou voyageurs, aux dates que vous choisissez." },
+        { title: "Commerces", text: "Boutiques, instituts et agences prêts à l'ouverture." },
         { title: "À deux pas", text: "Notre équipe est basée à Pontoise, dans la même agglomération." }
       ],
       blocks: [
         {
-          heading: "Pour les entreprises et les propriétaires de Cergy.",
+          heading: "Pour les entreprises et les commerces de Cergy.",
           items: [
             { title: "Bureaux", text: "Entretien quotidien ou hebdomadaire, sanitaires et espace pause compris." },
             { title: "Commerces", text: "Boutiques, instituts et agences : un lieu accueillant dès l'ouverture." },
-            { title: "Locations courte durée", text: "Studios et appartements préparés entre deux séjours, linge en option." },
             { title: "Fin de bail", text: "Remise en état complète avant l'état des lieux ou une nouvelle location." },
             { title: "Conciergerie d'entreprise", text: "Plantes, décoration des fêtes et réassort des consommables." },
             { title: "Detailing", text: "Nettoyage intérieur de véhicules de société sur demande." }
@@ -101,7 +99,7 @@ export const localPages: LocalPage[] = [
         }
       ],
       steps: [
-        { title: "Vous décrivez votre besoin", text: "Locaux ou logement, surface et fréquence." },
+        { title: "Vous décrivez votre besoin", text: "Vos locaux, leur surface et la fréquence souhaitée." },
         { title: "Nous vous répondons", text: "Un devis sous 24 h, sans engagement." },
         { title: "Nous démarrons", text: "Aux jours convenus, avec un contrôle régulier." }
       ],

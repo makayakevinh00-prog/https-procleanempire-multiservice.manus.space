@@ -7,7 +7,7 @@ import { Reveal } from "@/components/home/reveal";
 export const metadata = buildMetadata({
   title: "Contact, rendez-vous et devis — Pontoise et Île-de-France",
   description:
-    "Prenez rendez-vous, demandez un devis ou écrivez à ProClean Empire : ménage Airbnb, nettoyage de bureaux et commerces, conciergerie d'entreprise à Pontoise et en Île-de-France.",
+    "Prenez rendez-vous, demandez un devis ou écrivez à ProClean Empire : nettoyage de bureaux et commerces, conciergerie d'entreprise à Pontoise et en Île-de-France, ménage Airbnb à Paris.",
   path: "/contact"
 });
 

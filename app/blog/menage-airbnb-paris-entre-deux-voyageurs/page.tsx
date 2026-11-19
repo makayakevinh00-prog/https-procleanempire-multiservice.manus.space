@@ -2,12 +2,12 @@ import Link from "next/link";
 import { buildMetadata, siteConfig } from "@/lib/site";
 import { PageHero } from "@/components/sections/page-hero";
 
-const path = "/blog/menage-airbnb-val-doise-entre-deux-voyageurs";
+const path = "/blog/menage-airbnb-paris-entre-deux-voyageurs";
 
 export const metadata = buildMetadata({
-  title: "Ménage Airbnb dans le Val-d'Oise : préparer son logement entre deux voyageurs",
+  title: "Ménage Airbnb à Paris : préparer son logement entre deux voyageurs",
   description:
-    "Ménage de fin de séjour Airbnb à Pontoise, Cergy et dans le Val-d'Oise (95) : les étapes d'un check-out réussi, le linge, les consommables et comment organiser les rotations entre deux voyageurs.",
+    "Ménage de fin de séjour Airbnb à Paris : les étapes d'un check-out réussi, le linge, les consommables et comment organiser les rotations entre deux voyageurs.",
   path
 });
 
@@ -16,7 +16,7 @@ const sections = [
     heading: "Pourquoi le ménage fait la note de votre annonce",
     paragraphs: [
       "Sur Airbnb comme sur les autres plateformes de location courte durée, la propreté fait partie des critères notés par chaque voyageur. Un cheveu dans la douche ou une poussière sur une étagère suffisent à faire perdre une étoile, et quelques notes moyennes font reculer l'annonce dans les résultats de recherche.",
-      "À l'inverse, un logement impeccable à chaque arrivée rassure, génère des commentaires positifs et permet de garder un bon taux de réservation tout au long de l'année, y compris dans le Val-d'Oise où la concurrence entre logements se joue souvent sur les détails."
+      "À l'inverse, un logement impeccable à chaque arrivée rassure, génère des commentaires positifs et permet de garder un bon taux de réservation tout au long de l'année, surtout à Paris où la concurrence entre logements se joue souvent sur les détails."
     ]
   },
   {
@@ -42,9 +42,9 @@ const sections = [
     ]
   },
   {
-    heading: "Un prestataire local à Pontoise, Cergy et dans tout le Val-d'Oise",
+    heading: "Un prestataire pour vos logements à Paris",
     paragraphs: [
-      "ProClean Empire réalise le ménage de fin de séjour pour les hôtes et les conciergeries dans tout le Val-d'Oise, notamment à Pontoise, Cergy, Osny, Saint-Ouen-l'Aumône et Goussainville, ainsi qu'à Saint-Ouen et dans le nord de Paris.",
+      "ProClean Empire réalise le ménage de fin de séjour pour les hôtes et les conciergeries à Paris, notamment dans les 16e, 8e, 7e, 6e et 17e arrondissements, le Marais et le centre historique.",
       "Nous intervenons entre deux séjours, pour un logement ou pour plusieurs, avec une gestion du linge sur demande. Le plus simple pour démarrer : nous décrire vos logements et votre rythme de réservations dans une demande de devis."
     ]
   }
@@ -54,7 +54,7 @@ export default function ArticlePage() {
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
-    headline: "Ménage Airbnb dans le Val-d'Oise : préparer son logement entre deux voyageurs",
+    headline: "Ménage Airbnb à Paris : préparer son logement entre deux voyageurs",
     datePublished: "2026-10-19",
     inLanguage: "fr-FR",
     author: { "@type": "Organization", name: siteConfig.name },
@@ -65,12 +65,12 @@ export default function ArticlePage() {
   return (
     <>
       <PageHero
-        title="Ménage Airbnb dans le Val-d'Oise : préparer son logement entre deux voyageurs"
-        description="Check-out, linge, consommables, rotations rapides : les bonnes pratiques pour un logement impeccable à chaque arrivée à Pontoise, Cergy et dans le Val-d'Oise."
+        title="Ménage Airbnb à Paris : préparer son logement entre deux voyageurs"
+        description="Check-out, linge, consommables, rotations rapides : les bonnes pratiques pour un logement impeccable à chaque arrivée à Paris."
         breadcrumbs={[
           { label: "Accueil", href: "/" },
           { label: "Blog", href: "/blog" },
-          { label: "Ménage Airbnb Val-d'Oise" }
+          { label: "Ménage Airbnb à Paris" }
         ]}
       />
       <article className="section pt-0">

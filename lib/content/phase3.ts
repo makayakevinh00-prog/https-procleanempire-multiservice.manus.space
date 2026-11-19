@@ -169,13 +169,13 @@ export const blogPosts: BlogPost[] = [
     href: "/blog/nettoyage-bureaux-cergy-pontoise-frequence"
   },
   {
-    id: "menage-airbnb-val-doise-entre-deux-voyageurs",
-    title: "Ménage Airbnb dans le Val-d'Oise : préparer son logement entre deux voyageurs",
+    id: "menage-airbnb-paris-entre-deux-voyageurs",
+    title: "Ménage Airbnb à Paris : préparer son logement entre deux voyageurs",
     category: "Ménage Airbnb",
     excerpt:
       "Check-out, linge, consommables et rotations rapides : les étapes d'un ménage de fin de séjour réussi pour les hôtes et conciergeries de Pontoise, Cergy et du Val-d'Oise.",
     date: "19 octobre 2026",
-    href: "/blog/menage-airbnb-val-doise-entre-deux-voyageurs"
+    href: "/blog/menage-airbnb-paris-entre-deux-voyageurs"
   },
   {
     id: "decoration-noel-bureaux-commerces-val-doise",
