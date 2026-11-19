@@ -279,7 +279,14 @@ export async function POST(request: NextRequest) {
 
   // Transmission au CRM : on attend la réponse (sur Vercel, un envoi « oublié » en arrière-plan est coupé
   // dès que la réponse part). Un échec n'empêche pas le reste du traitement.
-  const crm = await forwardToCrm(lead, details);
+  // Le CRM est le seul endroit où la demande est enregistrée : en cas d'échec, on réessaie une fois
+  // (le CRM reconnaît la référence et ne crée pas de doublon).
+  let crm = await forwardToCrm(lead, details);
+  if (!crm.ok && process.env.CRM_INBOUND_URL && process.env.CRM_INBOUND_SECRET) {
+    await new Promise((resolve) => setTimeout(resolve, 1_200));
+    crm = await forwardToCrm(lead, details);
+    if (!crm.ok) console.error("[devis→crm] ÉCHEC après deux essais — demande à ressaisir depuis ce log", JSON.stringify(lead));
+  }
 
   // Transmission au workflow n8n « Demandes du site » (non bloquant).
   await forwardToN8n(lead);
