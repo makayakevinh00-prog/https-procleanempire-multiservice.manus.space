@@ -72,7 +72,7 @@ function Fact({ mark, title, text, delay = 0 }: { mark: string; title: string; t
 const gallery: GalleryPhoto[] = [
   { src: `${P}/appart-salle-a-manger.webp`, alt: "Salle à manger lumineuse : table en verre, chaises vertes et grandes fenêtres", label: "Logement Airbnb" },
   { src: `${P}/equipe-vitrine.webp`, alt: "Agent ProClean Empire en tenue nettoyant les étagères en verre d'une boutique", label: "En intervention · boutique" },
-  { src: `${P}/boutique-salon-attente.webp`, alt: "Coin d'attente d'une boutique : fauteuils en cuir, table basse et sol propres", label: "Accueil d'une boutique" },
+  { src: `${P}/boutique-accueil.webp`, alt: "Espace d'accueil d'une boutique d'optique : fauteuils en cuir, table basse, présentoirs lumineux et parquet clair", label: "Accueil d'une boutique" },
   { src: `${P}/appart-serviettes.webp`, alt: "Serviettes pliées et roulées posées sur un lit blanc", label: "Le détail qui se voit" },
   { src: "/media/photos/interieur-mercedes-apres.webp", alt: "Intérieur d'un véhicule nettoyé : sièges, tableau de bord et tapis", label: "Véhicules de société", position: "object-[50%_45%]" },
   { src: `${P}/noel-cadeaux.webp`, alt: "Paquets cadeaux disposés au pied d'un sapin de Noël dans une boutique", label: "Décor de Noël", position: "object-[50%_70%]" },
