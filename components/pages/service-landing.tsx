@@ -41,11 +41,11 @@ export function ServiceLanding({
       <section className="section pt-0">
         <div className="grid gap-8 lg:grid-cols-[1fr,0.9fr]">
           <article className="card p-6 md:p-8">
-            <p className="text-sm leading-relaxed text-slate-600">{service.shortDescription}</p>
-            <ul className="mt-5 space-y-3 text-sm leading-relaxed text-slate-700">
+            <p className="text-sm leading-relaxed text-[#475467]">{service.shortDescription}</p>
+            <ul className="mt-5 space-y-3 text-sm leading-relaxed text-[#475467]">
               {service.benefits.map((benefit) => (
                 <li key={benefit} className="flex gap-2">
-                  <span aria-hidden className="text-brand-700">
+                  <span aria-hidden className="text-[#1e3a6e]">
                     ✓
                   </span>
                   <span>{benefit}</span>

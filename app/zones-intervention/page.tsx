@@ -35,7 +35,7 @@ export default function ZonesInterventionPage() {
         }
       />
       <section className="section pt-0">
-        <h2 className="text-2xl font-bold text-slate-900">Nos pages par ville</h2>
+        <h2 className="text-2xl lp-serif text-[#101828]">Nos pages par ville</h2>
         <ul className="mt-4 flex flex-wrap gap-3">
           {localPages.map((page) => (
             <li key={page.slug}>

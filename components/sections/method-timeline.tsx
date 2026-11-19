@@ -8,10 +8,10 @@ export function MethodTimeline() {
           key={item.step}
           className="card grid gap-4 p-6 md:grid-cols-[80px,1fr] md:items-start"
         >
-          <p className="text-2xl font-bold text-brand-700">{item.step}</p>
+          <p className="text-2xl font-bold text-[#1e3a6e]">{item.step}</p>
           <div>
-            <h3 className="text-xl font-semibold text-slate-900">{item.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.description}</p>
+            <h3 className="text-xl font-semibold text-[#101828]">{item.title}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-[#475467]">{item.description}</p>
           </div>
         </article>
       ))}

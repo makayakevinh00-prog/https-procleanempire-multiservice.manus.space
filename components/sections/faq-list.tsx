@@ -18,13 +18,13 @@ export function FaqList() {
               aria-expanded={isOpen}
               onClick={() => setOpenIndex(isOpen ? null : index)}
             >
-              <span className="font-semibold text-slate-900">{item.question}</span>
-              <span aria-hidden className="text-lg text-brand-700">
+              <span className="font-semibold text-[#101828]">{item.question}</span>
+              <span aria-hidden className="text-lg text-[#1e3a6e]">
                 {isOpen ? "−" : "+"}
               </span>
             </button>
             {isOpen ? (
-              <div className="border-t border-slate-200 px-6 py-4 text-sm leading-relaxed text-slate-600">
+              <div className="border-t border-[#dbe6fc] px-6 py-4 text-sm leading-relaxed text-[#475467]">
                 {item.answer}
               </div>
             ) : null}

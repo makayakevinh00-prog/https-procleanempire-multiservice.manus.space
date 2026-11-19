@@ -44,7 +44,7 @@ export default function ServicesPage() {
       <SectorsSection />
       <section className="section pt-0">
         <div className="card p-6 md:p-8">
-          <p className="text-sm leading-relaxed text-slate-700">
+          <p className="text-sm leading-relaxed text-[#475467]">
             ProClean Empire accompagne les entreprises dans la gestion de leurs prestations de
             propreté grâce à une organisation rigoureuse, des équipes qualifiées et un suivi
             qualité permanent. Nous construisons des solutions adaptées aux contraintes de chaque

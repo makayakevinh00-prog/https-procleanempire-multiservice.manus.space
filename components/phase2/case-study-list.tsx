@@ -4,7 +4,7 @@ import { caseStudies, caseStudiesPageContent } from "@/lib/content/phase2";
 
 function CaseStudyVisual({ title, type }: { title: string; type: "Avant" | "Après" }) {
   return (
-    <div className="flex aspect-[16/10] items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-100 p-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">
+    <div className="flex aspect-[16/10] items-center justify-center rounded-xl border-2 border-dashed border-[#c9d8f5] bg-[#f0f4fc] p-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">
       {type} - PHOTO À INSÉRER
       <br />
       {title}
@@ -17,14 +17,12 @@ export function CaseStudyList() {
 
   return (
     <section className="section pt-0">
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft md:p-10">
+      <div className="rounded-[28px] border border-[#dbe6fc] bg-white p-6 md:p-10">
         <p className="text-sm font-semibold uppercase tracking-wide text-[#1d6fe0]">
           {caseStudiesPageContent.eyebrow}
         </p>
-        <h1 className="mt-3 text-4xl font-bold text-[#14213d] md:text-5xl">
-          {caseStudiesPageContent.title}
-        </h1>
-        <p className="mt-4 max-w-3xl text-lg leading-relaxed text-slate-700">
+        <h2 className="mt-3 text-4xl lp-serif text-[#101828] md:text-5xl">{caseStudiesPageContent.title}</h2>
+        <p className="mt-4 max-w-3xl text-lg leading-relaxed text-[#475467]">
           {caseStudiesPageContent.description}
         </p>
       </div>
@@ -32,14 +30,14 @@ export function CaseStudyList() {
       <div className="mt-8 space-y-8">
         {hasCaseStudies
           ? caseStudies.map((item) => (
-              <article key={item.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft md:p-8">
+              <article key={item.id} className="rounded-[28px] border border-[#dbe6fc] bg-white p-6 md:p-8">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h2 className="text-2xl font-bold text-[#14213d]">{item.title}</h2>
-                  <p className="rounded-full bg-[#14213d]/10 px-3 py-1 text-xs font-semibold text-[#14213d]">
+                  <h2 className="text-2xl lp-serif text-[#101828]">{item.title}</h2>
+                  <p className="rounded-full bg-[#dbe6fc] px-3 py-1 text-xs font-semibold text-[#101828]">
                     {item.sector} · {item.location}
                   </p>
                 </div>
-                <p className="mt-2 text-sm font-medium text-slate-600">
+                <p className="mt-2 text-sm font-medium text-[#475467]">
                   Temps d&apos;intervention: {item.interventionTime}
                 </p>
 
@@ -82,30 +80,30 @@ export function CaseStudyList() {
                 </div>
 
                 <div className="mt-6 grid gap-4 md:grid-cols-3">
-                  <article className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <article className="rounded-[24px] border border-[#dbe6fc] bg-[#f7f9fd] p-4">
                     <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
                       Problématique
                     </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-slate-700">{item.problem}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-[#475467]">{item.problem}</p>
                   </article>
-                  <article className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <article className="rounded-[24px] border border-[#dbe6fc] bg-[#f7f9fd] p-4">
                     <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
                       Solution
                     </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-slate-700">{item.solution}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-[#475467]">{item.solution}</p>
                   </article>
-                  <article className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <article className="rounded-[24px] border border-[#dbe6fc] bg-[#f7f9fd] p-4">
                     <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
                       Résultat
                     </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-slate-700">{item.result}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-[#475467]">{item.result}</p>
                   </article>
                 </div>
 
                 {item.testimonial ? (
-                  <blockquote className="mt-6 rounded-2xl border-l-4 border-[#1d6fe0] bg-slate-50 p-4">
-                    <p className="text-sm italic text-slate-700">{item.testimonial.quote}</p>
-                    <footer className="mt-2 text-xs font-semibold text-[#14213d]">
+                  <blockquote className="mt-6 rounded-[24px] border-l-4 border-[#1d6fe0] bg-[#f7f9fd] p-4">
+                    <p className="text-sm italic text-[#475467]">{item.testimonial.quote}</p>
+                    <footer className="mt-2 text-xs font-semibold text-[#101828]">
                       {item.testimonial.name} · {item.testimonial.role} · {item.testimonial.company}
                     </footer>
                   </blockquote>
@@ -116,7 +114,7 @@ export function CaseStudyList() {
                     href={item.videoUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-5 inline-flex text-sm font-semibold text-[#14213d] underline"
+                    className="mt-5 inline-flex text-sm font-semibold text-[#101828] underline"
                   >
                     Voir la vidéo de cette réalisation
                   </a>

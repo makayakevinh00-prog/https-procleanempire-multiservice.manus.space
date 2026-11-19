@@ -50,16 +50,16 @@ export function FaqAdvanced() {
 
   return (
     <section className="section pt-0">
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft md:p-10">
+      <div className="rounded-[28px] border border-[#dbe6fc] bg-white p-6 md:p-10">
         <div className="grid gap-4 lg:grid-cols-[1fr,auto] lg:items-end">
-          <label className="block text-sm font-semibold text-slate-700">
+          <label className="block text-sm font-semibold text-[#475467]">
             Recherche dans la FAQ
             <input
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Ex : délai d'intervention, contrat, prix..."
-              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 focus:border-[#14213d] focus:outline-none focus:ring-1 focus:ring-[#14213d]"
+              className="mt-2 w-full rounded-xl border border-[#c9d8f5] px-4 py-3 text-sm text-[#101828] focus:border-[#1e3a6e] focus:outline-none focus:ring-1 focus:ring-[#14213d]"
             />
           </label>
           <div className="flex flex-wrap gap-2">
@@ -72,8 +72,8 @@ export function FaqAdvanced() {
                   onClick={() => setTheme(item)}
                   className={`rounded-full px-4 py-2 text-sm font-semibold ${
                     active
-                      ? "bg-[#14213d] text-white"
-                      : "border border-slate-300 bg-white text-slate-700 hover:border-[#1d6fe0]"
+                      ? "bg-[#1e3a6e] text-white"
+                      : "border border-[#c9d8f5] bg-white text-[#475467] hover:border-[#1d6fe0]"
                   }`}
                 >
                   {item}
@@ -85,14 +85,14 @@ export function FaqAdvanced() {
 
         <div className="mt-6 space-y-3">
           {filteredFaq.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">
+            <p className="rounded-xl border border-dashed border-[#c9d8f5] bg-[#f7f9fd] p-4 text-sm text-[#475467]">
               Aucun résultat pour cette recherche.
             </p>
           ) : (
             filteredFaq.map((item, index) => {
               const isOpen = index === openIndex;
               return (
-                <article key={item.question} className="overflow-hidden rounded-2xl border border-slate-200">
+                <article key={item.question} className="overflow-hidden rounded-[24px] border border-[#dbe6fc]">
                   <button
                     type="button"
                     onClick={() => setOpenIndex(isOpen ? null : index)}
@@ -103,14 +103,14 @@ export function FaqAdvanced() {
                       <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[#1d6fe0]">
                         {item.theme}
                       </span>
-                      <span className="font-semibold text-[#14213d]">{item.question}</span>
+                      <span className="font-semibold text-[#101828]">{item.question}</span>
                     </span>
-                    <span className="text-xl text-[#14213d]" aria-hidden>
+                    <span className="text-xl text-[#101828]" aria-hidden>
                       {isOpen ? "−" : "+"}
                     </span>
                   </button>
                   {isOpen ? (
-                    <div className="border-t border-slate-200 px-5 py-4 text-sm leading-relaxed text-slate-700">
+                    <div className="border-t border-[#dbe6fc] px-5 py-4 text-sm leading-relaxed text-[#475467]">
                       {item.answer}
                     </div>
                   ) : null}

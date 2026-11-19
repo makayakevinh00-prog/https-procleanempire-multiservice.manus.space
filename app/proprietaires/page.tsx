@@ -50,13 +50,13 @@ export default function ProprietairesPage() {
       <section className="section pt-0">
         <ul className="grid gap-6 md:grid-cols-2">
           {points.map((point) => (
-            <li key={point.title} className="rounded-3xl bg-mist p-8">
-              <h2 className="font-display text-2xl font-semibold tracking-tight text-ink">{point.title}</h2>
-              <p className="mt-3 text-slate-600">{point.text}</p>
+            <li key={point.title} className="rounded-[28px] bg-mist p-8">
+              <h2 className="font-display text-2xl lp-serif tracking-tight text-ink">{point.title}</h2>
+              <p className="mt-3 text-[#475467]">{point.text}</p>
             </li>
           ))}
         </ul>
-        <p className="mt-10 max-w-3xl text-slate-600">
+        <p className="mt-10 max-w-3xl text-[#475467]">
           Chaque bien est différent : nous commençons par un échange pour comprendre votre logement et vos
           attentes, puis nous vous proposons une formule sur mesure.
         </p>

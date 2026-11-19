@@ -1,3 +1,4 @@
+import "@/components/landing/landing.css";
 type SectionHeadingProps = {
   eyebrow?: string;
   title: string;
@@ -14,13 +15,13 @@ export function SectionHeading({
   return (
     <div className={centered ? "mx-auto max-w-3xl text-center" : "max-w-3xl"}>
       {eyebrow ? (
-        <p className="mb-3 text-sm font-semibold uppercase tracking-wider text-brand-700">
+        <p className="mb-4 text-[12px] font-semibold uppercase tracking-[0.24em] text-[#1e3a6e]">
           {eyebrow}
         </p>
       ) : null}
-      <h2 className="text-3xl font-bold leading-tight text-slate-900 md:text-4xl">{title}</h2>
+      <h2 className="lp-serif text-3xl leading-[1.05] text-[#101828] [text-wrap:balance] md:text-5xl">{title}</h2>
       {description ? (
-        <p className="mt-4 text-lg leading-relaxed text-slate-600">{description}</p>
+        <p className="mt-5 text-lg leading-relaxed text-[#475467]">{description}</p>
       ) : null}
     </div>
   );

@@ -30,9 +30,9 @@ export function VideosGrid() {
 
   return (
     <section className="section pt-0">
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft md:p-10">
-        <h1 className="text-4xl font-bold text-[#14213d] md:text-5xl">{videosPageContent.title}</h1>
-        <p className="mt-4 max-w-3xl text-lg leading-relaxed text-slate-700">
+      <div className="rounded-[28px] border border-[#dbe6fc] bg-white p-6 md:p-10">
+        <h1 className="text-4xl lp-serif text-[#101828] md:text-5xl">{videosPageContent.title}</h1>
+        <p className="mt-4 max-w-3xl text-lg leading-relaxed text-[#475467]">
           {videosPageContent.description}
         </p>
 
@@ -46,8 +46,8 @@ export function VideosGrid() {
                 onClick={() => setActiveCategory(category)}
                 className={`rounded-full px-4 py-2 text-sm font-semibold ${
                   active
-                    ? "bg-[#14213d] text-white"
-                    : "border border-slate-300 bg-white text-slate-700 hover:border-[#1d6fe0]"
+                    ? "bg-[#1e3a6e] text-white"
+                    : "border border-[#c9d8f5] bg-white text-[#475467] hover:border-[#1d6fe0]"
                 }`}
               >
                 {category}
@@ -57,14 +57,14 @@ export function VideosGrid() {
         </div>
 
         {filteredVideos.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-600">
+          <div className="mt-6 rounded-[24px] border border-dashed border-[#c9d8f5] bg-[#f7f9fd] p-5 text-sm text-[#475467]">
             {videosPageContent.placeholder}
           </div>
         ) : (
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredVideos.map((video) => {
               return (
-                <article key={video.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                <article key={video.id} className="overflow-hidden rounded-[24px] border border-[#dbe6fc] bg-white">
                   {video.videoSrc ? (
                     <video
                       src={video.videoSrc}
@@ -90,8 +90,8 @@ export function VideosGrid() {
                     <p className="text-xs font-semibold uppercase tracking-wide text-[#1d6fe0]">
                       {video.category}
                     </p>
-                    <h2 className="mt-2 text-lg font-semibold text-[#14213d]">{video.title}</h2>
-                    <p className="mt-2 text-sm text-slate-600">{video.description}</p>
+                    <h2 className="mt-2 text-lg lp-serif text-[#101828]">{video.title}</h2>
+                    <p className="mt-2 text-sm text-[#475467]">{video.description}</p>
                   </div>
                 </article>
               );

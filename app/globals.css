@@ -26,15 +26,15 @@ a {
 }
 
 .card {
-  @apply rounded-2xl border border-slate-200 bg-white shadow-soft;
+  @apply rounded-[28px] border border-[#dbe6fc] bg-white;
 }
 
 .btn-primary {
-  @apply inline-flex items-center justify-center rounded-xl bg-[#14213d] px-5 py-3 font-semibold text-white transition hover:bg-[#0f1a32] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#14213d];
+  @apply inline-flex min-h-12 items-center justify-center rounded-full bg-[#1e3a6e] px-6 py-3 font-semibold text-white shadow-[0_14px_30px_-14px_#1e3a6e] transition-colors duration-200 hover:bg-[#17305c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1e3a6e];
 }
 
 .btn-secondary {
-  @apply inline-flex items-center justify-center rounded-xl border border-[#14213d]/30 bg-white px-5 py-3 font-semibold text-[#14213d] transition hover:border-[#1d6fe0] hover:text-[#0f1a32] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#14213d];
+  @apply inline-flex min-h-12 items-center justify-center rounded-full border border-[#1e3a6e]/25 bg-white px-6 py-3 font-semibold text-[#1e3a6e] transition-colors duration-200 hover:border-[#1e3a6e] hover:bg-[#f0f4fc] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1e3a6e];
 }
 
 .marquee-mask {

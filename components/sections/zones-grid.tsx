@@ -9,7 +9,7 @@ export function ZonesGrid() {
             <p className="text-xs font-semibold uppercase tracking-wide text-[#1d6fe0]">
               {zone.department} ({zone.code})
             </p>
-            <ul className="mt-3 space-y-1 text-sm text-slate-700">
+            <ul className="mt-3 space-y-1 text-sm text-[#475467]">
               {zone.cities.map((city) => (
                 <li key={city}>{city}</li>
               ))}

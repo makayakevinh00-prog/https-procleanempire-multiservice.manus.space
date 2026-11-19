@@ -80,10 +80,10 @@ export default function PrivacyPage() {
         ]}
       />
       <section className="section pt-0">
-        <article className="card space-y-8 p-6 text-sm leading-relaxed text-slate-700 md:p-8">
+        <article className="card space-y-8 p-6 text-sm leading-relaxed text-[#475467] md:p-8">
           {sections.map((section) => (
             <div key={section.title}>
-              <h2 className="text-lg font-semibold text-slate-900">{section.title}</h2>
+              <h2 className="text-lg lp-serif text-[#101828]">{section.title}</h2>
               {section.paragraphs.map((paragraph) => (
                 <p key={paragraph.slice(0, 40)} className="mt-2">
                   {paragraph}

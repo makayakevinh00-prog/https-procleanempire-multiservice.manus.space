@@ -7,8 +7,8 @@ export function TrustProofGrid() {
       {trustProofs.map((proof, index) => (
         <FadeIn key={proof.label} delay={index * 0.05}>
           <article className="card p-6">
-            <p className="text-3xl font-bold text-slate-900">{proof.value}</p>
-            <p className="mt-2 text-sm font-medium text-slate-600">{proof.label}</p>
+            <p className="text-3xl font-bold text-[#101828]">{proof.value}</p>
+            <p className="mt-2 text-sm font-medium text-[#475467]">{proof.label}</p>
           </article>
         </FadeIn>
       ))}

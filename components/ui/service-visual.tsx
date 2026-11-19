@@ -25,9 +25,9 @@ const visuals: Record<string, { src: string; alt: string; caption: string }> = {
     caption: "Intervention réelle : mobilier textile après nettoyage"
   },
   "nettoyage-commerces": {
-    src: "/media/photos/traitement-tapis.jpeg",
-    alt: "Traitement d'un tapis professionnel par ProClean Empire",
-    caption: "Intervention réelle : traitement d'un tapis"
+    src: "/media/photos/landing/boutique-accueil.webp",
+    alt: "Accueil d'une boutique entretenue par ProClean Empire",
+    caption: "Intervention réelle : accueil d'une boutique"
   },
   "remise-en-etat": {
     src: "/media/photos/traitement-tapis.jpeg",
@@ -51,14 +51,14 @@ export function ServiceVisual({ slug }: { slug: string }) {
   const [current, setCurrent] = useState(visual);
 
   return (
-    <figure className="overflow-hidden rounded-2xl bg-slate-100">
+    <figure className="overflow-hidden rounded-[28px] bg-[#f0f4fc]">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={current.src}
         alt={current.alt}
         loading="lazy"
         onError={() => current.src !== FALLBACK.src && setCurrent(FALLBACK)}
-        className="aspect-[4/5] w-full object-cover"
+        className="aspect-[4/3] w-full object-cover"
       />
       <figcaption className="px-4 py-3 text-xs text-slate-500">{current.caption}</figcaption>
     </figure>

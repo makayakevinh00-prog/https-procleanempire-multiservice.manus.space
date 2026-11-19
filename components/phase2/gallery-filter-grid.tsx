@@ -24,14 +24,14 @@ export function GalleryFilterGrid() {
 
   return (
     <section className="section pt-0">
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft md:p-10">
+      <div className="rounded-[28px] border border-[#dbe6fc] bg-white p-6 md:p-10">
         <p className="text-sm font-semibold uppercase tracking-wide text-[#1d6fe0]">
           {galleryPageContent.eyebrow}
         </p>
-        <h1 className="mt-3 text-4xl font-bold text-[#14213d] md:text-5xl">
+        <h1 className="mt-3 text-4xl lp-serif text-[#101828] md:text-5xl">
           {galleryPageContent.title}
         </h1>
-        <p className="mt-4 max-w-3xl text-lg leading-relaxed text-slate-700">
+        <p className="mt-4 max-w-3xl text-lg leading-relaxed text-[#475467]">
           {galleryPageContent.description}
         </p>
 
@@ -45,8 +45,8 @@ export function GalleryFilterGrid() {
                 onClick={() => setActiveCategory(category)}
                 className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                   isActive
-                    ? "bg-[#14213d] text-white"
-                    : "border border-slate-300 bg-white text-slate-700 hover:border-[#1d6fe0]"
+                    ? "bg-[#1e3a6e] text-white"
+                    : "border border-[#c9d8f5] bg-white text-[#475467] hover:border-[#1d6fe0]"
                 }`}
                 aria-pressed={isActive}
               >
@@ -59,7 +59,7 @@ export function GalleryFilterGrid() {
         {filteredItems.length === 0 ? null : (
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredItems.map((item) => (
-              <article key={item.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              <article key={item.id} className="overflow-hidden rounded-[24px] border border-[#dbe6fc] bg-white">
                 <Image
                   src={item.image}
                   alt={item.alt}
@@ -68,7 +68,7 @@ export function GalleryFilterGrid() {
                   loading="lazy"
                   className="aspect-[16/10] w-full object-cover"
                 />
-                <p className="p-3 text-sm font-medium text-[#14213d]">{item.title}</p>
+                <p className="p-3 text-sm font-medium text-[#101828]">{item.title}</p>
               </article>
             ))}
           </div>

@@ -46,7 +46,7 @@ export function YoutubeVideoCard({
         className="h-full w-full object-cover"
       />
       <span className="absolute inset-0 flex items-center justify-center bg-black/20 transition group-hover:bg-black/30">
-        <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-[#14213d] transition group-hover:bg-white">
+        <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-[#101828] transition group-hover:bg-white">
           ▶ Lire
         </span>
       </span>

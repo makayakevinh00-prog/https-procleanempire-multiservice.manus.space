@@ -77,9 +77,9 @@ export default function ArticlePage() {
         <div className="max-w-3xl">
           {sections.map((section) => (
             <section key={section.heading} className="mb-10">
-              <h2 className="text-2xl font-bold text-slate-900">{section.heading}</h2>
+              <h2 className="text-2xl lp-serif text-[#101828]">{section.heading}</h2>
               {section.paragraphs.map((paragraph) => (
-                <p key={paragraph.slice(0, 40)} className="mt-4 text-lg leading-relaxed text-slate-700">
+                <p key={paragraph.slice(0, 40)} className="mt-4 text-lg leading-relaxed text-[#475467]">
                   {paragraph}
                 </p>
               ))}

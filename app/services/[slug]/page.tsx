@@ -68,21 +68,21 @@ export default async function ServiceDetailPage({ params }: Params) {
       <section className="section pt-0">
         <div className="grid gap-8 lg:grid-cols-[1fr,0.9fr]">
           <article className="card p-6 md:p-8">
-            <h2 className="text-2xl font-semibold text-slate-900">
+            <h2 className="text-2xl lp-serif text-[#101828]">
               Ce que vous gagnez concrètement
             </h2>
-            <ul className="mt-5 space-y-3 text-sm leading-relaxed text-slate-700">
+            <ul className="mt-5 space-y-3 text-sm leading-relaxed text-[#475467]">
               {service.benefits.map((benefit) => (
                 <li key={benefit} className="flex gap-2">
-                  <span aria-hidden className="text-brand-700">
+                  <span aria-hidden className="text-[#1e3a6e]">
                     ✓
                   </span>
                   <span>{benefit}</span>
                 </li>
               ))}
             </ul>
-            <h3 className="mt-8 text-lg font-semibold text-slate-900">Secteurs concernés</h3>
-            <p className="mt-2 text-sm text-slate-600">{service.sectors.join(" · ")}</p>
+            <h3 className="mt-8 text-lg font-semibold text-[#101828]">Secteurs concernés</h3>
+            <p className="mt-2 text-sm text-[#475467]">{service.sectors.join(" · ")}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/contact#devis" className="btn-primary">
                 Demander un devis

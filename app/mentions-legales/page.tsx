@@ -21,7 +21,7 @@ export default function LegalPage() {
         ]}
       />
       <section className="section pt-0">
-        <article className="card space-y-3 p-6 text-sm leading-relaxed text-slate-700 md:p-8">
+        <article className="card space-y-3 p-6 text-sm leading-relaxed text-[#475467] md:p-8">
           <p>
             <strong>Raison sociale:</strong> {legalInfo.companyName}
           </p>

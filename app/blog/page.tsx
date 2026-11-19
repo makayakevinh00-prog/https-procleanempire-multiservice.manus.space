@@ -28,12 +28,12 @@ export default function BlogPage() {
       />
       <section className="section pt-0">
         <div className="card p-6 md:p-8">
-          <h2 className="text-xl font-semibold text-[#14213d]">Nos thèmes</h2>
+          <h2 className="text-xl lp-serif text-[#101828]">Nos thèmes</h2>
           <div className="mt-4 flex flex-wrap gap-2">
             {blogPageContent.categories.map((category) => (
               <span
                 key={category}
-                className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700"
+                className="rounded-full border border-[#c9d8f5] bg-[#f7f9fd] px-3 py-1 text-xs font-semibold text-[#475467]"
               >
                 {category}
               </span>
@@ -42,11 +42,11 @@ export default function BlogPage() {
           {blogPosts.length > 0 ? (
             <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {blogPosts.map((post) => (
-                <article key={post.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <article key={post.id} className="rounded-[24px] border border-[#dbe6fc] bg-[#f7f9fd] p-4">
                   <p className="text-xs font-semibold uppercase tracking-wide text-[#1d6fe0]">
                     {post.category}
                   </p>
-                  <h3 className="mt-2 text-base font-semibold text-[#14213d]">
+                  <h3 className="mt-2 text-base font-semibold text-[#101828]">
                     {post.href ? (
                       <Link href={post.href} className="hover:underline">
                         {post.title}
@@ -55,7 +55,7 @@ export default function BlogPage() {
                       post.title
                     )}
                   </h3>
-                  <p className="mt-2 text-sm text-slate-600">{post.excerpt}</p>
+                  <p className="mt-2 text-sm text-[#475467]">{post.excerpt}</p>
                   <p className="mt-3 text-xs text-slate-500">{post.date}</p>
                   {post.href ? (
                     <Link href={post.href} className="mt-3 inline-block text-sm font-semibold text-[#1d6fe0] hover:underline">
@@ -66,7 +66,7 @@ export default function BlogPage() {
               ))}
             </div>
           ) : (
-            <p className="mt-5 text-sm leading-relaxed text-slate-600">{blogPageContent.placeholder}</p>
+            <p className="mt-5 text-sm leading-relaxed text-[#475467]">{blogPageContent.placeholder}</p>
           )}
         </div>
       </section>

@@ -12,7 +12,7 @@ const ratioClass: Record<NonNullable<VisualPlaceholderProps["ratio"]>, string> =
 export function VisualPlaceholder({ label, ratio = "wide" }: VisualPlaceholderProps) {
   return (
     <div
-      className={`flex ${ratioClass[ratio]} items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-100 p-6 text-center text-sm font-semibold uppercase tracking-wide text-slate-500`}
+      className={`flex ${ratioClass[ratio]} items-center justify-center rounded-[24px] border-2 border-dashed border-[#c9d8f5] bg-[#f0f4fc] p-6 text-center text-sm font-semibold uppercase tracking-wide text-slate-500`}
       role="img"
       aria-label={label}
     >

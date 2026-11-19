@@ -6,9 +6,9 @@ import { interactiveProcessSteps } from "@/lib/content/phase2";
 export function InteractiveProcessTimeline() {
   return (
     <section className="section pt-0">
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft md:p-10">
-        <h2 className="text-3xl font-bold text-[#14213d] md:text-4xl">Processus interactif</h2>
-        <p className="mt-4 max-w-3xl text-lg leading-relaxed text-slate-700">
+      <div className="rounded-[28px] border border-[#dbe6fc] bg-white p-6 md:p-10">
+        <h2 className="text-3xl lp-serif text-[#101828] md:text-4xl">Processus interactif</h2>
+        <p className="mt-4 max-w-3xl text-lg leading-relaxed text-[#475467]">
           Une timeline claire pour montrer à vos prospects comment la prestation est pilotée de
           bout en bout.
         </p>
@@ -20,12 +20,12 @@ export function InteractiveProcessTimeline() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.35, delay: index * 0.04 }}
-              className="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 md:grid-cols-[90px,1fr]"
+              className="grid gap-4 rounded-[24px] border border-[#dbe6fc] bg-[#f7f9fd] p-5 md:grid-cols-[90px,1fr]"
             >
               <p className="text-2xl font-bold text-[#1d6fe0]">{item.step}</p>
               <div>
-                <h3 className="text-xl font-semibold text-[#14213d]">{item.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.description}</p>
+                <h3 className="text-xl font-semibold text-[#101828]">{item.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[#475467]">{item.description}</p>
               </div>
             </motion.article>
           ))}

@@ -1,3 +1,4 @@
+import "@/components/landing/landing.css";
 import { ReactNode } from "react";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { siteConfig } from "@/lib/site";
@@ -23,12 +24,16 @@ export function PageHero({ title, description, breadcrumbs, actions }: PageHeroP
 
   return (
     <>
-      <section className="section pb-8">
-        <Breadcrumbs items={breadcrumbs} />
-        <h1 className="text-4xl font-bold leading-tight text-slate-900 md:text-5xl">{title}</h1>
-        <p className="mt-4 max-w-3xl text-lg leading-relaxed text-slate-600">{description}</p>
-        {actions ? <div className="mt-8 flex flex-wrap gap-3">{actions}</div> : null}
+      {/* Même en-tête que l'accueil : bande bleu très pâle, titre très gras, un mot d'accroche court. */}
+      <section className="bg-[#f0f4fc]">
+        <div className="mx-auto max-w-content px-6 pb-14 pt-10 md:px-8 md:pb-20 md:pt-14">
+          <Breadcrumbs items={breadcrumbs} />
+          <h1 className="lp-serif mt-6 max-w-4xl text-[2.5rem] leading-[1.03] text-[#101828] [text-wrap:balance] sm:text-6xl">{title}</h1>
+          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-[#475467]">{description}</p>
+          {actions ? <div className="mt-9 flex flex-wrap gap-3">{actions}</div> : null}
+        </div>
       </section>
+      <div aria-hidden className="h-12 md:h-16" />
       <script
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
