@@ -10,7 +10,7 @@ export function Tabs({ items, className }: { items: TabItem[]; className?: strin
       {items.map((t) => (
         <Link key={t.href + t.label} href={t.href} aria-current={t.active ? "page" : undefined}
           className={cn("relative flex shrink-0 items-center gap-2 px-4 py-3 text-[14px] font-medium transition-colors",
-            t.active ? "text-foreground after:absolute after:inset-x-3 after:-bottom-px after:h-0.5 after:rounded-full after:bg-foreground" : "text-muted-foreground hover:text-foreground")}>
+            t.active ? "text-foreground after:absolute after:inset-x-3 after:-bottom-px after:h-0.5 after:rounded-full after:bg-primary" : "text-muted-foreground hover:text-foreground")}>
           {t.label}
           {t.count !== undefined && t.count !== null && <span className={cn("num rounded-full px-2 py-0.5 text-xs font-medium", t.active ? "bg-secondary text-foreground" : "bg-secondary/70 text-muted-foreground")}>{t.count}</span>}
         </Link>

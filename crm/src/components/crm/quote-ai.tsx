@@ -50,7 +50,7 @@ export function QuoteAi({ clients }: { clients: { id: string; name: string }[] }
           <div><div className="mb-1">Photos du site ({files.length}/8)</div><button type="button" onClick={() => input.current?.click()} className="h-10 rounded-md border px-4 font-medium hover:bg-secondary">Prendre / choisir des photos</button><input ref={input} type="file" accept="image/*" multiple capture="environment" className="hidden" onChange={(e) => void add(e.target.files)} /></div>
         </div>
         <label className="block">Ce que vous savez (m², étages, fréquence voulue, horaires, particularités)<textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="mt-1 w-full rounded-md border p-2" /></label>
-        <button type="button" onClick={() => void run()} disabled={busy || !files.length} className="h-10 rounded-md bg-foreground px-5 font-medium text-background disabled:opacity-60">{busy ? "Analyse en cours…" : "Analyser avec l'IA"}</button>
+        <button type="button" onClick={() => void run()} disabled={busy || !files.length} className="h-10 rounded-md bg-primary px-5 font-medium text-primary-foreground disabled:opacity-60">{busy ? "Analyse en cours…" : "Analyser avec l'IA"}</button>
         {err && <div role="alert" className="rounded-md bg-red-50 p-3 font-medium text-red-800">{err}</div>}
       </div>
       {est && (
@@ -64,7 +64,7 @@ export function QuoteAi({ clients }: { clients: { id: string; name: string }[] }
           {est.zones.length > 0 && <div><b>Zones et tâches</b><ul className="list-disc pl-5">{est.zones.map((z, i) => <li key={i}><b>{z.zone}</b> : {z.tasks}</li>)}</ul></div>}
           {est.products.length > 0 && <div><b>Produits et matériel à prévoir / acheter</b><ul className="list-disc pl-5">{est.products.map((p, i) => <li key={i}>{p.name} — {p.qty}</li>)}</ul></div>}
           {est.questions.length > 0 && <div><b>À demander au client pour chiffrer juste</b><ul className="list-disc pl-5">{est.questions.map((x, i) => <li key={i}>{x}</li>)}</ul></div>}
-          <Link href={`/devis/new?${new URLSearchParams({ ...(client ? { client } : {}), objet: `Nettoyage — ${est.frequency || "passage"}`.slice(0, 120), ...(floor ? { prix: String(floor), heures: String(hours) } : {}), note: [est.summary, ...est.zones.map((z) => `${z.zone} : ${z.tasks}`)].join("\n").slice(0, 1200) })}`} className="inline-flex h-10 items-center rounded-md bg-foreground px-5 font-medium text-background">Faire le devis avec ces chiffres</Link>
+          <Link href={`/devis/new?${new URLSearchParams({ ...(client ? { client } : {}), objet: `Nettoyage — ${est.frequency || "passage"}`.slice(0, 120), ...(floor ? { prix: String(floor), heures: String(hours) } : {}), note: [est.summary, ...est.zones.map((z) => `${z.zone} : ${z.tasks}`)].join("\n").slice(0, 1200) })}`} className="inline-flex h-10 items-center rounded-md bg-primary px-5 font-medium text-primary-foreground">Faire le devis avec ces chiffres</Link>
           <p className="text-xs text-muted-foreground">L&apos;IA estime d&apos;après les photos : à vérifier sur place. Le prix ne descend jamais sous 27 € HT de l&apos;heure.</p>
         </div>
       )}

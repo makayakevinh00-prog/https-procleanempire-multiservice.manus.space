@@ -18,7 +18,7 @@ export default async function AuthorizePage({ searchParams }: { searchParams: P 
   if (!c.ok) redirect(`/authorize/erreur?m=${encodeURIComponent(c.error)}`);
   const hidden = ["client_id", "redirect_uri", "code_challenge", "code_challenge_method", "response_type", "state"].map((k) => <input key={k} type="hidden" name={k} value={params[k] ?? ""} />);
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#0f172a] p-4">
+    <main className="flex min-h-screen items-center justify-center bg-[#1e3a6e] p-4">
       <Card className="w-full max-w-md">
         <CardContent className="space-y-5 p-7">
           <div className="flex flex-col items-center gap-2 text-center">

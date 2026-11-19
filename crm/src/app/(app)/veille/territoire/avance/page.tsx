@@ -56,7 +56,7 @@ export default async function TerritoryAdvancedPage({ searchParams }: { searchPa
 
       <div className="mb-4 flex flex-wrap gap-2">
         {zones.map((z) => (
-          <Link key={z.code} href={`/veille/territoire/avance?zone=${z.code}`} className={`rounded-full border px-4 py-2 text-sm font-medium ${z.code === zone.code ? "border-foreground bg-primary text-primary-foreground" : "bg-white hover:bg-secondary"}`}>
+          <Link key={z.code} href={`/veille/territoire/avance?zone=${z.code}`} className={`rounded-full border px-4 py-2 text-sm font-medium ${z.code === zone.code ? "border-primary bg-primary text-primary-foreground" : "bg-white hover:bg-secondary"}`}>
             {z.rank}. {z.label} ({z.code}) {z.status === "verrouillee" ? "🔒" : z.status === "terminee" ? "✔" : ""}
           </Link>
         ))}
@@ -81,11 +81,11 @@ export default async function TerritoryAdvancedPage({ searchParams }: { searchPa
       <Card className="mb-4 p-3">
         <div className="mb-3 flex flex-wrap items-center gap-2 px-1 text-sm">
           <span className="font-medium">Afficher :</span>
-          {([[null, "Tout"], ["cible", "À prospecter"], ["en_cours", "En cours"], ["client", "Clients"]] as [string | null, string][]).map(([k, l]) => <Link key={l} href={q({ etat: k, fiche: null })} className={`rounded-full border px-3 py-1 ${etat === k ? "border-foreground bg-primary text-primary-foreground" : "hover:bg-secondary"}`}>{l}</Link>)}
+          {([[null, "Tout"], ["cible", "À prospecter"], ["en_cours", "En cours"], ["client", "Clients"]] as [string | null, string][]).map(([k, l]) => <Link key={l} href={q({ etat: k, fiche: null })} className={`rounded-full border px-3 py-1 ${etat === k ? "border-primary bg-primary text-primary-foreground" : "hover:bg-secondary"}`}>{l}</Link>)}
           <span className="ml-2 font-medium">Secteur :</span>
-          <Link href={q({ secteur: null, fiche: null })} className={`rounded-full border px-3 py-1 ${!secteur ? "border-foreground bg-primary text-primary-foreground" : "hover:bg-secondary"}`}>Tous</Link>
-          {SECTOR_KEYS.filter((k) => all.some((p) => p.sector === k)).map((k) => <Link key={k} href={q({ secteur: k, fiche: null })} className={`rounded-full border px-3 py-1 ${secteur === k ? "border-foreground bg-primary text-primary-foreground" : "hover:bg-secondary"}`}>{SECTORS[k].label}</Link>)}
-          {ville && <Link href={q({ ville: null })} className="rounded-full border border-foreground bg-foreground px-3 py-1 text-background">{ville} ✕</Link>}
+          <Link href={q({ secteur: null, fiche: null })} className={`rounded-full border px-3 py-1 ${!secteur ? "border-primary bg-primary text-primary-foreground" : "hover:bg-secondary"}`}>Tous</Link>
+          {SECTOR_KEYS.filter((k) => all.some((p) => p.sector === k)).map((k) => <Link key={k} href={q({ secteur: k, fiche: null })} className={`rounded-full border px-3 py-1 ${secteur === k ? "border-primary bg-primary text-primary-foreground" : "hover:bg-secondary"}`}>{SECTORS[k].label}</Link>)}
+          {ville && <Link href={q({ ville: null })} className="rounded-full border border-primary bg-primary px-3 py-1 text-primary-foreground">{ville} ✕</Link>}
         </div>
         {!all.length && <div className="mb-3 rounded-md bg-amber-50 p-3 text-sm font-medium text-amber-900">La carte est vide : aucune entreprise n&apos;est encore chargée pour {zone.label}. Descendez jusqu&apos;à « Charger les entreprises », choisissez un secteur et cliquez sur « Charger ».</div>}
         <TerritoryMapLazy points={mapPoints} cities={mapCities} zone={zone.code} />

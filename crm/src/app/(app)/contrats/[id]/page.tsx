@@ -63,7 +63,7 @@ export default async function ContractPage({ params }: { params: { id: string } 
         <form action={sendContractForSignatureAction.bind(null, k.id)} className="flex flex-wrap items-end gap-2">
           <label className="block">E-mail du client<input name="to" type="email" required defaultValue={k.clients.email ?? ""} className="mt-1 h-10 w-64 rounded-md border px-2" /></label>
           <label className="block">Modèle<select name="type" defaultValue={guessCategory(k as any)} className="mt-1 h-10 rounded-md border px-2">{(Object.keys(CATEGORY_LABEL) as ContractCategory[]).map((c) => <option key={c} value={c}>{CATEGORY_LABEL[c]}</option>)}</select></label>
-          <button className="h-10 rounded-md bg-foreground px-4 font-medium text-background">Envoyer à signer</button>
+          <button className="h-10 rounded-md bg-primary px-4 font-medium text-primary-foreground">Envoyer à signer</button>
         </form>
         {((sigs ?? []) as any[]).length > 0 && <ul className="mt-3 space-y-1 text-xs text-muted-foreground">{((sigs ?? []) as any[]).map((x) => <li key={x.id}>{new Date(x.created_at).toLocaleDateString("fr-FR")} · {x.signer_email} · <b>{x.status === "signe" ? `signé le ${new Date(x.signed_at).toLocaleDateString("fr-FR")} par ${x.signer_name}` : x.status === "en_attente" ? "en attente de signature" : x.status}</b>{x.status === "signe" && <> · <a className="text-primary underline" href={`/api/signature/${x.id}/pdf`}>document signé</a></>}</li>)}</ul>}
       </CardContent></Card>

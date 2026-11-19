@@ -18,7 +18,7 @@ export default async function TrackingPage({ params, searchParams }: { params: {
   const doc = (kind: string) => `/api/public/requests/${params.number}/documents/${kind}?t=${t}`;
   return (
     <div className="min-h-screen bg-slate-50 pb-12">
-      <header className="bg-[#0f172a] px-4 py-4 text-white">
+      <header className="bg-[#1e3a6e] px-4 py-4 text-white">
         <div className="mx-auto flex max-w-xl items-center gap-3">
           <Image src="/logo.png" alt="" width={187} height={344} className="h-12 w-auto rounded bg-white p-1" />
           <div><div className="text-lg font-bold">ProClean Empire</div><div className="text-xs text-slate-300">Suivi de votre demande</div></div>

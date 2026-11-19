@@ -46,7 +46,7 @@ export default async function ActivatePage({ searchParams }: { searchParams: { e
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#0f172a] p-4">
+    <main className="flex min-h-screen items-center justify-center bg-[#1e3a6e] p-4">
       <Card className="w-full max-w-md">
         <CardContent className="space-y-4 p-6">
           <div className="flex flex-col items-center gap-2 pb-1 text-center">

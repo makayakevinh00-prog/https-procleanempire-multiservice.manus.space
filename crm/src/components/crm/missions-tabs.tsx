@@ -16,7 +16,7 @@ export function MissionsTabs({ active, counts = {} }: { active: "missions" | "ve
         const n = (counts as Record<string, number | undefined>)[k];
         return (
           <Link key={k} href={href} aria-current={active === k ? "page" : undefined}
-            className={cn("relative flex shrink-0 items-center gap-2 px-4 py-2.5 text-[14px] font-medium transition-colors", active === k ? "text-foreground after:absolute after:inset-x-3 after:-bottom-px after:h-0.5 after:rounded-full after:bg-foreground" : "text-muted-foreground hover:text-foreground")}>
+            className={cn("relative flex shrink-0 items-center gap-2 px-4 py-2.5 text-[14px] font-medium transition-colors", active === k ? "text-foreground after:absolute after:inset-x-3 after:-bottom-px after:h-0.5 after:rounded-full after:bg-primary" : "text-muted-foreground hover:text-foreground")}>
             {label}{n ? <span className="num rounded-full bg-secondary px-2 py-0.5 text-xs text-muted-foreground">{n}</span> : null}
           </Link>
         );

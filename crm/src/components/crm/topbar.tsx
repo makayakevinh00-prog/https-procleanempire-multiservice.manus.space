@@ -48,7 +48,7 @@ export function Topbar({ actionsCount, email, signOut, team = false }: { actions
         <ThemeSwitcher />
         {!team && <div className="relative" ref={cRef}>
           <button onClick={() => setCreate((v) => !v)} aria-haspopup="menu" aria-expanded={create}
-            className="flex h-10 items-center gap-2 rounded-xl bg-foreground px-4 text-[14px] font-medium text-background transition hover:bg-foreground/90 active:scale-[0.98]">
+            className="flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-[14px] font-medium text-primary-foreground transition hover:bg-primary/90 active:scale-[0.98]">
             <Plus className="h-4 w-4" /> Créer <ChevronDown className="h-4 w-4 opacity-70" />
           </button>
           {create && (
@@ -64,7 +64,7 @@ export function Topbar({ actionsCount, email, signOut, team = false }: { actions
 
         {!team && <Link href="/actions" aria-label={`${actionsCount} action(s) à faire`} className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-secondary-foreground transition hover:bg-secondary/70">
           <Bell className="h-[18px] w-[18px]" strokeWidth={1.6} />
-          {actionsCount > 0 && <span className="num absolute -right-1 -top-1 min-w-5 rounded-full bg-foreground px-1.5 text-center text-[11px] font-semibold leading-5 text-background">{actionsCount}</span>}
+          {actionsCount > 0 && <span className="num absolute -right-1 -top-1 min-w-5 rounded-full bg-primary px-1.5 text-center text-[11px] font-semibold leading-5 text-primary-foreground">{actionsCount}</span>}
         </Link>}
 
         <div className="relative" ref={uRef}>

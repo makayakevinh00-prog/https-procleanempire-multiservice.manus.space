@@ -60,7 +60,7 @@ export default async function ActivitiesPage() {
       <PageHeader title="Activités" subtitle="Ce qui rapporte, famille par famille : contrats, heures, facturé sur 12 mois, à encaisser."
         actions={
           <details className="relative">
-            <summary className="inline-flex h-10 cursor-pointer list-none items-center gap-2 rounded-lg bg-foreground px-4 text-sm font-medium text-background">+ Ajouter une activité</summary>
+            <summary className="inline-flex h-10 cursor-pointer list-none items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground">+ Ajouter une activité</summary>
             <div className="absolute right-0 z-20 mt-2 w-72 rounded-xl border bg-card p-1.5 shadow-lg">
               <p className="px-3 py-1.5 text-xs text-muted-foreground">Choisissez le type d&apos;activité : le nouveau contrat est créé dans cette famille.</p>
               {ACTIVITIES.map((x) => <Link key={x.key} href={`/contrats/new?activite=${x.key}`} className="block rounded-lg px-3 py-2 text-sm hover:bg-secondary"><span className="font-medium">{x.label}</span><span className="block text-xs text-muted-foreground">{x.hint}</span></Link>)}

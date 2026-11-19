@@ -33,7 +33,7 @@ function Links({ counts = {}, onNavigate, slim = false, perms = null }: { counts
             <Icon className="h-[18px] w-[18px] shrink-0 opacity-80" strokeWidth={1.6} />
             {!slim && <span className="flex-1">{label}</span>}
             {!slim && n > 0 && <span className="num rounded-full bg-secondary px-2 text-xs text-muted-foreground">{n}</span>}
-            {slim && n > 0 && <span className="absolute right-2 top-1.5 h-1.5 w-1.5 rounded-full bg-foreground" aria-label={`${n} à traiter`} />}
+            {slim && n > 0 && <span className="absolute right-2 top-1.5 h-1.5 w-1.5 rounded-full bg-primary" aria-label={`${n} à traiter`} />}
           </Link>
         );
       })}
@@ -102,7 +102,7 @@ export function Sidebar({ signOut, counts, perms = null }: { signOut: () => Prom
         <div className="flex items-center gap-1">
           <Link href="/recherche" aria-label="Rechercher" className="rounded-lg p-2.5 text-foreground active:bg-secondary"><Search className="h-5 w-5" strokeWidth={1.6} /></Link>
           <Link href="/actions" aria-label="Actions à faire" className="relative rounded-lg p-2.5 text-foreground active:bg-secondary">
-            <Bell className="h-5 w-5" strokeWidth={1.6} />{(counts?.["/actions"] ?? 0) > 0 && <span className="num absolute right-0.5 top-0.5 rounded-full bg-foreground px-1.5 text-[10px] font-semibold leading-4 text-background">{counts?.["/actions"]}</span>}
+            <Bell className="h-5 w-5" strokeWidth={1.6} />{(counts?.["/actions"] ?? 0) > 0 && <span className="num absolute right-0.5 top-0.5 rounded-full bg-primary px-1.5 text-[10px] font-semibold leading-4 text-primary-foreground">{counts?.["/actions"]}</span>}
           </Link>
         </div>
       </header>

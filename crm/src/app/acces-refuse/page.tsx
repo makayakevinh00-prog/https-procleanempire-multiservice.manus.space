@@ -12,7 +12,7 @@ export default function AccessDenied() {
     redirect("/connexion?choisir=1");   // retour à la connexion : espaces mémorisés, ou une autre adresse
   }
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#0f172a] p-6">
+    <main className="flex min-h-screen items-center justify-center bg-[#1e3a6e] p-6">
       <div className="max-w-sm rounded-2xl bg-white p-8 text-center shadow-xl">
         <h1 className="text-xl font-extrabold text-slate-900">Accès refusé</h1>
         <p className="mt-3 text-sm text-slate-600">Ce compte n&apos;a pas accès à cet espace.</p>

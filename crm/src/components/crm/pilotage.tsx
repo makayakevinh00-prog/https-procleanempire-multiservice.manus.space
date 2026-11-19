@@ -66,7 +66,7 @@ export function Pilotage({ initial, demo, startCollapsed }: { initial: KpiSet | 
   }, [demo]);
 
   return (
-    <section aria-label="Pilotage de ProClean Empire" className="sticky bottom-0 z-30 mt-4 rounded-t-2xl border border-white/10 bg-[#0e1522]/95 p-3 text-slate-100 shadow-[0_-10px_30px_rgba(0,0,0,.4)] backdrop-blur">
+    <section aria-label="Pilotage de ProClean Empire" className="sticky bottom-0 z-30 mt-4 rounded-t-2xl border border-white/10 bg-[#1e3a6e]/95 p-3 text-slate-100 shadow-[0_-10px_30px_rgba(0,0,0,.4)] backdrop-blur">
       <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
         <h2 className="text-sm font-bold">Pilotage</h2>
         <span className={`rounded px-2 py-0.5 font-mono text-[10.5px] font-bold tracking-wide ${demo ? "bg-amber-400/15 text-amber-300" : "bg-emerald-400/15 text-emerald-300"}`}>{demo ? "DÉMO · exemples" : "RÉEL · lecture seule"}</span>

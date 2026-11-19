@@ -56,7 +56,7 @@ export function MissionCalendar({
             >
               <Link
                 href={dayHref(d)}
-                className={`num mb-1 inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-[13px] ${d === today ? "bg-foreground font-semibold text-background" : inMonth ? "text-foreground hover:bg-secondary" : "text-muted-foreground"}`}
+                className={`num mb-1 inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-[13px] ${d === today ? "bg-primary font-semibold text-primary-foreground" : inMonth ? "text-foreground hover:bg-secondary" : "text-muted-foreground"}`}
               >
                 {Number(d.slice(8))}
               </Link>
