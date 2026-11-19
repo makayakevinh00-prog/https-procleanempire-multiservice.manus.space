@@ -44,7 +44,7 @@ export default function MenageAirbnbPage() {
           ]
         },
         {
-          heading: "Paris, quartier par quartier.",
+          heading: "Nos quartiers à Paris.",
           items: [
             { title: "Trocadéro, Passy et Auteuil (16e)", text: "Appartements familiaux et pied-à-terre face à la tour Eiffel, à deux pas de l'Arc de Triomphe." },
             { title: "Champs-Élysées et Triangle d'or (8e)", text: "Logements haut de gamme entre l'avenue Montaigne, George-V et le parc Monceau." },
