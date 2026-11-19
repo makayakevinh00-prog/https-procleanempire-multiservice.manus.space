@@ -3,6 +3,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { readFileSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
+import { addDays, parisToday } from "../src/lib/domain/dates";
 
 const root = path.join(__dirname, "..");
 const read = (p: string) => readFileSync(path.join(root, p), "utf8");
@@ -11,7 +12,8 @@ const q = async <T = any>(sql: string, params: any[] = []) => (await db.query<T>
 const fails = (sql: string, params: any[], re: RegExp) => expect(db.query(sql, params)).rejects.toThrow(re);
 const hash = (t: string) => createHash("sha256").update(t).digest("hex");
 const SECRET = "secret-de-test-123", T1 = "1".repeat(64), T2 = "2".repeat(64), T3 = "3".repeat(64);
-const iso = (n: number) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
+// La base raisonne en date de Paris : entre minuit et 1 h (2 h l'été), la date UTC est encore celle de la veille.
+const iso = (n: number) => addDays(parisToday(), n);
 const PONTOISE = { lat: 49.05, lng: 2.1 }, PARIS = { lat: 48.8566, lng: 2.3522 }, VERSAILLES = { lat: 48.8049, lng: 2.1204 };
 const reg = (o: object = {}) => JSON.stringify({ full_name: "Léa Martin", email: "lea@x.test", phone: "0600000000", siret: "12345678900011", postal_code: "95300", city: "Pontoise", address_line: "1 rue A", ...PONTOISE, radius_km: 15, verified: true, ...o });
 let client: string, listing: string;

@@ -3,6 +3,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { readFileSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
+import { addDays, parisToday } from "../src/lib/domain/dates";
 
 const root = path.join(__dirname, "..");
 const read = (p: string) => readFileSync(path.join(root, p), "utf8");
@@ -11,7 +12,8 @@ const q = async <T = any>(sql: string, params: any[] = []) => (await db.query<T>
 const fails = (sql: string, params: any[], re: RegExp) => expect(db.query(sql, params)).rejects.toThrow(re);
 const hash = (t: string) => createHash("sha256").update(t).digest("hex");
 const TA = "a".repeat(64), TB = "b".repeat(64), SECRET = "secret-de-test-123";
-const iso = (n: number) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
+// La base raisonne en date de Paris : entre minuit et 1 h (2 h l'été), la date UTC est encore celle de la veille.
+const iso = (n: number) => addDays(parisToday(), n);
 const PIX = Buffer.from("fake-jpeg-bytes").toString("base64");
 let A: string, B: string, client: string, reserved: string;
 const job = async (date = iso(0), status = "acceptee", cleaner: string | null = A) =>

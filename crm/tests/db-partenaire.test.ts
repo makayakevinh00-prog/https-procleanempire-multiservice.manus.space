@@ -3,6 +3,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { readFileSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
+import { addDays, parisToday } from "../src/lib/domain/dates";
 
 const root = path.join(__dirname, "..");
 const read = (p: string) => readFileSync(path.join(root, p), "utf8");
@@ -12,7 +13,8 @@ const fails = (sql: string, params: any[], re: RegExp) => expect(db.query(sql, p
 const hash = (t: string) => createHash("sha256").update(t).digest("hex");
 const TA = "a".repeat(64), LV = "1".repeat(64), P1 = "c".repeat(64), P2 = "d".repeat(64), KEY = "pk_" + "e".repeat(48);
 const PIX = Buffer.from("fake-jpeg-bytes").toString("base64");
-const iso = (n: number) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
+// La base raisonne en date de Paris : entre minuit et 1 h (2 h l'été), la date UTC est encore celle de la veille.
+const iso = (n: number) => addDays(parisToday(), n);
 const L = (o: object = {}) => JSON.stringify({ name: "Studio Gare", address: "1 rue A", postal_code: "95300", city: "Pontoise", platform: "airbnb", ical_url: "https://www.airbnb.fr/calendar/ical/1.ics", access_notes: "Boîte 1234", ...o });
 let c1: string, c2: string, A: string, listing: string, other: string;
 

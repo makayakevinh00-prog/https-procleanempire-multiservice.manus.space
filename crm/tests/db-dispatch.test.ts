@@ -3,6 +3,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { readFileSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
+import { addDays, parisToday } from "../src/lib/domain/dates";
 
 const root = path.join(__dirname, "..");
 const read = (p: string) => readFileSync(path.join(root, p), "utf8");
@@ -12,7 +13,8 @@ const fails = (sql: string, params: any[], re: RegExp) => expect(db.query(sql, p
 const hash = (t: string) => createHash("sha256").update(t).digest("hex");
 const SECRET = "secret-de-test-123";
 const tok = (n: number) => String(n).repeat(64).slice(0, 64);
-const iso = (n: number) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
+// La base raisonne en date de Paris : entre minuit et 1 h (2 h l'été), la date UTC est encore celle de la veille.
+const iso = (n: number) => addDays(parisToday(), n);
 const HERE = { lat: 49.05, lng: 2.1 };           // Pontoise
 const NEAR = { lat: 49.06, lng: 2.11 }, MID = { lat: 49.15, lng: 2.2 }, FAR = { lat: 49.3, lng: 2.4 };
 let client: string; const C: string[] = [];

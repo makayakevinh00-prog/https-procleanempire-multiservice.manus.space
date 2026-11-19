@@ -3,6 +3,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { readFileSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
+import { addDays, parisToday } from "../src/lib/domain/dates";
 
 const root = path.join(__dirname, "..");
 const read = (p: string) => readFileSync(path.join(root, p), "utf8");
@@ -11,7 +12,8 @@ const q = async <T = any>(sql: string, params: any[] = []) => (await db.query<T>
 const fails = (sql: string, params: any[], re: RegExp) => expect(db.query(sql, params)).rejects.toThrow(re);
 const hash = (t: string) => createHash("sha256").update(t).digest("hex");
 const TA = "a".repeat(64), TB = "b".repeat(64), TC = "c".repeat(64);
-const iso = (n: number) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
+// La base raisonne en date de Paris : entre minuit et 1 h (2 h l'été), la date UTC est encore celle de la veille.
+const iso = (n: number) => addDays(parisToday(), n);
 let A: string, B: string, C: string, client: string, other: string;
 const job = async (o: { date?: string; postal?: string; client?: string; price?: number; priority?: string | null } = {}) =>
   (await q("insert into cleaning_jobs(client_id, title, job_date, postal_code, city, address, access_notes, price_ht, priority_until) values ($1,'Ménage Studio',$2,$3,'Pontoise','12 rue Secrète','Code 4821',$4,$5) returning id", [o.client ?? client, o.date ?? iso(5), o.postal ?? "95300", o.price ?? 100, o.priority ?? null]))[0].id as string;

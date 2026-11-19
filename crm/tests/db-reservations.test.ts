@@ -2,13 +2,15 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
+import { addDays, parisToday } from "../src/lib/domain/dates";
 
 const root = path.join(__dirname, "..");
 const read = (p: string) => readFileSync(path.join(root, p), "utf8");
 let db: PGlite;
 const q = async <T = any>(sql: string, params: any[] = []) => (await db.query<T>(sql, params)).rows;
 const fails = (sql: string, params: any[], re: RegExp) => expect(db.query(sql, params)).rejects.toThrow(re);
-const iso = (n: number) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
+// La base raisonne en date de Paris : entre minuit et 1 h (2 h l'été), la date UTC est encore celle de la veille.
+const iso = (n: number) => addDays(parisToday(), n);
 const ok = (o: object = {}) => JSON.stringify({ name: "Marie Durand", email: "marie@exemple.test", phone: "0600000000", address: "12 rue de la Paix", postal_code: "95300", city: "Pontoise", job_date: iso(3), kind: "t2", ...o });
 
 beforeAll(async () => {
