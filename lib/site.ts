@@ -31,7 +31,7 @@ export const siteConfig = {
     "https://g.page/r/CXuyftubiMPuEAE",
     "https://www.facebook.com/people/Proclean-Empire/61575993812750/",
     "https://www.instagram.com/proclean_empire/",
-    "https://www.linkedin.com/company/procelan-empire",
+    "https://www.linkedin.com/company/proclean-empire",
     "https://fr.trustpilot.com/review/procleanempire.com",
     "https://www.youtube.com/@ProCleanEmpire",
     "https://www.tiktok.com/@procleanempire"

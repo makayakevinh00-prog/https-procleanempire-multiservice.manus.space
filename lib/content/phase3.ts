@@ -220,7 +220,7 @@ export const socialLinks = [
   },
   {
     label: "LinkedIn",
-    href: "https://www.linkedin.com/company/procelan-empire",
+    href: "https://www.linkedin.com/company/proclean-empire",
     description: "Actualités entreprise, coulisses et preuve de sérieux B2B."
   },
   {
