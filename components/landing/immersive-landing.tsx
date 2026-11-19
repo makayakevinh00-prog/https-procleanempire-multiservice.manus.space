@@ -71,12 +71,12 @@ function Fact({ mark, title, text, delay = 0 }: { mark: string; title: string; t
 
 const gallery: GalleryPhoto[] = [
   { src: `${P}/appart-salle-a-manger.webp`, alt: "Salle à manger lumineuse : table en verre, chaises vertes et grandes fenêtres", label: "Logement Airbnb" },
-  { src: `${P}/equipe-vitrine.webp`, alt: "Agent ProClean Empire en tenue nettoyant les étagères en verre d'une boutique", label: "En intervention · boutique", portrait: true },
-  { src: `${P}/boutique-salon-attente.webp`, alt: "Coin d'attente d'une boutique : fauteuils en cuir, table basse et sol propres", label: "Accueil d'une boutique", portrait: true },
+  { src: `${P}/equipe-vitrine.webp`, alt: "Agent ProClean Empire en tenue nettoyant les étagères en verre d'une boutique", label: "En intervention · boutique" },
+  { src: `${P}/boutique-salon-attente.webp`, alt: "Coin d'attente d'une boutique : fauteuils en cuir, table basse et sol propres", label: "Accueil d'une boutique" },
   { src: `${P}/appart-serviettes.webp`, alt: "Serviettes pliées et roulées posées sur un lit blanc", label: "Le détail qui se voit" },
-  { src: "/media/photos/interieur-mercedes-apres.webp", alt: "Intérieur d'un véhicule nettoyé : sièges, tableau de bord et tapis", label: "Véhicules de société", portrait: true },
-  { src: `${P}/noel-cadeaux.webp`, alt: "Paquets cadeaux disposés au pied d'un sapin de Noël dans une boutique", label: "Décor de Noël", portrait: true },
-  { src: "/media/photos/nettoyage-avion-cessna.webp", alt: "Nettoyage du fuselage d'un avion léger", label: "Aviation", portrait: true },
+  { src: "/media/photos/interieur-mercedes-apres.webp", alt: "Intérieur d'un véhicule nettoyé : sièges, tableau de bord et tapis", label: "Véhicules de société", position: "object-[50%_45%]" },
+  { src: `${P}/noel-cadeaux.webp`, alt: "Paquets cadeaux disposés au pied d'un sapin de Noël dans une boutique", label: "Décor de Noël", position: "object-[50%_70%]" },
+  { src: "/media/photos/nettoyage-avion-cessna.webp", alt: "Nettoyage du fuselage d'un avion léger", label: "Aviation", position: "object-[50%_35%]" },
   { src: `${P}/appart-cuisine.webp`, alt: "Cuisine blanche ouverte sur le séjour, sol noir brillant", label: "Cuisine" }
 ];
 
@@ -203,14 +203,13 @@ export function ImmersiveLanding() {
                 sizes="(min-width: 1024px) 46vw, 100vw"
                 className="aspect-[3/2] w-full rounded-[2rem] shadow-[0_40px_70px_-30px_rgba(16,24,40,0.45)]"
               />
-              <div className="absolute -bottom-12 -left-3 w-[30%] overflow-hidden rounded-3xl border-[6px] border-white shadow-[0_30px_60px_-30px_rgba(16,24,40,0.5)] lg:-left-10">
+              <div className="absolute -bottom-10 -left-3 w-[42%] overflow-hidden rounded-3xl border-[6px] border-white shadow-[0_30px_60px_-30px_rgba(16,24,40,0.5)] lg:-left-10">
                 <ParallaxPhoto
                   src={`${P}/equipe-vitrine.webp`}
                   alt="Agent ProClean Empire en tenue nettoyant les étagères en verre d'une boutique"
                   curtain
-                  sizes="(min-width: 1024px) 14vw, 30vw"
-                  className="aspect-[3/4] w-full"
-                  imageClassName="object-[50%_62%]"
+                  sizes="(min-width: 1024px) 20vw, 42vw"
+                  className="aspect-[4/3] w-full"
                 />
               </div>
             </div>
