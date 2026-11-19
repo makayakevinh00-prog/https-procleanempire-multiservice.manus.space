@@ -1,16 +1,20 @@
-@import "@fontsource-variable/fraunces/opsz.css";
-@import "@fontsource-variable/fraunces/opsz-italic.css";
-
-/* Titres de la landing : serif éditoriale, graisse légère, corps optique automatique. */
+/* Titres : la même écriture que la page des nettoyeurs — sans empattement, très grasse, serrée. */
 .lp-serif {
-  font-family: "Fraunces Variable", "Iowan Old Style", Georgia, "Times New Roman", serif;
-  font-optical-sizing: auto;
-  font-weight: 380;
-  letter-spacing: -0.022em;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.04em;
 }
+/* Le mot mis en avant : en couleur, plus en italique. */
 .lp-serif em {
-  font-style: italic;
-  font-weight: 340;
+  font-style: normal;
+}
+h1.lp-serif em,
+h2.lp-serif em {
+  color: #1d6fe0;
+}
+.lp-grain h1.lp-serif em,
+.lp-grain h2.lp-serif em {
+  color: #8db8ff;
 }
 
 /* Grain photographique discret sur les fonds sombres. */
