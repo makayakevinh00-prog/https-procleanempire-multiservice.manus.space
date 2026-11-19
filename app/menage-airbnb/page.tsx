@@ -16,6 +16,14 @@ export default function MenageAirbnbPage() {
       title="Ménage Airbnb dans le Val-d'Oise (95) : un logement prêt pour chaque voyageur."
       lead="Pour les conciergeries et les propriétaires : nous préparons votre logement entre le départ et l'arrivée, le jour que vous fixez, avec le même niveau d'exigence à chaque passage."
       image={{ src: "/media/photos/landing/appart-chambre-etageres.webp", alt: "Chambre d'un logement Airbnb préparée pour l'arrivée des voyageurs : lit fait, serviettes roulées" }}
+      photos={[
+        { src: "/media/photos/landing/appart-salon-large.webp", alt: "Grand salon haussmannien lumineux, canapé blanc et table basse en verre" },
+        { src: "/media/photos/landing/appart-chambre-fenetres.webp", alt: "Chambre préparée : lit blanc, serviettes roulées, fenêtres sur les arbres" },
+        { src: "/media/photos/landing/appart-salle-a-manger.webp", alt: "Salle à manger : table en verre et chaises vertes" },
+        { src: "/media/photos/landing/appart-cuisine.webp", alt: "Cuisine blanche ouverte sur le séjour" },
+        { src: "/media/photos/landing/appart-chambre-patio.webp", alt: "Seconde chambre : lit blanc et coussins colorés" },
+        { src: "/media/photos/landing/appart-terrasse.webp", alt: "Petite terrasse avec deux fauteuils" },
+      ]}
       serviceId="airbnb"
       ctaLabel="Demander un devis pour mon Airbnb"
       intro={[

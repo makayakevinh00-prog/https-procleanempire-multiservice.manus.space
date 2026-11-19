@@ -143,7 +143,7 @@ export function ScrollBand({ children, reverse }: { children: ReactNode; reverse
   );
 }
 
-export type GalleryPhoto = { src: string; alt: string; label: string };
+export type GalleryPhoto = { src: string; alt: string; label: string; portrait?: boolean };
 
 /**
  * Galerie : sur grand écran, la page se fige et les photos défilent à l'horizontale
@@ -179,9 +179,16 @@ export function HorizontalGallery({ photos, intro }: { photos: GalleryPhoto[]; i
   const bar = useTransform(scrollYProgress, [0, 1], [0.08, 1]);
 
   const items = photos.map((photo, index) => (
-    <li key={photo.src} className={pinned ? "w-[38vw] min-w-[460px] shrink-0" : "w-[84vw] shrink-0 snap-start sm:w-[520px]"}>
-      <figure className={pinned && index % 2 === 1 ? "translate-y-10" : ""}>
-        <div className="relative aspect-[3/2] overflow-hidden rounded-2xl bg-[#dbe6fc]">
+    <li
+      key={photo.src}
+      className={
+        photo.portrait
+          ? pinned ? "w-[21vw] min-w-[260px] shrink-0" : "w-[62vw] shrink-0 snap-start sm:w-[320px]"
+          : pinned ? "w-[38vw] min-w-[460px] shrink-0" : "w-[84vw] shrink-0 snap-start sm:w-[520px]"
+      }
+    >
+      <figure>
+        <div className={`relative overflow-hidden rounded-2xl bg-[#dbe6fc] ${photo.portrait ? "aspect-[3/4]" : "aspect-[3/2]"}`}>
           <Image src={photo.src} alt={photo.alt} fill sizes="(min-width: 1024px) 38vw, (min-width: 640px) 520px, 84vw" className="object-cover" />
         </div>
         <figcaption className="mt-4 flex items-baseline gap-3 text-base text-[#101828]">

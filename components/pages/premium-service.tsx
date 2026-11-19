@@ -1,4 +1,5 @@
 import "@/components/landing/landing.css";
+import Image from "next/image";
 import Link from "next/link";
 import { ReactNode } from "react";
 import { Reveal } from "@/components/home/reveal";
@@ -20,6 +21,8 @@ export type PremiumServiceProps = {
   faq: { question: string; answer: string }[];
   schema: Record<string, unknown>;
   aside?: ReactNode;
+  /** Photos de réalisations, affichées en grille après les points clés. */
+  photos?: { src: string; alt: string }[];
 };
 
 /** Gabarit commun des pages services : même direction éditoriale que l'accueil, fin de page = devis contextualisé. */
@@ -78,6 +81,23 @@ export function PremiumService(props: PremiumServiceProps) {
           ))}
         </div>
       </section>
+
+      {props.photos?.length ? (
+        <section className="bg-white">
+          <div className="mx-auto max-w-[1680px] px-6 pt-20 md:px-12 md:pt-28">
+            <p className={`${LABEL} text-slate-600`}>En images</p>
+            <ul className="mt-8 grid gap-3 sm:grid-cols-2 md:gap-5 lg:grid-cols-3">
+              {props.photos.map((photo, index) => (
+                <Reveal as="li" key={photo.src} y={20} delay={0.05 * (index % 3)}>
+                  <div className="relative aspect-[3/2] overflow-hidden rounded-2xl bg-[#dbe6fc]">
+                    <Image src={photo.src} alt={photo.alt} fill sizes="(min-width: 1024px) 32vw, (min-width: 640px) 48vw, 100vw" className="object-cover" />
+                  </div>
+                </Reveal>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ) : null}
 
       {/* Contenu détaillé */}
       {props.blocks.map((block, blockIndex) => (
