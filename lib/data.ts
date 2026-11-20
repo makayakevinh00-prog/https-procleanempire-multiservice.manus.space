@@ -1,5 +1,6 @@
 import { STANDALONE_PAGES } from "./standalone-pages";
 import { getNavLinks } from "@/lib/i18n";
+import { siteConfig } from "@/lib/site";
 export type Service = {
   slug: string;
   title: string;
@@ -9,11 +10,14 @@ export type Service = {
   benefits: string[];
 };
 
+// Composant actuellement non importé/affiché sur le site (vérifié le 20/11/2026).
+// Les deux valeurs d'avis référencent siteConfig.googleRating pour ne jamais diverger
+// de la note affichée ailleurs sur le site (widget avis, JSON-LD aggregateRating).
 export const trustProofs = [
   { label: "Sites entretenus", value: "+70" },
   { label: "Interventions réalisées / mois", value: "+450" },
-  { label: "Note Google", value: "4,9/5" },
-  { label: "Avis vérifiés", value: "+55" },
+  { label: "Note Google", value: `${siteConfig.googleRating.value}/5` },
+  { label: "Avis vérifiés", value: `+${siteConfig.googleRating.count}` },
   { label: "Zone d'intervention", value: "Toute l'Île-de-France" },
   { label: "Assurance", value: "RC Pro incluse" }
 ];
