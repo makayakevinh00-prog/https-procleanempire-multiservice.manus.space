@@ -16,7 +16,7 @@ export default function EquipePage() {
     <>
       <PageHero
         title="Équipe ProClean Empire"
-        description="Présentez le visage humain de l&apos;entreprise : fondateur, équipes, valeurs et rigueur opérationnelle."
+        description="Fondateur, équipes de terrain et méthodes de travail : découvrez qui intervient chez vous et comment nous garantissons la qualité à chaque passage."
         breadcrumbs={[
           { label: "Accueil", href: "/" },
           { label: "Équipe" }

@@ -14,13 +14,20 @@ export function Footer() {
     { label: "Nettoyage de bureaux", href: "/nettoyage-bureaux" },
     { label: "Nettoyage de commerces", href: "/nettoyage-commerces" },
     { label: "Conciergerie d'entreprise", href: "/conciergerie-entreprise" },
-    { label: "Remise en état / fin de chantier", href: "/remise-en-etat" }
+    { label: "Remise en état / fin de chantier", href: "/remise-en-etat" },
+    { label: "Tous nos services", href: "/services" }
   ];
 
   const actions = [
     { label: "Prendre RDV", href: siteConfig.bookingUrl },
     { label: "Demander un devis", href: "/contact#devis" },
     { label: "Laisser un avis Google", href: siteConfig.googleReviewsUrl }
+  ];
+
+  const companyLinks = [
+    { label: "À propos", href: "/a-propos" },
+    { label: "Notre équipe", href: "/equipe" },
+    { label: "Questions fréquentes", href: "/faq" }
   ];
 
   return (
@@ -91,6 +98,13 @@ export function Footer() {
           </h3>
           <ul className="space-y-2 text-sm">
             {navLinks.map((link) => (
+              <li key={link.href}>
+                <Link href={link.href} className="transition hover:text-white">
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+            {companyLinks.map((link) => (
               <li key={link.href}>
                 <Link href={link.href} className="transition hover:text-white">
                   {link.label}
