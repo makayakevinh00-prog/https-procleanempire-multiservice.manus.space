@@ -15,6 +15,8 @@ import { Table, Td, Tr } from "@/components/ui/table";
 import { ConfirmAction } from "@/components/crm/confirm-action";
 import { enrichClientAction, addInteractionAction, addClientEmailAction, deleteClientEmailAction, setPipelineAction, toggleClientEmailInvoicesAction } from "@/app/actions/clients";
 import { archiveClientAction, deleteClientAction, deleteInteractionAction } from "@/app/actions/manage";
+import { createMandateLinkAction } from "@/app/actions/sepa";
+import { isOwner } from "@/lib/auth";
 import { PIPELINE, PIPELINE_LABEL, PIPELINE_TONE, type Pipeline } from "@/lib/request-type";
 import { cn, dueInfo, formatDate, formatEUR, formatHours } from "@/lib/utils";
 
@@ -26,6 +28,7 @@ export default async function ClientPage({ params, searchParams }: { params: { i
   const { data: c } = await supabase.from("clients").select("*").eq("id", params.id).maybeSingle();
   if (!c) notFound();
 
+  const owner = await isOwner();
   const { data: emails } = await supabase.from("client_emails").select("*").eq("client_id", c.id).order("created_at");
   const [contracts, quotes, invoices, interactions, impact] = await Promise.all([
     supabase.from("contracts").select("*").eq("client_id", c.id).order("created_at"),
@@ -147,6 +150,31 @@ export default async function ClientPage({ params, searchParams }: { params: { i
               </form>
             </CardContent>
           </Card>
+
+          {owner && (
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle>Prélèvement SEPA</CardTitle>
+                <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-medium", c.sepa_mandate_status === "actif" ? "bg-[#e6f1ea] text-[#2f7a55]" : c.sepa_mandate_status === "revoque" ? "bg-[#f6e4e1] text-[#b3382c]" : c.sepa_mandate_status === "en_attente" ? "bg-[#f7ecdb] text-[#8f5a12]" : "bg-secondary text-muted-foreground")}>
+                  {c.sepa_mandate_status === "actif" ? "Mandat actif" : c.sepa_mandate_status === "revoque" ? "Mandat révoqué" : c.sepa_mandate_status === "en_attente" ? "En attente de signature" : "Pas de mandat"}
+                </span>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                {c.sepa_mandate_status === "actif"
+                  ? <p className="text-muted-foreground">Mandat signé{c.sepa_mandate_at ? ` le ${formatDate(c.sepa_mandate_at)}` : ""}{c.sepa_last4 ? `, IBAN se terminant par ${c.sepa_last4}` : ""}. Le bouton « Prélever » apparaît sur ses factures émises.</p>
+                  : <p className="text-muted-foreground">Le client saisit son IBAN et signe le mandat en ligne, chez Stripe. Rien n&apos;est prélevé à cette étape, et aucun prélèvement ne part sans votre clic sur une facture.</p>}
+                {c.sepa_mandate_url && c.sepa_mandate_status !== "actif" && (
+                  <div className="rounded-xl bg-secondary p-3">
+                    <p className="mb-1.5 text-[13px] font-medium text-foreground">Lien à envoyer au client{c.sepa_mandate_url_at ? ` (créé le ${formatDate(c.sepa_mandate_url_at)}, valable 24 h)` : ""}</p>
+                    <input readOnly value={c.sepa_mandate_url} aria-label="Lien de mandat" className="w-full rounded-lg border bg-white px-3 py-2 text-[13px]" />
+                  </div>
+                )}
+                <form action={createMandateLinkAction.bind(null, c.id)}>
+                  <Button variant="outline">{c.sepa_mandate_status === "actif" ? "Refaire signer un mandat" : c.sepa_mandate_url ? "Créer un nouveau lien" : "Créer le lien de mandat"}</Button>
+                </form>
+              </CardContent>
+            </Card>
+          )}
 
           <Card className="lg:col-span-3 border-red-200/70">
             <CardHeader><CardTitle>Gérer cette fiche</CardTitle></CardHeader>
