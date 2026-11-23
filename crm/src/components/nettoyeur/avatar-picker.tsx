@@ -31,6 +31,7 @@ export function AvatarPicker({ token, initials, current }: { token: string; init
     const r = await cleanerAvatarAction(token, b64);
     setBusy(false);
     if (!r.ok) { setMsg(r.error ?? "Photo non enregistrée."); return false; }
+    try { localStorage.setItem("pce:photo:v", String(Date.now())); } catch { /* ignoré */ }
     router.refresh();
     return true;
   };
