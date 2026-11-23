@@ -18,8 +18,8 @@ function json(text: string): any | null {
 
 export function parseBefore(text: string): BeforeReport | null {
   const j = json(text);
-  if (!j || !Array.isArray(j.items)) return null;
-  const items = j.items.map((x: any) => ({ zone: str(x?.zone, 80), todo: str(x?.todo, 160) })).filter((x: any) => x.zone || x.todo).slice(0, 14);
+  if (!j || (!Array.isArray(j.items) && !Array.isArray(j.tasks))) return null;
+  const items = (Array.isArray(j.items) ? j.items : []).map((x: any) => ({ zone: str(x?.zone, 80), todo: str(x?.todo, 160) })).filter((x: any) => x.zone || x.todo).slice(0, 14);
   const lv = Number(j.level);
   const mn = Number(j.minutes);
   // Tâches dans l'ordre à faire : si l'IA n'en donne pas, elles viennent des points relevés.
@@ -84,10 +84,10 @@ const imgs = (images: Img[]): Part[] => images.flatMap((i): Part[] => [...(i.roo
 export type AiPart = Part;
 export const aiImages = imgs;
 const CLEANING_SYSTEM = "Tu contrôles la propreté de logements de location courte durée pour une entreprise de ménage. Tu décris uniquement ce que tu vois sur les photos ; tu n'inventes rien. Réponds uniquement par un objet JSON valide, en français.";
-async function ask(content: Part[]) { return askWith(CLEANING_SYSTEM, content, 2200); }
+async function ask(content: Part[]) { return askWith(CLEANING_SYSTEM, content, 4000); }
 /** Relevé d'arrivée : le nettoyeur attend devant son écran, donc modèle rapide ; si ce modèle n'est pas disponible, le modèle habituel prend le relais. */
 async function askFast(content: Part[]) {
-  const r = await askWith(CLEANING_SYSTEM, content, 1500, process.env.ANTHROPIC_MODEL_FAST || "claude-haiku-5-5");
+  const r = await askWith(CLEANING_SYSTEM, content, 4000, process.env.ANTHROPIC_MODEL_FAST || "claude-haiku-5-5");
   return r.text || !/^modèle introuvable/.test(r.error ?? "") ? r : ask(content);
 }
 
@@ -111,6 +111,7 @@ export async function askWith(system: string, content: Part[], maxTokens: number
     if (!res.ok) return { text: null, error: aiErrorLabel(res.status, await res.text().catch(() => "")) };
     const j: any = await res.json();
     const text = (j.content ?? []).filter((c: any) => c.type === "text").map((c: any) => c.text).join("\n");
+    if (j.stop_reason === "max_tokens") console.error("[ia] réponse coupée (max_tokens)", { model: j.model, fin: text.slice(-200) });
     return text ? { text, error: null } : { text: null, error: "réponse vide de l'IA" };
   } catch (e) { return { text: null, error: (e as Error).name === "TimeoutError" ? "l'IA n'a pas répondu à temps" : "service Anthropic injoignable" }; }
 }
@@ -119,9 +120,18 @@ export async function askWith(system: string, content: Part[], maxTokens: number
 export async function analyzeBefore(images: Img[], memory = ""): Promise<AiResult<BeforeReport>> {
   // Chaque image est numérotée : l'IA indique de quelle pièce elle vient (les captures sont tirées de la vidéo, sans que le nettoyeur ait rien à choisir).
   const shots: Part[] = images.flatMap((im, i): Part[] => [{ type: "text", text: `Image ${i + 1}${im.room ? ` (pièce : ${str(im.room, 60)})` : ""}` }, { type: "image", source: { type: "base64", media_type: im.content_type, data: im.b64 } }]);
-  const r = await askFast([...shots, { type: "text", text: `Ces ${images.length} images, tirées dans l'ordre de la vidéo du nettoyeur, montrent le logement À SON ARRIVÉE, avant le ménage.${memory} Fais le compte rendu : (1) "items" : ce qu'il faut nettoyer (pièce ou élément, et quoi faire), au maximum 8 points courts, du plus sale au moins sale, en signalant les coins très sales ; (2) "tasks" : la liste des tâches à donner au nettoyeur, DANS L'ORDRE où il doit les faire (6 à 12 phrases courtes à l'impératif, précises à ce qui est visible, par exemple « Cuisine : dégraisser les plaques (traces de gras) » ; commence par aérer et sortir les poubelles, finis par les sols et le tour de contrôle) ; (3) "frame_rooms" : pour CHAQUE image, dans l'ordre, la pièce (Cuisine, Salon, Chambre, Salle de bain, WC, Entrée, Autre) — exactement ${images.length} valeurs ; (4) un niveau de saleté global de 1 (propre) à 5 (très sale), l'état général en une phrase, le rangement en une phrase (ce qui traîne, ce qui est déplacé), la liste des zones visibles, et le temps de ménage estimé pour une personne, en minutes. Ne décris que ce qui est visible. Réponds : {"items":[{"zone":"...","todo":"..."}],"tasks":["..."],"frame_rooms":["Cuisine"],"level":3,"state":"...","tidy":"...","zones":["Cuisine","Salon"],"minutes":120,"summary":"une ou deux phrases"}` }]);
+  const content: Part[] = [...shots, { type: "text", text: `Ces ${images.length} images, tirées dans l'ordre de la vidéo du nettoyeur, montrent le logement À SON ARRIVÉE, avant le ménage.${memory} Fais le compte rendu : (1) "items" : ce qu'il faut nettoyer (pièce ou élément, et quoi faire), au maximum 8 points courts, du plus sale au moins sale, en signalant les coins très sales ; (2) "tasks" : la liste des tâches à donner au nettoyeur, DANS L'ORDRE où il doit les faire (6 à 12 phrases courtes à l'impératif, précises à ce qui est visible, par exemple « Cuisine : dégraisser les plaques (traces de gras) » ; commence par aérer et sortir les poubelles, finis par les sols et le tour de contrôle) ; (3) "frame_rooms" : pour CHAQUE image, dans l'ordre, la pièce (Cuisine, Salon, Chambre, Salle de bain, WC, Entrée, Autre) — exactement ${images.length} valeurs ; (4) un niveau de saleté global de 1 (propre) à 5 (très sale), l'état général en une phrase, le rangement en une phrase (ce qui traîne, ce qui est déplacé), la liste des zones visibles, et le temps de ménage estimé pour une personne, en minutes. Ne décris que ce qui est visible. Réponds : {"items":[{"zone":"...","todo":"..."}],"tasks":["..."],"frame_rooms":["Cuisine"],"level":3,"state":"...","tidy":"...","zones":["Cuisine","Salon"],"minutes":120,"summary":"une ou deux phrases"}` }];
+  const r = await askFast(content);
   if (!r.text) return { report: null, error: r.error };
-  const report = parseBefore(r.text);
+  let report = parseBefore(r.text);
+  if (!report) {
+    // Réponse inexploitable du modèle rapide : on la consigne et on redemande une fois au modèle habituel.
+    console.error("[ia] relevé d'arrivée illisible", { debut: r.text.slice(0, 300), fin: r.text.slice(-300) });
+    const again = await ask(content);
+    if (!again.text) return { report: null, error: again.error };
+    report = parseBefore(again.text);
+    if (!report) console.error("[ia] relevé d'arrivée illisible (second essai)", { debut: again.text.slice(0, 300), fin: again.text.slice(-300) });
+  }
   return { report, error: report ? null : "réponse de l'IA illisible" };
 }
 
