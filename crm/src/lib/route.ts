@@ -30,13 +30,16 @@ const get = async (url: string) => {
  */
 export async function routeEstimate(from: Point, to: Point, now = new Date()): Promise<RouteEstimate> {
   const key = process.env.TOMTOM_API_KEY;
-  try {
-    if (key) {
-      const d = await get(`https://api.tomtom.com/routing/1/calculateRoute/${from.lat},${from.lng}:${to.lat},${to.lng}/json?traffic=true&travelMode=car&key=${encodeURIComponent(key)}`);
-      const s = d?.routes?.[0]?.summary;
-      if (s?.travelTimeInSeconds) return { minutes: Math.max(1, Math.round(s.travelTimeInSeconds / 60)), km: Math.round(s.lengthInMeters / 100) / 10, source: "trafic" };
+  if (key) {
+    const loc = `${from.lat},${from.lng}:${to.lat},${to.lng}`, k = encodeURIComponent(key);
+    // Deux générations d'API chez TomTom : selon le compte, la clé ouvre l'une ou l'autre. Les deux tiennent compte du trafic en direct.
+    for (const url of [`https://api.tomtom.com/maps/orbis/routing/calculateRoute/${loc}/json?apiVersion=2&key=${k}`, `https://api.tomtom.com/routing/1/calculateRoute/${loc}/json?traffic=true&travelMode=car&key=${k}`]) {
+      try {
+        const sum = (await get(url))?.routes?.[0]?.summary;
+        if (sum?.travelTimeInSeconds) return { minutes: Math.max(1, Math.round(sum.travelTimeInSeconds / 60)), km: Math.round((sum.lengthInMeters ?? 0) / 100) / 10, source: "trafic" };
+      } catch { /* on tente l'autre adresse, puis l'itinéraire sans trafic */ }
     }
-  } catch { /* on tente l'itinéraire sans trafic */ }
+  }
   try {
     const d = await get(`https://router.project-osrm.org/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}?overview=false`);
     const r = d?.routes?.[0];
