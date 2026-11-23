@@ -31,7 +31,7 @@ export function VideosGrid() {
   return (
     <section className="section pt-0">
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft md:p-10">
-        <h1 className="text-4xl font-bold text-[#14213d] md:text-5xl">{videosPageContent.title}</h1>
+        <h2 className="text-4xl font-bold text-[#14213d] md:text-5xl">{videosPageContent.title}</h2>
         <p className="mt-4 max-w-3xl text-lg leading-relaxed text-slate-700">
           {videosPageContent.description}
         </p>

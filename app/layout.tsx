@@ -14,7 +14,7 @@ const googleSiteVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
 const vercelAnalyticsEnabled = process.env.NEXT_PUBLIC_VERCEL_ANALYTICS === "1";
 
 export const metadata: Metadata = {
-  title: "Entreprise de nettoyage à Pontoise, Val-d'Oise et Paris | ProClean Empire",
+  title: "Entreprise de nettoyage à Paris et dans le Val-d'Oise (95) | ProClean Empire",
   description:
     "ProClean Empire, entreprise de nettoyage à Pontoise : nettoyage de bureaux, commerces, ménage Airbnb et remise en état dans le Val-d'Oise et à Paris. Devis sous 24h.",
   metadataBase: new URL(siteConfig.url),
@@ -46,7 +46,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       "Conciergerie d'entreprise",
       "Remise en état"
     ].map((name) => ({ "@type": "Offer", itemOffered: { "@type": "Service", name } })),
-    areaServed: ["Pontoise", "Cergy", "Val-d'Oise", "Paris", "Seine-Saint-Denis", "Saint-Ouen-sur-Seine", "Île-de-France"].map((name) => ({ "@type": "Place", name })),
+    areaServed: [
+      { "@type": "AdministrativeArea", name: "Paris (75)" },
+      { "@type": "AdministrativeArea", name: "Val-d'Oise (95)" },
+      ...["Pontoise", "Cergy", "Argenteuil", "Sarcelles", "Franconville", "Taverny", "Saint-Ouen-l'Aumône", "Éragny", "Osny", "Roissy-en-France", "Seine-Saint-Denis", "Saint-Ouen-sur-Seine", "Île-de-France"].map((name) => ({ "@type": "City", name }))
+    ],
     telephone: siteConfig.phoneHref.replace("tel:", ""),
     email: siteConfig.email,
     address: {

@@ -21,9 +21,9 @@ export function CaseStudyList() {
         <p className="text-sm font-semibold uppercase tracking-wide text-[#1d6fe0]">
           {caseStudiesPageContent.eyebrow}
         </p>
-        <h1 className="mt-3 text-4xl font-bold text-[#14213d] md:text-5xl">
+        <h2 className="mt-3 text-4xl font-bold text-[#14213d] md:text-5xl">
           {caseStudiesPageContent.title}
-        </h1>
+        </h2>
         <p className="mt-4 max-w-3xl text-lg leading-relaxed text-slate-700">
           {caseStudiesPageContent.description}
         </p>
