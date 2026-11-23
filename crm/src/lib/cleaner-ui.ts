@@ -28,6 +28,11 @@ export function splitPrice(priceHt: number, cleanerPct: number, platformPct: num
 }
 export const pctsValid = (c: number, p: number, l: number) => c >= 50 && c <= 90 && p >= 0 && l >= 0 && Math.abs(c + p + l - 100) < 0.005;
 
+/** TVA appliquée aux ménages réservés en ligne par un particulier (taux normal). Les tarifs sont saisis hors taxes dans le CRM. */
+export const BOOKING_VAT_PCT = 20;
+/** Prix toutes taxes comprises, arrondi au centime : c'est ce prix qu'un particulier doit voir avant de réserver. */
+export const ttc = (priceHt: number | string | null | undefined, vatPct: number = BOOKING_VAT_PCT) => Math.round(Number(priceHt ?? 0) * (100 + vatPct)) / 100;
+
 /** Étapes du linge, dans l'ordre : le nettoyeur dépose, l'entreprise fait laver et renvoie, le nettoyeur récupère et remet en place. */
 export const LINEN_STEP: Record<string, string> = { a_deposer: "à déposer", depose: "déposé, en cours de lavage", lave: "lavé, bientôt renvoyé", renvoye: "renvoyé : à récupérer", recupere: "récupéré : à remettre", remis: "remis en place ✓" };
 export const LINEN_NEXT: Record<string, string> = { depose: "lave", lave: "renvoye" };

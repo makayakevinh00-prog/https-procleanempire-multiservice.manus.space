@@ -276,3 +276,22 @@ export function TaskList({ token, job, tasks }: { token: string; job: string; ta
     </div>
   );
 }
+
+/** Offre réservée : compte à rebours jusqu'à l'ouverture de la demande à plus de nettoyeurs. À zéro, la ligne disparaît. */
+export function ReservedCountdown({ until, count }: { until: string; count: number }) {
+  const end = new Date(until).getTime();
+  const [left, setLeft] = useState<number | null>(null);
+  useEffect(() => {
+    const tick = () => setLeft(Math.max(0, Math.ceil((end - Date.now()) / 1000)));
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, [end]);
+  if (left === null || left <= 0) return null;
+  return (
+    <div role="timer" aria-live="off" className="flex items-center justify-between gap-3 rounded-2xl bg-[var(--a-okbg)] px-3 py-2 text-[13px] font-bold text-[var(--a-ok)]">
+      <span>Réservée aux {count} nettoyeurs les mieux placés</span>
+      <span className="num text-[16px] font-extrabold">{Math.floor(left / 60)}:{String(left % 60).padStart(2, "0")}</span>
+    </div>
+  );
+}

@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { eur, ibanValid, maskIban, parseDepartments, pctsValid, slot, splitPrice } from "@/lib/cleaner-ui";
+import { eur, ibanValid, maskIban, parseDepartments, pctsValid, slot, splitPrice, ttc } from "@/lib/cleaner-ui";
 
 describe("application nettoyeur", () => {
+  it("prix affiché au particulier : toutes taxes comprises, au centime", () => {
+    expect(ttc(60)).toBe(72);
+    expect(ttc(45)).toBe(54);
+    expect(ttc(33.33)).toBe(40);
+    expect(ttc("95")).toBe(114);
+    expect(ttc(60, 10)).toBe(66);
+    expect(ttc(null)).toBe(0);
+    expect(eur(ttc(60))).toBe("72 €");
+  });
   it("départements : nettoyés, triés, sans doublon", () => {
     expect(parseDepartments("95, 78 ; 95 75")).toEqual(["75", "78", "95"]);
     expect(parseDepartments("2a, 971, abc, 1, 9999")).toEqual(["2A", "971"]);

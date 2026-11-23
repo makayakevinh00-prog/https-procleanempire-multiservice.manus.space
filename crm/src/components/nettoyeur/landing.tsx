@@ -16,6 +16,7 @@ import {
   Wallet,
   Zap,
 } from "lucide-react";
+import { LegalLinks } from "@/components/legal/links";
 import { Reveal } from "@/components/nettoyeur/reveal";
 
 const FOCUS =
@@ -672,6 +673,7 @@ export function CleanerLanding() {
           <p className="mt-6 text-center text-[13px] text-[var(--a-mute)]">
             Une application ProClean Empire.
           </p>
+          <LegalLinks className="mt-2" />
         </section>
       </main>
 

@@ -2,7 +2,7 @@ import { MapPin, Clock, Star } from "lucide-react";
 import type { CleanerJob } from "@/lib/agent";
 import { cleanerAcceptAction } from "@/app/actions/nettoyeur";
 import { dayFr, eur, slot } from "@/lib/cleaner-ui";
-import { RequestCard } from "@/components/nettoyeur/live";
+import { RequestCard, ReservedCountdown } from "@/components/nettoyeur/live";
 
 /** Une demande de ménage : lieu, distance, créneau, gain, « J'accepte » ou « Passer ». */
 export function JobRequest({ token, j, showDay }: { token: string; j: CleanerJob; showDay?: boolean }) {
@@ -17,6 +17,7 @@ export function JobRequest({ token, j, showDay }: { token: string; j: CleanerJob
         </div>
         <div className="shrink-0 whitespace-nowrap text-right"><div className="num text-[26px] font-extrabold leading-none text-[var(--a-ok)]">{eur(j.amount)}</div><div className="text-[12px] text-[var(--a-mute)]">pour vous</div></div>
       </div>
+      {j.reserved_until && j.reserved_for ? <ReservedCountdown until={j.reserved_until} count={j.reserved_for} /> : null}
       {j.rank === 1 && <div className="inline-flex rounded-full bg-[var(--a-okbg)] px-2.5 py-1 text-xs font-extrabold text-[var(--a-ok)]">Vous êtes le mieux placé</div>}
       {j.favorite && <div className="inline-flex items-center gap-1 rounded-full bg-[var(--a-warnbg)] px-2.5 py-1 text-xs font-extrabold text-[var(--a-warn)]"><Star className="h-3.5 w-3.5" />Le propriétaire vous a choisi comme favori</div>}
     </RequestCard>

@@ -3,10 +3,11 @@ import Image from "next/image";
 import { cookies } from "next/headers";
 import { cleanerRecoverAction, cleanerSignupAction } from "@/app/actions/nettoyeur";
 import { FIELD_CSS } from "@/components/agent/theme";
+import { LegalLinks } from "@/components/legal/links";
 import { agentPrefs } from "@/lib/agent";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Devenir nettoyeur — ProClean Empire", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Devenir nettoyeur — ProClean Empire", description: "Inscription gratuite pour les nettoyeurs indépendants : recevez les ménages Airbnb proches de chez vous et soyez payé par virement. Sans SIRET, nous vous guidons.", robots: { index: true, follow: true } };
 
 const input = "h-12 w-full rounded-xl border border-[var(--a-line)] bg-[var(--a-bg)] px-3 text-base";
 
@@ -48,6 +49,7 @@ export default function CleanerSignup({ searchParams }: { searchParams: { ok?: s
               <select name="radius_km" defaultValue="15" className={input}><option value="5">5 km autour de chez moi</option><option value="10">10 km</option><option value="15">15 km</option><option value="25">25 km</option><option value="40">40 km</option><option value="60">60 km</option></select>
               <span className="text-xs text-[var(--a-mute)]">Vous verrez les ménages dans ce rayon, avec la distance.</span></label>
             <button className="h-14 w-full rounded-2xl bg-[var(--a-pri)] text-lg font-extrabold text-white">Créer mon compte</button>
+            <p className="text-center text-xs text-[var(--a-mute)]">En créant votre compte, vous acceptez nos <a href="/cgu" className="underline underline-offset-2">conditions d&apos;utilisation</a> et notre <a href="/confidentialite" className="underline underline-offset-2">politique de confidentialité</a>.</p>
           </form>
         )}
         <form action={cleanerRecoverAction} className="mt-6 space-y-2 rounded-3xl border border-[var(--a-line)] p-4">
@@ -56,6 +58,7 @@ export default function CleanerSignup({ searchParams }: { searchParams: { ok?: s
           <input name="email" type="email" required placeholder="Votre e-mail" className={input} autoComplete="email" />
           <button className="h-12 w-full rounded-2xl border border-[var(--a-pri)] text-base font-extrabold text-[var(--a-pri)]">Recevoir un nouveau lien</button>
         </form>
+        <LegalLinks className="mt-6" />
       </main>
     </div>
   );
