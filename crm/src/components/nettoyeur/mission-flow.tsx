@@ -106,7 +106,7 @@ export function MissionFlow({
       () => {
         if (document.visibilityState === "visible") router.refresh();
       },
-      phase === "analyse" ? 4000 : 8000,
+      phase === "analyse" ? 2000 : 8000,
     );
     return () => clearInterval(id);
   }, [phase, router]);
