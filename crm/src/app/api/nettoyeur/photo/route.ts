@@ -19,9 +19,10 @@ export async function POST(req: Request) {
   const { error } = await agentClient().rpc("cleaner_add_photo", { p_token: token, p_job: job, p_kind: kind, p_content_type: file.type, p_data_b64: b64, p_room: String(fd?.get("room") ?? "").slice(0, 60) || null });
   if (error) return NextResponse.json({ error: agentMessage(error.message) }, { status: /ACCES_REFUSE/.test(error.message) ? 403 : 422 });
 
-  let analysed = false;
+  let analysed = false, aiError: string | null = null;
   if (kind === "avant" && fd?.get("defer") !== "1") {
-    try { analysed = (await runBeforeAnalysis(job)) === null; } catch { /* l'analyse ne doit jamais empêcher l'envoi de la photo */ }
+    try { aiError = await runBeforeAnalysis(job); analysed = aiError === null; } catch (e) { aiError = `erreur interne : ${(e as Error).message}`; /* l'analyse ne doit jamais empêcher l'envoi de la photo */ }
+    if (aiError) console.error("[mission] analyse d'arrivée impossible :", aiError);
   }
-  return NextResponse.json({ ok: true, analysed });
+  return NextResponse.json({ ok: true, analysed, aiError });
 }

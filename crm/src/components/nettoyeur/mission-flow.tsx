@@ -77,6 +77,8 @@ export function MissionFlow({
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
   const [waited, setWaited] = useState(false);
+  const [aiErr, setAiErr] = useState("");
+  const [retrying, setRetrying] = useState(false);
   const [items, setItems] = useState(tasks);
   useEffect(() => setItems(tasks), [tasks]);
 
@@ -113,6 +115,27 @@ export function MissionFlow({
     if (phase !== "analyse") return;
     const t = setTimeout(() => setWaited(true), WAIT_AI_MS);
     return () => clearTimeout(t);
+  }, [phase]);
+
+  // Relance du relevé par l'IA (une fois toute seule après 20 s, puis sur demande) ; la raison de l'échec est affichée telle quelle.
+  const analyse = async () => {
+    setRetrying(true);
+    setAiErr("");
+    try {
+      const r = await fetch("/api/nettoyeur/analyse", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token, job: job.id }) });
+      const j = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string | null };
+      if (!j.ok) setAiErr(j.error ?? "l'IA n'a pas répondu");
+      else router.refresh();
+    } catch {
+      setAiErr("pas de réseau");
+    }
+    setRetrying(false);
+  };
+  useEffect(() => {
+    if (phase !== "analyse") return;
+    const t = setTimeout(() => void analyse(), 20_000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
   const arrive = async () => {
@@ -265,13 +288,23 @@ export function MissionFlow({
             L&apos;IA analyse le logement…
           </p>
           <p className="mt-1 text-[14px] text-[var(--a-mute)]">
-            Vos tâches arrivent dans un instant.
+            {retrying ? "Nouvel essai en cours…" : "Vos tâches arrivent dans un instant."}
           </p>
+          {aiErr && <p className="mt-2 text-[13px] font-semibold text-[var(--a-bad)]">L&apos;IA n&apos;a pas pu analyser : {aiErr}.</p>}
         </div>
       )}
 
       {!busy && phase === "menage" && (
         <>
+          {!report && (
+            <section role="alert" className="space-y-2 rounded-3xl bg-[var(--a-warnbg)] p-4 text-[14px]">
+              <b className="block text-[15px] text-[var(--a-warn)]">L&apos;IA n&apos;a pas pu analyser le logement{aiErr ? ` : ${aiErr}` : ""}.</b>
+              <p>Cette liste est la liste standard, pas celle de votre logement.</p>
+              <button type="button" disabled={retrying} onClick={() => void analyse()} className="h-11 rounded-full bg-[var(--a-pri)] px-5 font-extrabold text-white disabled:opacity-60">
+                {retrying ? "Analyse en cours…" : "Relancer l'analyse"}
+              </button>
+            </section>
+          )}
           {report && (report.summary || report.state) && (
             <section className="space-y-1 rounded-3xl bg-[var(--a-soft)] p-4 text-[14px]">
               <div className="flex flex-wrap items-center gap-2">
