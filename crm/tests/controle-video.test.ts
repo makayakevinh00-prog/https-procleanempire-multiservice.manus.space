@@ -134,6 +134,9 @@ describe("relevé d'arrivée : ce que l'IA voit et ses conseils", () => {
     expect(r?.tips).toEqual([{ surface: "Parquet", product: "nettoyant neutre dilué", how: "serpillière essorée" }]);
     expect(r?.tasks).toEqual(["Bureau : replacer les chaises"]);
     const z = parseBefore(JSON.stringify({ items: [], tasks: ["x"], refilm: [{ zone: "Coin canapé", why: "image floue" }, { why: "sans zone" }, { zone: "A" }, { zone: "B" }, { zone: "C" }] }));
-    expect(z?.refilm).toEqual([{ zone: "Coin canapé", why: "image floue" }, { zone: "A", why: "" }, { zone: "B", why: "" }]);
+    expect(z?.refilm).toEqual([{ zone: "Coin canapé", why: "image floue" }, { zone: "A", why: "" }, { zone: "B", why: "" }, { zone: "C", why: "" }]);
+    const { placePrompt } = await import("@/lib/ai-inspect");
+    expect(placePrompt([], null)).toBe("");
+    expect(placePrompt(["Bureau 1", "Salle de réunion"], { rooms: [{ room: "Bureau 1", steps: ["vider la corbeille"] }], attention: ["écrans fragiles"] })).toMatch(/Bureau 1, Salle de réunion.*pas encore filmée.*vider la corbeille.*écrans fragiles/s);
   });
 });

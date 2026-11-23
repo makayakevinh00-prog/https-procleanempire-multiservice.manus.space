@@ -97,3 +97,10 @@ describe("0077 — photo du nettoyeur", () => {
     expect((await q("select cleaner_avatar($1) a", [TA]))[0].a).toBeNull();
   });
 });
+
+describe("0078 — l'IA connaît le lieu", () => {
+  it("la migration se rejoue sans erreur", async () => {
+    await db.exec(read("supabase/migrations/0078_ia_connait_le_lieu.sql"));
+    await db.exec(read("supabase/migrations/0078_ia_connait_le_lieu.sql"));
+  });
+});

@@ -1,6 +1,6 @@
 import "server-only";
 import { automationClient, automationSecret } from "@/lib/automation/deps";
-import { aiConfigured, analyzeAfter, analyzeBefore, type AfterReport, type BeforeReport, type Guide, type Img } from "@/lib/ai-inspect";
+import { aiConfigured, analyzeAfter, analyzeBefore, placePrompt, type AfterReport, type BeforeReport, type Guide, type Img } from "@/lib/ai-inspect";
 import { isMemory, memoryPrompt, updateMemory } from "@/lib/marketplace/memory";
 import { outcomeNotice, startNotice, type JobBrief } from "@/lib/marketplace/job-notices";
 import { mailConfigured, sendMail } from "@/lib/mail";
@@ -31,7 +31,7 @@ export async function runBeforeAnalysis(jobId: string): Promise<string | null> {
   const [{ data }, briefRes] = await Promise.all([a.rpc("automation_job_photos", { p_secret: secret, p_job: jobId, p_kind: "avant" }), a.rpc("automation_job_brief", { p_secret: secret, p_job: jobId })]);
   const photos = (data ?? []) as Img[], brief = (briefRes.error ? null : briefRes.data) as JobBrief | null;
   const memory = brief && isMemory(brief.memory) ? brief.memory : null;
-  const r = await analyzeBefore(photos, memoryPrompt(memory, today));
+  const r = await analyzeBefore(photos, memoryPrompt(memory, today), placePrompt(brief?.rooms, brief?.guide));
   if (!r.report) return r.error;
   await a.rpc("automation_set_job_analysis", { p_secret: secret, p_job: jobId, p_kind: "avant", p_report: r.report, p_verdict: null });
   // La liste des tâches du nettoyeur devient celle de l'IA, dans l'ordre (sans effet si le ménage a déjà des tâches cochées ou si la base n'est pas à jour).

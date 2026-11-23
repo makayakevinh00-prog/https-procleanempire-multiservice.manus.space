@@ -5,6 +5,7 @@ export type JobBrief = {
   title: string; date: string; city: string | null; status: string; arrived_at: string | null; duration_hours: number | null; est_minutes: number | null; rework_minutes: number | null;
   listing: string | null; has_listing: boolean; memory: unknown; before_report: BeforeReport | null; ai_report: AfterReport | { summary?: string } | null; started_notified: boolean;
   cleaner: string | null; client: string | null; emails: string[];
+  rooms?: string[]; guide?: { summary?: string; rooms?: { room: string; steps: string[] }[]; attention?: string[] } | null;
 };
 export type Notice = { subject: string; text: string };
 

@@ -1,0 +1,1 @@
+-- Retour à la version 0075 de automation_job_brief : rejouer la définition de 0075_controle_video.sql (les champs « rooms » et « guide » sont simplement ignorés par l'ancien code).
