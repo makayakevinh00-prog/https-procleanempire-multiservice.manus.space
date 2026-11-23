@@ -133,5 +133,7 @@ describe("relevé d'arrivée : ce que l'IA voit et ses conseils", () => {
     expect(r?.seen).toBe("Un bureau avec quatre chaises.");
     expect(r?.tips).toEqual([{ surface: "Parquet", product: "nettoyant neutre dilué", how: "serpillière essorée" }]);
     expect(r?.tasks).toEqual(["Bureau : replacer les chaises"]);
+    const z = parseBefore(JSON.stringify({ items: [], tasks: ["x"], refilm: [{ zone: "Coin canapé", why: "image floue" }, { why: "sans zone" }, { zone: "A" }, { zone: "B" }, { zone: "C" }] }));
+    expect(z?.refilm).toEqual([{ zone: "Coin canapé", why: "image floue" }, { zone: "A", why: "" }, { zone: "B", why: "" }]);
   });
 });

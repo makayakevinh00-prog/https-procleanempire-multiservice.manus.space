@@ -37,6 +37,7 @@ export type MissionJob = {
     minutes?: number | null;
     tasks?: string[];
     seen?: string;
+    refilm?: { zone: string; why: string }[];
     tips?: { surface: string; product: string; how: string }[];
   } | null;
   ai_report: {
@@ -82,6 +83,16 @@ export function MissionFlow({
   const [aiErr, setAiErr] = useState("");
   const [retrying, setRetrying] = useState(false);
   const [useStd, setUseStd] = useState(false);
+  // Zones à refilmer demandées par l'IA : une seule relance par ménage (refilmé ou ignoré, la demande ne revient pas).
+  const [refilmDone, setRefilmDone] = useState(true);
+  useEffect(() => {
+    try { setRefilmDone(localStorage.getItem(`pce:refilm:${job.id}`) === "1"); } catch { setRefilmDone(false); }
+  }, [job.id]);
+  const closeRefilm = (film: boolean) => {
+    try { localStorage.setItem(`pce:refilm:${job.id}`, "1"); } catch { /* ignoré */ }
+    setRefilmDone(true);
+    if (film) setCam("avant");
+  };
   const [items, setItems] = useState(tasks);
   useEffect(() => setItems(tasks), [tasks]);
 
@@ -336,6 +347,18 @@ export function MissionFlow({
                   <b>Rangement :</b> {report.tidy}
                 </p>
               )}
+            </section>
+          )}
+          {!refilmDone && (report?.refilm?.length ?? 0) > 0 && (
+            <section role="alert" className="space-y-2 rounded-3xl bg-[var(--a-warnbg)] p-4 text-[14px]">
+              <b className="block text-[16px] text-[var(--a-warn)]">À filmer encore, pour un relevé précis</b>
+              <ul className="space-y-1">
+                {report!.refilm!.map((z, i) => (
+                  <li key={i}><b>{z.zone}</b>{z.why ? ` — ${z.why}` : ""}</li>
+                ))}
+              </ul>
+              <button type="button" onClick={() => closeRefilm(true)} className="h-12 w-full rounded-full bg-[var(--a-pri)] text-[16px] font-extrabold text-white">● Filmer ces zones</button>
+              <button type="button" onClick={() => closeRefilm(false)} className="mx-auto block text-[13px] font-bold text-[var(--a-mute)] underline">Continuer sans refilmer</button>
             </section>
           )}
           {(report?.tips?.length ?? 0) > 0 && (
