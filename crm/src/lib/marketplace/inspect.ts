@@ -7,9 +7,9 @@ import { mailConfigured, sendMail } from "@/lib/mail";
 import { parisToday } from "@/lib/domain/dates";
 
 const admin = () => process.env.MAIL_ADMIN ?? "contact@procleanempire.com";
-const files = (photos: Img[], prefix: string, max = 6) => photos.slice(0, max).map((p, i) => ({ filename: `${prefix}-${i + 1}${p.room ? `-${p.room.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}` : ""}.${p.content_type === "image/png" ? "png" : p.content_type === "image/webp" ? "webp" : "jpg"}`, b64: p.b64 }));
+const files = (photos: Img[], prefix: string, max = 6) => photos.slice(0, max).map((p, i) => ({ filename: `${prefix}-${i + 1}${p.room ? `-${p.room.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}` : ""}.${p.content_type === "image/png" ? "png" : p.content_type === "image/webp" ? "webp" : "jpg"}`, bytes: new Uint8Array(Buffer.from(p.b64, "base64")) }));
 /** Envoi à la direction et, séparément, au propriétaire ou à la conciergerie (jamais les deux dans le même message). */
-async function tell(b: JobBrief, owner: { subject: string; text: string }, direction: { subject: string; text: string }, attachments: { filename: string; b64: string }[]) {
+async function tell(b: JobBrief, owner: { subject: string; text: string }, direction: { subject: string; text: string }, attachments: { filename: string; bytes: Uint8Array }[]) {
   if (!mailConfigured()) return;
   await sendMail({ to: admin(), ...direction, attachments }).catch(() => undefined);
   const to = b.emails.filter((e) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e) && e !== admin().toLowerCase()).slice(0, 4);

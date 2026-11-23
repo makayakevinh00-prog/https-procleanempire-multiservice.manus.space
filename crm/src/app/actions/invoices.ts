@@ -19,6 +19,7 @@ import { pickRecipients } from "@/lib/recipients";
 import { syncQonto } from "@/lib/qonto";
 import { createAdmin } from "@/lib/supabase/server";
 import { loadPriceCheck } from "@/lib/price-check-data";
+import { batchEmail, sendable, type BatchInvoice } from "@/lib/invoice-batch";
 
 export async function createInvoiceAction(fd: FormData) {
   await requireAccess("finances");
@@ -154,6 +155,37 @@ export async function resendInvoiceAction(id: string, fd: FormData) {
   await supabase.from("invoices").update({ sent_at: new Date().toISOString(), sent_to: to.join(", ") }).eq("id", id);
   revalidatePath(back);
   flash(back, "ok", `Facture ${(inv as any).number} envoyée à ${to.join(", ")}.`);
+}
+
+/**
+ * Depuis la fiche client : envoie en UN seul e-mail les factures cochées (déjà émises), sans ouvrir chacune.
+ * Mêmes garde-fous que le renvoi d'une facture : patron uniquement, contact réservé confirmé, pas de double envoi.
+ * Les brouillons ne partent jamais d'ici : ils se valident un par un (numéro définitif, contrôle des prix).
+ */
+export async function sendClientInvoicesAction(clientId: string, fd: FormData) {
+  await requireOwner();
+  const back = `/clients/${clientId}?onglet=documents`;
+  const supabase = createClient();
+  const { list: to, invalid } = pickRecipients(fd);
+  if (invalid.length) flash(back, "error", `Adresse(s) invalide(s) : ${invalid.join(", ")}.`);
+  if (!to.length) flash(back, "error", "Cochez au moins une adresse e-mail.");
+  const ids = Array.from(new Set(fd.getAll("invoice").map(String))).filter((x) => /^[0-9a-f-]{36}$/i.test(x));
+  if (!ids.length) flash(back, "error", "Cochez au moins une facture à envoyer.");
+  if (ids.length > 10) flash(back, "error", "Dix factures au plus par e-mail : envoyez-les en deux fois.");
+  const { data } = await supabase.from("invoices").select("id, number, status, total_ttc, paid_amount, due_date, sent_at, sent_to").eq("client_id", clientId).in("id", ids).order("issue_date");
+  const list = ((data ?? []) as (BatchInvoice & { number: string | null; sent_at: string | null; sent_to: string | null })[]).filter(sendable) as (BatchInvoice & { sent_at: string | null; sent_to: string | null })[];
+  if (!list.length) flash(back, "error", "Aucune facture émise parmi celles cochées (un brouillon se valide depuis sa fiche).");
+  if (list.every((i) => sentJustNow(i.sent_at, i.sent_to, to))) flash(back, "ok", `Déjà envoyé à ${to.join(", ")} il y a moins de deux minutes : pas de second envoi.`);
+  await requireReservedAck(clientId, fd, back);
+  const pdfs = await Promise.all(list.map((i) => buildPdf("facture", i.id)));
+  if (pdfs.some((p) => !p)) flash(back, "error", "Un PDF est introuvable : envoyez cette facture depuis sa fiche.");
+  const mail = batchEmail(list, BILLING_SIGN);
+  const res = await sendMail({ to, subject: mail.subject, text: mail.text, fromName: BILLING_FROM, attachments: pdfs.map((p) => ({ filename: p!.filename, bytes: p!.bytes })) });
+  for (const i of list) await logEmail(supabase, { kind: "facture", to: to.join(", "), subject: `Facture ${i.number} (envoi groupé)`, ok: res.sent, error: res.sent ? undefined : res.reason, entity: "invoice", entityId: i.id });
+  if (!res.sent) flash(back, "error", `Factures non envoyées : ${res.reason}.`);
+  await supabase.from("invoices").update({ sent_at: new Date().toISOString(), sent_to: to.join(", ") }).in("id", list.map((i) => i.id));
+  revalidatePath(`/clients/${clientId}`);
+  flash(back, "ok", `${list.length === 1 ? `Facture ${list[0].number} envoyée` : `${list.length} factures envoyées en un seul e-mail`} à ${to.join(", ")}.`);
 }
 
 /** Actualise les virements Qonto depuis la fiche de la facture, pour retrouver un paiement récent. */

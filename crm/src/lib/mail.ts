@@ -7,8 +7,8 @@ export interface MailInput {
   text: string;
   html?: string;
   attachment?: { filename: string; bytes: Uint8Array };
-  /** Pièces jointes déjà encodées en base64 (photos). */
-  attachments?: { filename: string; b64: string }[];
+  /** Plusieurs pièces jointes dans le même e-mail (ex. toutes les factures d'un client). */
+  attachments?: { filename: string; bytes: Uint8Array }[];
   /** Nom d'expéditeur affiché chez le destinataire (ex. « ProClean Empire - Service facturation »). L'adresse d'envoi ne change pas. */
   fromName?: string;
 }
@@ -32,9 +32,10 @@ export async function sendMail(m: MailInput): Promise<MailResult> {
         subject: m.subject,
         text: m.text,
         html: m.html,
-        attachments: m.attachment || m.attachments?.length
-          ? [...(m.attachment ? [{ filename: m.attachment.filename, content: Buffer.from(m.attachment.bytes).toString("base64") }] : []), ...(m.attachments ?? []).map((a) => ({ filename: a.filename, content: a.b64 }))]
-          : undefined
+        attachments: (() => {
+          const all = [...(m.attachment ? [m.attachment] : []), ...(m.attachments ?? [])];
+          return all.length ? all.map((a) => ({ filename: a.filename, content: Buffer.from(a.bytes).toString("base64") })) : undefined;
+        })()
       })
     });
     if (!res.ok) return { sent: false, reason: `Resend ${res.status} : ${(await res.text()).slice(0, 200)}` };
