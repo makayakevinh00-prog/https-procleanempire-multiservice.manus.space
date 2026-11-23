@@ -25,7 +25,9 @@ export default async function CleanerMissions({ params, searchParams }: { params
   const jobs = (data as { jobs: CleanerJob[]; require_photos: boolean }).jobs, needPhotos = (data as { require_photos: boolean }).require_photos;
   const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Paris" });
   // Mission en cours : tout se passe sur l'écran guidé, pas ici.
-  if (jobs.some((j) => (j.status === "acceptee" || j.status === "a_reprendre") && j.date <= today && !!j.arrived_at)) redirect(`/nettoyeur/${token}`);
+  const [hh, mm] = new Date().toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris", hour: "2-digit", minute: "2-digit", hour12: false }).split(":").map(Number);
+  const parisMin = ((hh ?? 0) % 24) * 60 + (mm ?? 0);
+  if (jobs.some((j) => (j.status === "acceptee" || j.status === "a_reprendre") && (j.date < today || (j.date === today && (!!j.arrived_at || parisMin >= Number(j.window_start.slice(0, 2)) * 60 + Number(j.window_start.slice(3, 5)) - 120))))) redirect(`/nettoyeur/${token}`);
   const card = "space-y-3 rounded-3xl bg-[var(--a-card)] p-4";
   return (
     <>

@@ -37,7 +37,8 @@ export default async function CleanerToday({ params, searchParams }: { params: {
   const parisMin = ((hh ?? 0) % 24) * 60 + (mm ?? 0);
   const startMin = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
   const dismissed = (cookies().get("pce_mission_ok")?.value ?? "").split(",");
-  const live = mine.filter((j) => !dismissed.includes(j.id) && ((j.status === "acceptee" || j.status === "a_reprendre") ? (j.date < today || (j.date === today && (parisMin >= startMin(j.window_start) - 120 || !!j.arrived_at))) : (j.status === "a_verifier" || j.status === "validee") && j.date === today && !!j.arrived_at))
+  // « Retour à l'accueil » ne masque qu'une mission terminée : un ménage encore à faire revient toujours sur l'écran guidé.
+  const live = mine.filter((j) => ((j.status === "acceptee" || j.status === "a_reprendre") ? (j.date < today || (j.date === today && (parisMin >= startMin(j.window_start) - 120 || !!j.arrived_at))) : !dismissed.includes(j.id) && (j.status === "a_verifier" || j.status === "validee") && j.date === today && !!j.arrived_at))
     .sort((a, b) => (a.date + a.window_start).localeCompare(b.date + b.window_start))[0];
   if (live) {
     const lists = await c.rpc("cleaner_checklists", { p_token: token });
