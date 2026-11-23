@@ -10,6 +10,8 @@ const nextConfig: NextConfig = {
         destination: `/${slug}`,
         permanent: true
       })),
+      // Anciennes adresses encore connues de Google (signalées introuvables dans la Search Console).
+      ...Object.entries({ "/avis": "/realisations", "/reservation": "/contact", "/abonnement": "/devis", "/professionnels": "/nettoyage-bureaux", "/conditions-generales": "/mentions-legales" }).map(([source, destination]) => ({ source, destination, permanent: true })),
       // L'article sur le ménage Airbnb parle désormais de Paris : l'ancienne adresse y renvoie.
       {
         source: "/blog/menage-airbnb-val-doise-entre-deux-voyageurs",

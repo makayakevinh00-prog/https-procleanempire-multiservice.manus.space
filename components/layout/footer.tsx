@@ -35,7 +35,7 @@ export function Footer() {
     { label: "Galerie photos", href: "/galerie" },
     { label: "Propriétaires", href: "/proprietaires" },
     { label: "Bureaux à Cergy-Pontoise : quelle fréquence ?", href: "/blog/nettoyage-bureaux-cergy-pontoise-frequence" },
-    { label: "Ménage Airbnb entre deux voyageurs", href: "/blog/menage-airbnb-val-doise-entre-deux-voyageurs" },
+    { label: "Ménage Airbnb entre deux voyageurs", href: "/blog/menage-airbnb-paris-entre-deux-voyageurs" },
     { label: "Décorer ses locaux pour Noël", href: "/blog/decoration-noel-bureaux-commerces-val-doise" }
   ];
 
