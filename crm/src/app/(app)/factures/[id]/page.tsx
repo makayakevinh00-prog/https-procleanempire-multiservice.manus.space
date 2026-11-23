@@ -19,6 +19,8 @@ import { RecipientPicker } from "@/components/crm/recipient-picker";
 import { cn, daysBetween, dueInfo, formatDate, formatEUR } from "@/lib/utils";
 import { REMINDER_FEE_EUR, REMINDER_FEE_LEVEL, feeApplies } from "@/lib/domain/reminders";
 import { markInvoicePaidAction, reconcileFromInvoiceAction } from "@/app/actions/payments";
+import { chargeInvoiceSepaAction } from "@/app/actions/sepa";
+import { isOwner } from "@/lib/auth";
 import { suggestInvoices } from "@/lib/domain/matching";
 import { ACTIVITIES, invoiceActivity, isActivity, type Activity } from "@/lib/domain/activity";
 import { ActivityChip } from "@/components/crm/activity-ui";
@@ -56,6 +58,12 @@ export default async function InvoicePage({ params }: { params: { id: string } }
   const largeAmount = isLargeAmount(num(i.total_ht), settings)
     ? { totalHt: formatEUR(i.total_ht), threshold: formatEUR(settings.large_amount_threshold_ht) } : null;
   const price = isDraft ? await loadPriceCheck(supabase, i) : null;
+  // Prélèvement SEPA : lecture à part, pour que la page reste lisible tant que la base n'a pas reçu la migration 0069.
+  const sepaClient = ["envoye", "en_retard"].includes(i.status) && (await isOwner())
+    ? ((await supabase.from("clients").select("sepa_mandate_status, sepa_last4").eq("id", i.client_id).maybeSingle()).data as { sepa_mandate_status?: string; sepa_last4?: string | null } | null)
+    : null;
+  const canDebit = sepaClient?.sepa_mandate_status === "actif" && i.sepa_status !== "en_cours";
+  const debitPrice = canDebit ? await loadPriceCheck(supabase, i) : null;
   const lastReminderDays = i.last_reminder_at ? daysBetween(i.last_reminder_at) : null;
   const tooSoon = lastReminderDays !== null && lastReminderDays < settings.reminder_interval_days;
 
@@ -176,6 +184,27 @@ export default async function InvoicePage({ params }: { params: { id: string } }
                       ))}
                     </ul>
                   ) : <p className="text-xs text-muted-foreground">Aucun virement Qonto ne correspond pour l&apos;instant. Il arrive peut-être dans les prochaines minutes (import toutes les 5 minutes), ou le client a payé autrement.</p>}
+                  {i.sepa_status === "en_cours" && <p className="rounded-lg bg-[#f0f4fc] p-3 text-sm text-foreground"><b>Prélèvement SEPA en cours.</b> La banque du client confirme sous quelques jours ; la facture passera alors « payée » toute seule.</p>}
+                  {(i.sepa_status === "rejete" || i.sepa_status === "conteste") && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-900"><b>{i.sepa_status === "rejete" ? "Prélèvement rejeté." : "Prélèvement contesté."}</b> {i.sepa_failure}</p>}
+                  {canDebit && debitPrice?.verdict !== "bloquant" && (
+                    <ConfirmAction action={chargeInvoiceSepaAction.bind(null, i.id)} label={`Prélever ${formatEUR(remaining)} par SEPA…`} className="w-full"
+                      title={`Prélever la facture ${i.number}`} confirmLabel="Lancer le prélèvement"
+                      description={`${formatEUR(remaining)} seront prélevés sur le compte de ${c.name}${sepaClient?.sepa_last4 ? ` (IBAN se terminant par ${sepaClient.sepa_last4})` : ""}. Les fonds arrivent sous quelques jours ; le client peut contester un prélèvement auprès de sa banque pendant 8 semaines.`}
+                      reservedName={reservedName}
+                      extra={
+                        <div className="space-y-3">
+                          <label className="flex items-start gap-2 text-sm"><input type="checkbox" name="ack_notice" required className="mt-1" /> <span>Le client a été prévenu de ce prélèvement (montant et date).</span></label>
+                          {debitPrice?.verdict === "a_confirmer" && (
+                            <label className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                              <input type="checkbox" name="ack_price" required className="mt-1" />
+                              <span><b>Contrôle des prix : {debitPrice.findings.map((f) => f.title).join(" · ")}.</b> J&apos;ai vérifié le prix et je confirme le prélèvement.</span>
+                            </label>
+                          )}
+                          {c.is_reserved && <label className="flex items-start gap-2 text-xs"><input type="checkbox" name="ack_reserved" className="mt-0.5" /> Contact réservé : je confirme agir moi-même.</label>}
+                        </div>
+                      } />
+                  )}
+                  {canDebit && debitPrice?.verdict === "bloquant" && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-900"><b>Prélèvement impossible :</b> {debitPrice.findings.filter((f) => f.level === "bloquant").map((f) => f.title).join(" · ")}.</p>}
                   <ConfirmAction action={markInvoicePaidAction.bind(null, i.id)} label="Marquer comme payée…" variant="outline" className="w-full"
                     title={`Enregistrer un paiement pour ${i.number}`} confirmLabel="Enregistrer le paiement"
                     description="Pour un règlement hors Qonto (espèces, chèque, virement non importé). La facture ne sera plus relancée une fois soldée."
