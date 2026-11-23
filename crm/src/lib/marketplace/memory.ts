@@ -36,5 +36,5 @@ export function memoryPrompt(m: PlaceMemory | null, today: string): string {
     + (m.recurring.length ? ` Points qui reviennent sales d'une visite à l'autre : ${m.recurring.join(", ")}.` : "")
     + ` Dernière visite (${past[past.length - 1]!.date}) : niveau ${past[past.length - 1]!.level ?? "inconnu"}/5, ${past[past.length - 1]!.summary}`
     + (mins.length ? ` Durées estimées précédentes : ${mins.join(", ")} min.` : "")
-    + " Utilise les mêmes noms de zones qu'aux visites précédentes, et dis dans le résumé ce qui est pire ou mieux que d'habitude.";
+    + " Ces informations servent seulement à nommer les zones de la même façon et à comparer : ne cite une zone des visites précédentes que si elle apparaît sur les images d'aujourd'hui.";
 }

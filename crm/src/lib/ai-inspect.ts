@@ -4,7 +4,7 @@
  * L'IA demande les reprises. Elle ne valide seule que si le réglage « validation automatique » est activé et qu'elle n'est pas peu sûre ; sinon la direction valide.
  */
 export type Img = { content_type: string; b64: string; room?: string | null };
-export type BeforeReport = { items: { zone: string; todo: string }[]; level: number | null; summary: string; state?: string; tidy?: string; minutes?: number | null; zones?: string[]; tasks?: string[]; frame_rooms?: string[] };
+export type BeforeReport = { items: { zone: string; todo: string }[]; level: number | null; summary: string; state?: string; tidy?: string; minutes?: number | null; zones?: string[]; tasks?: string[]; frame_rooms?: string[]; seen?: string };
 export type AfterReport = { cleaned: string[]; remaining: { zone: string; why: string }[]; verdict: "ok" | "reprise"; summary: string; confidence: "haute" | "moyenne" | "faible"; missing?: string[]; rework_minutes?: number | null };
 
 export const aiConfigured = () => Boolean(process.env.ANTHROPIC_API_KEY?.trim());
@@ -27,7 +27,7 @@ export function parseBefore(text: string): BeforeReport | null {
   const tasks = given.length ? given : items.map((x: any) => (x.zone && x.todo ? `${x.zone} : ${x.todo}` : x.zone || x.todo)).slice(0, 14);
   return { items, level: Number.isFinite(lv) && lv >= 1 && lv <= 5 ? Math.round(lv) : null, summary: str(j.summary, 400), state: str(j.state, 300), tidy: str(j.tidy, 300),
     minutes: Number.isFinite(mn) && mn >= 5 && mn <= 720 ? Math.round(mn) : null, zones: (Array.isArray(j.zones) ? j.zones : []).map((x: any) => str(x, 60)).filter(Boolean).slice(0, 16),
-    tasks, frame_rooms: (Array.isArray(j.frame_rooms) ? j.frame_rooms : []).map((x: any) => str(x, 40)).slice(0, 16) };
+    tasks, seen: str(j.seen, 500), frame_rooms: (Array.isArray(j.frame_rooms) ? j.frame_rooms : []).map((x: any) => str(x, 40)).slice(0, 16) };
 }
 
 export function parseAfter(text: string, labels: string[] = []): AfterReport | null {
@@ -83,13 +83,8 @@ const imgs = (images: Img[]): Part[] => images.flatMap((i): Part[] => [...(i.roo
 
 export type AiPart = Part;
 export const aiImages = imgs;
-const CLEANING_SYSTEM = "Tu contrôles la propreté de logements de location courte durée pour une entreprise de ménage. Tu décris uniquement ce que tu vois sur les photos ; tu n'inventes rien. Réponds uniquement par un objet JSON valide, en français.";
+const CLEANING_SYSTEM = "Tu contrôles la propreté de lieux (logements, bureaux, commerces, parties communes) pour une entreprise de ménage. Tu regardes attentivement chaque image et tu décris uniquement ce que tu y vois réellement ; tu n'inventes rien et tu ne supposes jamais l'existence d'une pièce ou d'un objet qui n'apparaît sur aucune image. Réponds uniquement par un objet JSON valide, en français.";
 async function ask(content: Part[]) { return askWith(CLEANING_SYSTEM, content, 4000); }
-/** Relevé d'arrivée : le nettoyeur attend devant son écran, donc modèle rapide ; si ce modèle n'est pas disponible, le modèle habituel prend le relais. */
-async function askFast(content: Part[]) {
-  const r = await askWith(CLEANING_SYSTEM, content, 4000, process.env.ANTHROPIC_MODEL_FAST || "claude-haiku-5-5");
-  return r.text || !/^modèle introuvable/.test(r.error ?? "") ? r : ask(content);
-}
 
 /** Appel Anthropic générique (photos + consigne) : même clé, mêmes messages d'erreur que le contrôle des ménages. */
 export async function askWith(system: string, content: Part[], maxTokens: number, model?: string): Promise<{ text: string | null; error: string | null }> {
@@ -120,8 +115,8 @@ export async function askWith(system: string, content: Part[], maxTokens: number
 export async function analyzeBefore(images: Img[], memory = ""): Promise<AiResult<BeforeReport>> {
   // Chaque image est numérotée : l'IA indique de quelle pièce elle vient (les captures sont tirées de la vidéo, sans que le nettoyeur ait rien à choisir).
   const shots: Part[] = images.flatMap((im, i): Part[] => [{ type: "text", text: `Image ${i + 1}${im.room ? ` (pièce : ${str(im.room, 60)})` : ""}` }, { type: "image", source: { type: "base64", media_type: im.content_type, data: im.b64 } }]);
-  const content: Part[] = [...shots, { type: "text", text: `Ces ${images.length} images, tirées dans l'ordre de la vidéo du nettoyeur, montrent le logement À SON ARRIVÉE, avant le ménage.${memory} Fais le compte rendu : (1) "items" : ce qu'il faut nettoyer (pièce ou élément, et quoi faire), au maximum 8 points courts, du plus sale au moins sale, en signalant les coins très sales ; (2) "tasks" : la liste des tâches à donner au nettoyeur, DANS L'ORDRE où il doit les faire (6 à 12 phrases courtes à l'impératif, précises à ce qui est visible, par exemple « Cuisine : dégraisser les plaques (traces de gras) » ; commence par aérer et sortir les poubelles, finis par les sols et le tour de contrôle) ; (3) "frame_rooms" : pour CHAQUE image, dans l'ordre, la pièce (Cuisine, Salon, Chambre, Salle de bain, WC, Entrée, Autre) — exactement ${images.length} valeurs ; (4) un niveau de saleté global de 1 (propre) à 5 (très sale), l'état général en une phrase, le rangement en une phrase (ce qui traîne, ce qui est déplacé), la liste des zones visibles, et le temps de ménage estimé pour une personne, en minutes. Ne décris que ce qui est visible. Réponds : {"items":[{"zone":"...","todo":"..."}],"tasks":["..."],"frame_rooms":["Cuisine"],"level":3,"state":"...","tidy":"...","zones":["Cuisine","Salon"],"minutes":120,"summary":"une ou deux phrases"}` }];
-  const r = await askFast(content);
+  const content: Part[] = [...shots, { type: "text", text: `Ces ${images.length} images, tirées dans l'ordre de la vidéo du nettoyeur, montrent le lieu À SON ARRIVÉE, avant le ménage.${memory} Regarde chaque image en détail avant de répondre. RÈGLE ABSOLUE : tout ce que tu écris doit venir de ces images. Ne cite aucune pièce, aucun meuble, aucun objet qui n'apparaît pas sur une image (pas de cuisine, de lit, de salle de bain ou de WC s'ils ne sont pas filmés) et ne donne aucune tâche « habituelle » ou générique : seulement ce que ces images justifient. Fais le compte rendu : (0) "seen" : en 2 ou 3 phrases, ce que tu vois précisément — le type de lieu (bureau, chambre, salon, cuisine…), les meubles et objets reconnaissables avec leur nombre et leur position, et ce qui est en désordre (par exemple « Un bureau avec deux écrans et quatre chaises, dont deux écartées de la table ; des papiers et une tasse sur le plateau ; un carton au sol près de la fenêtre ») ; (1) "items" : ce qu'il faut nettoyer ou ranger (l'élément précis vu à l'image, et quoi faire), au maximum 8 points courts, du plus sale au moins sale ; (2) "tasks" : la liste des tâches à donner au nettoyeur, DANS L'ORDRE où il doit les faire (3 à 12 phrases courtes à l'impératif, chacune nommant un élément visible sur les images et ce qu'il faut en faire, par exemple « Bureau : replacer les quatre chaises autour de la table » ou « Plan de travail : jeter les emballages et essuyer les traces ») ; s'il y a peu à faire, donne peu de tâches ; (3) "frame_rooms" : pour CHAQUE image, dans l'ordre, la pièce ou le lieu (Bureau, Cuisine, Salon, Chambre, Salle de bain, WC, Entrée, Autre) — exactement ${images.length} valeurs ; (4) un niveau de saleté global de 1 (propre) à 5 (très sale), l'état général en une phrase, le rangement en une phrase (ce qui traîne, ce qui est déplacé), la liste des zones réellement visibles, et le temps de ménage estimé pour une personne pour ces seules zones, en minutes. Si les images sont floues, trop sombres ou ne montrent presque rien, dis-le dans "seen" et ne donne que les tâches dont tu es sûr. Réponds : {"seen":"...","items":[{"zone":"...","todo":"..."}],"tasks":["..."],"frame_rooms":["Bureau"],"level":3,"state":"...","tidy":"...","zones":["Bureau"],"minutes":30,"summary":"une ou deux phrases"}` }];
+  const r = await ask(content);
   if (!r.text) return { report: null, error: r.error };
   let report = parseBefore(r.text);
   if (!report) {

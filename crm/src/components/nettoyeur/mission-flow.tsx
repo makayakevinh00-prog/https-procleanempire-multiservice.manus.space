@@ -36,6 +36,7 @@ export type MissionJob = {
     level?: number | null;
     minutes?: number | null;
     tasks?: string[];
+    seen?: string;
   } | null;
   ai_report: {
     summary?: string;
@@ -79,6 +80,7 @@ export function MissionFlow({
   const [waited, setWaited] = useState(false);
   const [aiErr, setAiErr] = useState("");
   const [retrying, setRetrying] = useState(false);
+  const [useStd, setUseStd] = useState(false);
   const [items, setItems] = useState(tasks);
   useEffect(() => setItems(tasks), [tasks]);
 
@@ -299,10 +301,19 @@ export function MissionFlow({
           {!report && (
             <section role="alert" className="space-y-2 rounded-3xl bg-[var(--a-warnbg)] p-4 text-[14px]">
               <b className="block text-[15px] text-[var(--a-warn)]">L&apos;IA n&apos;a pas pu analyser le logement{aiErr ? ` : ${aiErr}` : ""}.</b>
-              <p>Cette liste est la liste standard, pas celle de votre logement.</p>
-              <button type="button" disabled={retrying} onClick={() => void analyse()} className="h-11 rounded-full bg-[var(--a-pri)] px-5 font-extrabold text-white disabled:opacity-60">
-                {retrying ? "Analyse en cours…" : "Relancer l'analyse"}
-              </button>
+              <p>{useStd ? "La liste ci-dessous est la liste standard : elle ne vient pas de votre vidéo." : "Aucune tâche n'est inventée : relancez l'analyse pour recevoir les tâches tirées de votre vidéo."}</p>
+              <div className="flex flex-wrap items-center gap-3">
+                <button type="button" disabled={retrying} onClick={() => void analyse()} className="h-11 rounded-full bg-[var(--a-pri)] px-5 font-extrabold text-white disabled:opacity-60">
+                  {retrying ? "Analyse en cours…" : "Relancer l'analyse"}
+                </button>
+                {!useStd && <button type="button" onClick={() => setUseStd(true)} className="text-[13px] font-bold text-[var(--a-mute)] underline">Continuer avec la liste standard</button>}
+              </div>
+            </section>
+          )}
+          {report?.seen && (
+            <section className="space-y-1 rounded-3xl bg-[var(--a-card)] p-4 text-[14px]">
+              <b className="block text-[15px] text-[var(--a-pri)]">Ce que l&apos;IA voit sur votre vidéo</b>
+              <p>{report.seen}</p>
             </section>
           )}
           {report && (report.summary || report.state) && (
@@ -330,6 +341,7 @@ export function MissionFlow({
               )}
             </section>
           )}
+          {(report || useStd) && (<>
           <section className="rounded-3xl bg-[var(--a-card)] p-4">
             <div className="mb-2 flex items-center justify-between">
               <b className="text-[17px]">À faire, dans l&apos;ordre</b>
@@ -373,6 +385,7 @@ export function MissionFlow({
           >
             J&apos;ai terminé · filmer la fin
           </button>
+          </>)}
           <p className="text-center text-[13px] text-[var(--a-mute)]">
             Refaites le même tour : l&apos;IA compare avec l&apos;arrivée et
             valide vos tâches.
