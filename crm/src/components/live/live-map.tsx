@@ -123,6 +123,9 @@ export function LiveTracking({ mode, token, initial, showClient = false }: { mod
               </div>
             </div>
             <OnSiteTimer j={j} />
+            {mode === "admin" && (j.status === "a_verifier" || j.status === "a_reprendre") && (
+              <a href={`/nettoyeurs?tab=demandes#job-${j.job}`} className="mt-3 flex h-11 items-center justify-center rounded-full bg-[var(--a-pri,#1e3a6e)] px-5 text-[14px] font-extrabold text-white">Voir le compte rendu : tâches, captures, avis de l&apos;IA</a>
+            )}
             {j.moving && j.dest && <div className="mt-3"><JobMap j={j} /></div>}
             {j.moving && j.seen_at && <p className="mt-2 text-[12px] text-[var(--a-mute,#667085)]">Dernière position reçue à {hm(j.seen_at)}. Position partagée uniquement pendant le trajet.</p>}
           </section>

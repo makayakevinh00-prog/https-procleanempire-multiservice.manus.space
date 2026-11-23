@@ -214,7 +214,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
               <ul className="divide-y text-sm">{toCheck.map((j) => {
                 const ph = photoRows.filter((p) => p.job_id === j.id), rep = j.ai_report as any, bef = j.before_report as any;
                 return (
-                <li key={j.id} className="space-y-3 px-5 py-3">
+                <li key={j.id} id={`job-${j.id}`} className="scroll-mt-24 space-y-3 px-5 py-3 target:bg-amber-50">
                   <div><b className="font-medium">{j.title}</b> · {j.cleaners?.full_name} · {dayFr(j.job_date)} · {eur(j.cleaner_amount)} pour le nettoyeur</div>
                   {j.check_note && <p className="rounded-md bg-blue-50 p-2 text-xs text-blue-900"><b>Pourquoi vous le voyez :</b> {j.check_note}.</p>}
                   {j.cleaner_note && <p className="rounded-md bg-muted p-2 text-xs">Mot du nettoyeur : {j.cleaner_note}</p>}
@@ -248,7 +248,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
             <Card className="mb-4 border-red-300">
               <CardHeader><CardTitle>Défauts détectés par l&apos;IA : reprise en cours ({J.filter((j) => j.status === "a_reprendre" && j.ai_status === "reprise").length})</CardTitle></CardHeader>
               <ul className="divide-y text-sm">{J.filter((j) => j.status === "a_reprendre" && j.ai_status === "reprise").map((j) => { const rep = j.ai_report as any, ph = photoRows.filter((p) => p.job_id === j.id); return (
-                <li key={j.id} className="space-y-2 px-5 py-3">
+                <li key={j.id} id={`job-${j.id}`} className="scroll-mt-24 space-y-2 px-5 py-3 target:bg-red-50">
                   <div><b className="font-medium">{j.title}</b> · {j.cleaners?.full_name} · {dayFr(j.job_date)}</div>
                   <div className="rounded-md bg-red-50 p-3 text-xs text-red-900">{rep?.summary}{Array.isArray(rep?.remaining) && rep.remaining.length > 0 && <ul className="mt-1 list-disc pl-4">{rep.remaining.map((r: any, i: number) => <li key={i}><b>{r.zone}</b> {r.why}</li>)}</ul>}</div>
                   {ph.length > 0 && <div className="flex flex-wrap gap-2">{ph.slice(-8).map((p) => <a key={p.id} href={`/api/nettoyeurs/photo/${p.id}`} target="_blank" rel="noreferrer"><img src={`/api/nettoyeurs/photo/${p.id}`} alt={`Photo ${p.kind}`} className="h-16 w-16 rounded-lg border object-cover" /></a>)}</div>}
