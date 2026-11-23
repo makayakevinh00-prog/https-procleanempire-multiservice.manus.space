@@ -37,6 +37,7 @@ export type MissionJob = {
     minutes?: number | null;
     tasks?: string[];
     seen?: string;
+    tips?: { surface: string; product: string; how: string }[];
   } | null;
   ai_report: {
     summary?: string;
@@ -340,6 +341,20 @@ export function MissionFlow({
                 </p>
               )}
             </section>
+          )}
+          {(report?.tips?.length ?? 0) > 0 && (
+            <details className="rounded-3xl bg-[var(--a-card)] p-4 text-[14px]">
+              <summary className="cursor-pointer text-[15px] font-extrabold text-[var(--a-pri)]">Conseils et produits pour ce lieu</summary>
+              <ul className="mt-2 space-y-2">
+                {report!.tips!.map((t, i) => (
+                  <li key={i}>
+                    <b>{t.surface}</b>
+                    {t.product && <span> — {t.product}</span>}
+                    {t.how && <p className="text-[var(--a-mute)]">{t.how}</p>}
+                  </li>
+                ))}
+              </ul>
+            </details>
           )}
           {(report || useStd) && (<>
           <section className="rounded-3xl bg-[var(--a-card)] p-4">

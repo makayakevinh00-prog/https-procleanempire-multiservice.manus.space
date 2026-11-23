@@ -125,3 +125,13 @@ describe("envoi des images à l'IA", () => {
     expect(JSON.parse(sent).messages[0].content[0].source.data).toBe("AAAABBBBCC==");
   });
 });
+
+describe("relevé d'arrivée : ce que l'IA voit et ses conseils", () => {
+  it("garde la description et les conseils par surface, écarte les conseils vides", async () => {
+    const { parseBefore } = await import("@/lib/ai-inspect");
+    const r = parseBefore(JSON.stringify({ seen: "Un bureau avec quatre chaises.", items: [], tasks: ["Bureau : replacer les chaises"], tips: [{ surface: "Parquet", product: "nettoyant neutre dilué", how: "serpillière essorée" }, { surface: "", product: "x" }, { surface: "Verre" }] }));
+    expect(r?.seen).toBe("Un bureau avec quatre chaises.");
+    expect(r?.tips).toEqual([{ surface: "Parquet", product: "nettoyant neutre dilué", how: "serpillière essorée" }]);
+    expect(r?.tasks).toEqual(["Bureau : replacer les chaises"]);
+  });
+});

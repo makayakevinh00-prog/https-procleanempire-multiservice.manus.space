@@ -8,10 +8,12 @@ import { parisToday } from "@/lib/domain/dates";
 
 const admin = () => process.env.MAIL_ADMIN ?? "contact@procleanempire.com";
 const files = (photos: Img[], prefix: string, max = 6) => photos.slice(0, max).map((p, i) => ({ filename: `${prefix}-${i + 1}${p.room ? `-${p.room.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}` : ""}.${p.content_type === "image/png" ? "png" : p.content_type === "image/webp" ? "webp" : "jpg"}`, bytes: new Uint8Array(Buffer.from(p.b64, "base64")) }));
+const crmLink = (jobId: string, n: number) => `${n ? `${n} capture${n > 1 ? "s" : ""} à voir` : "Détail"} dans le CRM : ${`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL ?? "proclean-crm.vercel.app"}`}/nettoyeurs?tab=demandes#job-${jobId}`;
 /** Envoi à la direction et, séparément, au propriétaire ou à la conciergerie (jamais les deux dans le même message). */
 async function tell(b: JobBrief, owner: { subject: string; text: string }, direction: { subject: string; text: string }, attachments: { filename: string; bytes: Uint8Array }[]) {
   if (!mailConfigured()) return;
-  await sendMail({ to: admin(), ...direction, attachments }).catch(() => undefined);
+  // La direction ne reçoit plus les captures en pièces jointes (boîte encombrée) : elles sont dans le CRM, le message donne le lien.
+  await sendMail({ to: admin(), ...direction }).catch(() => undefined);
   const to = b.emails.filter((e) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e) && e !== admin().toLowerCase()).slice(0, 4);
   if (to.length) await sendMail({ to, ...owner, attachments }).catch(() => undefined);
 }
@@ -41,7 +43,8 @@ export async function runBeforeAnalysis(jobId: string): Promise<string | null> {
   if (claimed.data === true) {
     const att = files(labelled, "arrivee");
     const n = startNotice({ ...brief, before_report: r.report, est_minutes: r.report.minutes ?? null }, att.length);
-    await tell(brief, n, { subject: n.subject, text: `${brief.client ? `Client : ${brief.client}\n\n` : ""}${n.text}` }, att);
+    const d = startNotice({ ...brief, before_report: r.report, est_minutes: r.report.minutes ?? null }, 0);
+    await tell(brief, n, { subject: d.subject, text: `${brief.client ? `Client : ${brief.client}\n\n` : ""}${d.text}\n\n${crmLink(jobId, att.length)}` }, att);
   }
   return r.error;
 }
@@ -60,7 +63,7 @@ export async function notifyOutcome(jobId: string, o: AfterOutcome, cleanerName:
   }
   const att = files((photos.data ?? []) as Img[], "fin");
   const owner = outcomeNotice(brief, o, att.length);
-  const direction = outcomeNotice(brief, o, att.length, `${brief.client ? `Client : ${brief.client}. ` : ""}Nettoyeur : ${cleanerName}.\n${head}\n${where}`);
+  const direction = outcomeNotice(brief, o, 0, `${crmLink(jobId, att.length)}\n` + `${brief.client ? `Client : ${brief.client}. ` : ""}Nettoyeur : ${cleanerName}.\n${head}\n${where}`);
   await tell(brief, owner, direction, att);
 }
 
