@@ -1,0 +1,94 @@
+import { describe, it, expect, vi } from "vitest";
+vi.mock("server-only", () => ({}));
+import { parseAfter, parseBefore } from "@/lib/ai-inspect";
+import { memoryPrompt, updateMemory } from "@/lib/marketplace/memory";
+import { estimatedEnd, outcomeNotice, startNotice, type JobBrief } from "@/lib/marketplace/job-notices";
+
+const before = parseBefore(JSON.stringify({ items: [{ zone: "Cuisine", todo: "plaque très grasse" }, { zone: "Salle de bain", todo: "calcaire" }], level: 4, state: "Logement très sali.", tidy: "Vaisselle sur la table, coussins au sol.", zones: ["Cuisine", "Salle de bain", "Salon"], minutes: 150, summary: "Cuisine très sale." }))!;
+
+describe("relevé d'arrivée", () => {
+  it("lit l'état, le rangement, les zones et la durée ; reste compatible avec l'ancien format", () => {
+    expect(before).toMatchObject({ level: 4, minutes: 150, tidy: "Vaisselle sur la table, coussins au sol.", zones: ["Cuisine", "Salle de bain", "Salon"] });
+    const old = parseBefore('{"items":[{"zone":"Salon","todo":"sol"}],"level":2,"summary":"ok"}')!;
+    expect(old).toMatchObject({ level: 2, minutes: null, zones: [] });
+    expect(parseBefore('{"items":[],"minutes":9999,"level":3}')!.minutes).toBeNull();
+  });
+});
+
+describe("contrôle de fin", () => {
+  it("une zone non refilmée devient un point à reprendre, avec le temps de reprise", () => {
+    const r = parseAfter(JSON.stringify({ cleaned: ["Cuisine"], remaining: [], missing: ["Salle de bain"], rework_minutes: 10, verdict: "ok", summary: "", confidence: "haute" }))!;
+    expect(r.verdict).toBe("reprise");
+    expect(r.remaining[0]).toMatchObject({ zone: "Salle de bain" });
+    expect(r.remaining[0]!.why).toContain("refilmez");
+    expect(r.rework_minutes).toBe(10);
+  });
+  it("tout est propre : pas de reprise, pas de temps de reprise", () => {
+    const r = parseAfter('{"cleaned":["Cuisine"],"remaining":[],"rework_minutes":15,"verdict":"ok","summary":"Tout est propre.","confidence":"haute"}')!;
+    expect(r).toMatchObject({ verdict: "ok", rework_minutes: null, missing: [] });
+  });
+});
+
+describe("mémoire du logement", () => {
+  it("première visite : rien à rappeler ; ensuite, zones et points récurrents", () => {
+    expect(memoryPrompt(null, "2026-11-23")).toBe("");
+    const m1 = updateMemory(null, before, "2026-11-15");
+    expect(m1).toMatchObject({ visits: 1, recurring: [] });
+    expect(memoryPrompt(m1, "2026-11-15")).toBe(""); // même jour : pas encore du passé
+    const m2 = updateMemory(m1, { ...before, items: [{ zone: "cuisine", todo: "four" }], level: 2, minutes: 90 }, "2026-11-23");
+    expect(m2.visits).toBe(2);
+    expect(m2.recurring).toEqual(["Cuisine"]);
+    const p = memoryPrompt(m2, "2026-11-29");
+    expect(p).toContain("2 visites");
+    expect(p).toContain("Cuisine");
+    expect(p).toContain("150, 90 min");
+  });
+  it("le même jour rejoué remplace la visite, sans la compter deux fois", () => {
+    const m = updateMemory(updateMemory(null, before, "2026-11-23"), { ...before, level: 5 }, "2026-11-23");
+    expect(m.visits).toBe(1);
+    expect(m.last).toHaveLength(1);
+    expect(m.last[0]!.level).toBe(5);
+  });
+  it("garde les 4 dernières visites", () => {
+    let m = null as ReturnType<typeof updateMemory> | null;
+    for (let d = 1; d <= 6; d++) m = updateMemory(m, before, `2026-11-0${d}`);
+    expect(m!.visits).toBe(6);
+    expect(m!.last.map((v) => v.date)).toEqual(["2026-11-03", "2026-11-04", "2026-11-05", "2026-11-06"]);
+  });
+});
+
+describe("messages au propriétaire", () => {
+  const brief: JobBrief = { title: "Ménage — Appartement 16e", date: "2026-11-23", city: "Paris", status: "acceptee", arrived_at: "2026-11-23T10:00:00Z", duration_hours: 2, est_minutes: 150, rework_minutes: null,
+    listing: "Appartement Grande Armée", has_listing: true, memory: null, before_report: before, ai_report: null, started_notified: false, cleaner: "Awa", client: "Propriétaire", emails: ["a@b.fr"] };
+  it("fin estimée : arrivée + durée estimée par l'analyse, sinon durée prévue", () => {
+    expect(estimatedEnd(brief)!.at.toISOString()).toBe("2026-11-23T12:30:00.000Z");
+    expect(estimatedEnd({ ...brief, est_minutes: null })!.minutes).toBe(120);
+    expect(estimatedEnd({ ...brief, arrived_at: null })).toBeNull();
+  });
+  it("ménage commencé : état, rangement, heure de fin, captures", () => {
+    const n = startNotice(brief, 6);
+    expect(n.subject).toBe("Ménage commencé — Appartement Grande Armée");
+    expect(n.text).toContain("Awa est sur place depuis 11 h 00");
+    expect(n.text).toContain("niveau de saleté 4 sur 5");
+    expect(n.text).toContain("Rangement : Vaisselle sur la table");
+    expect(n.text).toContain("Fin prévue vers 13 h 30");
+    expect(n.text).toContain("6 captures");
+    expect(n.text).toContain("L'équipe ProClean Empire");
+    expect(n.text).not.toMatch(/Kevinh/);
+  });
+  it("reprise : points, temps de reprise et nouvelle heure de fin ; le détail interne ne va qu'à la direction", () => {
+    const b = { ...brief, ai_report: parseAfter('{"cleaned":[],"remaining":[{"zone":"Cuisine","why":"plaque encore grasse"}],"rework_minutes":20,"verdict":"reprise","summary":"Un point reste.","confidence":"haute"}') };
+    const now = new Date("2026-11-23T12:00:00Z");
+    const owner = outcomeNotice(b, { status: "a_reprendre", summary: "Un point reste." }, 4, undefined, now);
+    expect(owner.subject).toBe("Ménage à reprendre — Appartement Grande Armée");
+    expect(owner.text).toContain("- Cuisine : plaque encore grasse");
+    expect(owner.text).toContain("Temps de reprise estimé : 20 min, soit une fin vers 13 h 20");
+    expect(owner.text).not.toContain("CRM");
+    expect(outcomeNotice(b, { status: "a_reprendre", summary: "" }, 0, "À vérifier dans le CRM", now).text).toContain("CRM");
+  });
+  it("terminé : invitation à passer vérifier", () => {
+    const n = outcomeNotice(brief, { status: "validee", summary: "Tout est propre." }, 2, undefined, new Date("2026-11-23T12:10:00Z"));
+    expect(n.subject).toBe("Ménage terminé — Appartement Grande Armée");
+    expect(n.text).toContain("Awa a terminé à 13 h 10. Vous pouvez passer vérifier le logement.");
+  });
+});

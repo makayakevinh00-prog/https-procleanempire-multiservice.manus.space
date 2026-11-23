@@ -114,6 +114,15 @@ export default async function CleanerMissions({ params, searchParams }: { params
                     <div className="rounded-2xl bg-[var(--a-bg)] p-3 text-[14px]">
                       <b className="block text-[15px]">À nettoyer (relevé automatique des photos)</b>
                       <ul className="mt-1 list-disc space-y-0.5 pl-5">{j.before_report.items.map((it, i) => <li key={i}><b>{it.zone}</b>{it.todo ? ` : ${it.todo}` : ""}</li>)}</ul>
+                      {j.before_report.tidy && <p className="mt-2 text-[13px] text-[var(--a-mute)]"><b>Rangement :</b> {j.before_report.tidy}</p>}
+                      {j.before_report.minutes ? <p className="mt-1 text-[13px] text-[var(--a-mute)]"><b>Durée estimée :</b> environ {j.before_report.minutes >= 60 ? `${Math.floor(j.before_report.minutes / 60)} h ${String(j.before_report.minutes % 60).padStart(2, "0")}` : `${j.before_report.minutes} min`}</p> : null}
+                    </div>
+                  )}
+                  {j.before_report && (j.before_report.zones?.length ?? 0) > 0 && (
+                    <div className="rounded-2xl bg-[var(--a-soft)] p-3 text-[14px]">
+                      <b className="block text-[15px]">Vidéo de fin : refilmez les mêmes zones, sous le même angle</b>
+                      <p className="mt-1 text-[var(--a-mute)]">{j.before_report.zones!.join(" · ")}</p>
+                      <p className="mt-1 text-[13px] text-[var(--a-mute)]">Une zone filmée à l&apos;arrivée et absente de la vidéo de fin vous sera redemandée.</p>
                     </div>
                   )}
                   {(tasks[j.id]?.length ?? 0) > 0 && <TaskList token={token} job={j.id} tasks={tasks[j.id]!} />}

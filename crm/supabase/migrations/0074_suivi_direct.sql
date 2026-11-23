@@ -77,7 +77,7 @@ begin
   return jsonb_build_object('job', j.id, 'title', j.title, 'status', j.status, 'date', j.job_date, 'window_start', j.window_start, 'window_end', j.window_end,
     'cleaner', case when c.id is not null then split_part(trim(c.full_name), ' ', 1) end,
     'dest', case when j.lat is not null then jsonb_build_array(j.lat, j.lng) end,
-    'arrived_at', j.arrived_at, 'moving', moving,
+    'arrived_at', j.arrived_at, 'done_at', j.done_at, 'duration_hours', j.duration_hours, 'moving', moving,
     'pos', case when moving then jsonb_build_array(c.last_lat, c.last_lng) end,
     'seen_at', case when moving then c.last_seen_at end,
     'eta_at', case when moving then j.eta_at end, 'eta_minutes', case when moving then j.eta_minutes end, 'eta_traffic', coalesce(j.eta_source, '') = 'trafic',

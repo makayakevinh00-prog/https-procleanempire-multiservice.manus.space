@@ -12,11 +12,11 @@ import { checkIcalUrl } from "@/lib/concierge/ical";
 import { analyzeReference, type Img } from "@/lib/ai-inspect";
 import { sendMail, mailConfigured } from "@/lib/mail";
 import { automationClient, automationSecret } from "@/lib/automation/deps";
-import { runAfterAnalysis, type AfterOutcome } from "@/lib/marketplace/inspect";
+import { notifyOutcome, runAfterAnalysis, type AfterOutcome } from "@/lib/marketplace/inspect";
 import { autoAcceptBookings, trackUrl } from "@/lib/marketplace/auto-accept";
 import { hashPassword, passwordOk, verifyPassword } from "@/lib/password";
 import { createClient } from "@/lib/supabase/server";
-import { routeEstimate } from "@/lib/route";
+import { tripPing } from "@/lib/marketplace/trip";
 import type { LiveJob } from "@/lib/live";
 
 const sha = (c: string) => createHash("sha256").update(c).digest("hex");
@@ -50,11 +50,7 @@ export async function cleanerReleaseAction(token: string, jobId: string) {
 async function afterFinish(jobId: string, name: string): Promise<"validee" | "a_reprendre" | "a_verifier"> {
   let o: AfterOutcome = { status: "a_verifier", verdict: "indisponible", summary: "Analyse automatique impossible : erreur du serveur.", by: null, reason: null };
   try { o = await runAfterAnalysis(jobId); } catch { /* le contrôle automatique est un plus */ }
-  if (mailConfigured()) {
-    const to = process.env.MAIL_ADMIN ?? "contact@procleanempire.com";
-    const head = o.by === "regles" ? "Validé automatiquement par les règles (pointage, tâches, photos, durée, nettoyeur de confiance) : le nettoyeur est autorisé à partir. Les photos n'ont pas été analysées par l'IA." : o.status === "validee" ? "Validé automatiquement : le contrôle par l'IA ne relève rien, le nettoyeur est autorisé à partir." : o.verdict === "reprise" ? "Reprise demandée automatiquement : des points restent à nettoyer." : o.verdict === "ok" ? "Le contrôle automatique ne relève rien : à vous de valider." : `À vous de vérifier${o.reason ? ` : ${o.reason}` : ""}.`;
-    await sendMail({ to, subject: o.status === "validee" ? "Ménage validé automatiquement" : o.verdict === "reprise" ? "Ménage à reprendre — contrôle automatique" : "Ménage terminé à vérifier", text: `${name} a terminé un ménage.\n\n${head}\n${o.summary}\n\n${o.status === "validee" ? "Photos et détail" : "À vérifier"} dans le CRM : Nettoyeurs › Demandes.` }).catch(() => undefined);
-  }
+  await notifyOutcome(jobId, o, name).catch(() => undefined); // direction et propriétaire prévenus, avec les captures de fin
   return o.status;
 }
 
@@ -125,16 +121,7 @@ export async function cleanerOnlineAction(token: string, online: boolean): Promi
 
 /** Position en direct (application ouverte). */
 export async function cleanerPingAction(token: string, lat: number, lng: number): Promise<void> {
-  if (!isToken(token) || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
-  const c = agentClient();
-  const { data, error } = await c.rpc("cleaner_trip_ping", { p_token: token, p_lat: lat, p_lng: lng });
-  if (error) { await c.rpc("cleaner_ping", { p_token: token, p_lat: lat, p_lng: lng }); return; } // base pas encore à jour : simple position
-  // Ménage en route : heure d'arrivée recalculée au plus toutes les 2 minutes.
-  const t = data as { job: string; dest_lat: number | null; dest_lng: number | null; need_eta: boolean } | null;
-  if (t?.need_eta && t.dest_lat != null && t.dest_lng != null) {
-    const r = await routeEstimate({ lat, lng }, { lat: t.dest_lat, lng: t.dest_lng });
-    await c.rpc("cleaner_set_eta", { p_token: token, p_job: t.job, p_minutes: r.minutes, p_source: r.source });
-  }
+  await tripPing(token, lat, lng);
 }
 
 /** Suivi en direct pour le client qui a réservé (lien de suivi). */

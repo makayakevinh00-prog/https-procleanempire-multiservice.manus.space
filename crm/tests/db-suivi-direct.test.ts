@@ -25,6 +25,8 @@ beforeAll(async () => {
   for (const f of all.filter((x) => x > "0038_conciergerie.sql" && x < "0074")) await db.exec(read(`supabase/migrations/${f}`));
   await db.exec(read("supabase/migrations/0074_suivi_direct.sql"));
   await db.exec(read("supabase/migrations/0074_suivi_direct.sql")); // rejouable
+  await db.exec(read("supabase/migrations/0075_controle_video.sql"));
+  await db.exec(read("supabase/migrations/0075_controle_video.sql")); // rejouable
   await q("update app_settings set automation_secret = $1", [SECRET]);
   owner = (await q("insert into clients(name, postal_code, city, address) values ('Propriétaire','75016','Paris','1 rue A') returning id"))[0].id;
   stranger = (await q("insert into clients(name) values ('Autre client') returning id"))[0].id;
@@ -91,6 +93,29 @@ describe("0074 — suivi en direct", () => {
     expect((await q("select automation_mark_departure($1,$2) ok", [SECRET, j2]))[0].ok).toBe(false);
     expect((await q("select automation_departure_candidates($1) c", [SECRET]))[0].c).toEqual([]);
     await expect(db.query("select automation_departure_candidates('mauvais')")).rejects.toThrow();
+  });
+  it("0075 — fiche du ménage, durée estimée, mémoire du logement, message de démarrage envoyé une seule fois", async () => {
+    const listing = (await q("insert into concierge_listings(client_id, name) values ($1,'Appartement Grande Armée') returning id", [owner]))[0].id;
+    await q("update cleaning_jobs set listing_id = $1 where id = $2", [listing, job]);
+    await q("update clients set email = 'Proprio@X.test' where id = $1", [owner]);
+    await q("insert into client_emails(client_id, email) values ($1,'gestion@x.test'), ($1,'proprio@x.test')", [owner]);
+    const b = (await q("select automation_job_brief($1,$2) b", [SECRET, job]))[0].b;
+    expect(b).toMatchObject({ listing: "Appartement Grande Armée", has_listing: true, memory: null, cleaner: "Léa", client: "Propriétaire", started_notified: false });
+    expect([...b.emails].sort()).toEqual(["gestion@x.test", "proprio@x.test"]);
+    await q("select automation_set_before_extras($1,$2,150,$3)", [SECRET, job, JSON.stringify({ visits: 1, zones: ["Cuisine"], recurring: [], last: [] })]);
+    expect((await q("select est_minutes from cleaning_jobs where id = $1", [job]))[0].est_minutes).toBe(150);
+    expect((await q("select visit_memory from concierge_listings where id = $1", [listing]))[0].visit_memory.zones).toEqual(["Cuisine"]);
+    await q("select automation_set_before_extras($1,$2,99999,null)", [SECRET, job]); // durée aberrante ignorée, mémoire conservée
+    expect((await q("select est_minutes from cleaning_jobs where id = $1", [job]))[0].est_minutes).toBeNull();
+    expect((await q("select visit_memory from concierge_listings where id = $1", [listing]))[0].visit_memory.visits).toBe(1);
+    await q("select automation_set_before_extras($1,$2,150,null)", [SECRET, job]);
+    expect((await q("select automation_claim_start_notice($1,$2) ok", [SECRET, job]))[0].ok).toBe(true);
+    expect((await q("select automation_claim_start_notice($1,$2) ok", [SECRET, job]))[0].ok).toBe(false);
+    expect((await q("select partner_live($1) l", [PARTNER]))[0].l.find((x: any) => x.job === job)).toMatchObject({ est_minutes: 150, rework_minutes: null });
+    await q("select automation_set_rework($1,$2,20)", [SECRET, job]);
+    await q("update cleaning_jobs set status = 'a_reprendre' where id = $1", [job]);
+    expect((await q("select partner_live($1) l", [PARTNER]))[0].l.find((x: any) => x.job === job).rework_minutes).toBe(20);
+    await expect(db.query("select automation_job_brief('mauvais',$1)", [job])).rejects.toThrow();
   });
   it("les points de trajet de plus de 7 jours sont effacés", async () => {
     await q("update cleaner_trail set at = now() - interval '8 days' where id = (select min(id) from cleaner_trail)");
