@@ -12,8 +12,16 @@ import { Badge, ReservedBadge } from "@/components/ui/badge";
 import { addInterventionAction, deleteInterventionAction, generateFromContractsAction, markPastDoneAction, setInterventionStatusAction } from "@/app/actions/planning";
 import { statusByName } from "@/lib/employment";
 import { formatEUR } from "@/lib/utils";
-import { MissionCalendar } from "@/components/crm/mission-calendar";
+import { AgendaView } from "@/components/crm/agenda-view";
+import type { AgendaEvent } from "@/lib/domain/agenda";
 
+const longDay = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString("fr-FR", { day: "numeric", month: "long", timeZone: "UTC" });
+const pad = (n: number) => String(n).padStart(2, "0");
+/** Fin d'un passage : heure de début + durée (1 h par défaut). */
+const endOf = (date: string, time: string, hours: number) => {
+  const d = new Date(Date.UTC(+date.slice(0, 4), +date.slice(5, 7) - 1, +date.slice(8, 10), +time.slice(0, 2), +time.slice(3, 5)) + hours * 3_600_000);
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+};
 const DAYS = ["", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
 const shift = (month: string, n: number) => {
   const [y, m] = month.split("-").map(Number);
@@ -21,10 +29,15 @@ const shift = (month: string, n: number) => {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
 };
 
-export default async function PlanningPage({ searchParams }: { searchParams: { voir?: string; mois?: string; client?: string; filtre?: string; agent?: string } }) {
+export default async function PlanningPage({ searchParams }: { searchParams: { voir?: string; mois?: string; semaine?: string; client?: string; filtre?: string; agent?: string } }) {
   const today = parisToday();
-  const month = /^\d{4}-\d{2}$/.test(searchParams.mois ?? "") ? searchParams.mois! : monthOf(today);
+  const weekParam = /^\d{4}-\d{2}-\d{2}$/.test(searchParams.semaine ?? "") ? searchParams.semaine! : null;
+  const month = /^\d{4}-\d{2}$/.test(searchParams.mois ?? "") ? searchParams.mois! : weekParam ? monthOf(addDays(weekParam, 4 - isoWeekday(weekParam))) : monthOf(today);
   const { start, end } = monthBounds(month);
+  // Semaine affichée dans la grille : celle demandée, sinon la semaine en cours, sinon la première du mois.
+  const anchor = weekParam ?? (today >= start && today <= end ? today : start);
+  const monday = addDays(anchor, 1 - isoWeekday(anchor));
+  const days = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
   const supabase = createClient();
   // Filtres issus des compteurs de l'accueil : ils ignorent le mois affiché.
   const filtre = ["a_confirmer", "sans_intervenant", "non_facturees"].includes(searchParams.filtre ?? "") ? searchParams.filtre : undefined;
@@ -37,8 +50,13 @@ export default async function PlanningPage({ searchParams }: { searchParams: { v
   if (searchParams.client) q = q.eq("client_id", searchParams.client);
   if (searchParams.agent === "aucun") q = q.is("staff_id", null).is("assignee", null);
   else if (searchParams.agent && /^[0-9a-f-]{36}$/i.test(searchParams.agent)) q = q.eq("staff_id", searchParams.agent);
-  const [{ data: rows, error }, { data: clients }, services, { data: staffList }] = await Promise.all([
-    q, supabase.from("clients").select("id, name, is_reserved").neq("status", "inactif").order("name"), loadServices(supabase),
+  let wq = supabase.from("interventions").select("id, title, scheduled_date, start_time, duration_hours, site_address, assignee, clients(name)")
+    .gte("scheduled_date", monday).lt("scheduled_date", addDays(monday, 7)).neq("status", "annule");
+  if (searchParams.client) wq = wq.eq("client_id", searchParams.client);
+  if (searchParams.agent === "aucun") wq = wq.is("staff_id", null).is("assignee", null);
+  else if (searchParams.agent && /^[0-9a-f-]{36}$/i.test(searchParams.agent)) wq = wq.eq("staff_id", searchParams.agent);
+  const [{ data: rows, error }, { data: weekRows }, { data: clients }, services, { data: staffList }] = await Promise.all([
+    q, wq, supabase.from("clients").select("id, name, is_reserved").neq("status", "inactif").order("name"), loadServices(supabase),
     supabase.from("staff").select("id, full_name, employment").eq("active", true).order("full_name")
   ]);
   if (error) throw new Error(error.message);
@@ -58,6 +76,14 @@ export default async function PlanningPage({ searchParams }: { searchParams: { v
     c.count += 1; c.total += amt; if (i.invoice_id) c.invoiced += amt; else if (i.status === "realise" || i.scheduled_date <= today) c.done += amt;
     return m.set(k, c);
   }, new Map<string, { id: string; name: string; reserved: boolean; count: number; total: number; done: number; invoiced: number }>()).values()].sort((a, b) => b.total - a.total);
+  const weekEvents: AgendaEvent[] = ((weekRows ?? []) as any[]).map((m) => {
+    const time = m.start_time ? String(m.start_time).slice(0, 5) : null;
+    return { id: `p-${m.id}`, title: [m.clients?.name, m.title].filter(Boolean).join(" · "), start: `${m.scheduled_date}T${time ?? "00:00"}`,
+      end: endOf(m.scheduled_date, time ?? "00:00", time ? num(m.duration_hours) || 1 : 24), allDay: !time, kind: "operationnel" as const, source: "Passages",
+      location: [m.site_address, m.assignee].filter(Boolean).join(" · ") || null, href: `/missions/${m.id}` };
+  }).sort((a, b) => a.start.localeCompare(b.start));
+  const keep = `${searchParams.client ? `&client=${searchParams.client}` : ""}${searchParams.agent ? `&agent=${searchParams.agent}` : ""}`;
+  const weekHref = (m: string) => `/planning?semaine=${m}${keep}`;
   const showOwed = searchParams.voir === "passage";
   const nav = (m: string, agent: string | undefined = searchParams.agent) => `/planning?mois=${m}${searchParams.client ? `&client=${searchParams.client}` : ""}${agent ? `&agent=${agent}` : ""}`;
 
@@ -88,12 +114,11 @@ export default async function PlanningPage({ searchParams }: { searchParams: { v
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-1 rounded-md border bg-card">
-          <Link href={nav(shift(month, -1))} className="p-2 hover:bg-muted" aria-label="Mois précédent"><ChevronLeft className="h-4 w-4" /></Link>
+        <div className="flex items-center gap-1 rounded-full border bg-white p-1">
+          <Link href={nav(shift(month, -1))} className="flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-secondary" aria-label="Mois précédent"><ChevronLeft className="h-4 w-4" /></Link>
           <span className="min-w-36 text-center text-sm font-semibold capitalize">{monthLabel(month)}</span>
-          <Link href={nav(shift(month, 1))} className="p-2 hover:bg-muted" aria-label="Mois suivant"><ChevronRight className="h-4 w-4" /></Link>
+          <Link href={nav(shift(month, 1))} className="flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-secondary" aria-label="Mois suivant"><ChevronRight className="h-4 w-4" /></Link>
         </div>
-        <Link href={`/planning?mois=${monthOf(today)}`} className="text-sm text-primary hover:underline">Aujourd&apos;hui</Link>
         <form className="ml-auto flex gap-2"><input type="hidden" name="mois" value={month} />{searchParams.agent && <input type="hidden" name="agent" value={searchParams.agent} />}
           <Select name="client" defaultValue={searchParams.client ?? ""} className="h-9 w-56"><option value="">Tous les clients</option>{clients?.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>
           <Button variant="outline" size="sm">Filtrer</Button></form>
@@ -125,8 +150,17 @@ export default async function PlanningPage({ searchParams }: { searchParams: { v
       )}
 
       {!filtre && (
-        <MissionCalendar rows={items} month={month} gridStart={addDays(start, 1 - isoWeekday(start))} gridEnd={addDays(end, 7 - isoWeekday(end))} today={today}
-          dayHref={(d) => `/missions?vue=jour&date=${d}`} />
+        <section className="mb-6" aria-label="Semaine">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="pce-title text-[22px] text-foreground">Semaine du {longDay(monday)} au {longDay(days[6]!)}</p>
+            <div className="flex items-center gap-2">
+              <Link href={weekHref(addDays(monday, -7))} aria-label="Semaine précédente" className="flex h-11 w-11 items-center justify-center rounded-full border bg-white transition-colors hover:bg-secondary"><ChevronLeft className="h-5 w-5" /></Link>
+              <Link href={`/planning${keep ? `?${keep.slice(1)}` : ""}`} className="inline-flex h-11 items-center rounded-full border bg-white px-5 text-[14px] font-semibold transition-colors hover:bg-secondary">Aujourd&apos;hui</Link>
+              <Link href={weekHref(addDays(monday, 7))} aria-label="Semaine suivante" className="flex h-11 w-11 items-center justify-center rounded-full border bg-white transition-colors hover:bg-secondary"><ChevronRight className="h-5 w-5" /></Link>
+            </div>
+          </div>
+          <AgendaView days={days} today={today} events={weekEvents} sources={[]} />
+        </section>
       )}
 
       <Card className="mb-4">

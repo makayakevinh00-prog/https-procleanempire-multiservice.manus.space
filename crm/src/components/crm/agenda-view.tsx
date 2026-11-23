@@ -64,7 +64,7 @@ export function AgendaView({ days, today, events, sources }: { days: string[]; t
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      {sources.length > 0 && <div className="mb-4 flex flex-wrap items-center gap-2">
         {sources.map((s) => {
           const off = hidden.has(s.label);
           return (
@@ -75,7 +75,7 @@ export function AgendaView({ days, today, events, sources }: { days: string[]; t
             </button>
           );
         })}
-      </div>
+      </div>}
 
       {/* Grille de la semaine (ordinateur et tablette) */}
       <div className="hidden overflow-hidden rounded-2xl border bg-white md:block">
