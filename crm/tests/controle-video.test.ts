@@ -29,6 +29,26 @@ describe("contrôle de fin", () => {
   });
 });
 
+describe("mission guidée : tâches dans l'ordre et pièces reconnues", () => {
+  it("l'IA donne les tâches dans l'ordre et la pièce de chaque capture ; sans tâches, elles viennent des points relevés", () => {
+    const r = parseBefore(JSON.stringify({ items: [{ zone: "Cuisine", todo: "plaque grasse" }], tasks: ["Aérer", "Cuisine : dégraisser la plaque", "Sols en dernier"], frame_rooms: ["Cuisine", "Salon", ""], level: 3 }))!;
+    expect(r.tasks).toEqual(["Aérer", "Cuisine : dégraisser la plaque", "Sols en dernier"]);
+    expect(r.frame_rooms).toEqual(["Cuisine", "Salon", ""]);
+    expect(before.tasks).toEqual(["Cuisine : plaque très grasse", "Salle de bain : calcaire"]);
+    expect(parseBefore(JSON.stringify({ items: [], tasks: Array.from({ length: 30 }, (_, i) => `t${i}`) }))!.tasks).toHaveLength(14);
+  });
+  it("vidéo de fin : une tâche non faite devient un point à reprendre, avec son libellé ; une tâche faite n'ajoute rien", () => {
+    const labels = ["Aérer", "Cuisine : dégraisser la plaque", "Sols en dernier"];
+    const r = parseAfter(JSON.stringify({ cleaned: ["Aérer"], remaining: [], tasks: [{ n: 1, ok: true }, { n: 2, ok: false, why: "traces de gras encore visibles" }, { n: 3, ok: true }], verdict: "ok", summary: "", confidence: "haute" }), labels)!;
+    expect(r.verdict).toBe("reprise");
+    expect(r.remaining).toEqual([{ zone: "Cuisine : dégraisser la plaque", why: "traces de gras encore visibles" }]);
+    const propre = parseAfter(JSON.stringify({ cleaned: [], remaining: [], tasks: [{ n: 1, ok: true }], verdict: "ok", summary: "ok" }), labels)!;
+    expect(propre.verdict).toBe("ok");
+    // numéro inconnu ou sans libellé : point repris sous « Tâche n », jamais de plantage
+    expect(parseAfter(JSON.stringify({ remaining: [], tasks: [{ n: 9, ok: false }], verdict: "ok" }))!.remaining[0]!.zone).toBe("Tâche 9");
+  });
+});
+
 describe("mémoire du logement", () => {
   it("première visite : rien à rappeler ; ensuite, zones et points récurrents", () => {
     expect(memoryPrompt(null, "2026-11-23")).toBe("");

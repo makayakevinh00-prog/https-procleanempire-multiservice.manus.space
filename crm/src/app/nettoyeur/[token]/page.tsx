@@ -8,6 +8,8 @@ import { AgentHeader } from "@/components/agent/header";
 import { Gate } from "@/components/agent/gate";
 import { LiveRefresh, OnlinePanel, Remember } from "@/components/nettoyeur/live";
 import { JobRequest } from "@/components/nettoyeur/job-request";
+import { MissionFlow, type MissionJob } from "@/components/nettoyeur/mission-flow";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Aujourd'hui — ProClean", robots: { index: false, follow: false }, referrer: "no-referrer" };
@@ -29,6 +31,25 @@ export default async function CleanerToday({ params, searchParams }: { params: {
   const lay = layoutDay(todays.map((j) => ({ id: j.id, time: j.window_start, hours: j.hours ?? 2 })));
   const byId = new Map(todays.map((j) => [j.id, j]));
   const missions = `/nettoyeur/${token}/missions`;
+
+  // Mission guidée : dès 2 h avant le créneau, et jusqu'à la fin, le nettoyeur ne voit que sa mission (la plus proche), rien d'autre.
+  const [hh, mm] = new Date().toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris", hour: "2-digit", minute: "2-digit", hour12: false }).split(":").map(Number);
+  const parisMin = ((hh ?? 0) % 24) * 60 + (mm ?? 0);
+  const startMin = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+  const dismissed = (cookies().get("pce_mission_ok")?.value ?? "").split(",");
+  const live = mine.filter((j) => !dismissed.includes(j.id) && ((j.status === "acceptee" || j.status === "a_reprendre") ? (j.date < today || (j.date === today && (parisMin >= startMin(j.window_start) - 120 || !!j.arrived_at))) : (j.status === "a_verifier" || j.status === "validee") && j.date === today && !!j.arrived_at))
+    .sort((a, b) => (a.date + a.window_start).localeCompare(b.date + b.window_start))[0];
+  if (live) {
+    const lists = await c.rpc("cleaner_checklists", { p_token: token });
+    const tasks = ((lists.data ?? {}) as Record<string, { label: string; done: boolean }[]>)[live.id] ?? [];
+    const job: MissionJob = {
+      id: live.id, title: live.title, status: live.status ?? "acceptee", date: live.date, window_start: live.window_start, window_end: live.window_end, hours: live.hours, amount: Number(live.amount),
+      address: live.address ?? null, postal_code: live.postal_code, city: live.city, access_notes: live.access_notes ?? null, arrived_at: live.arrived_at ?? null,
+      photos_before: live.photos_before ?? 0, photos_after: live.photos_after ?? 0, review_note: live.review_note ?? null, departure: live.departure ?? null,
+      before_report: live.before_report ?? null, ai_report: live.ai_report ?? null
+    };
+    return <><Remember token={token} /><MissionFlow token={token} job={job} tasks={tasks} /></>;
+  }
   return (
     <>
       <Remember token={token} />

@@ -32,11 +32,14 @@ export async function runBeforeAnalysis(jobId: string): Promise<string | null> {
   const r = await analyzeBefore(photos, memoryPrompt(memory, today));
   if (!r.report) return r.error;
   await a.rpc("automation_set_job_analysis", { p_secret: secret, p_job: jobId, p_kind: "avant", p_report: r.report, p_verdict: null });
+  // La liste des tâches du nettoyeur devient celle de l'IA, dans l'ordre (sans effet si le ménage a déjà des tâches cochées ou si la base n'est pas à jour).
+  if (r.report.tasks?.length) await a.rpc("automation_set_job_tasks", { p_secret: secret, p_job: jobId, p_tasks: r.report.tasks });
+  const labelled = photos.map((p, i) => ({ ...p, room: p.room ?? (r.report!.frame_rooms?.length === photos.length ? r.report!.frame_rooms[i] || null : null) }));
   if (!brief) return r.error; // base pas encore à jour : relevé enregistré, sans mémoire ni message
   await a.rpc("automation_set_before_extras", { p_secret: secret, p_job: jobId, p_minutes: r.report.minutes ?? null, p_memory: brief.has_listing ? updateMemory(memory, r.report, today) : null });
   const claimed = await a.rpc("automation_claim_start_notice", { p_secret: secret, p_job: jobId });
   if (claimed.data === true) {
-    const att = files(photos, "arrivee");
+    const att = files(labelled, "arrivee");
     const n = startNotice({ ...brief, before_report: r.report, est_minutes: r.report.minutes ?? null }, att.length);
     await tell(brief, n, { subject: n.subject, text: `${brief.client ? `Client : ${brief.client}\n\n` : ""}${n.text}` }, att);
   }
@@ -69,7 +72,10 @@ export async function runAfterAnalysis(jobId: string): Promise<AfterOutcome> {
   else {
     const [ctx, photos, ref, beforePhotos] = await Promise.all([a.rpc("automation_job_context", { p_secret: secret, p_job: jobId }), a.rpc("automation_job_photos", { p_secret: secret, p_job: jobId, p_kind: "apres" }), a.rpc("automation_job_ref_photos", { p_secret: secret, p_job: jobId }), a.rpc("automation_job_photos", { p_secret: secret, p_job: jobId, p_kind: "avant" })]);
     const c = (ctx.data ?? {}) as { before_report?: BeforeReport | null; guide?: Guide | null };
-    const r = await analyzeAfter((photos.data ?? []) as Img[], c.before_report ?? null, { guide: c.guide ?? null, images: (ref.data ?? []) as Img[] }, ((beforePhotos.data ?? []) as Img[]).slice(0, 8));
+    // Les images d'arrivée portent la pièce reconnue par l'IA au relevé : elle les retrouve sous le même angle sur la vidéo de fin.
+    const before = (beforePhotos.data ?? []) as Img[], rooms = c.before_report?.frame_rooms;
+    const beforeLabelled = before.map((p, i) => ({ ...p, room: p.room ?? (rooms && rooms.length === before.length ? rooms[i] || null : null) })).slice(0, 12);
+    const r = await analyzeAfter((photos.data ?? []) as Img[], c.before_report ?? null, { guide: c.guide ?? null, images: (ref.data ?? []) as Img[] }, beforeLabelled);
     if (r.report) { verdict = r.report.verdict; summary = r.report.summary; report = r.report; rework = (r.report as AfterReport).rework_minutes ?? null; }
     else summary = `Analyse automatique impossible : ${r.error ?? "raison inconnue"}.`;
   }

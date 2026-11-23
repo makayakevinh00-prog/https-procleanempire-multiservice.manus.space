@@ -36,14 +36,13 @@ export function TripPanel({ token }: { token: string }) {
   const start = () => { if (!("geolocation" in navigator)) { setNote("Ce téléphone ne donne pas sa position."); return; } localStorage.setItem(`pce:trajet:${trip.job}`, "1"); setNote(""); setSharing(true); };
   const stop = () => { localStorage.removeItem(`pce:trajet:${trip.job}`); setSharing(false); };
   return (
-    <section className={`mb-4 rounded-3xl p-4 ${sharing ? "bg-[var(--a-okbg)]" : "bg-[var(--a-card)]"}`} aria-live="polite">
-      <p className="text-[12px] font-extrabold uppercase tracking-wider text-[var(--a-mute)]">Ménage de {trip.start.replace(":", " h ")}{trip.city ? ` · ${trip.city}` : ""}</p>
-      <p className="mt-0.5 text-[18px] font-extrabold leading-snug">{sharing ? (trip.eta_at ? `Arrivée estimée à ${hm(trip.eta_at)}` : "Trajet partagé") : trip.title}</p>
-      <p className="mt-1 text-[13px] text-[var(--a-mute)]">{sharing ? "Votre trajet est visible par ProClean et par le client jusqu'à votre arrivée. Gardez l'application ouverte." : "En partant, appuyez sur « Je pars » : le client voit votre trajet et votre heure d'arrivée. Rien n'est partagé avant, ni après votre arrivée."}</p>
+    <section className={`rounded-3xl p-4 ${sharing ? "bg-[var(--a-okbg)]" : "bg-[var(--a-card)]"}`} aria-live="polite">
+      {sharing && <p className="text-[18px] font-extrabold leading-snug">{trip.eta_at ? `Arrivée estimée à ${hm(trip.eta_at)}` : "Trajet partagé"}</p>}
+      <p className={`text-[13px] text-[var(--a-mute)] ${sharing ? "mt-1" : ""}`}>{sharing ? "Votre trajet est visible jusqu'à votre arrivée. Gardez l'application ouverte." : "En partant, appuyez sur « Je pars » : le client suit votre trajet jusqu'à votre arrivée."}</p>
       <div className="mt-3 flex gap-2">
         {sharing
-          ? <button type="button" onClick={stop} className="h-12 flex-1 rounded-2xl border border-[var(--a-pri)] text-[15px] font-extrabold text-[var(--a-pri)]">Arrêter le partage</button>
-          : <button type="button" onClick={start} className="h-12 flex-1 rounded-2xl bg-[var(--a-pri)] text-[16px] font-extrabold text-white active:scale-[0.98]">Je pars</button>}
+          ? <button type="button" onClick={stop} className="h-12 flex-1 rounded-full border border-[var(--a-pri)] text-[15px] font-extrabold text-[var(--a-pri)]">Arrêter le partage</button>
+          : <button type="button" onClick={start} className="h-14 flex-1 rounded-full bg-[var(--a-pri)] text-[17px] font-extrabold text-white active:scale-[0.98]">Je pars</button>}
       </div>
       {note && <p role="status" className="mt-2 text-[13px] font-semibold text-[var(--a-warn)]">{note}</p>}
     </section>

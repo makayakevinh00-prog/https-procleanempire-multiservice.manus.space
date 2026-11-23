@@ -67,6 +67,30 @@ export async function cleanerFinishAction(token: string, jobId: string, fd: Form
   go(token, "/missions", "ok", "Merci ! Votre ménage est envoyé à la direction pour vérification. Attendez ses instructions avant de partir.");
 }
 
+/** Mission guidée : pointer l'arrivée sans quitter l'écran (le serveur revérifie jour et ménage). */
+export async function cleanerArriveFlowAction(token: string, jobId: string): Promise<{ ok: boolean; error?: string }> {
+  if (!isToken(token)) return { ok: false, error: "Lien invalide." };
+  const { error } = await agentClient().rpc("cleaner_arrive", { p_token: token, p_job: jobId });
+  if (error) return { ok: false, error: agentMessage(error.message) };
+  revalidatePath(base(token), "layout");
+  return { ok: true };
+}
+
+/** Mission guidée : la vidéo de fin est envoyée, le ménage est terminé et l'IA contrôle tout de suite. Renvoie le résultat sans changer d'écran. */
+export async function cleanerFinishFlowAction(token: string, jobId: string): Promise<{ ok: boolean; status?: "validee" | "a_reprendre" | "a_verifier"; error?: string }> {
+  if (!isToken(token)) return { ok: false, error: "Lien invalide." };
+  const c = agentClient();
+  const { data: lists } = await c.rpc("cleaner_checklists", { p_token: token });
+  const left = ((lists as Record<string, { done: boolean }[]> | null)?.[jobId] ?? []).some((t) => !t.done);
+  // Les tâches sont contrôlées par l'IA d'après la vidéo de fin : le nettoyeur n'a pas à toutes les cocher.
+  const { error } = await c.rpc("cleaner_finish_job", { p_token: token, p_job: jobId, p_note: left ? "Fin filmée : tâches contrôlées par l'IA d'après la vidéo." : "" });
+  if (error) return { ok: false, error: agentMessage(error.message) };
+  const { data: ov } = await c.rpc("cleaner_overview", { p_token: token });
+  const status = await afterFinish(jobId, String((ov as any)?.name ?? "Un nettoyeur"));
+  revalidatePath(base(token), "layout");
+  return { ok: true, status };
+}
+
 /** Cocher ou décocher une tâche du ménage (sans recharger la page). */
 export async function cleanerTaskAction(token: string, jobId: string, index: number, done: boolean): Promise<{ ok: boolean; error?: string }> {
   if (!isToken(token)) return { ok: false, error: "Lien invalide." };

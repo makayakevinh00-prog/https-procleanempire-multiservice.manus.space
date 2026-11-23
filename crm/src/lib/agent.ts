@@ -55,7 +55,7 @@ export type CleanerJob = {
   id: string; title: string; date: string; window_start: string; window_end: string; hours: number | null; city: string | null; postal_code: string | null;
   amount: number; distance_km?: number | null; favorite?: boolean; priority_until?: string | null; address?: string | null; access_notes?: string | null; status?: string; cleaner_note?: string | null; review_note?: string | null;
   departure?: "rester" | "partir" | null; arrived_at?: string | null; clean_linen?: { stock?: { clean: number; dirty: number; per_stay: number } | null; status: "sur_place" | "en_route" | "a_venir" | null; done_at: string | null; courier: string | null; phone: string | null; lat: number | null; lng: number | null; seen_at: string | null; km: number | null } | null; guide?: { summary: string; rooms: { room: string; steps: string[] }[]; attention: string[] } | null; validated_by?: "ia" | "direction" | "regles" | null; rank?: number | null; reserved_until?: string | null; reserved_for?: number | null; photos_before?: number; photos_after?: number;
-  before_report?: { items: { zone: string; todo: string }[]; level: number | null; summary: string; state?: string; tidy?: string; minutes?: number | null; zones?: string[] } | null;
+  before_report?: { items: { zone: string; todo: string }[]; level: number | null; summary: string; state?: string; tidy?: string; minutes?: number | null; zones?: string[]; tasks?: string[]; frame_rooms?: string[] } | null;
   ai_status?: "ok" | "reprise" | "indisponible" | null; ai_report?: { summary?: string; cleaned?: string[]; remaining?: { zone: string; why: string }[] } | null;
   linen?: { status: string; method: string | null; tracking: string | null } | null;
 };

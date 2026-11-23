@@ -179,21 +179,33 @@ export const toJpeg = (src: CanvasImageSource, w: number, h: number) => new Prom
   c.toBlob((b) => (b ? ok(b) : ko(new Error("Image illisible"))), "image/jpeg", 0.7);
 });
 
-/** Tire `n` images réparties sur toute la durée d'une vidéo (dans le téléphone : la vidéo elle-même n'est jamais envoyée). */
+/**
+ * Tire `n` images réparties sur toute la durée d'une vidéo (dans le téléphone : la vidéo elle-même n'est jamais envoyée).
+ * L'élément vidéo est posé dans la page (invisible) : sur iPhone, un film hors page ne se charge pas, d'où « trop longue à ouvrir ».
+ */
 export async function videoFrames(file: File, n: number, onStep: (i: number) => void): Promise<Blob[]> {
   const url = URL.createObjectURL(file), v = document.createElement("video");
-  v.muted = true; v.playsInline = true; v.preload = "auto"; v.src = url;
+  v.muted = true; v.playsInline = true; v.preload = "auto"; v.setAttribute("playsinline", ""); v.setAttribute("muted", "");
+  v.style.cssText = "position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none";
+  document.body.appendChild(v); v.src = url;
   try {
-    await new Promise<void>((ok, ko) => { v.onloadeddata = () => ok(); v.onerror = () => ko(new Error("Vidéo illisible sur cet appareil.")); setTimeout(() => ko(new Error("Vidéo trop longue à ouvrir.")), 20000); });
+    await new Promise<void>((ok, ko) => {
+      const done = () => { clearTimeout(t); ok(); };
+      const t = setTimeout(() => ko(new Error("Film trop long à ouvrir : filmez à nouveau, un peu plus court.")), 60_000);
+      v.onloadedmetadata = () => { v.currentTime = 0.01; };               // pousse le téléphone à décoder la première image
+      v.onloadeddata = done; v.oncanplay = done;
+      v.onerror = () => { clearTimeout(t); ko(new Error("Vidéo illisible sur cet appareil.")); };
+      v.load();
+    });
     const d = Number.isFinite(v.duration) && v.duration > 0 ? v.duration : 0;
     if (!d) throw new Error("Vidéo illisible sur cet appareil.");
     const out: Blob[] = [];
     for (let i = 0; i < n; i++) {
-      await new Promise<void>((ok, ko) => { v.onseeked = () => ok(); v.onerror = () => ko(new Error("Vidéo illisible.")); v.currentTime = Math.min(d - 0.05, (d * (i + 0.5)) / n); setTimeout(() => ok(), 4000); });
+      await new Promise<void>((ok, ko) => { const t = setTimeout(() => ok(), 8000); v.onseeked = () => { clearTimeout(t); ok(); }; v.onerror = () => { clearTimeout(t); ko(new Error("Vidéo illisible.")); }; v.currentTime = Math.min(d - 0.05, (d * (i + 0.5)) / n); });
       out.push(await toJpeg(v, v.videoWidth, v.videoHeight)); onStep(i + 1);
     }
     return out;
-  } finally { URL.revokeObjectURL(url); }
+  } finally { v.removeAttribute("src"); v.load(); v.remove(); URL.revokeObjectURL(url); }
 }
 
 /** « Filmer la pièce » : 8 images sont tirées de la vidéo et envoyées comme des photos avant / après, puis analysées. */
