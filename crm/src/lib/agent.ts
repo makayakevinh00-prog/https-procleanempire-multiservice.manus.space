@@ -47,7 +47,7 @@ export type CleanerOverview = {
   name: string; email: string; phone: string | null; departments: string[]; city: string | null; has_iban: boolean; iban_hint: string | null;
   address_line: string | null; postal_code: string | null; radius_km: number; has_location: boolean; online: boolean; today_amount: number; week_amount: number;
   window_start: string; window_end: string; max_end: string; done: number;
-  reliability?: { clean: number; redo: number; missed: number; score: number | null } | null;
+  reliability?: { clean: number; redo: number; missed: number; score: number | null; stars?: number | null; ratings?: number } | null;
   pending_amount: number; to_pay_amount: number; in_payout_amount: number; paid_amount: number;
   payouts: { period_start: string; period_end: string; amount: number; jobs: number; status: string; paid_on: string | null }[];
 };

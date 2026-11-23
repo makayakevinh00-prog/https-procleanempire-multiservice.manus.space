@@ -54,7 +54,7 @@ export default async function CleanerProfile({ params, searchParams }: { params:
 }
 
 /** Ce que le nettoyeur voit de sa propre fiabilité : c'est ce chiffre qui le place en tête des demandes. */
-function Reliability({ r }: { r?: { clean: number; redo: number; missed: number; score: number | null } | null }) {
+function Reliability({ r }: { r?: { clean: number; redo: number; missed: number; score: number | null; stars?: number | null; ratings?: number } | null }) {
   if (!r) return null;
   return (
     <section className="mt-4 rounded-3xl bg-[var(--a-card)] p-4">
@@ -68,6 +68,7 @@ function Reliability({ r }: { r?: { clean: number; redo: number; missed: number;
         <li className="rounded-2xl border border-[var(--a-line)] p-2"><div className="num text-[20px] font-extrabold">{r.redo}</div>avec reprise</li>
         <li className="rounded-2xl border border-[var(--a-line)] p-2"><div className="num text-[20px] font-extrabold">{r.missed}</div>non honorés</li>
       </ul>
+      {r.ratings ? <p className="mt-3 text-[15px] font-bold">Note des clients : {String(r.stars).replace(".", ",")} / 5 <span className="font-normal text-[var(--a-mute)]">({r.ratings} avis)</span></p> : null}
       <p className="mt-3 text-[14px] text-[var(--a-mute)]">Plus votre score est haut, plus vous recevez les demandes en premier. Passer une demande ne vous coûte rien : seuls comptent les ménages que vous avez acceptés.</p>
     </section>
   );
