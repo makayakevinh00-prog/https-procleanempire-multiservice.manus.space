@@ -5,15 +5,14 @@ import { dayFr, eur, slot, ttc } from "@/lib/cleaner-ui";
 import { LegalLinks } from "@/components/legal/links";
 import { TrackRefresh } from "@/components/nettoyeur/track-refresh";
 import { automationClient, automationSecret } from "@/lib/automation/deps";
-import { stripeConfigured } from "@/lib/stripe";
-import { readCardSetup } from "@/lib/stripe-card";
+import { cardPaymentsOn, readCardSetup } from "@/lib/stripe-card";
 import { bookingCardAction, bookingRateAction } from "@/app/actions/nettoyeur";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Suivi de votre ménage — ProClean Empire", robots: { index: false, follow: false }, referrer: "no-referrer" };
 
 type Track = { status: "nouvelle" | "acceptee" | "refusee"; kind: string; date: string; city: string; postal_code: string; price_ht: number; window_start: string; window_end: string; job_status: string | null; cleaner: string | null; arrived_at: string | null; payment_status?: "carte" | "en_cours" | "payee" | "echec" | null; rating?: number | null };
-const PAY: Record<string, string> = { facture: "à régler sur facture après le ménage", carte: "carte enregistrée, débitée après le ménage", en_cours: "paiement en cours", payee: "payé par carte", echec: "paiement par carte refusé" };
+const PAY: Record<string, string> = { facture: "réglé sur facture, après le ménage", carte: "carte enregistrée, débitée après le ménage", en_cours: "paiement en cours", payee: "payé par carte", echec: "paiement par carte refusé" };
 const KIND: Record<string, string> = { studio: "Studio", t2: "2 pièces", t3: "3 pièces", maison: "Maison" };
 
 /** Où en est la demande, en 5 étapes. Renvoie l'étape atteinte (0 à 4) et la phrase à afficher. */
@@ -33,8 +32,9 @@ const STEPS = ["Demande reçue", "Confirmée", "Nettoyeur désigné", "Ménage e
 export default async function BookingTrack({ params, searchParams }: { params: { token: string }; searchParams: { nouveau?: string; carte?: string; erreur?: string; merci?: string } }) {
   const ok = /^[0-9a-f]{64}$/.test(params.token);
   // Retour de la page Stripe : on vérifie auprès de Stripe que la carte est bien enregistrée pour cette réservation, puis on la rattache.
+  const cardOn = ok && (await cardPaymentsOn());
   let cardSaved = false;
-  if (ok && searchParams.carte && stripeConfigured()) {
+  if (cardOn && searchParams.carte) {
     const c = await readCardSetup(searchParams.carte, params.token).catch(() => null);
     if (c) cardSaved = !!(await automationClient().rpc("automation_set_booking_card", { p_secret: automationSecret(), p_token: params.token, p_customer: c.customer, p_method: c.method })).data;
   }
@@ -75,7 +75,7 @@ export default async function BookingTrack({ params, searchParams }: { params: {
               <div><dt className="text-[13px] font-bold text-[var(--a-mute)]">Créneau</dt><dd className="font-bold">{slot(t.window_start, t.window_end)}</dd></div>
               <div className="col-span-2"><dt className="text-[13px] font-bold text-[var(--a-mute)]">Prix</dt><dd className="font-bold">{eur(ttc(t.price_ht))} TTC — {PAY[t.payment_status ?? "facture"]}</dd></div>
             </dl>
-            {p.step >= 0 && stripeConfigured() && (!t.payment_status || t.payment_status === "echec") && (
+            {p.step >= 0 && cardOn && (!t.payment_status || t.payment_status === "echec") && (
               <form action={bookingCardAction.bind(null, params.token)} className="mt-4 rounded-3xl bg-[var(--a-card)] p-5">
                 <h2 className="text-[17px] font-extrabold">{t.payment_status === "echec" ? "Le paiement n'a pas abouti" : "Payer par carte"}</h2>
                 <p className="mt-1 text-[14px] text-[var(--a-mute)]">{t.payment_status === "echec" ? "Enregistrez une autre carte pour régler ce ménage." : "Enregistrez votre carte maintenant : vous n'êtes débité qu'après le ménage terminé et contrôlé. Paiement sécurisé par Stripe."}</p>

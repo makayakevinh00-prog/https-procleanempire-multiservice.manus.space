@@ -1,5 +1,6 @@
 import "server-only";
-import { stripe, StripeError } from "@/lib/stripe";
+import { stripe, StripeError, stripeConfigured } from "@/lib/stripe";
+import { agentClient } from "@/lib/agent";
 
 /** Paiement par carte des réservations de ménage : carte enregistrée à la réservation, débitée après le ménage validé. */
 
@@ -28,4 +29,11 @@ export async function chargeCard(o: { bookingId: string; cents: number; customer
   }, `booking-${o.bookingId}-${o.method}`);
   if (pi.status !== "succeeded") throw new StripeError("Le paiement n'a pas abouti.", pi.status);
   return pi.id;
+}
+
+/** Le paiement par carte à la réservation est-il proposé ? Réglage du patron (coupé par défaut : prélèvement en fin de mois) + clé Stripe en place. */
+export async function cardPaymentsOn(): Promise<boolean> {
+  if (!stripeConfigured()) return false;
+  const { data } = await agentClient().rpc("booking_card_enabled");
+  return data === true;
 }
