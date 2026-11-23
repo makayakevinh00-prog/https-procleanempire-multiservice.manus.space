@@ -112,3 +112,16 @@ describe("messages au propriétaire", () => {
     expect(n.text).toContain("Awa a terminé à 13 h 10. Vous pouvez passer vérifier le logement.");
   });
 });
+
+describe("envoi des images à l'IA", () => {
+  it("retire les retours à la ligne du base64 venu de la base", async () => {
+    const { askWith } = await import("@/lib/ai-inspect");
+    const old = process.env.ANTHROPIC_API_KEY, f = globalThis.fetch;
+    process.env.ANTHROPIC_API_KEY = "sk-ant-api-test";
+    let sent = "";
+    globalThis.fetch = (async (_u: unknown, init?: { body?: unknown }) => { sent = String(init?.body); return new Response(JSON.stringify({ content: [{ type: "text", text: "{}" }] }), { status: 200 }); }) as typeof fetch;
+    try { await askWith("s", [{ type: "image", source: { type: "base64", media_type: "image/jpeg", data: "AAAA\nBBBB\r\nCC==" } }], 10); }
+    finally { globalThis.fetch = f; process.env.ANTHROPIC_API_KEY = old; }
+    expect(JSON.parse(sent).messages[0].content[0].source.data).toBe("AAAABBBBCC==");
+  });
+});

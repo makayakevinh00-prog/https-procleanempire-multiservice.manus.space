@@ -91,10 +91,12 @@ export async function askWith(system: string, content: Part[], maxTokens: number
   const key = process.env.ANTHROPIC_API_KEY?.trim();
   if (!key) return { text: null, error: "clé d'API absente du serveur (ANTHROPIC_API_KEY)" };
   if (!content.some((c) => c.type === "image")) return { text: null, error: "aucune photo à analyser" };
+  // La base renvoie le base64 coupé par des retours à la ligne : Anthropic le refuse (« invalid base64 data »). On les retire ici, pour toutes les analyses.
+  const clean = content.map((c) => (c.type === "image" ? { ...c, source: { ...c.source, data: c.source.data.replace(/\s+/g, "") } } : c));
   const body = JSON.stringify({
     model: process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5", max_tokens: maxTokens,
     system,
-    messages: [{ role: "user", content }]
+    messages: [{ role: "user", content: clean }]
   });
   const call = (auth: Record<string, string>) => fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: AbortSignal.timeout(50_000), headers: { ...auth, "anthropic-version": "2023-06-01", "content-type": "application/json" }, body });
   try {
