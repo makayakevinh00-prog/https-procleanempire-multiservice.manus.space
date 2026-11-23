@@ -28,9 +28,10 @@ async function fetchIcs(url: string): Promise<string> {
  * Un calendrier qui ne répond pas n'empêche pas d'afficher les autres.
  */
 export async function loadAgenda(sb: SupabaseClient, from: string, to: string, readExternal: boolean): Promise<AgendaData> {
-  const [missions, calendars] = await Promise.all([
+  const [missions, calendars, stays] = await Promise.all([
     sb.from("interventions").select("id, title, scheduled_date, start_time, duration_hours, status, site_address, clients(name, is_reserved)").gte("scheduled_date", from).lt("scheduled_date", to).neq("status", "annule"),
-    readExternal ? sb.from("external_calendars").select("id, label, kind, url").order("created_at") : Promise.resolve({ data: [], error: null } as any)
+    readExternal ? sb.from("external_calendars").select("id, label, kind, url").order("created_at") : Promise.resolve({ data: [], error: null } as any),
+    sb.from("concierge_stays").select("id, check_in, check_out, concierge_listings(name, clients(name, is_reserved))").eq("cancelled", false).lt("check_in", to).gte("check_out", from)
   ]);
   const events: AgendaEvent[] = [];
   for (const m of (missions.error ? [] : missions.data ?? []) as any[]) {
@@ -39,6 +40,13 @@ export async function loadAgenda(sb: SupabaseClient, from: string, to: string, r
     const time = m.start_time ? String(m.start_time).slice(0, 5) : null;
     const start = `${m.scheduled_date}T${time ?? "00:00"}`;
     events.push({ id: `m-${m.id}`, title, start, end: time ? addHours(m.scheduled_date, time, Number(m.duration_hours ?? 1) || 1) : addHours(m.scheduled_date, "00:00", 24), allDay: !time, kind: "operationnel", source: "Missions du CRM", location: reserved ? null : m.site_address ?? null, href: `/missions/${m.id}` });
+  }
+  // Séjours des voyageurs (Airbnb, Booking…) : affichés en bandeau « journée », de l'arrivée à la veille du départ. Le ménage tombe le jour du départ.
+  for (const st of (stays.error ? [] : stays.data ?? []) as any[]) {
+    const l = st.concierge_listings, reserved = !!l?.clients?.is_reserved;
+    const fr = (d: string) => `${+d.slice(8, 10)}/${d.slice(5, 7)}`;
+    events.push({ id: `s-${st.id}`, title: reserved ? "Séjour (contact réservé)" : `Séjour · ${[l?.clients?.name, l?.name].filter(Boolean).join(" · ")}`, start: `${st.check_in}T00:00`, end: `${st.check_out}T00:00`, allDay: true, kind: "sejour", source: "Séjours Airbnb",
+      location: `Arrivée le ${fr(st.check_in)}, départ le ${fr(st.check_out)} (ménage ce jour-là)`, href: "/conciergerie" });
   }
   const tableMissing = !!calendars.error;
   const rows = (calendars.error ? [] : calendars.data ?? []) as { id: string; label: string; kind: AgendaKind; url: string }[];

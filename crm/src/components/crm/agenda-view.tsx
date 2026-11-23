@@ -8,7 +8,8 @@ import type { AgendaEvent, AgendaKind } from "@/lib/domain/agenda";
 const KIND: Record<AgendaKind, { label: string; dot: string; block: string }> = {
   operationnel: { label: "Opérationnel", dot: "bg-[#1d6fe0]", block: "border-l-[#1d6fe0] bg-[#e4eefd] text-[#143a73]" },
   commercial: { label: "Commercial", dot: "bg-[#1f9d6b]", block: "border-l-[#1f9d6b] bg-[#e2f4ec] text-[#14553b]" },
-  personnel: { label: "Personnel", dot: "bg-[#8a94a6]", block: "border-l-[#8a94a6] bg-[#eef0f4] text-[#3b4252]" }
+  personnel: { label: "Personnel", dot: "bg-[#8a94a6]", block: "border-l-[#8a94a6] bg-[#eef0f4] text-[#3b4252]" },
+  sejour: { label: "Séjour de voyageurs", dot: "bg-[#d98a1f]", block: "border-l-[#d98a1f] bg-[#fdf3e2] text-[#7a4a06]" }
 };
 const DAY_NAMES = ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."];
 const FIRST_HOUR = 6, LAST_HOUR = 22, HOUR_PX = 52;
@@ -162,7 +163,7 @@ export function AgendaView({ days, today, events, sources }: { days: string[]; t
             </p>
             {open.location && <p className="mt-2 flex items-start gap-2 text-[14px] text-muted-foreground"><MapPin className="mt-0.5 h-4 w-4 shrink-0" />{open.location}</p>}
             <div className="mt-5 flex justify-end gap-2">
-              {open.href && <Link href={open.href} className="inline-flex min-h-[44px] items-center rounded-full bg-primary px-5 text-[14px] font-semibold text-primary-foreground">Ouvrir la mission</Link>}
+              {open.href && <Link href={open.href} className="inline-flex min-h-[44px] items-center rounded-full bg-primary px-5 text-[14px] font-semibold text-primary-foreground">{open.kind === "sejour" ? "Ouvrir la conciergerie" : "Ouvrir la mission"}</Link>}
               <button type="button" onClick={() => setOpen(null)} className="inline-flex min-h-[44px] items-center rounded-full border px-5 text-[14px] font-semibold">Fermer</button>
             </div>
           </div>

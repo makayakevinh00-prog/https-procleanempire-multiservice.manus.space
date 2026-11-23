@@ -3,7 +3,7 @@
  * Fonction pure. Les créneaux qui se chevauchent dans une même famille ne sont comptés qu'une fois
  * (une mission présente à la fois dans le CRM et dans Outlook ne compte pas double).
  */
-export type AgendaKind = "operationnel" | "commercial" | "personnel";
+export type AgendaKind = "operationnel" | "commercial" | "personnel" | "sejour";
 export type AgendaEvent = { id: string; title: string; start: string; end: string; allDay: boolean; kind: AgendaKind; source: string; location?: string | null; href?: string | null };
 export type Balance = { operationnelH: number; commercialH: number; commercialShare: number | null; level: "ok" | "attention" | "alerte" | "vide"; message: string };
 

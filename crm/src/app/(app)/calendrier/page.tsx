@@ -15,7 +15,7 @@ import { addExternalCalendarAction, removeExternalCalendarAction } from "@/app/a
 
 export const dynamic = "force-dynamic";
 
-const KIND_LABEL: Record<AgendaKind, string> = { operationnel: "Opérationnel", commercial: "Commercial", personnel: "Personnel" };
+const KIND_LABEL: Record<AgendaKind, string> = { operationnel: "Opérationnel", commercial: "Commercial", personnel: "Personnel", sejour: "Séjour de voyageurs" };
 const longDay = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString("fr-FR", { day: "numeric", month: "long", timeZone: "UTC" });
 const hours = (n: number) => `${n.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} h`;
 
@@ -29,7 +29,7 @@ export default async function CalendrierPage({ searchParams }: { searchParams: {
   const { events, sources, tableMissing } = await loadAgenda(supabase, monday, addDays(monday, 7), owner);
   const balance = weekBalance(events);
   const total = balance.operationnelH + balance.commercialH;
-  const legend = [{ label: "Missions du CRM", kind: "operationnel" as AgendaKind }, ...sources.filter((s) => s.ok).map((s) => ({ label: s.label, kind: s.kind }))];
+  const legend = [{ label: "Missions du CRM", kind: "operationnel" as AgendaKind }, ...(events.some((e) => e.kind === "sejour") ? [{ label: "Séjours Airbnb", kind: "sejour" as AgendaKind }] : []), ...sources.filter((s) => s.ok).map((s) => ({ label: s.label, kind: s.kind }))];
   const hasCommercialCalendar = sources.some((s) => s.kind === "commercial");
   const tone = balance.level === "ok" ? "border-emerald-200 bg-[#f0f9f4]" : balance.level === "vide" ? "bg-white" : balance.level === "alerte" ? "border-red-200 bg-[#fdf3f2]" : "border-amber-200 bg-[#fdf8ee]";
 
