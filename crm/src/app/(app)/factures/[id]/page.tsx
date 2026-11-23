@@ -58,7 +58,7 @@ export default async function InvoicePage({ params }: { params: { id: string } }
   const largeAmount = isLargeAmount(num(i.total_ht), settings)
     ? { totalHt: formatEUR(i.total_ht), threshold: formatEUR(settings.large_amount_threshold_ht) } : null;
   const price = isDraft ? await loadPriceCheck(supabase, i) : null;
-  // Prélèvement SEPA : lecture à part, pour que la page reste lisible tant que la base n'a pas reçu la migration 0069.
+  // Prélèvement SEPA : lecture à part, pour que la page reste lisible tant que la base n'a pas reçu la migration 0070.
   const sepaClient = ["envoye", "en_retard"].includes(i.status) && (await isOwner())
     ? ((await supabase.from("clients").select("sepa_mandate_status, sepa_last4").eq("id", i.client_id).maybeSingle()).data as { sepa_mandate_status?: string; sepa_last4?: string | null } | null)
     : null;

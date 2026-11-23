@@ -1,4 +1,4 @@
--- 0069 — Prélèvement SEPA par Stripe : mandat signé en ligne par le client, prélèvement déclenché facture par facture par le patron.
+-- 0070 — Prélèvement SEPA par Stripe : mandat signé en ligne par le client, prélèvement déclenché facture par facture par le patron.
 alter table clients
   add column if not exists stripe_customer_id text,
   add column if not exists sepa_mandate_status text not null default 'aucun' check (sepa_mandate_status in ('aucun', 'en_attente', 'actif', 'revoque')),
