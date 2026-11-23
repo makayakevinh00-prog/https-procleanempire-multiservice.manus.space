@@ -491,9 +491,9 @@ export default async function ConciergeriePage({
                           {l.name}{" "}
                           <Link
                             href={`/conciergerie/reference/${l.id}`}
-                            className="ml-2 text-xs font-medium text-primary hover:underline"
+                            className="ml-2 inline-flex items-center rounded-full border border-primary px-3 py-1 text-xs font-semibold text-primary hover:bg-primary/5"
                           >
-                            {l.ref_guide ? "Référence IA ✔" : "Ajouter la référence IA"}
+                            {l.ref_guide || (l.rooms?.length ?? 0) > 0 ? "Plan du logement et référence IA ✔" : "Ajouter le plan du logement"}
                           </Link>
                         </div>
                         <div className="text-sm text-muted-foreground">

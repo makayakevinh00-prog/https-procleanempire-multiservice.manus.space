@@ -44,11 +44,11 @@ export default async function ListingReference({ params, searchParams }: { param
       </Card>
 
       <Card className="mb-4">
-        <CardHeader><CardTitle>Pièces à photographier</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Plan du logement : les pièces</CardTitle></CardHeader>
         <form action={setListingRoomsAction.bind(null, k.id)} className="space-y-3 px-5 pb-5">
-          <p className="text-sm text-muted-foreground">Le nettoyeur prend une photo avant et une photo après de chaque pièce de cette liste. Une pièce par ligne (« Chambre 1 », « Chambre 2 », « Douche »…). Laissez vide pour reprendre les pièces du guide, sinon la liste standard.</p>
+          <p className="text-sm text-muted-foreground">Listez toutes les pièces du logement, une par ligne (« Chambre 1 », « Chambre 2 », « Douche »…). L'IA connaît alors le lieu : quand le nettoyeur filme à son arrivée, elle lui redemande de filmer toute pièce de cette liste qu'elle ne voit pas. Laissez vide : l'IA travaille seulement à partir du film.</p>
           <textarea name="rooms" rows={6} defaultValue={((k.rooms ?? []) as string[]).join("\n")} placeholder={(g?.rooms ?? []).map((r) => r.room).join("\n") || "Cuisine\nSalon / séjour\nChambre\nSalle de bain / douche\nWC"} className="w-full rounded-md border p-3 text-sm" />
-          <Button variant="outline">Enregistrer les pièces</Button>
+          <Button variant="outline">Enregistrer le plan</Button>
         </form>
       </Card>
 

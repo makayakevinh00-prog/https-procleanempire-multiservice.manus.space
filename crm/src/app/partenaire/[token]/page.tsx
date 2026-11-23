@@ -170,9 +170,9 @@ export default async function PartnerPage({ params, searchParams }: { params: { 
                   {g && <div className="mt-3 rounded-2xl bg-[var(--a-bg)] p-3 text-[13px]">{g.summary && <p className="text-[var(--a-mute)]">{g.summary}</p>}{(g.rooms ?? []).map((r: any) => <div key={r.room} className="mt-1.5"><b>{r.room}</b><ul className="list-disc pl-5">{(r.steps ?? []).map((x: string, i: number) => <li key={i}>{x}</li>)}</ul></div>)}</div>}
                 </section>
                 <section>
-                  <b className="mb-1 block text-[15px]">Pièces à photographier</b>
-                  <p className="mb-2 text-[13px] text-[var(--a-mute)]">Le nettoyeur prend une photo avant et après de chaque pièce. Une pièce par ligne. Vide : les pièces du guide, sinon cuisine, séjour, chambre, salle de bain, WC.</p>
-                  <form action={partnerRoomsAction.bind(null, token, l.id)} className="space-y-2"><textarea name="rooms" rows={5} defaultValue={(l.rooms ?? []).join("\n")} placeholder={"Cuisine\nSalon\nChambre 1\nChambre 2\nDouche\nWC"} className="w-full rounded-xl border border-[var(--a-line)] bg-[var(--a-bg)] p-3 text-[15px]" /><button className="h-11 rounded-xl border border-[var(--a-pri)] px-4 text-sm font-extrabold text-[var(--a-pri)]">Enregistrer les pièces</button></form>
+                  <b className="mb-1 block text-[15px]">Plan du logement : les pièces</b>
+                  <p className="mb-2 text-[13px] text-[var(--a-mute)]">Listez toutes les pièces, une par ligne. L&apos;IA connaît alors le lieu et redemande au nettoyeur de filmer toute pièce qu&apos;elle ne voit pas. Vide : elle travaille seulement à partir du film.</p>
+                  <form action={partnerRoomsAction.bind(null, token, l.id)} className="space-y-2"><textarea name="rooms" rows={5} defaultValue={(l.rooms ?? []).join("\n")} placeholder={"Cuisine\nSalon\nChambre 1\nChambre 2\nDouche\nWC"} className="w-full rounded-xl border border-[var(--a-line)] bg-[var(--a-bg)] p-3 text-[15px]" /><button className="h-11 rounded-xl border border-[var(--a-pri)] px-4 text-sm font-extrabold text-[var(--a-pri)]">Enregistrer le plan</button></form>
                 </section>
                 <section><b className="mb-2 block text-[15px]">Informations et calendrier</b><ListingForm token={token} l={l} /></section>
               </div>
