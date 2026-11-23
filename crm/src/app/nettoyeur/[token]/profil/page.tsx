@@ -4,6 +4,7 @@ import { cleanerProfileAction } from "@/app/actions/nettoyeur";
 import { initials } from "@/lib/field-ui";
 import { Gate } from "@/components/agent/gate";
 import { GpsButton } from "@/components/nettoyeur/live";
+import { AvatarPicker } from "@/components/nettoyeur/avatar-picker";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Profil — ProClean Empire", robots: { index: false, follow: false }, referrer: "no-referrer" };
@@ -15,10 +16,11 @@ export default async function CleanerProfile({ params, searchParams }: { params:
   const { data, error } = await agentClient().rpc("cleaner_overview", { p_token: params.token });
   if (error) return <Gate text={agentMessage(error.message)} />;
   const o = data as CleanerOverview;
+  const photo = (await agentClient().rpc("cleaner_avatar", { p_token: params.token })).data as string | null;
   return (
     <>
       <section className="rounded-3xl border border-[var(--a-line)] p-6 text-center">
-        <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full border-4 border-[var(--a-soft)] bg-[var(--a-card)] text-[34px] font-extrabold text-[var(--a-pri)]">{initials(o.name)}</div>
+        <AvatarPicker token={params.token} initials={initials(o.name)} current={photo} />
         <h1 className="mt-3 text-[26px] font-extrabold tracking-tight">{o.name}</h1>
         <p className="text-[15px] text-[var(--a-mute)]">{o.email}</p>
         <div className="mt-3 text-[13px] font-extrabold uppercase tracking-[0.14em] text-[var(--a-mute)]">Ménages validés</div>

@@ -134,6 +134,16 @@ export async function cleanerProfileAction(token: string, fd: FormData) {
   go(token, "/profil", "ok", pt ? (gps ? "Profil enregistré avec votre position GPS : vous voyez les ménages dans votre rayon." : "Profil enregistré : vous voyez les ménages dans votre rayon.") : "Profil enregistré. Votre adresse n'a pas pu être localisée : vous voyez les ménages de votre département.");
 }
 
+/** Photo de profil (JPEG carré réduit par le téléphone) ; chaîne vide = retirer la photo. */
+export async function cleanerAvatarAction(token: string, b64: string): Promise<{ ok: boolean; error?: string }> {
+  guard(token);
+  if (b64.length > 220_000 || !/^[A-Za-z0-9+/=]*$/.test(b64)) return { ok: false, error: "Photo trop lourde ou illisible." };
+  const { error } = await agentClient().rpc("cleaner_set_avatar", { p_token: token, p_b64: b64 });
+  if (error) return { ok: false, error: /PHOTO_TROP_LOURDE/.test(error.message) ? "Photo trop lourde." : /PHOTO_FORMAT/.test(error.message) ? "Format de photo non accepté." : agentMessage(error.message) };
+  revalidatePath(base(token), "layout");
+  return { ok: true };
+}
+
 /** Bouton En ligne / Hors ligne. */
 export async function cleanerOnlineAction(token: string, online: boolean): Promise<{ ok: boolean; error?: string }> {
   if (!isToken(token)) return { ok: false, error: "Lien invalide." };

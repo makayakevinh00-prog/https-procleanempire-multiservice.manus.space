@@ -83,3 +83,17 @@ describe("0076 — mission guidée", () => {
     expect((await q("select cleaning_missing_rooms($1) m", [j]))[0].m).toMatch(/Cuisine/);
   });
 });
+
+describe("0077 — photo du nettoyeur", () => {
+  beforeAll(async () => { await db.exec(read("supabase/migrations/0077_photo_nettoyeur.sql")); await db.exec(read("supabase/migrations/0077_photo_nettoyeur.sql")); });
+  it("enregistre un JPEG, le relit, le retire ; refuse un autre format ou un lien inconnu", async () => {
+    expect((await q("select cleaner_avatar($1) a", [TA]))[0].a).toBeNull();
+    await q("select cleaner_set_avatar($1,$2)", [TA, PIX]);
+    expect((await q("select cleaner_avatar($1) a", [TA]))[0].a).toBe(PIX);
+    await fails("select cleaner_set_avatar($1,$2)", [TA, Buffer.from("pas une image").toString("base64")], /PHOTO_FORMAT/);
+    await fails("select cleaner_set_avatar($1,$2)", [TA, Buffer.concat([Buffer.from([0xff, 0xd8, 0xff]), Buffer.alloc(150_001)]).toString("base64")], /PHOTO_TROP_LOURDE/);
+    await fails("select cleaner_avatar($1)", ["f".repeat(64)], /.+/);
+    await q("select cleaner_set_avatar($1,'')", [TA]);
+    expect((await q("select cleaner_avatar($1) a", [TA]))[0].a).toBeNull();
+  });
+});
