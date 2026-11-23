@@ -5,7 +5,12 @@ import { pathAllowed, sanitizePerms } from "@/lib/team";
 // Les routes cron s'authentifient elles-mêmes (CRON_SECRET) ; tout le reste exige une session.
 const PUBLIC = ["/login", "/acces-refuse", "/api/stripe/webhook", "/mandat/", "/api/cron/", "/api/qonto/sync", "/api/inbound/", "/agent/", "/api/agent/", "/suivi/", "/api/public/", "/api/calendrier/", "/api/mcp", "/.well-known/", "/register", "/authorize", "/token", "/compta/activer", "/invitation", "/nettoyeur/", "/api/nettoyeur/", "/reserver", "/linge/", "/partenaire/", "/api/partenaire/", "/connexion", "/signer/", "/mentions-legales", "/cgu", "/confidentialite"];
 
+// Espaces à lien privé (nettoyeur, partenaire, agent, linge, suivi) : aucun compte CRM n'y sert, donc aucune vérification de session.
+// On évite ainsi un aller-retour vers le service de connexion à chaque page et à chaque rafraîchissement de ces applications.
+const TOKEN_SPACES = ["/nettoyeur/", "/api/nettoyeur/", "/partenaire/", "/api/partenaire/", "/agent/", "/api/agent/", "/linge/", "/suivi/"];
+
 export async function middleware(request: NextRequest) {
+  if (TOKEN_SPACES.some((p) => request.nextUrl.pathname.startsWith(p))) return NextResponse.next({ request });
   let response = NextResponse.next({ request });
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
     cookies: {
