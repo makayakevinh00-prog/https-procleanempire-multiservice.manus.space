@@ -16,7 +16,11 @@ import { ConfirmAction } from "@/components/crm/confirm-action";
 import { enrichClientAction, addInteractionAction, addClientEmailAction, deleteClientEmailAction, setPipelineAction, toggleClientEmailInvoicesAction } from "@/app/actions/clients";
 import { archiveClientAction, deleteClientAction, deleteInteractionAction } from "@/app/actions/manage";
 import { createMandateLinkAction } from "@/app/actions/sepa";
+import { sendClientInvoicesAction } from "@/app/actions/invoices";
+import { RecipientPicker } from "@/components/crm/recipient-picker";
+import { remainingOf, sendable } from "@/lib/invoice-batch";
 import { isOwner } from "@/lib/auth";
+import { loadRecipients } from "@/lib/recipients";
 import { PIPELINE, PIPELINE_LABEL, PIPELINE_TONE, type Pipeline } from "@/lib/request-type";
 import { cn, dueInfo, formatDate, formatEUR, formatHours } from "@/lib/utils";
 
@@ -38,6 +42,7 @@ export default async function ClientPage({ params, searchParams }: { params: { i
     clientImpact(c.id)
   ]);
   const inv = invoices.data ?? [];
+  const recipients = await loadRecipients(supabase, c.id);
   const issued = inv.filter((i) => i.status !== "brouillon" && i.status !== "annule");
   const billedHt = issued.reduce((a, i) => a + n(i.total_ht), 0);
   const due = inv.filter((i) => ["envoye", "en_retard"].includes(i.status)).reduce((a, i) => a + n(i.total_ttc) - n(i.paid_amount), 0);
@@ -227,7 +232,30 @@ export default async function ClientPage({ params, searchParams }: { params: { i
             )}
           </Card>
           <Card>
-            <CardHeader><CardTitle>Factures</CardTitle><Link href={`/factures/new?client=${c.id}`} className={cn(buttonVariants({ size: "sm" }))}><Plus className="h-4 w-4" /> Nouvelle</Link></CardHeader>
+            <CardHeader><CardTitle>Factures</CardTitle>
+              <div className="flex flex-wrap items-center gap-2">
+                {owner && inv.some(sendable) && (
+                  <ConfirmAction action={sendClientInvoicesAction.bind(null, c.id)} label="Envoyer…" variant="outline" size="sm"
+                    title="Envoyer les factures par e-mail" description="Les factures cochées partent dans un seul e-mail, chacune en PDF. Rien ne change sur les factures (même numéro, même statut). Les brouillons ne sont pas proposés : ils se valident depuis leur fiche."
+                    confirmLabel="Envoyer" reservedName={reservedName}
+                    extra={<>
+                      <fieldset className="space-y-2 rounded-lg border p-3 text-sm">
+                        <legend className="px-1 text-xs font-bold uppercase tracking-wide text-slate-500">Factures à envoyer</legend>
+                        {inv.filter(sendable).slice(0, 10).map((i) => { const rest = remainingOf({ ...i, number: i.number! }); return (
+                          <label key={i.id} className="flex items-center gap-2">
+                            <input type="checkbox" name="invoice" value={i.id} defaultChecked={rest > 0} />
+                            <span className="font-semibold">{i.number}</span>
+                            <span className="min-w-0 flex-1 truncate text-slate-500">{i.subject}</span>
+                            <span className="whitespace-nowrap">{rest > 0 ? `${formatEUR(rest)} dus` : "payée"}</span>
+                          </label>
+                        ); })}
+                      </fieldset>
+                      <RecipientPicker recipients={recipients} defaultAll />
+                    </>} />
+                )}
+                <Link href={`/factures/new?client=${c.id}`} className={cn(buttonVariants({ size: "sm" }))}><Plus className="h-4 w-4" /> Nouvelle</Link>
+              </div>
+            </CardHeader>
             {!inv.length ? <Empty icon={Receipt}>Aucune facture.</Empty> : (
               <Table><tbody>{inv.map((i) => (
                 <Tr key={i.id}><Td><Link href={`/factures/${i.id}`} className="font-semibold text-slate-900 hover:underline">{i.number ?? "Brouillon"}</Link></Td>
