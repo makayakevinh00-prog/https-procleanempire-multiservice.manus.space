@@ -1,0 +1,1 @@
+-- 0073 supprime le paiement par carte : pour le rétablir, rejouer 0071 puis 0072.

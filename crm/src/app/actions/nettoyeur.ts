@@ -13,8 +13,7 @@ import { analyzeReference, type Img } from "@/lib/ai-inspect";
 import { sendMail, mailConfigured } from "@/lib/mail";
 import { automationClient, automationSecret } from "@/lib/automation/deps";
 import { runAfterAnalysis, type AfterOutcome } from "@/lib/marketplace/inspect";
-import { autoAcceptBookings, siteUrl, trackUrl } from "@/lib/marketplace/auto-accept";
-import { cardPaymentsOn, createCardSetup } from "@/lib/stripe-card";
+import { autoAcceptBookings, trackUrl } from "@/lib/marketplace/auto-accept";
 import { hashPassword, passwordOk, verifyPassword } from "@/lib/password";
 import { createClient } from "@/lib/supabase/server";
 
@@ -267,20 +266,7 @@ export async function bookCleaningAction(fd: FormData) {
   }
   // Demande simple et réglage activé : acceptée tout de suite (sinon elle attend le patron, comme avant).
   await autoAcceptBookings().catch(() => undefined);
-  if (!link) redirect("/reserver?ok=1");
-  const token = link!.split("/").pop()!;
-  // Carte enregistrée maintenant, débitée seulement après le ménage validé. Si Stripe ne répond pas, la demande reste valable (sur facture).
-  const pay = (await cardPaymentsOn()) ? await cardSetupUrl(token, p.email).catch(() => null) : null;
-  redirect(pay ?? `/suivi/menage/${token}?nouveau=1`);
-}
-
-const cardSetupUrl = (token: string, email?: string) => createCardSetup({ email, token, success: `${siteUrl()}/suivi/menage/${token}?carte={CHECKOUT_SESSION_ID}`, cancel: `${siteUrl()}/suivi/menage/${token}?nouveau=1` });
-
-/** Depuis la page de suivi : le client enregistre (ou change) sa carte. */
-export async function bookingCardAction(token: string) {
-  if (!isToken(token) || !(await cardPaymentsOn())) redirect("/reserver");
-  const url = await cardSetupUrl(token).catch(() => null);
-  redirect(url ?? `/suivi/menage/${token}?erreur=${encodeURIComponent("Le paiement par carte est indisponible pour le moment. Réessayez dans un instant.")}`);
+  redirect(link ? `/suivi/menage/${link.split("/").pop()}?nouveau=1` : "/reserver?ok=1");
 }
 
 /** Depuis la page de suivi : le client note son ménage (une fois, quand il est terminé). */
