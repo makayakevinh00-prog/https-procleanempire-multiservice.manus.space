@@ -20,7 +20,7 @@ export default async function SignPage({ params }: { params: { token: string } }
       <main className={box}>
         <h1 className="text-2xl font-bold">{view.kind === "devis" ? "Devis" : "Contrat"} {view.doc_number}</h1>
         <p className="mt-2 text-lg">{msg}</p>
-        {view.status === "signe" && <a className="mt-4 inline-block rounded-lg bg-slate-900 px-5 py-3 font-semibold text-white" href={`/signer/${params.token}/pdf?signe=1`}>Télécharger le document signé</a>}
+        {view.status === "signe" && <a className="mt-4 inline-block rounded-full bg-[#1e3a6e] px-5 py-3 font-semibold text-white" href={`/signer/${params.token}/pdf?signe=1`}>Télécharger le document signé</a>}
       </main>
     );
   }

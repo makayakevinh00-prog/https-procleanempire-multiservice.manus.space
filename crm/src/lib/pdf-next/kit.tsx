@@ -10,7 +10,7 @@ reg("Inter");
 reg("Jakarta");
 Font.registerHyphenationCallback((w) => [w]); // jamais de coupure de mot au milieu
 
-export const C = { navy: "#14213D", blue: "#1D6FE0", blueSoft: "#EAF2FD", ink: "#1A1F2E", grey: "#6B7385", light: "#F4F6FA", line: "#E3E7EF", white: "#FFFFFF", green: "#15803D", greenSoft: "#E8F6EE", amber: "#B45309", amberSoft: "#FEF3E2" };
+export const C = { navy: "#1E3A6E", blue: "#1D6FE0", blueSoft: "#F0F4FC", ink: "#101828", grey: "#667085", light: "#F7F9FD", line: "#DBE6FC", white: "#FFFFFF", green: "#15803D", greenSoft: "#E8F6EE", amber: "#B45309", amberSoft: "#FEF3E2" };
 export const M = { x: 42, top: 40, bottom: 72 };
 
 export const s = StyleSheet.create({

@@ -7,7 +7,7 @@ const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 
 function wrap(company: string, paragraphs: string[], signature: string[]): { text: string; html: string } {
   const text = [...paragraphs, "", ...signature].join("\n\n").replace(/\n\n\n+/g, "\n\n");
-  const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#14213d;max-width:560px">
+  const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#101828;max-width:560px">
 ${paragraphs.map((p) => `<p style="margin:0 0 14px">${esc(p).replace(/\n/g, "<br>")}</p>`).join("\n")}
 <p style="margin:22px 0 0;border-top:1px solid #e3e7ef;padding-top:12px;color:#5b6475;font-size:13px">${signature.map(esc).join("<br>")}</p>
 </div>`;

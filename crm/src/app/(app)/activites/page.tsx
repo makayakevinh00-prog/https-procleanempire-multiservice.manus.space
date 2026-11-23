@@ -90,7 +90,7 @@ export default async function ActivitiesPage() {
               </div>
               <div className="border-t border-border/70 pt-3">
                 <div className="flex items-baseline justify-between text-[13px]"><span className="text-muted-foreground">Facturé sur 12 mois (HT)</span><b className="num font-semibold text-foreground">{eur0(billed)}</b></div>
-                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-secondary"><div className="h-full rounded-full bg-foreground/70" style={{ width: `${Math.round((billed / totalBilled) * 100)}%` }} /></div>
+                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-secondary"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.round((billed / totalBilled) * 100)}%` }} /></div>
                 <div className="mt-1.5 flex justify-between text-[12px] text-muted-foreground"><span>{Math.round((billed / totalBilled) * 100)} % du facturé</span><span>à encaisser : <b className="num font-medium text-foreground">{eur0(open)}</b> TTC</span></div>
               </div>
               <div className="flex flex-wrap gap-3 text-[13px]">

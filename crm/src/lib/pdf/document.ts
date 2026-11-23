@@ -34,9 +34,9 @@ export const pdfMoney = (n: number) => {
 const pdfDate = (d: string | null) => (d ? new Date(`${d.slice(0, 10)}T12:00:00`).toLocaleDateString("fr-FR") : "");
 const pct = (n: number) => `${String(n).replace(".", ",")} %`;
 
-const NAVY = rgb(0.078, 0.129, 0.239);
+const NAVY = rgb(0.118, 0.227, 0.431);
 const BLUE = rgb(0.114, 0.435, 0.878);
-const INK = rgb(0.1, 0.12, 0.18);
+const INK = rgb(0.063, 0.094, 0.157);
 const GREY = rgb(0.42, 0.45, 0.52);
 const LIGHT = rgb(0.955, 0.965, 0.98);
 const LINE = rgb(0.85, 0.87, 0.91);
