@@ -29,6 +29,7 @@ import {
   syncListingNowAction,
   toggleAutomationAction,
 } from "@/app/actions/conciergerie";
+import { inviteListingOwnerAction } from "@/app/actions/nettoyeurs";
 import { PageHeader, Empty } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -131,6 +132,9 @@ export default async function ConciergeriePage({
         .order("full_name"),
       loadActivityModel(sb),
     ]);
+  // Clients qui ont déjà un espace (propriétaire ou conciergerie) : sert au bouton d'invitation de chaque logement.
+  const pa = await sb.from("partner_access").select("client_id").eq("active", true);
+  const partnerOn = new Set<string>(((pa.error ? [] : pa.data) ?? []).map((r: any) => r.client_id));
   if (lst.error)
     return (
       <>
@@ -530,6 +534,22 @@ export default async function ConciergeriePage({
                         staff={staffOpts}
                         action={saveListingAction.bind(null, l.id)}
                       />
+                      <div className="flex flex-wrap items-center gap-3 rounded-lg bg-secondary px-3 py-2 text-sm">
+                        <span className="min-w-0 flex-1">
+                          {partnerOn.has(l.client_id)
+                            ? <>Le propriétaire a un espace : il suit ses ménages en direct.</>
+                            : <>Le propriétaire n&apos;a pas encore d&apos;espace : invitez-le pour qu&apos;il suive ses ménages en direct.</>}
+                        </span>
+                        <ConfirmAction
+                          action={inviteListingOwnerAction.bind(null, l.id)}
+                          label={partnerOn.has(l.client_id) ? "Renvoyer l'invitation" : "Inviter le propriétaire par e-mail"}
+                          size="sm"
+                          variant="outline"
+                          title={`Inviter ${l.clients?.name ?? "le propriétaire"} ?`}
+                          description={partnerOn.has(l.client_id) ? "Un nouveau lien privé lui est envoyé par e-mail ; l'ancien lien cesse de fonctionner." : "Un e-mail lui est envoyé avec son lien privé : il voit ce logement, le nettoyeur en route, l'arrivée et le compte rendu."}
+                          confirmLabel="Envoyer l'invitation"
+                        />
+                      </div>
                       <div className="flex flex-wrap gap-3">
                         <Link href={`/conciergerie/veille/${l.id}`} className="inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-secondary">Veille : prix, avis, améliorations</Link>
                         {l.ical_url && (

@@ -367,6 +367,20 @@ export async function partnerRoomsAction(token: string, listing: string, fd: For
   pBack(token, "ok", rooms.length ? "Pièces enregistrées : le nettoyeur photographiera chacune, avant et après." : "Liste vidée : les pièces du guide ou la liste standard seront utilisées.");
 }
 
+/** Points d'attention ajoutés par le propriétaire ou la conciergerie (un par ligne) : le guide existant est conservé. */
+export async function partnerAttentionAction(token: string, listing: string, fd: FormData) {
+  if (!isToken(token)) redirect("/nettoyeur");
+  const attention = String(fd.get("attention") ?? "").split("\n").map((x) => x.trim().slice(0, 160)).filter(Boolean).slice(0, 8);
+  const c = agentClient();
+  const cur = await c.rpc("partner_guide", { p_secret: token, p_listing: listing });
+  if (cur.error) pBack(token, "error", agentMessage(cur.error.message));
+  const g = ((cur.data as { summary?: string; rooms?: unknown[] } | null) ?? { summary: "", rooms: [] });
+  const up = await c.rpc("partner_set_guide", { p_secret: token, p_listing: listing, p_guide: { summary: g.summary ?? "", rooms: g.rooms ?? [], attention } });
+  if (up.error) pBack(token, "error", agentMessage(up.error.message));
+  revalidatePath(`/partenaire/${token}`);
+  pBack(token, "ok", attention.length ? "Points d'attention enregistrés : le nettoyeur et l'IA en tiennent compte." : "Points d'attention retirés.");
+}
+
 /** Référence du logement : l'IA rédige le guide de ménage à partir des images envoyées par la conciergerie. */
 export async function partnerAnalyzeAction(token: string, listing: string) {
   if (!isToken(token)) redirect("/nettoyeur");

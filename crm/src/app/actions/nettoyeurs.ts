@@ -455,7 +455,61 @@ export async function setListingRoomsAction(id: string, fd: FormData) {
   const { error } = await createClient().from("concierge_listings").update({ rooms: rooms.length ? rooms : null }).eq("id", id);
   if (error) flash(REF(id), "error", dbMessage(error));
   revalidatePath(REF(id));
-  flash(REF(id), "ok", rooms.length ? "Pièces enregistrées : elles s'appliquent aux prochains ménages acceptés." : "Liste vidée : les pièces du guide ou la liste standard seront utilisées.");
+  // Plan enregistré avec des images de référence mais sans guide : l'IA rédige le guide toute seule (ce qu'il faut nettoyer dans chaque pièce).
+  let auto = "";
+  if (rooms.length) {
+    const sb = createClient();
+    const { data: l } = await sb.from("concierge_listings").select("name, ref_guide").eq("id", id).maybeSingle();
+    const g = (l as any)?.ref_guide as { rooms?: unknown[]; attention?: string[] } | null;
+    if (l && !(g?.rooms?.length)) {
+      const { data: photos } = await sb.rpc("listing_ref_photos_b64", { p_listing: id });
+      if (((photos ?? []) as Img[]).length) {
+        const r = await analyzeReference((photos ?? []) as Img[], String((l as any).name));
+        if (r.report) {
+          const merged = { ...r.report, attention: [...new Set([...(g?.attention ?? []), ...r.report.attention])].slice(0, 8) };
+          const up = await sb.from("concierge_listings").update({ ref_guide: merged, ref_at: new Date().toISOString() }).eq("id", id);
+          auto = up.error ? "" : " L'IA a rédigé le guide de ménage à partir de vos images.";
+        }
+      } else auto = " Ajoutez des photos ou une vidéo du logement propre : l'IA rédigera le guide de ménage.";
+    }
+  }
+  revalidatePath(REF(id));
+  flash(REF(id), "ok", rooms.length ? `Plan enregistré : l'IA réclamera au nettoyeur toute pièce non filmée.${auto}` : "Plan vidé : l'IA travaillera seulement à partir du film.");
+}
+
+/** Points d'attention d'un logement (un par ligne) : ajoutés par la direction, lus par l'IA et montrés au nettoyeur. Le guide existant est conservé. */
+export async function setListingAttentionAction(id: string, fd: FormData) {
+  await requireOwner();
+  const attention = String(fd.get("attention") ?? "").split("\n").map((x) => x.trim().slice(0, 160)).filter(Boolean).slice(0, 8);
+  const sb = createClient();
+  const { data: l } = await sb.from("concierge_listings").select("ref_guide").eq("id", id).maybeSingle();
+  if (!l) flash("/conciergerie", "error", "Logement introuvable.");
+  const g = ((l as any).ref_guide ?? { summary: "", rooms: [] }) as { summary?: string; rooms?: unknown[] };
+  const { error } = await sb.from("concierge_listings").update({ ref_guide: { summary: g.summary ?? "", rooms: g.rooms ?? [], attention }, ref_at: new Date().toISOString() }).eq("id", id);
+  if (error) flash(REF(id), "error", dbMessage(error));
+  revalidatePath(REF(id));
+  flash(REF(id), "ok", attention.length ? "Points d'attention enregistrés : l'IA et le nettoyeur en tiennent compte." : "Points d'attention retirés.");
+}
+
+/** Inviter le propriétaire (ou la conciergerie) d'un logement : son lien privé lui est envoyé par e-mail, il suit ses ménages en direct. */
+export async function inviteListingOwnerAction(listingId: string) {
+  await requireOwner();
+  const LIST = "/conciergerie?tab=logements";
+  const sb = createClient();
+  const { data: l } = await sb.from("concierge_listings").select("name, client_id, clients(name, email, is_reserved)").eq("id", listingId).maybeSingle();
+  const k = (l as any)?.clients;
+  if (!l || !k) flash(LIST, "error", "Rattachez d'abord ce logement à un client (son propriétaire ou sa conciergerie).");
+  if (k.is_reserved) flash(LIST, "error", `${k.name} est un contact réservé : pas d'invitation automatique.`);
+  if (!k.email) flash(LIST, "error", `${k.name} n'a pas d'adresse e-mail : ajoutez-la sur sa fiche client, puis réinvitez.`);
+  if (!mailConfigured()) flash(LIST, "error", "L'envoi d'e-mails n'est pas configuré.");
+  const token = randomBytes(32).toString("hex");
+  const { error } = await sb.from("partner_access").upsert({ client_id: (l as any).client_id, active: true, token_hash: sha(token), token_set_at: new Date().toISOString() }, { onConflict: "client_id" });
+  if (error) flash(LIST, "error", dbMessage(error));
+  const url = `${origin()}/partenaire/${token}`;
+  const r = await sendMail({ to: k.email, subject: `Suivez le ménage de votre logement en direct — ${(l as any).name}`, text: `Bonjour,\n\nVotre logement « ${(l as any).name} » est suivi par ProClean Empire. Voici le lien privé de votre espace :\n${url}\n\nVous y voyez en direct chaque ménage : le nettoyeur en route et son heure d'arrivée, son arrivée sur place, puis le compte rendu et le contrôle de fin.\nVous pouvez aussi y décrire votre logement (les pièces, les points d'attention) pour guider le nettoyeur.\n\nGardez ce lien pour vous : il donne accès à votre espace sans mot de passe.\n\nL'équipe ProClean Empire` });
+  revalidatePath("/conciergerie");
+  if (!r.sent) flash(LIST, "error", `L'e-mail n'est pas parti vers ${k.email}. L'accès est créé : renvoyez l'invitation, ou créez le lien depuis « Espaces conciergerie ».`);
+  flash(LIST, "ok", `Invitation envoyée à ${k.name} (${k.email}) : il suivra ses ménages en direct.`);
 }
 
 

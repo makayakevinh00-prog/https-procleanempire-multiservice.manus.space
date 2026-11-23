@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { agentClient, agentMessage, agentPrefs, isToken } from "@/lib/agent";
-import { partnerAnalyzeAction, partnerApiKeyAction, partnerLinenAction, partnerRoomsAction, partnerSaveListingAction } from "@/app/actions/nettoyeur";
+import { partnerAnalyzeAction, partnerApiKeyAction, partnerAttentionAction, partnerLinenAction, partnerRoomsAction, partnerSaveListingAction } from "@/app/actions/nettoyeur";
 import Link from "next/link";
 import { JOB_STATUS, dayFr, eur, slot } from "@/lib/cleaner-ui";
 import { PLATFORMS } from "@/lib/concierge/ical";
@@ -173,6 +173,11 @@ export default async function PartnerPage({ params, searchParams }: { params: { 
                   <b className="mb-1 block text-[15px]">Plan du logement : les pièces</b>
                   <p className="mb-2 text-[13px] text-[var(--a-mute)]">Listez toutes les pièces, une par ligne. L&apos;IA connaît alors le lieu et redemande au nettoyeur de filmer toute pièce qu&apos;elle ne voit pas. Vide : elle travaille seulement à partir du film.</p>
                   <form action={partnerRoomsAction.bind(null, token, l.id)} className="space-y-2"><textarea name="rooms" rows={5} defaultValue={(l.rooms ?? []).join("\n")} placeholder={"Cuisine\nSalon\nChambre 1\nChambre 2\nDouche\nWC"} className="w-full rounded-xl border border-[var(--a-line)] bg-[var(--a-bg)] p-3 text-[15px]" /><button className="h-11 rounded-xl border border-[var(--a-pri)] px-4 text-sm font-extrabold text-[var(--a-pri)]">Enregistrer le plan</button></form>
+                </section>
+                <section>
+                  <b className="mb-1 block text-[15px]">Points d&apos;attention</b>
+                  <p className="mb-2 text-[13px] text-[var(--a-mute)]">Ce à quoi le nettoyeur doit faire attention chez vous, un point par ligne.</p>
+                  <form action={partnerAttentionAction.bind(null, token, l.id)} className="space-y-2"><textarea name="attention" rows={3} defaultValue={((guides.get(l.id)?.attention ?? []) as string[]).join("\n")} placeholder={"Parquet fragile : pas d'eau\nNe pas déplacer le piano"} className="w-full rounded-xl border border-[var(--a-line)] bg-[var(--a-bg)] p-3 text-[15px]" /><button className="h-11 rounded-xl border border-[var(--a-pri)] px-4 text-sm font-extrabold text-[var(--a-pri)]">Enregistrer</button></form>
                 </section>
                 <section><b className="mb-2 block text-[15px]">Informations et calendrier</b><ListingForm token={token} l={l} /></section>
               </div>

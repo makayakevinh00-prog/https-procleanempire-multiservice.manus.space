@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ConfirmAction } from "@/components/crm/confirm-action";
 import { RefUpload } from "@/components/crm/ref-upload";
-import { analyzeListingAction, clearListingReferenceAction, saveListingGuideAction, setListingRoomsAction } from "@/app/actions/nettoyeurs";
+import { analyzeListingAction, clearListingReferenceAction, saveListingGuideAction, setListingAttentionAction, setListingRoomsAction } from "@/app/actions/nettoyeurs";
 import { aiConfigured, type Guide } from "@/lib/ai-inspect";
 import { formatDate } from "@/lib/utils";
 
@@ -49,6 +49,15 @@ export default async function ListingReference({ params, searchParams }: { param
           <p className="text-sm text-muted-foreground">Listez toutes les pièces du logement, une par ligne (« Chambre 1 », « Chambre 2 », « Douche »…). L&apos;IA connaît alors le lieu : quand le nettoyeur filme à son arrivée, elle lui redemande de filmer toute pièce de cette liste qu&apos;elle ne voit pas. Laissez vide : l&apos;IA travaille seulement à partir du film.</p>
           <textarea name="rooms" rows={6} defaultValue={((k.rooms ?? []) as string[]).join("\n")} placeholder={(g?.rooms ?? []).map((r) => r.room).join("\n") || "Cuisine\nSalon / séjour\nChambre\nSalle de bain / douche\nWC"} className="w-full rounded-md border p-3 text-sm" />
           <Button variant="outline">Enregistrer le plan</Button>
+        </form>
+      </Card>
+
+      <Card className="mb-4">
+        <CardHeader><CardTitle>Points d&apos;attention</CardTitle></CardHeader>
+        <form action={setListingAttentionAction.bind(null, k.id)} className="space-y-3 px-5 pb-5">
+          <p className="text-sm text-muted-foreground">Ce à quoi le nettoyeur doit faire attention dans ce logement, un point par ligne (« Parquet fragile : pas d&apos;eau », « Ne pas déplacer le piano », « Clé à remettre dans la boîte »). L&apos;IA en tient compte et le nettoyeur les voit. Le propriétaire peut aussi en ajouter depuis son espace.</p>
+          <textarea name="attention" rows={4} defaultValue={(g?.attention ?? []).join("\n")} placeholder={"Parquet fragile : serpillière bien essorée\nNe pas toucher au bureau du fond"} className="w-full rounded-md border p-3 text-sm" />
+          <Button variant="outline">Enregistrer les points d&apos;attention</Button>
         </form>
       </Card>
 
