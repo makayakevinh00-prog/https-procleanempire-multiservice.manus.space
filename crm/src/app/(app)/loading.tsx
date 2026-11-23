@@ -1,11 +1,11 @@
-/** Retour visuel immédiat à chaque changement de page : la structure s'affiche tout de suite, les données arrivent ensuite. */
+import Image from "next/image";
+
+/** Changement de page : le logo ProClean apparaît en fondu au centre, le temps que la page arrive (plus d'écran vide). */
 export default function Loading() {
   return (
-    <div className="space-y-4" role="status" aria-label="Chargement de la page">
-      <div className="pce-skeleton h-10 w-72 rounded-xl" />
-      <div className="pce-skeleton h-4 w-96 max-w-full rounded-lg" />
-      <div className="grid gap-3 pt-3 sm:grid-cols-2 lg:grid-cols-4">{[0, 1, 2, 3].map((i) => <div key={i} className="pce-skeleton h-24 rounded-2xl" />)}</div>
-      <div className="pce-skeleton h-72 rounded-2xl" />
+    <div className="pce-loading flex min-h-[60vh] flex-col items-center justify-center gap-4" role="status" aria-label="Chargement de la page">
+      <Image src="/logo.png" alt="ProClean Empire" width={187} height={344} priority className="pce-loading-logo h-28 w-auto" />
+      <span className="pce-loading-bar h-1 w-24 overflow-hidden rounded-full bg-secondary" aria-hidden />
     </div>
   );
 }
