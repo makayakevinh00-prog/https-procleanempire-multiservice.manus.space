@@ -16,6 +16,8 @@ import { runAfterAnalysis, type AfterOutcome } from "@/lib/marketplace/inspect";
 import { autoAcceptBookings, trackUrl } from "@/lib/marketplace/auto-accept";
 import { hashPassword, passwordOk, verifyPassword } from "@/lib/password";
 import { createClient } from "@/lib/supabase/server";
+import { routeEstimate } from "@/lib/route";
+import type { LiveJob } from "@/lib/live";
 
 const sha = (c: string) => createHash("sha256").update(c).digest("hex");
 const origin = () => { const h = headers(); return `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`; };
@@ -124,7 +126,37 @@ export async function cleanerOnlineAction(token: string, online: boolean): Promi
 /** Position en direct (application ouverte). */
 export async function cleanerPingAction(token: string, lat: number, lng: number): Promise<void> {
   if (!isToken(token) || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
-  await agentClient().rpc("cleaner_ping", { p_token: token, p_lat: lat, p_lng: lng });
+  const c = agentClient();
+  const { data, error } = await c.rpc("cleaner_trip_ping", { p_token: token, p_lat: lat, p_lng: lng });
+  if (error) { await c.rpc("cleaner_ping", { p_token: token, p_lat: lat, p_lng: lng }); return; } // base pas encore à jour : simple position
+  // Ménage en route : heure d'arrivée recalculée au plus toutes les 2 minutes.
+  const t = data as { job: string; dest_lat: number | null; dest_lng: number | null; need_eta: boolean } | null;
+  if (t?.need_eta && t.dest_lat != null && t.dest_lng != null) {
+    const r = await routeEstimate({ lat, lng }, { lat: t.dest_lat, lng: t.dest_lng });
+    await c.rpc("cleaner_set_eta", { p_token: token, p_job: t.job, p_minutes: r.minutes, p_source: r.source });
+  }
+}
+
+/** Suivi en direct pour le client qui a réservé (lien de suivi). */
+export async function bookingLiveAction(token: string): Promise<LiveJob[]> {
+  if (!isToken(token)) return [];
+  const { data, error } = await agentClient().rpc("booking_live", { p_token: token });
+  return error || !data ? [] : [data as LiveJob];
+}
+
+/** Suivi en direct pour le propriétaire ou la conciergerie (lien privé). */
+export async function partnerLiveAction(token: string): Promise<LiveJob[]> {
+  if (!isToken(token)) return [];
+  const { data, error } = await agentClient().rpc("partner_live", { p_secret: token });
+  return error ? [] : ((data ?? []) as LiveJob[]);
+}
+
+export type CleanerTrip = { job: string; title: string; city: string | null; start: string; started: boolean; eta_at: string | null; eta_minutes: number | null; has_dest: boolean };
+/** Le ménage du jour à rejoindre (bouton « Je pars »). */
+export async function cleanerTripAction(token: string): Promise<CleanerTrip | null> {
+  if (!isToken(token)) return null;
+  const { data, error } = await agentClient().rpc("cleaner_trip", { p_token: token });
+  return error ? null : ((data as CleanerTrip | null) ?? null);
 }
 
 /** Abonnement aux notifications de ce téléphone. */

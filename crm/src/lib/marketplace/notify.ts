@@ -3,10 +3,14 @@ import webpush from "web-push";
 import { automationClient, automationSecret } from "@/lib/automation/deps";
 import { mailConfigured, sendMail } from "@/lib/mail";
 import { getVapid } from "@/lib/marketplace/vapid";
+import { roughEstimate, routeEstimate } from "@/lib/route";
 
 type Target = { id: string; name: string; email: string; notify_email: boolean; km: number | null; push: { endpoint: string; p256dh: string; auth: string }[] };
 type Sub = { endpoint: string; p256dh: string; auth: string };
 type Reminder = { kind: "veille" | "heure"; title: string; date: string; city: string | null; window_start: string; window_end: string; name: string; email: string; push: Sub[] };
+type Departure = { job: string; title: string; city: string | null; start: string; minutes_left: number; from_lat: number | null; from_lng: number | null; dest_lat: number; dest_lng: number; online: boolean; name: string; email: string; push: Sub[] };
+/** Marge de sécurité ajoutée au temps de trajet (se garer, trouver l'entrée). */
+export const DEPARTURE_MARGIN_MIN = 10;
 type Batch = { job: { id: string; title: string; date: string; city: string | null; amount: number }; targets: Target[] };
 
 const site = () => `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL ?? "proclean-crm.vercel.app"}`;
@@ -22,7 +26,7 @@ export async function dispatchTick(o: { force?: boolean } = {}) {
     const { data } = await a.rpc("automation_claim_tick", { p_secret: secret, p_seconds: 20 });
     if (data !== true) return { skipped: true as const };
   }
-  const out = { jobs: 0, pushed: 0, mailed: 0, reminders: 0, released: 0 };
+  const out = { jobs: 0, pushed: 0, mailed: 0, reminders: 0, released: 0, departures: 0 };
   // 1. Nettoyeurs absents : le ménage repart en ligne (avant la distribution, pour qu'il soit reproposé dans ce même passage).
   const gone = ((await a.rpc("automation_release_noshows", { p_secret: secret })).data ?? []) as { title: string; date: string; city: string | null; name: string; email: string }[];
   out.released = gone.length;
@@ -35,7 +39,9 @@ export async function dispatchTick(o: { force?: boolean } = {}) {
   const batches = (r.data ?? []) as Batch[];
   const rem = ((await a.rpc("automation_cleaning_reminders", { p_secret: secret })).data ?? []) as Reminder[];
   out.jobs = batches.length;
-  const vapid = batches.length || rem.length ? await getVapid() : null;
+  const depRes = await a.rpc("automation_departure_candidates", { p_secret: secret });
+  const deps = (depRes.error ? [] : depRes.data ?? []) as Departure[];
+  const vapid = batches.length || rem.length || deps.length ? await getVapid() : null;
   if (vapid) webpush.setVapidDetails(site(), vapid.public, vapid.private);
   /** Notification sur le téléphone ; à défaut, e-mail. */
   const reach = async (t: { name: string; email: string; push: Sub[] }, title: string, body: string, tag: string, mail: { subject: string; text: string } | null) => {
@@ -60,6 +66,20 @@ export async function dispatchTick(o: { force?: boolean } = {}) {
     const body = `${m.title}${m.city ? ` · ${m.city}` : ""} · ${hours}`;
     await reach(m, title, body, `rappel-${m.kind}`, { subject: `${title} — ${m.title}`, text: `Bonjour ${m.name.split(" ")[0]},\n\n${m.kind === "veille" ? "Vous avez un ménage demain" : "Votre ménage commence dans moins d'une heure"} :\n${body}\n${dayFr(m.date)}\n\nEn arrivant, appuyez sur « Je suis sur place » dans l'application : ${site()}/nettoyeur\nSans pointage à l'heure, le ménage est proposé à un autre nettoyeur.\n\nProClean Empire` });
     out.reminders++;
+  }
+  // 4. Rappel de départ : « partez maintenant », calculé sur le trajet réel (trafic si disponible) depuis la dernière position connue.
+  for (const d of deps) {
+    if (d.from_lat == null || d.from_lng == null) continue;
+    const from = { lat: d.from_lat, lng: d.from_lng }, to = { lat: d.dest_lat, lng: d.dest_lng };
+    // Tant qu'il reste largement le temps (deux fois l'estimation à la distance), on n'interroge pas le calcul d'itinéraire.
+    if (d.minutes_left > roughEstimate(from, to).minutes * 2 + DEPARTURE_MARGIN_MIN + 15) continue;
+    const r = await routeEstimate(from, to);
+    if (d.minutes_left > r.minutes + DEPARTURE_MARGIN_MIN) continue;
+    const marked = await a.rpc("automation_mark_departure", { p_secret: secret, p_job: d.job });
+    if (marked.data !== true) continue;
+    const body = `${r.minutes} min de trajet${r.source === "trafic" ? " avec le trafic actuel" : ""} pour « ${d.title} »${d.city ? ` à ${d.city}` : ""}, début à ${d.start.replace(":", " h ")}. Ouvrez l'application et appuyez sur « Je pars ».`;
+    await reach(d, "Il est l'heure de partir", body, `depart-${d.job}`, { subject: `Il est l'heure de partir — ${d.title}`, text: `Bonjour ${d.name.split(" ")[0]},\n\n${body}\n\n${site()}/nettoyeur\n\nProClean Empire` });
+    out.departures++;
   }
   return out;
 }

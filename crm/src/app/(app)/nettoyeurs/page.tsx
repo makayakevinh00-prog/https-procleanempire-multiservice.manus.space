@@ -16,6 +16,9 @@ import { aiConfigured } from "@/lib/ai-inspect";
 import { formatDate } from "@/lib/utils";
 import { LiveMapLazy } from "@/components/crm/live-map-lazy";
 import { LiveRefreshBadge } from "@/components/crm/live-refresh";
+import { adminLiveAction } from "@/app/actions/live";
+import { isOwner } from "@/lib/auth";
+import { LiveTracking } from "@/components/live/live-map";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Nettoyeurs" };
@@ -74,10 +77,17 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
     { href: href("reglages"), label: "Réglages", count: null, active: tab === "reglages" }
   ];
   const origin = process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "";
+  const live = (await isOwner()) ? await adminLiveAction() : [];
   return (
     <>
       <PageHeader title="Nettoyeurs" subtitle="Des indépendants font les ménages de vos Airbnb : ils acceptent, vous vérifiez, ils sont payés par virement." />
       <Tabs items={tabs} />
+      {live.length > 0 && (
+        <section className="mb-6" aria-label="Ménages en direct">
+          <h2 className="pce-title mb-3 text-[20px] text-foreground">En direct aujourd&apos;hui</h2>
+          <div className="grid gap-3 lg:grid-cols-2"><LiveTracking mode="admin" initial={live} showClient /></div>
+        </section>
+      )}
       {fresh && (
         <div className="mb-4 space-y-2 rounded-xl bg-secondary p-4 text-sm">
           <div className="font-medium text-foreground">Lien de {fresh.name} : affiché une seule fois{fresh.mailed ? " (envoyé aussi par e-mail)" : " (e-mail non envoyé : transmettez-le vous-même)"}</div>

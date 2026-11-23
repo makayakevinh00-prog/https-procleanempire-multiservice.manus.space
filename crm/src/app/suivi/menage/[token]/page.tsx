@@ -4,7 +4,8 @@ import { agentClient, agentPrefs } from "@/lib/agent";
 import { dayFr, eur, slot, ttc } from "@/lib/cleaner-ui";
 import { LegalLinks } from "@/components/legal/links";
 import { TrackRefresh } from "@/components/nettoyeur/track-refresh";
-import { bookingRateAction } from "@/app/actions/nettoyeur";
+import { bookingRateAction, bookingLiveAction } from "@/app/actions/nettoyeur";
+import { LiveTracking } from "@/components/live/live-map";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Suivi de votre ménage — ProClean Empire", robots: { index: false, follow: false }, referrer: "no-referrer" };
@@ -31,6 +32,7 @@ export default async function BookingTrack({ params, searchParams }: { params: {
   const { data } = ok ? await agentClient().rpc("booking_track", { p_token: params.token }) : { data: null };
   const t = data as Track | null;
   const p = t ? progress(t) : null;
+  const live = t && t.job_status === "acceptee" ? await bookingLiveAction(params.token) : [];
   return (
     <div className="agent-app min-h-screen bg-[var(--a-bg)] text-[var(--a-ink)]" data-theme={agentPrefs().theme} lang="fr">
       <main className="mx-auto max-w-md px-5 pb-12 pt-8">
@@ -47,6 +49,7 @@ export default async function BookingTrack({ params, searchParams }: { params: {
             {searchParams.nouveau && <div role="status" className="mt-4 rounded-2xl bg-[var(--a-okbg)] p-4 text-[15px] font-semibold text-[var(--a-ok)]">Merci ! Votre demande est enregistrée. Gardez cette page : elle se met à jour toute seule. Le lien vous est aussi envoyé par e-mail.</div>}
             <h1 className="mt-4 text-[28px] font-extrabold leading-tight tracking-tight" aria-live="polite">{p.title}</h1>
             <p className="mt-2 text-[16px] text-[var(--a-mute)]">{p.text}</p>
+            {live.length > 0 && <div className="mt-5"><LiveTracking mode="booking" token={params.token} initial={live} /></div>}
             {p.step >= 0 && (
               <ol className="mt-6 space-y-3 rounded-3xl bg-[var(--a-card)] p-5">
                 {STEPS.map((s, i) => (

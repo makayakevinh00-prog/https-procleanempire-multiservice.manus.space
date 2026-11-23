@@ -8,6 +8,8 @@ import { PLATFORMS } from "@/lib/concierge/ical";
 import { FIELD_CSS } from "@/components/agent/theme";
 import { Gate } from "@/components/agent/gate";
 import { RefUpload } from "@/components/crm/ref-upload";
+import { partnerLiveAction } from "@/app/actions/nettoyeur";
+import { LiveTracking } from "@/components/live/live-map";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -59,6 +61,8 @@ export default async function PartnerPage({ params, searchParams }: { params: { 
   const view = VIEWS.some(([k]) => k === searchParams.v) ? searchParams.v! : "tableau";
   const guides = view === "logements" ? new Map<string, any>(await Promise.all(o.listings.filter((l) => l.has_guide).map(async (l) => [l.id, (await c.rpc("partner_guide", { p_secret: token, p_listing: l.id })).data] as [string, any]))) : new Map<string, any>();
   const fresh = cookies().get("partner_key")?.value ?? null;
+  const live = view === "tableau" || view === "menages" ? await partnerLiveAction(token) : [];
+  const liveBlock = live.length > 0 ? <div className="mb-4"><h2 className="mb-2 px-1 text-[13px] font-extrabold uppercase tracking-wider text-[var(--a-mute)]">En direct aujourd&apos;hui</h2><LiveTracking mode="partner" token={token} initial={live} /></div> : null;
   const today = o.today, s = o.stats;
   const href = (v: string) => `/partenaire/${token}?v=${v}`;
   const card = "rounded-3xl bg-[var(--a-card)] p-4";
@@ -100,6 +104,7 @@ export default async function PartnerPage({ params, searchParams }: { params: { 
 
       {view === "tableau" && (
         <>
+          {liveBlock}
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {([["Aujourd'hui", String(s.in_progress), "ménage(s) en cours", "menages"], ["7 prochains jours", String(s.upcoming), "ménage(s) prévus", "menages"], ["Ce mois-ci", String(s.done_month), "ménage(s) faits", "menages"], ["Ce mois-ci", eur(s.spend_month), "HT de ménages", "menages"]] as [string, string, string, string][]).map(([l, v, sub, to], i) => (
               <Link key={i} href={href(to)} className={card}><div className="text-[12px] font-bold text-[var(--a-mute)]">{l}</div><div className="num mt-1 text-[26px] font-extrabold leading-none text-[var(--a-pri)]">{v}</div><div className="mt-1 text-[12px] text-[var(--a-mute)]">{sub}</div></Link>
@@ -131,6 +136,7 @@ export default async function PartnerPage({ params, searchParams }: { params: { 
 
       {view === "menages" && (
         <>
+          {liveBlock}
           <h2 className={h2}>À venir et en cours ({upcoming.length})</h2>
           {!upcoming.length ? <p className={`${card} text-center text-[15px] text-[var(--a-mute)]`}>Aucun ménage prévu.</p> : <div className="space-y-2">{upcoming.map(jobRow)}</div>}
           <h2 className={h2}>Faits (30 derniers jours)</h2>

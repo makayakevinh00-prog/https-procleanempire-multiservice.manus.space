@@ -41,6 +41,8 @@ export async function GET(req: Request) {
   if (!opts.dryRun && process.env.SUPABASE_SERVICE_ROLE_KEY) {
     try { concierge = await runConcierge(createAdmin(), parisToday()); } catch (e) { concierge = { error: (e as Error).message }; }
   }
+  // Trajets des nettoyeurs : les points de plus de 7 jours sont effacés.
+  if (!opts.dryRun) { try { await automationClient().rpc("automation_purge_trail", { p_secret: automationSecret() }); } catch { /* sans gravité : réessayé demain */ } }
   // Nettoyeurs : publication automatique des ménages, et chaque lundi création (jamais virement) des paiements de la semaine passée.
   let nettoyeurs: unknown = "non configuré";
   if (!opts.dryRun) {
