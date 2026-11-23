@@ -8,7 +8,8 @@ export const metadata: Metadata = {
   title: "ProClean Nettoyeur — Des ménages Airbnb près de chez vous",
   description:
     "Application pour nettoyeurs indépendants : recevez en direct les ménages Airbnb autour de vous, acceptez ceux qui vous conviennent, soyez payé par virement.",
-  robots: { index: false, follow: false },
+  // Page de présentation publique : c'est elle qui doit apparaître dans Google (les espaces personnels restent exclus par la mise en page).
+  robots: { index: true, follow: true },
 };
 
 /** Entrée de l'application nettoyeur : déjà connecté sur ce téléphone → ses ménages ; sinon la page de présentation. */

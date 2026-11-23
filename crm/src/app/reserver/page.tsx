@@ -3,11 +3,12 @@ import Image from "next/image";
 import { agentClient } from "@/lib/agent";
 import { bookCleaningAction } from "@/app/actions/nettoyeur";
 import { FIELD_CSS } from "@/components/agent/theme";
-import { eur } from "@/lib/cleaner-ui";
+import { LegalLinks } from "@/components/legal/links";
+import { BOOKING_VAT_PCT, eur, ttc } from "@/lib/cleaner-ui";
 import { agentPrefs } from "@/lib/agent";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Réserver un ménage — ProClean Empire", description: "Réservez un ménage à domicile en quelques clics : un nettoyeur vient chez vous entre 11 h et 14 h." };
+export const metadata: Metadata = { title: "Réserver un ménage — ProClean Empire", description: "Réservez un ménage à domicile en quelques clics : un nettoyeur vient chez vous entre 11 h et 14 h.", robots: { index: true, follow: true } };
 
 const input = "h-12 w-full rounded-xl border border-[var(--a-line)] bg-[var(--a-bg)] px-3 text-base";
 const KINDS: [string, string][] = [["studio", "Studio"], ["t2", "2 pièces"], ["t3", "3 pièces"], ["maison", "Maison"]];
@@ -37,7 +38,7 @@ export default async function Reserve({ searchParams }: { searchParams: { ok?: s
                   <label key={k} className="flex cursor-pointer flex-col rounded-2xl border-2 border-[var(--a-line)] bg-[var(--a-bg)] p-3 has-[:checked]:border-[var(--a-pri)] has-[:checked]:bg-[var(--a-soft)]">
                     <input type="radio" name="kind" value={k} required defaultChecked={i === 1} className="sr-only" />
                     <b className="text-[16px]">{l}</b>
-                    <span className="text-[13px] text-[var(--a-mute)]">{prices[k] != null ? `${eur(Number(prices[k]))} HT` : ""}</span>
+                    <span className="text-[13px] text-[var(--a-mute)]">{prices[k] != null ? `${eur(ttc(prices[k]))} TTC` : ""}</span>
                   </label>
                 ))}
               </div>
@@ -54,9 +55,10 @@ export default async function Reserve({ searchParams }: { searchParams: { ok?: s
             <label className="block"><span className="mb-1 block text-[14px] font-bold">Téléphone</span><input name="phone" inputMode="tel" autoComplete="tel" className={input} /></label>
             <label className="block"><span className="mb-1 block text-[14px] font-bold">Une précision ?</span><textarea name="note" rows={2} maxLength={1000} className="w-full rounded-xl border border-[var(--a-line)] bg-[var(--a-bg)] p-3 text-base" placeholder="Linge à changer, animaux, points d'attention…" /></label>
             <button className="h-14 w-full rounded-2xl bg-[var(--a-pri)] text-lg font-extrabold text-white">Demander ce ménage</button>
-            <p className="text-center text-xs text-[var(--a-mute)]">Prix hors taxes pour un ménage standard. Votre demande est confirmée par l&apos;entreprise avant tout engagement.</p>
+            <p className="text-center text-xs text-[var(--a-mute)]">Prix toutes taxes comprises (TVA {BOOKING_VAT_PCT} % incluse) pour un ménage standard. Votre demande est confirmée par l&apos;entreprise avant tout engagement. En envoyant ce formulaire, vous acceptez nos <a href="/cgu" className="underline underline-offset-2">conditions d&apos;utilisation</a>.</p>
           </form>
         )}
+        <LegalLinks className="mt-6" />
       </main>
     </div>
   );
