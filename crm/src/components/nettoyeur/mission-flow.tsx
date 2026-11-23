@@ -142,7 +142,7 @@ export function MissionFlow({
   }, [phase]);
 
   const arrive = async () => {
-    setBusy("Arrivée pointée…");
+    setBusy("Vous êtes arrivé. La caméra s'ouvre…");
     setErr("");
     const r = await cleanerArriveFlowAction(token, job.id);
     setBusy("");
@@ -249,25 +249,21 @@ export function MissionFlow({
 
       {!busy && phase === "depart" && (
         <>
-          <TripPanel token={token} />
+          <TripPanel token={token} onArrive={() => void arrive()} />
           <button
             type="button"
             onClick={arrive}
-            className={`${big} bg-[var(--a-pri)] text-white`}
+            className="mx-auto block text-[14px] font-bold text-[var(--a-mute)] underline"
           >
-            Je suis sur place
+            Je suis déjà sur place
           </button>
-          <p className="text-center text-[13px] text-[var(--a-mute)]">
-            Dès que vous êtes là, appuyez : la caméra s&apos;ouvre et c&apos;est
-            tout.
-          </p>
         </>
       )}
 
       {!busy && phase === "film_avant" && (
         <>
           <p className="rounded-3xl bg-[var(--a-card)] p-4 text-[15px]">
-            Filmez le logement avant de commencer : faites le tour de chaque
+            <b>Vous êtes arrivé.</b> Filmez le lieu avant de commencer : faites le tour de chaque
             pièce, lentement, en insistant sur les coins sales. L&apos;IA fait
             les captures et prépare vos tâches.
           </p>

@@ -154,8 +154,9 @@ export async function cleanerOnlineAction(token: string, online: boolean): Promi
 }
 
 /** Position en direct (application ouverte). */
-export async function cleanerPingAction(token: string, lat: number, lng: number): Promise<void> {
-  await tripPing(token, lat, lng);
+export async function cleanerPingAction(token: string, lat: number, lng: number): Promise<{ dist_m: number | null; eta_minutes: number | null } | null> {
+  const r = await tripPing(token, lat, lng);
+  return r ? { dist_m: r.dist_m ?? null, eta_minutes: r.eta_minutes } : null;
 }
 
 /** Suivi en direct pour le client qui a réservé (lien de suivi). */

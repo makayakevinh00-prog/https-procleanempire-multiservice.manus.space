@@ -2,7 +2,7 @@ import "server-only";
 import { agentClient, isToken } from "@/lib/agent";
 import { routeEstimate } from "@/lib/route";
 
-export type TripPing = { tracking: boolean; job: string | null; eta_minutes: number | null };
+export type TripPing = { tracking: boolean; job: string | null; eta_minutes: number | null; dist_m?: number | null };
 
 /**
  * Position d'un nettoyeur (application web ou mobile). Si un ménage est en route, le point de trajet est enregistré
@@ -21,5 +21,12 @@ export async function tripPing(token: string, lat: number, lng: number): Promise
     await c.rpc("cleaner_set_eta", { p_token: token, p_job: t.job, p_minutes: r.minutes, p_source: r.source });
     eta = r.minutes;
   }
-  return { tracking: true, job: t.job, eta_minutes: eta };
+  // Distance à vol d'oiseau jusqu'au logement : sert à détecter l'arrivée sur place.
+  let dist: number | null = null;
+  if (t.dest_lat != null && t.dest_lng != null) {
+    const rad = Math.PI / 180, dLat = (t.dest_lat - lat) * rad, dLng = (t.dest_lng - lng) * rad;
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat * rad) * Math.cos(t.dest_lat * rad) * Math.sin(dLng / 2) ** 2;
+    dist = Math.round(2 * 6371000 * Math.asin(Math.sqrt(h)));
+  }
+  return { tracking: true, job: t.job, eta_minutes: eta, dist_m: dist };
 }
