@@ -28,9 +28,9 @@ export function GalleryFilterGrid() {
         <p className="text-sm font-semibold uppercase tracking-wide text-[#1d6fe0]">
           {galleryPageContent.eyebrow}
         </p>
-        <h1 className="mt-3 text-4xl lp-serif text-[#101828] md:text-5xl">
+        <h2 className="mt-3 text-4xl lp-serif text-[#101828] md:text-5xl">
           {galleryPageContent.title}
-        </h1>
+        </h2>
         <p className="mt-4 max-w-3xl text-lg leading-relaxed text-[#475467]">
           {galleryPageContent.description}
         </p>

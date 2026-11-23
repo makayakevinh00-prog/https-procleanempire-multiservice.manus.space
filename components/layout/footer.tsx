@@ -14,7 +14,29 @@ export function Footer() {
     { label: "Nettoyage de bureaux", href: "/nettoyage-bureaux" },
     { label: "Nettoyage de commerces", href: "/nettoyage-commerces" },
     { label: "Conciergerie d'entreprise", href: "/conciergerie-entreprise" },
-    { label: "Remise en état / fin de chantier", href: "/remise-en-etat" }
+    { label: "Remise en état / fin de chantier", href: "/remise-en-etat" },
+    { label: "Nettoyage après travaux", href: "/apres-chantier" },
+    { label: "Nettoyage d'hôtels", href: "/nettoyage-hotels" },
+    { label: "Nettoyage de restaurants", href: "/nettoyage-restaurants" },
+    { label: "Nettoyage de vitres", href: "/nettoyage-vitrerie" },
+    { label: "Nettoyage automobile", href: "/nettoyage-automobile" },
+    { label: "Désinfection", href: "/services/desinfection" },
+    { label: "Entretien régulier", href: "/services/entretien-regulier" },
+    { label: "Parties communes", href: "/services/parties-communes" },
+    { label: "Tous nos services", href: "/services" }
+  ];
+
+  // Pages utiles à Google comme aux visiteurs : liées depuis chaque page du site.
+  const company = [
+    { label: "À propos", href: "/a-propos" },
+    { label: "Notre équipe", href: "/equipe" },
+    { label: "Questions fréquentes", href: "/faq" },
+    { label: "Réalisations", href: "/realisations" },
+    { label: "Galerie photos", href: "/galerie" },
+    { label: "Propriétaires", href: "/proprietaires" },
+    { label: "Bureaux à Cergy-Pontoise : quelle fréquence ?", href: "/blog/nettoyage-bureaux-cergy-pontoise-frequence" },
+    { label: "Ménage Airbnb entre deux voyageurs", href: "/blog/menage-airbnb-val-doise-entre-deux-voyageurs" },
+    { label: "Décorer ses locaux pour Noël", href: "/blog/decoration-noel-bureaux-commerces-val-doise" }
   ];
 
   const actions = [
@@ -104,6 +126,13 @@ export function Footer() {
             Blog & réseaux
           </h3>
           <ul className="space-y-2 text-sm">
+            {company.map((c) => (
+              <li key={c.href}>
+                <Link href={c.href} className="transition hover:text-white">
+                  {c.label}
+                </Link>
+              </li>
+            ))}
             <li>
               <Link href="/blog" className="transition hover:text-white">
                 Blog

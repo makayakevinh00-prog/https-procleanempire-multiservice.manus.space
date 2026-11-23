@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { TITLE_MAX, TITLE_OVERRIDES } from "./seo";
 
 // PRISE DE RENDEZ-VOUS — un seul réglage à changer : la variable Vercel NEXT_PUBLIC_BOOKING_URL
 // (lien public Microsoft Bookings ou Cal.com, ex. https://outlook.office.com/book/ProCleanEmpire@procleanempire.com/).
@@ -48,7 +49,10 @@ export function buildMetadata({
   description: string;
   path?: string;
 }): Metadata {
-  const fullTitle = `${title} | ${siteConfig.name}`;
+  // Titre court pour Google : celui de lib/seo.ts s'il existe, sinon le titre de la page, avec le nom de l'entreprise seulement s'il tient dans la limite.
+  const base = TITLE_OVERRIDES[path] ?? title;
+  const withBrand = `${base} | ${siteConfig.name}`;
+  const fullTitle = withBrand.length <= TITLE_MAX ? withBrand : base;
   const canonical = `${siteConfig.url}${path}`;
 
   return {

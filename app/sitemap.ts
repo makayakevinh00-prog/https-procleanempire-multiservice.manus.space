@@ -5,6 +5,9 @@ import { localPages } from "@/lib/content/local-pages";
 
 export const dynamic = "force-static";
 
+// Date de dernière mise à jour des pages : fixe (une date qui change à chaque déploiement fait perdre confiance à Google). À mettre à jour quand le contenu change vraiment.
+const LAST_UPDATE = new Date("2026-11-23");
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes = [
     "",
@@ -22,6 +25,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/blog/menage-airbnb-paris-entre-deux-voyageurs",
     "/blog/nettoyage-bureaux-cergy-pontoise-frequence",
     "/devis",
+    "/proprietaires",
     "/contact",
     "/mentions-legales",
     "/politique-confidentialite",
@@ -39,14 +43,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const staticEntries = staticRoutes.map((path) => ({
     url: `${siteConfig.url}${path}`,
-    lastModified: new Date(),
+    lastModified: LAST_UPDATE,
     changeFrequency: "weekly" as const,
     priority: path === "" ? 1 : path === "/menage-airbnb" ? 0.95 : 0.8
   }));
 
   const serviceEntries = services.filter((service) => !STANDALONE_PAGES.has(service.slug)).map((service) => ({
     url: `${siteConfig.url}/services/${service.slug}`,
-    lastModified: new Date(),
+    lastModified: LAST_UPDATE,
     changeFrequency: "weekly" as const,
     priority: 0.75
   }));
