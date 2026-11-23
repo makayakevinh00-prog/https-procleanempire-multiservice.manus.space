@@ -1,7 +1,8 @@
 import "server-only";
 import { automationClient, automationSecret } from "@/lib/automation/deps";
 import { mailConfigured, sendMail } from "@/lib/mail";
-import { chargeCard, StripeError, stripeConfigured } from "@/lib/stripe";
+import { StripeError, stripeConfigured } from "@/lib/stripe";
+import { chargeCard } from "@/lib/stripe-card";
 import { ttc } from "@/lib/cleaner-ui";
 import { trackUrl } from "@/lib/marketplace/auto-accept";
 
@@ -32,7 +33,7 @@ export async function chargeValidatedBookings(): Promise<{ paid: number; failed:
       }
     } catch (e) {
       const why = e instanceof StripeError ? `${e.message}${e.code ? ` (${e.code})` : ""}` : "Paiement impossible pour le moment";
-      await sb.rpc("automation_set_booking_payment", { p_secret: secret, p_id: b.id, p_ok: false, p_intent: e instanceof StripeError ? e.intent ?? null : null, p_error: why });
+      await sb.rpc("automation_set_booking_payment", { p_secret: secret, p_id: b.id, p_ok: false, p_intent: null, p_error: why });
       failed++;
       if (mailConfigured()) {
         await sendMail({ to: b.email, subject: "Votre paiement n'a pas abouti — ProClean Empire", text: `Bonjour ${b.name.split(" ")[0]},\n\nVotre ménage est terminé, mais le paiement de ${eur(total)} TTC n'a pas pu être débité sur votre carte.\n\nVous pouvez enregistrer une autre carte ici :\n${trackUrl(b.track_token) ?? ""}\n\nSans nouvelle carte, vous recevrez une facture à régler par virement.\n\nProClean Empire` }).catch(() => undefined);

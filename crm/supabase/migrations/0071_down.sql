@@ -1,4 +1,4 @@
--- Retour arrière de 0070. booking_track et cleaner_reliability reviennent à leur version en rejouant 0069.
+-- Retour arrière de 0071. booking_track et cleaner_reliability reviennent à leur version en rejouant 0069.
 drop function if exists booking_rate(text, int, text);
 drop function if exists automation_set_booking_payment(text, uuid, boolean, text, text);
 drop function if exists automation_claim_booking_charges(text);

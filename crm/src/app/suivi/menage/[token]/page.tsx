@@ -5,7 +5,8 @@ import { dayFr, eur, slot, ttc } from "@/lib/cleaner-ui";
 import { LegalLinks } from "@/components/legal/links";
 import { TrackRefresh } from "@/components/nettoyeur/track-refresh";
 import { automationClient, automationSecret } from "@/lib/automation/deps";
-import { readCardSetup, stripeConfigured } from "@/lib/stripe";
+import { stripeConfigured } from "@/lib/stripe";
+import { readCardSetup } from "@/lib/stripe-card";
 import { bookingCardAction, bookingRateAction } from "@/app/actions/nettoyeur";
 
 export const dynamic = "force-dynamic";

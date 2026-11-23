@@ -1,4 +1,4 @@
--- 0070 — Paiement par carte et note du client, comme sur une application VTC.
+-- 0071 — Paiement par carte et note du client, comme sur une application VTC.
 -- À la réservation, le client enregistre sa carte (chez Stripe : aucun numéro de carte n'est stocké ici). Il n'est débité qu'une fois le ménage validé.
 -- Après le ménage, il note le nettoyeur de 1 à 5. Sans Stripe configuré, rien ne change : paiement sur facture.
 -- Rejouable.

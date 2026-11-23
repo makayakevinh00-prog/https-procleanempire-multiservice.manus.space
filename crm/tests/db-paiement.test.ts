@@ -37,14 +37,14 @@ beforeAll(async () => {
     grant usage on schema public to authenticated, anon; alter default privileges in schema public grant all on tables to authenticated, anon; alter default privileges in schema public grant execute on functions to authenticated, anon;`);
   for (const f of readdirSync(path.join(root, "supabase/migrations")).filter((x) => x.endsWith(".sql") && !x.endsWith("_down.sql") && x <= "0038_conciergerie.sql").sort()) await db.exec(read(`supabase/migrations/${f}`));
   await db.exec(read("supabase/seed.sql"));
-  for (const f of ["0044_nettoyeurs.sql", "0045_nettoyeurs_suite.sql", "0046_reservations.sql", "0047_nettoyeurs_uber.sql", "0048_nettoyeurs_en_ligne.sql", "0049_vapid.sql", "0050_nettoyeurs_automatismes.sql", "0069_application_plus_rapide.sql", "0070_paiement_et_note.sql"]) await db.exec(read(`supabase/migrations/${f}`));
-  await db.exec(read("supabase/migrations/0070_paiement_et_note.sql")); // rejouable
+  for (const f of ["0044_nettoyeurs.sql", "0045_nettoyeurs_suite.sql", "0046_reservations.sql", "0047_nettoyeurs_uber.sql", "0048_nettoyeurs_en_ligne.sql", "0049_vapid.sql", "0050_nettoyeurs_automatismes.sql", "0069_application_plus_rapide.sql", "0071_paiement_et_note.sql"]) await db.exec(read(`supabase/migrations/${f}`));
+  await db.exec(read("supabase/migrations/0071_paiement_et_note.sql")); // rejouable
   await q("update app_settings set automation_secret = $1", [SECRET]);
   owner = (await q("insert into clients(name, postal_code, city, address) values ('Propriétaire','95300','Pontoise','1 rue A') returning id"))[0].id;
   A = (await q("insert into cleaners(full_name, email, siret, departments, status, token_hash, online) values ('Léa Martin','lea@x.test','12345678900011','{95}','actif',$1,true) returning id", [hash(TA)]))[0].id;
 });
 
-describe("0070 — carte enregistrée, débit après le ménage validé", () => {
+describe("0071 — carte enregistrée, débit après le ménage validé", () => {
   it("la carte s'enregistre sur la réservation ; identifiants Stripe uniquement", async () => {
     const b = await booked();
     expect((await card(b.token))[0].ok).toBe(true);
@@ -88,7 +88,7 @@ describe("0070 — carte enregistrée, débit après le ménage validé", () => 
   });
 });
 
-describe("0070 — note du client", () => {
+describe("0071 — note du client", () => {
   it("pas de note avant la fin du ménage", async () => {
     const b = await booked("acceptee");
     await fails("select booking_rate($1, 5, null)", [b.token], /ARGUMENT/);

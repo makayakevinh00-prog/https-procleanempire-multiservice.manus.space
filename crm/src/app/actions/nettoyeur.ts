@@ -14,7 +14,8 @@ import { sendMail, mailConfigured } from "@/lib/mail";
 import { automationClient, automationSecret } from "@/lib/automation/deps";
 import { runAfterAnalysis, type AfterOutcome } from "@/lib/marketplace/inspect";
 import { autoAcceptBookings, siteUrl, trackUrl } from "@/lib/marketplace/auto-accept";
-import { createCardSetup, stripeConfigured } from "@/lib/stripe";
+import { stripeConfigured } from "@/lib/stripe";
+import { createCardSetup } from "@/lib/stripe-card";
 import { hashPassword, passwordOk, verifyPassword } from "@/lib/password";
 import { createClient } from "@/lib/supabase/server";
 
