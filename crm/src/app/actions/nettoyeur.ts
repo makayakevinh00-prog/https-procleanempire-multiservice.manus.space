@@ -13,6 +13,7 @@ import { analyzeReference, type Img } from "@/lib/ai-inspect";
 import { sendMail, mailConfigured } from "@/lib/mail";
 import { automationClient, automationSecret } from "@/lib/automation/deps";
 import { runAfterAnalysis, type AfterOutcome } from "@/lib/marketplace/inspect";
+import { autoAcceptBookings, trackUrl } from "@/lib/marketplace/auto-accept";
 import { hashPassword, passwordOk, verifyPassword } from "@/lib/password";
 import { createClient } from "@/lib/supabase/server";
 
@@ -252,14 +253,20 @@ const KIND_LABEL: Record<string, string> = { studio: "Studio", t2: "2 pièces", 
 export async function bookCleaningAction(fd: FormData) {
   if (String(fd.get("website") ?? "") !== "") redirect("/reserver?ok=1");
   const p = { name: String(fd.get("name") ?? ""), email: String(fd.get("email") ?? ""), phone: String(fd.get("phone") ?? ""), address: String(fd.get("address") ?? ""), postal_code: String(fd.get("postal_code") ?? "").replace(/\s/g, ""), city: String(fd.get("city") ?? ""), job_date: String(fd.get("job_date") ?? ""), kind: String(fd.get("kind") ?? ""), note: String(fd.get("note") ?? ""), access_notes: String(fd.get("access_notes") ?? "") };
-  const { error } = await agentClient().rpc("book_cleaning", { p });
-  if (error) redirect(`/reserver?error=${encodeURIComponent(agentMessage(error.message))}`);
+  // Réservation avec lien de suivi ; tant que la base n'a pas la mise à jour 0069, on enregistre comme avant (sans lien).
+  let res = await agentClient().rpc("book_cleaning_tracked", { p });
+  if (res.error?.code === "PGRST202") res = await agentClient().rpc("book_cleaning", { p });
+  if (res.error) redirect(`/reserver?error=${encodeURIComponent(agentMessage(res.error.message))}`);
+  const link = trackUrl(typeof res.data === "string" ? res.data : null);
+  const track = link ? `\n\nSuivez votre demande à tout moment :\n${link}` : "";
   if (mailConfigured()) {
     const day = new Date(p.job_date + "T12:00:00Z").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
-    await sendMail({ to: p.email, subject: "Votre demande de ménage est bien reçue — ProClean Empire", text: `Bonjour ${p.name.split(" ")[0]},\n\nNous avons bien reçu votre demande de ménage (${KIND_LABEL[p.kind] ?? p.kind}) le ${day} à ${p.city}.\n\nNous la validons et vous confirmons le créneau (entre 11 h et 14 h) par e-mail très vite. Le paiement se fait après le ménage, sur facture.\n\nÀ bientôt,\nProClean Empire` }).catch(() => undefined);
+    await sendMail({ to: p.email, subject: "Votre demande de ménage est bien reçue — ProClean Empire", text: `Bonjour ${p.name.split(" ")[0]},\n\nNous avons bien reçu votre demande de ménage (${KIND_LABEL[p.kind] ?? p.kind}) le ${day} à ${p.city}.\n\nNous la validons et vous confirmons le créneau (entre 11 h et 14 h) par e-mail très vite. Le paiement se fait après le ménage, sur facture.${track}\n\nÀ bientôt,\nProClean Empire` }).catch(() => undefined);
     await sendMail({ to: process.env.MAIL_ADMIN ?? "contact@procleanempire.com", subject: "Nouvelle réservation de ménage", text: `${p.name} (${p.email}) demande un ménage ${KIND_LABEL[p.kind] ?? p.kind} le ${p.job_date} à ${p.city}.\nÀ accepter dans le CRM : Nettoyeurs › Réservations.` }).catch(() => undefined);
   }
-  redirect("/reserver?ok=1");
+  // Demande simple et réglage activé : acceptée tout de suite (sinon elle attend le patron, comme avant).
+  await autoAcceptBookings().catch(() => undefined);
+  redirect(link ? `/suivi/menage/${link.split("/").pop()}?nouveau=1` : "/reserver?ok=1");
 }
 
 // ───────────── Espace conciergerie (lien privé) ─────────────

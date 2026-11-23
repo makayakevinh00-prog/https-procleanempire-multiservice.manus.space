@@ -24,6 +24,7 @@ export default async function CleanerProfile({ params, searchParams }: { params:
         <div className="mt-3 text-[13px] font-extrabold uppercase tracking-[0.14em] text-[var(--a-mute)]">Ménages validés</div>
         <b className="num text-[44px] leading-tight text-[var(--a-pri)]">{o.done}</b>
       </section>
+      <Reliability r={o.reliability} />
       {searchParams.error && <div role="alert" className="mt-4 rounded-2xl bg-[var(--a-badbg)] p-3 text-sm font-semibold text-[var(--a-bad)]">{searchParams.error}</div>}
       {searchParams.ok && <div role="status" className="mt-4 rounded-2xl bg-[var(--a-okbg)] p-3 text-sm font-semibold text-[var(--a-ok)]">{searchParams.ok}</div>}
       <form action={cleanerProfileAction.bind(null, params.token)} className="mt-4 space-y-4 rounded-3xl bg-[var(--a-card)] p-4">
@@ -49,5 +50,25 @@ export default async function CleanerProfile({ params, searchParams }: { params:
         </ul>
       </section>
     </>
+  );
+}
+
+/** Ce que le nettoyeur voit de sa propre fiabilité : c'est ce chiffre qui le place en tête des demandes. */
+function Reliability({ r }: { r?: { clean: number; redo: number; missed: number; score: number | null } | null }) {
+  if (!r) return null;
+  return (
+    <section className="mt-4 rounded-3xl bg-[var(--a-card)] p-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="text-[17px] font-extrabold">Votre fiabilité</h2>
+        <b className="num text-[26px] font-extrabold text-[var(--a-ok)]">{r.score == null ? "—" : `${r.score} %`}</b>
+      </div>
+      <p className="mt-1 text-[14px] text-[var(--a-mute)]">{r.score == null ? "Votre score s'affiche à partir de 3 ménages terminés." : "Part de vos ménages validés du premier coup."}</p>
+      <ul className="mt-3 grid grid-cols-3 gap-2 text-center text-[13px] font-bold">
+        <li className="rounded-2xl border border-[var(--a-line)] p-2"><div className="num text-[20px] font-extrabold">{r.clean}</div>validés du premier coup</li>
+        <li className="rounded-2xl border border-[var(--a-line)] p-2"><div className="num text-[20px] font-extrabold">{r.redo}</div>avec reprise</li>
+        <li className="rounded-2xl border border-[var(--a-line)] p-2"><div className="num text-[20px] font-extrabold">{r.missed}</div>non honorés</li>
+      </ul>
+      <p className="mt-3 text-[14px] text-[var(--a-mute)]">Plus votre score est haut, plus vous recevez les demandes en premier. Passer une demande ne vous coûte rien : seuls comptent les ménages que vous avez acceptés.</p>
+    </section>
   );
 }
