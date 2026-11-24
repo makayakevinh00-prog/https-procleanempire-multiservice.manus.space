@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PALIERS, palierState } from "@/lib/domain/palier";
+import { PALIERS, hourlyRate, palierState } from "@/lib/domain/palier";
 
 describe("paliers de croissance", () => {
   it("aujourd'hui : 1 370 € sur le palier de 5 000 €, soit 27 %, il manque 3 630 €", () => {
@@ -33,5 +33,19 @@ describe("paliers de croissance", () => {
   it("valeurs absurdes : traitées comme zéro", () => {
     expect(palierState(Number.NaN)).toMatchObject({ pct: 0, reste: 5000 });
     expect(palierState(-50)).toMatchObject({ pct: 0, reste: 5000 });
+  });
+});
+
+describe("taux horaire des contrats", () => {
+  it("SARB (470 €, 4 h), SEA (600 €, 3 h) et IDF (300 €, 3 h) : 1 370 € pour 43 h, soit 31,6 € de l'heure", () => {
+    const r = hourlyRate([{ monthly: 470, weeklyHours: 4 }, { monthly: 600, weeklyHours: 3 }, { monthly: 300, weeklyHours: 3 }]);
+    expect(r.rate).toBe(31.6); expect(r.contracts).toBe(3); expect(Math.round(r.monthlyHours)).toBe(43);
+  });
+  it("un contrat sans heures ou sans montant ne fausse pas le taux", () => {
+    const r = hourlyRate([{ monthly: 470, weeklyHours: 4 }, { monthly: 130, weeklyHours: null }, { monthly: null, weeklyHours: 2 }]);
+    expect(r.contracts).toBe(1); expect(r.rate).toBe(27.1);
+  });
+  it("aucune heure connue : pas de taux", () => {
+    expect(hourlyRate([{ monthly: 600, weeklyHours: null }])).toEqual({ rate: null, contracts: 0, monthlyHours: 0 });
   });
 });

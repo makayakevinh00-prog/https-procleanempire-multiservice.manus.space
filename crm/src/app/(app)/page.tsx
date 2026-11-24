@@ -13,6 +13,7 @@ import { Donut, RankBars } from "@/components/crm/charts";
 import { Cockpit, RevenueCurve } from "@/components/crm/cockpit";
 import { loadCockpit } from "@/lib/cockpit";
 import { PalierCard } from "@/components/crm/palier";
+import { hourlyRate } from "@/lib/domain/palier";
 import { Row, Sparkline, Stat } from "@/components/crm/home-kit";
 import { Objectives } from "@/components/crm/objectifs";
 import { daysBetween, formatDate, formatEUR, formatHours, round2 } from "@/lib/utils";
@@ -78,6 +79,7 @@ export default async function Dashboard({ searchParams }: { searchParams?: { moi
   });
   const rec = summarize(rows, settings);
   const mrr = round2(rows.reduce((a, r) => a + (monthlyRevenueHt(r.contract) ?? 0), 0));
+  const hourly = hourlyRate(rows.map((r) => ({ monthly: monthlyRevenueHt(r.contract), weeklyHours: r.weeklyHours })));
   const cockpit = await loadCockpit(supabase, today, { billedMonth, billedPrev, recurring: mrr });
   const lateAmount = round2(late.reduce((a, i) => a + num(i.total_ttc) - num(i.paid_amount), 0));
 
@@ -126,7 +128,10 @@ export default async function Dashboard({ searchParams }: { searchParams?: { moi
       <PalierCard recurrent={mrr} contracts={rows.length} />
 
       <section aria-label="Indicateurs" className="mt-9 grid grid-cols-2 border-t border-border sm:grid-cols-3 sm:divide-x sm:divide-border xl:grid-cols-5">
-        <Stat label="CA récurrent par mois" value={eur0(mrr)} unit="HT" href="/contrats" hint={`${rows.length} contrat${rows.length > 1 ? "s" : ""} actif${rows.length > 1 ? "s" : ""}`} />
+        {/* Le CA récurrent est déjà dans le bloc « palier » juste au-dessus : ici, ce que les contrats paient de l'heure. */}
+        <Stat label="Payé de l'heure" value={hourly.rate == null ? "—" : eur0(hourly.rate)} unit={hourly.rate == null ? undefined : "HT"} href="/contrats"
+          tone={hourly.rate == null ? "warn" : undefined}
+          hint={hourly.rate == null ? "heures à renseigner sur les contrats" : `${hourly.contracts} contrat${hourly.contracts > 1 ? "s" : ""} · environ ${Math.round(hourly.monthlyHours)} h par mois`} />
         <Stat label={`Facturé en ${monthName(prevMonth)}`} value={eur0(billedPrev)} unit="HT" href="/factures"
           tone={billedTrend ? (billedTrend.pct >= 0 ? "ok" : "err") : undefined}
           hint={billedTrend ? `${billedTrend.pct >= 0 ? "+" : ""}${billedTrend.pct} % · ${monthName(month)} : ${eur0(billedMonth)}` : `${monthName(month)} : ${eur0(billedMonth)}`}>

@@ -37,3 +37,14 @@ export function palierState(recurrent: number, paliers: Palier[] = PALIERS): Pal
     atteints
   };
 }
+
+/**
+ * Ce que les contrats récurrents paient de l'heure : forfaits mensuels HT divisés par les heures du mois.
+ * Seuls comptent les contrats dont on connaît à la fois le montant et les heures (sinon le taux serait faux).
+ */
+export function hourlyRate(contracts: { monthly: number | null; weeklyHours: number | null }[]): { rate: number | null; contracts: number; monthlyHours: number } {
+  const known = contracts.filter((c) => c.monthly != null && c.monthly > 0 && c.weeklyHours != null && c.weeklyHours > 0);
+  const monthlyHours = (known.reduce((a, c) => a + (c.weeklyHours as number), 0) * 52) / 12;
+  const revenue = known.reduce((a, c) => a + (c.monthly as number), 0);
+  return { rate: monthlyHours > 0 ? Math.round((10 * revenue) / monthlyHours) / 10 : null, contracts: known.length, monthlyHours };
+}
