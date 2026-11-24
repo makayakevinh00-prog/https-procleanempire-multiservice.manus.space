@@ -49,10 +49,30 @@ export default async function MissionPage({ params, searchParams }: { params: { 
   // Stock de produits : demandé une fois le film de fin fait (ou la mission terminée), quand un comptage est dû.
   const stockRes = await agentClient().rpc("stock_status", { p_space: "agent", p_token: token, p_ref: m.id });
   const stock = (stockRes.error ? null : stockRes.data) as StockStatus;
+  // Mission guidée (comme l'application des nettoyeurs indépendants) : mission du jour, un seul écran, une seule action à la fois.
+  const guided = filmReady && editable && m.date === todayParis;
+  const aiDone = !!m.ai_status;
   const askStock = (onSite && (m.photos_after ?? 0) > 0 && !!m.ai_status) || m.stage === "terminee";
+
+  const checklist = m.checklist.length > 0 ? (
+    <section className={card}>
+          <div className="mb-2 text-[15px] font-extrabold">{t.checklist} ({done}/{m.checklist.length})</div>
+          <ul className="space-y-1.5">{m.checklist.map((c, i) => (
+            <li key={i}>
+              <form action={agentCheckAction.bind(null, token, m.id, i, !c.done)}>
+                <button disabled={!editable && m.stage !== "terminee"} className="flex min-h-12 w-full items-center gap-3 rounded-xl bg-[var(--a-bg)] px-3 text-left text-[16px] disabled:opacity-60">
+                  {c.done ? <CheckSquare className="h-6 w-6 shrink-0 text-[var(--a-ok)]" /> : <Square className="h-6 w-6 shrink-0 text-[var(--a-mute)]" />}
+                  <span className={c.done ? "text-[var(--a-mute)] line-through" : ""}>{c.label}</span>
+                </button>
+              </form>
+            </li>
+          ))}</ul>
+        </section>
+  ) : null;
 
   return (
     <article className="space-y-3">
+      {guided && <style dangerouslySetInnerHTML={{ __html: 'nav[aria-label="Navigation"]{display:none!important}' }} />}
       <Link href={`/agent/${token}?d=${m.date}`} className="inline-flex items-center gap-1 text-[15px] font-bold text-[var(--a-pri)]"><ChevronLeft className="h-5 w-5" />{t.back}</Link>
       {searchParams.error && <div role="alert" className="rounded-2xl bg-[var(--a-badbg)] p-3 text-sm font-semibold text-[var(--a-bad)]">{searchParams.error}</div>}
       {searchParams.ok && <div role="status" className="rounded-2xl bg-[var(--a-okbg)] p-3 text-sm font-semibold text-[var(--a-ok)]">{searchParams.ok}</div>}
@@ -60,6 +80,19 @@ export default async function MissionPage({ params, searchParams }: { params: { 
       {(autoArrive || briefing) && <ArrivalAssistant checkIn={agentCheckInAction.bind(null, token, m.id)} auto={autoArrive} briefing={briefing} site={m.site ?? m.client} storeKey={`ap-brief-${token.slice(0, 8)}-${briefing}-${m.client}-${m.site ?? ""}`}
         trip={autoArrive && m.stage === "en_route" ? { id: m.id, address: m.address ?? null, ping: agentTripPingAction.bind(null, token, m.id) } : undefined} />}
 
+      {guided ? (
+        <section className="space-y-2 rounded-3xl bg-[var(--a-card)] p-4">
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="text-[24px] font-extrabold leading-tight tracking-tight">{m.client}</h1>
+            <StagePill stage={m.stage} t={t} />
+          </div>
+          <p className="flex items-center gap-2 text-[15px] font-bold"><Clock className="h-4 w-4 text-[var(--a-pri)]" />{m.time ? m.time.slice(0, 5) : t.freeTime}{m.hours ? ` · ${m.hours} h` : ""}{m.arrived_at ? ` · arrivée ${hhmm(m.arrived_at)}` : ""}</p>
+          {m.address && <a className="flex items-start gap-2 text-[15px] font-bold text-[var(--a-pri)]" href={`https://maps.google.com/?q=${encodeURIComponent(m.address)}`} target="_blank" rel="noopener noreferrer"><MapPin className="mt-0.5 h-5 w-5 shrink-0" />{m.address}</a>}
+          {m.access && <p className="flex items-start gap-2 rounded-2xl bg-[var(--a-warnbg)] p-3 text-[14px] text-[var(--a-warn)]"><KeyRound className="mt-0.5 h-4 w-4 shrink-0" /><span><b>{t.access} :</b> {m.access}</span></p>}
+          {m.notes && <p className="text-[14px]"><b>{t.instructions} :</b> {m.notes}</p>}
+          {m.contact_phone && <a href={`tel:${m.contact_phone}`} className="flex items-center gap-2 text-[14px] font-bold text-[var(--a-pri)]"><Phone className="h-4 w-4" />{m.contact_name ?? t.contact} · {m.contact_phone}</a>}
+        </section>
+      ) : (<>
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-[28px] font-extrabold leading-tight tracking-tight">{m.client}</h1>
@@ -75,32 +108,20 @@ export default async function MissionPage({ params, searchParams }: { params: { 
       {m.notes && <p className={`${card} text-[15px]`}><b>{t.instructions} :</b> {m.notes}</p>}
       {m.contact_phone && <a href={`tel:${m.contact_phone}`} className={`${card} flex items-center gap-3 text-[16px] font-bold text-[var(--a-pri)]`}><Phone className="h-5 w-5" />{m.contact_name ?? t.contact} · {m.contact_phone}</a>}
 
+      </>)}
+
       {m.rotation_item && (
         <div className="rounded-2xl bg-[var(--a-soft)] p-4 text-[16px]"><span className="block text-[12px] font-extrabold uppercase tracking-wider text-[var(--a-pri)]">Aujourd&apos;hui sur ce site</span><b className="text-[20px]">{m.rotation_item}</b></div>
       )}
       {filmReady && onSite && (
-        <AgentFilm token={token} mission={m.id} before={m.before_report ?? null} after={m.ai_report ?? null} aiStatus={m.ai_status ?? null} nBefore={m.photos_before ?? 0} nAfter={m.photos_after ?? 0} site={m.site ?? m.client} />
+        <AgentFilm token={token} mission={m.id} before={m.before_report ?? null} after={m.ai_report ?? null} aiStatus={m.ai_status ?? null} nBefore={m.photos_before ?? 0} nAfter={m.photos_after ?? 0} site={m.site ?? m.client} autoOpen={guided}>{guided ? checklist : null}</AgentFilm>
       )}
       {stock && (askStock || stock.last) && <StockCard space="agent" token={token} refId={m.id} status={askStock ? stock : { ...stock, due: false }} />}
-      {filmReady && editable && !onSite && (
+      {filmReady && editable && !onSite && !guided && (
         <p className={`${card} text-[14px] text-[var(--a-mute)]`}>À votre arrivée sur place, la caméra vous est proposée : vous filmez le lieu, l&apos;IA vous donne vos tâches, des conseils et les produits à utiliser.</p>
       )}
 
-      {m.checklist.length > 0 && (
-        <section className={card}>
-          <div className="mb-2 text-[15px] font-extrabold">{t.checklist} ({done}/{m.checklist.length})</div>
-          <ul className="space-y-1.5">{m.checklist.map((c, i) => (
-            <li key={i}>
-              <form action={agentCheckAction.bind(null, token, m.id, i, !c.done)}>
-                <button disabled={!editable && m.stage !== "terminee"} className="flex min-h-12 w-full items-center gap-3 rounded-xl bg-[var(--a-bg)] px-3 text-left text-[16px] disabled:opacity-60">
-                  {c.done ? <CheckSquare className="h-6 w-6 shrink-0 text-[var(--a-ok)]" /> : <Square className="h-6 w-6 shrink-0 text-[var(--a-mute)]" />}
-                  <span className={c.done ? "text-[var(--a-mute)] line-through" : ""}>{c.label}</span>
-                </button>
-              </form>
-            </li>
-          ))}</ul>
-        </section>
-      )}
+      {!(guided && onSite) && checklist}
 
       {editable && !filmReady && (
         <div className="grid grid-cols-2 gap-2">
@@ -110,13 +131,16 @@ export default async function MissionPage({ params, searchParams }: { params: { 
       )}
       {m.photos > 0 && <div className="text-xs text-[var(--a-mute)]">{t.photosSent(m.photos)}</div>}
 
-      {m.arrived_at && <div className="rounded-2xl bg-[var(--a-soft)] p-3 text-[14px] font-bold text-[var(--a-pri)]">{t.arrival} {hhmm(m.arrived_at)} {m.arrived_verified ? `✓ ${t.verified}` : `(${t.notVerified})`}{m.departed_at ? ` · ${t.departure} ${hhmm(m.departed_at)}` : ""}</div>}
+      {m.arrived_at && !guided && <div className="rounded-2xl bg-[var(--a-soft)] p-3 text-[14px] font-bold text-[var(--a-pri)]">{t.arrival} {hhmm(m.arrived_at)} {m.arrived_verified ? `✓ ${t.verified}` : `(${t.notVerified})`}{m.departed_at ? ` · ${t.departure} ${hhmm(m.departed_at)}` : ""}</div>}
       {nextStage === "arrivee" && (autoArrive
         ? <details className="px-1 text-[13px] text-[var(--a-mute)]"><summary className="cursor-pointer font-bold underline">L&apos;arrivée ne s&apos;est pas pointée toute seule ?</summary><div className="mt-2"><GeoButton label={t.next.arrivee} action={agentCheckInAction.bind(null, token, m.id)} className="h-14 w-full rounded-2xl bg-[var(--a-pri)] text-lg font-extrabold text-white active:opacity-90 disabled:opacity-60" /></div></details>
         : <GeoButton label={t.next.arrivee} action={agentCheckInAction.bind(null, token, m.id)} className="h-14 w-full rounded-2xl bg-[var(--a-pri)] text-lg font-extrabold text-white active:opacity-90 disabled:opacity-60" />)}
-      {nextStage === "terminee" && <GeoButton optional label={t.next.terminee} action={agentFinishAction.bind(null, token, m.id)} className="h-14 w-full rounded-2xl bg-[var(--a-ok)] text-lg font-extrabold text-[var(--a-bg)] active:opacity-90 disabled:opacity-60" />}
-      {nextStage === "en_route" && <DepartButton id={m.id} label="Je pars" address={m.address ?? null} depart={agentStageAction.bind(null, token, m.id, "en_route")} />}
-      {nextStage && nextStage !== "arrivee" && nextStage !== "terminee" && nextStage !== "en_route" && (
+      {nextStage === "terminee" && (guided && !aiDone
+        ? <details className="px-1 text-[13px] text-[var(--a-mute)]"><summary className="cursor-pointer font-bold underline">Terminer sans film de fin</summary><div className="mt-2"><GeoButton optional label={t.next.terminee} action={agentFinishAction.bind(null, token, m.id)} className="h-12 w-full rounded-full border-2 border-[var(--a-ok)] text-base font-extrabold text-[var(--a-ok)] disabled:opacity-60" /></div></details>
+        : <GeoButton optional label={guided ? "Terminer la mission" : t.next.terminee} action={agentFinishAction.bind(null, token, m.id)} className="h-16 w-full rounded-full bg-[var(--a-ok)] text-[18px] font-extrabold text-white active:scale-[0.98] disabled:opacity-60" />)}
+      {nextStage === "en_route" && <DepartButton id={m.id} label="Je pars" address={m.address ?? null} depart={agentStageAction.bind(null, token, m.id, "en_route")} className="h-16 w-full rounded-full bg-[var(--a-pri)] text-[19px] font-extrabold text-white active:scale-[0.98] disabled:opacity-60" />}
+      {nextStage === "en_route" && guided && <GeoButton label="Je suis déjà sur place" action={agentCheckInAction.bind(null, token, m.id)} className="mx-auto block text-[14px] font-bold text-[var(--a-mute)] underline" />}
+      {nextStage && nextStage !== "arrivee" && nextStage !== "terminee" && nextStage !== "en_route" && !guided && (
         <form action={agentStageAction.bind(null, token, m.id, nextStage)}><button className="h-14 w-full rounded-2xl bg-[var(--a-pri)] text-lg font-extrabold text-white active:opacity-90">{t.next[nextStage]}</button></form>
       )}
       {finished && <div className="rounded-2xl bg-[var(--a-okbg)] p-3 text-center text-sm font-bold text-[var(--a-ok)]">{m.stage === "terminee" || m.stage === "a_verifier" ? t.finishedWait : t.checked}</div>}

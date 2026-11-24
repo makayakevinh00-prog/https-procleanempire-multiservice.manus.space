@@ -12,13 +12,22 @@ type After = { verdict?: "ok" | "reprise"; summary?: string; remaining?: { zone:
  * Arrivée : ce que l'IA voit, les zones à refilmer, les conseils et produits ; la liste des tâches arrive dans la check-list de la mission.
  * Fin : l'IA compare avec l'arrivée et dit ce qui reste à reprendre.
  */
-export function AgentFilm({ token, mission, before, after, aiStatus, nBefore, nAfter, site }: { token: string; mission: string; before: Before; after: After; aiStatus: string | null; nBefore: number; nAfter: number; site: string }) {
+export function AgentFilm({ token, mission, before, after, aiStatus, nBefore, nAfter, site, autoOpen = false, children }: { token: string; mission: string; before: Before; after: After; aiStatus: string | null; nBefore: number; nAfter: number; site: string;
+  /** Mission guidée : à l'arrivée, la caméra s'ouvre toute seule (une fois). */
+  autoOpen?: boolean;
+  /** Les tâches à cocher, affichées entre le compte rendu de l'IA et le film de fin. */
+  children?: React.ReactNode }) {
   const router = useRouter();
   const [cam, setCam] = useState<"avant" | "apres" | null>(null);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const [refilmDone, setRefilmDone] = useState(true);
   useEffect(() => { try { setRefilmDone(localStorage.getItem(`ap:refilm:${mission}`) === "1"); } catch { setRefilmDone(false); } }, [mission]);
+  useEffect(() => {
+    if (!autoOpen || nBefore > 0) return;
+    try { if (sessionStorage.getItem(`ap:cam:${mission}`) === "1") return; sessionStorage.setItem(`ap:cam:${mission}`, "1"); } catch { /* on ouvre quand même */ }
+    setCam("avant");
+  }, [autoOpen, nBefore, mission]);
   const waitingBefore = nBefore > 0 && !before, waitingAfter = nAfter > 0 && !aiStatus;
   // Tant que l'IA travaille, la page se met à jour toute seule.
   useEffect(() => {
@@ -95,8 +104,9 @@ export function AgentFilm({ token, mission, before, after, aiStatus, nBefore, nA
         </details>
       )}
 
+      {before && children}
       {before && nAfter === 0 && (
-        <button type="button" onClick={() => setCam("apres")} className={`${big} border-2 border-[var(--a-ok)] text-[var(--a-ok)]`}>● J&apos;ai fini : filmer la fin</button>
+        <button type="button" onClick={() => setCam("apres")} className="h-16 w-full rounded-full bg-[var(--a-ok)] text-[18px] font-extrabold text-white active:scale-[0.98]">● J&apos;ai fini : filmer la fin</button>
       )}
       {waitingAfter && (
         <section className={`${card} text-center`} aria-live="polite">
@@ -106,7 +116,7 @@ export function AgentFilm({ token, mission, before, after, aiStatus, nBefore, nA
         </section>
       )}
       {aiStatus === "ok" && (
-        <section className="rounded-2xl bg-[var(--a-okbg)] p-4 text-[15px] text-[var(--a-ok)]"><b className="block text-[17px]">Contrôle réussi : rien à reprendre</b>{after?.summary && <p>{after.summary}</p>}<p className="mt-1 font-bold">Cochez vos tâches puis terminez la mission.</p></section>
+        <section className="rounded-2xl bg-[var(--a-okbg)] p-4 text-[15px] text-[var(--a-ok)]"><b className="block text-[17px]">Contrôle réussi : rien à reprendre</b>{after?.summary && <p>{after.summary}</p>}<p className="mt-1 font-bold">Il ne reste qu&apos;à terminer la mission.</p></section>
       )}
       {aiStatus === "reprise" && (
         <section role="alert" className="space-y-2 rounded-2xl bg-[var(--a-warnbg)] p-4 text-[15px]">
