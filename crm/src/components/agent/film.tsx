@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { VideoCapture } from "@/components/nettoyeur/video-capture";
 
-type Before = { seen?: string; summary?: string; state?: string; minutes?: number | null; items?: { zone: string; todo: string }[]; refilm?: { zone: string; why: string }[]; tips?: { surface: string; product: string; how: string }[] } | null;
+type Before = { seen?: string; summary?: string; state?: string; tidy?: string; level?: number | null; minutes?: number | null; items?: { zone: string; todo: string }[]; refilm?: { zone: string; why: string }[]; tips?: { surface: string; product: string; how: string }[] } | null;
 type After = { verdict?: "ok" | "reprise"; summary?: string; remaining?: { zone: string; why: string }[]; missing?: string[] } | null;
 
 /**
@@ -80,7 +80,17 @@ export function AgentFilm({ token, mission, before, after, aiStatus, nBefore, nA
         <section className={card}>
           <b className="block text-[var(--a-pri)]">Ce que l&apos;IA voit sur votre film</b>
           <p>{before.seen}</p>
-          {before.minutes ? <p className="mt-1 text-[13px] text-[var(--a-mute)]">Temps estimé : environ {before.minutes} min</p> : null}
+        </section>
+      )}
+      {before && (before.summary || before.state) && (
+        <section className="space-y-1 rounded-2xl bg-[var(--a-soft)] p-4 text-[14px]">
+          <div className="flex flex-wrap items-center gap-2">
+            <b className="text-[15px] text-[var(--a-pri)]">Compte rendu de l&apos;IA</b>
+            {before.level ? <span className="rounded-full bg-[var(--a-bg)] px-2.5 py-0.5 text-[12px] font-extrabold">Saleté {before.level}/5</span> : null}
+            {before.minutes ? <span className="rounded-full bg-[var(--a-bg)] px-2.5 py-0.5 text-[12px] font-extrabold">≈ {before.minutes >= 60 ? `${Math.floor(before.minutes / 60)} h ${String(before.minutes % 60).padStart(2, "0")}` : `${before.minutes} min`}</span> : null}
+          </div>
+          <p>{before.summary || before.state}</p>
+          {before.tidy && <p className="text-[var(--a-mute)]"><b>Rangement :</b> {before.tidy}</p>}
         </section>
       )}
       {before && !refilmDone && (before.refilm?.length ?? 0) > 0 && (
@@ -90,12 +100,6 @@ export function AgentFilm({ token, mission, before, after, aiStatus, nBefore, nA
           <button type="button" onClick={() => closeRefilm(true)} className="h-12 w-full rounded-full bg-[var(--a-pri)] text-[16px] font-extrabold text-white">● Filmer ces zones</button>
           <button type="button" onClick={() => closeRefilm(false)} className="mx-auto block text-[13px] font-bold text-[var(--a-mute)] underline">Continuer sans refilmer</button>
         </section>
-      )}
-      {(before?.items?.length ?? 0) > 0 && (
-        <details className={card}>
-          <summary className="cursor-pointer font-extrabold text-[var(--a-pri)]">Ce qu&apos;il y a à nettoyer ({before!.items!.length})</summary>
-          <ul className="mt-2 space-y-1">{before!.items!.map((x, i) => <li key={i}><b>{x.zone}</b> — {x.todo}</li>)}</ul>
-        </details>
       )}
       {(before?.tips?.length ?? 0) > 0 && (
         <details className={card}>

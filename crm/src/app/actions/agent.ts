@@ -90,3 +90,12 @@ export async function agentTripPingAction(token: string, missionId: string, lat:
   if (!/^[0-9a-f-]{36}$/i.test(missionId)) return;
   await agentTripPing(token, missionId, lat, lng, mode === "transports" ? "transports" : "voiture");
 }
+
+/** Tâche cochée ou décochée, sans recharger la page (liste « À faire, dans l'ordre »). */
+export async function agentTaskAction(token: string, missionId: string, index: number, done: boolean): Promise<{ ok: boolean; error?: string }> {
+  guard(token);
+  const { error } = await agentClient().rpc("agent_toggle_check", { p_token: token, p_id: missionId, p_index: index, p_done: done });
+  if (error) return { ok: false, error: agentMessage(error.message) };
+  revalidatePath(`/agent/${token}`);
+  return { ok: true };
+}

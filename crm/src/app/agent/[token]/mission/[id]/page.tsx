@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CheckSquare, Square, MapPin, Phone, KeyRound, AlertTriangle, Clock, ChevronLeft } from "lucide-react";
+import { MapPin, Phone, KeyRound, AlertTriangle, Clock, ChevronLeft } from "lucide-react";
 import { agentClient, agentMessage, agentPrefs, isToken, type AgentMission } from "@/lib/agent";
-import { agentCheckAction, agentCheckInAction, agentFinishAction, agentIssueAction, agentStageAction, agentTripPingAction } from "@/app/actions/agent";
+import { agentCheckInAction, agentFinishAction, agentIssueAction, agentStageAction, agentTaskAction, agentTripPingAction } from "@/app/actions/agent";
+import { AgentTasks } from "@/components/agent/tasks";
 import { GeoButton } from "@/components/crm/geo-button";
 import { DepartButton } from "@/components/agent/depart";
 import { PhotoButton } from "@/components/crm/photo-button";
@@ -54,21 +55,7 @@ export default async function MissionPage({ params, searchParams }: { params: { 
   const aiDone = !!m.ai_status;
   const askStock = (onSite && (m.photos_after ?? 0) > 0 && !!m.ai_status) || m.stage === "terminee";
 
-  const checklist = m.checklist.length > 0 ? (
-    <section className={card}>
-          <div className="mb-2 text-[15px] font-extrabold">{t.checklist} ({done}/{m.checklist.length})</div>
-          <ul className="space-y-1.5">{m.checklist.map((c, i) => (
-            <li key={i}>
-              <form action={agentCheckAction.bind(null, token, m.id, i, !c.done)}>
-                <button disabled={!editable && m.stage !== "terminee"} className="flex min-h-12 w-full items-center gap-3 rounded-xl bg-[var(--a-bg)] px-3 text-left text-[16px] disabled:opacity-60">
-                  {c.done ? <CheckSquare className="h-6 w-6 shrink-0 text-[var(--a-ok)]" /> : <Square className="h-6 w-6 shrink-0 text-[var(--a-mute)]" />}
-                  <span className={c.done ? "text-[var(--a-mute)] line-through" : ""}>{c.label}</span>
-                </button>
-              </form>
-            </li>
-          ))}</ul>
-        </section>
-  ) : null;
+  const checklist = m.checklist.length > 0 ? <AgentTasks items={m.checklist.map((c) => ({ label: c.label, done: c.done }))} toggle={agentTaskAction.bind(null, token, m.id)} locked={!editable && m.stage !== "terminee"} /> : null;
 
   return (
     <article className="space-y-3">
@@ -111,7 +98,7 @@ export default async function MissionPage({ params, searchParams }: { params: { 
       </>)}
 
       {m.rotation_item && (
-        <div className="rounded-2xl bg-[var(--a-soft)] p-4 text-[16px]"><span className="block text-[12px] font-extrabold uppercase tracking-wider text-[var(--a-pri)]">Aujourd&apos;hui sur ce site</span><b className="text-[20px]">{m.rotation_item}</b></div>
+        <div className="rounded-2xl bg-[var(--a-soft)] p-4 text-[16px]"><span className="block text-[12px] font-extrabold uppercase tracking-wider text-[var(--a-pri)]">À faire en premier aujourd&apos;hui</span><b className="text-[20px]">{m.rotation_item}</b></div>
       )}
       {filmReady && onSite && (
         <AgentFilm token={token} mission={m.id} before={m.before_report ?? null} after={m.ai_report ?? null} aiStatus={m.ai_status ?? null} nBefore={m.photos_before ?? 0} nAfter={m.photos_after ?? 0} site={m.site ?? m.client} autoOpen={guided}>{guided ? checklist : null}</AgentFilm>
