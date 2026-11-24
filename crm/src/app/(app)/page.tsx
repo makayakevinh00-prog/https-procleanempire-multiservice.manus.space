@@ -12,6 +12,7 @@ import { ClientName } from "@/components/crm/client-name";
 import { Donut, RankBars } from "@/components/crm/charts";
 import { Cockpit, RevenueCurve } from "@/components/crm/cockpit";
 import { loadCockpit } from "@/lib/cockpit";
+import { PalierCard } from "@/components/crm/palier";
 import { Row, Sparkline, Stat } from "@/components/crm/home-kit";
 import { Objectives } from "@/components/crm/objectifs";
 import { daysBetween, formatDate, formatEUR, formatHours, round2 } from "@/lib/utils";
@@ -121,6 +122,8 @@ export default async function Dashboard({ searchParams }: { searchParams?: { moi
       )}
 
       <Cockpit goal={cockpit.goal} activities={cockpit.activities} week={cockpit.week} />
+
+      <PalierCard recurrent={mrr} contracts={rows.length} />
 
       <section aria-label="Indicateurs" className="mt-9 grid grid-cols-2 border-t border-border sm:grid-cols-3 sm:divide-x sm:divide-border xl:grid-cols-5">
         <Stat label="CA récurrent par mois" value={eur0(mrr)} unit="HT" href="/contrats" hint={`${rows.length} contrat${rows.length > 1 ? "s" : ""} actif${rows.length > 1 ? "s" : ""}`} />
