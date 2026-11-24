@@ -170,3 +170,29 @@ export async function analyzeReference(images: Img[], name: string): Promise<AiR
   const report = parseGuide(r.text);
   return { report, error: report ? null : "réponse de l'IA illisible" };
 }
+
+/** Ce que l'IA lit sur un film de stock : chaque produit, ce qu'il en reste et, faute de mieux, une estimation prudente de sa durée. */
+export type StockReport = { items: { name: string; left: number; unit: string; low: boolean; guess_days: number | null }[]; summary: string; unclear: string[] };
+
+export function parseStock(text: string): StockReport | null {
+  const j = json(text);
+  if (!j || !Array.isArray(j.items)) return null;
+  const items = j.items.map((x: any) => ({
+    name: str(x?.name, 80), unit: str(x?.unit, 30) || "unité", low: x?.low === true,
+    left: Number.isFinite(Number(x?.left)) ? Math.min(999, Math.max(0, Number(x.left))) : 0,
+    guess_days: Number.isFinite(Number(x?.guess_days)) && x?.guess_days !== null ? Math.min(720, Math.max(0, Math.round(Number(x.guess_days)))) : null
+  })).filter((x: any) => x.name).slice(0, 30);
+  return { items, summary: str(j.summary, 300), unclear: (Array.isArray(j.unclear) ? j.unclear : []).map((x: unknown) => str(x, 80)).filter(Boolean).slice(0, 5) };
+}
+
+/** Film du stock de produits : l'IA compte ce qui reste, produit par produit. « perWeek » = nombre de ménages par semaine, pour l'estimation de durée. */
+export async function analyzeStock(images: Img[], perWeek: number, previous: { name: string; left: number; unit: string }[] = []): Promise<AiResult<StockReport>> {
+  const known = previous.length ? ` Au comptage précédent, il y avait : ${previous.map((p) => `${p.name} (${p.left} ${p.unit})`).join(" ; ")}. Reprends EXACTEMENT les mêmes noms pour les mêmes produits ; un produit de cette liste que tu ne vois plus du tout a 0.` : "";
+  const r = await askWith(
+    "Tu fais l'inventaire des produits et consommables d'une entreprise de ménage à partir d'images. Tu ne comptes que ce que tu vois réellement ; tu n'inventes aucun produit.",
+    [...imgs(images), { type: "text", text: `Ces ${images.length} images, tirées d'un film, montrent le stock de produits et de consommables de ménage (placard, chariot, caisse ou coffre).${known} Fais l'inventaire : pour chaque produit ou consommable visible (nettoyant sol, dégraissant, produit vitres, désinfectant, javel, anticalcaire, sacs poubelle, microfibres, éponges, papier toilette, essuie-tout, gants, pastilles, recharges…), donne : "name" (nom simple en français, la marque seulement si elle se lit clairement), "unit" (bouteille, bidon, rouleau, paquet, boîte, pièce…), "left" (nombre de contenants restants, avec une décimale pour un contenant entamé : une bouteille pleine et une à moitié = 1.5 ; un seul contenant presque vide = 0.1), "low" (true s'il en reste très peu), "guess_days" (estimation prudente du nombre de jours avant d'en manquer, sachant qu'il y a environ ${perWeek > 0 ? perWeek : 3} ménage(s) par semaine ; null si tu ne peux pas l'estimer). Un même produit vu sur plusieurs images ne compte qu'une fois. Si une étiquette est illisible ou si un contenant est opaque, mets-le dans "unclear" (« bidon blanc sans étiquette ») plutôt que de deviner. "summary" : une phrase de 20 mots au plus. Réponds : {"items":[{"name":"Nettoyant sol","unit":"bidon","left":1.5,"low":false,"guess_days":30}],"unclear":["..."],"summary":"..."}` }],
+    3000);
+  if (!r.text) return { report: null, error: r.error };
+  const report = parseStock(r.text);
+  return { report, error: report ? null : "réponse de l'IA illisible" };
+}

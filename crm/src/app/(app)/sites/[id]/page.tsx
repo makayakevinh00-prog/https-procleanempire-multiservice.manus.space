@@ -11,6 +11,7 @@ import { formatDate } from "@/lib/utils";
 import { ConfirmAction } from "@/components/crm/confirm-action";
 import { deleteSiteAction } from "@/app/actions/manage";
 import { SiteMapLazy } from "@/components/crm/site-map-lazy";
+import { leftLabel, type StockItem } from "@/lib/domain/stock";
 
 export default async function SitePage({ params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -33,6 +34,9 @@ export default async function SitePage({ params }: { params: { id: string } }) {
   const lastFilm = ((filmed ?? []) as any[]).filter((p, _i, all) => p.intervention_id === all[0]?.intervention_id).slice(0, 14).reverse();
   const rot = s.rotation as { items?: string[]; next?: number } | null;
   const mem = s.visit_memory as { visits?: number; zones?: string[]; recurring?: string[]; last?: { date: string; summary: string }[] } | null;
+  // Stock de produits du site : dernier comptage fait par l'IA à partir du film d'un agent (absent tant que la base n'est pas à jour).
+  const sc = await supabase.from("stock_counts").select("counted_at, counted_by, items, summary, next_due").eq("scope_kind", "site").eq("scope_id", s.id).order("counted_at", { ascending: false }).limit(1).maybeSingle();
+  const stock = (sc.error ? null : sc.data) as { counted_at: string; counted_by: string | null; items: StockItem[]; summary: string | null; next_due: string | null } | null;
   const back = `/sites/${s.id}`;
   return (
     <>
@@ -47,6 +51,20 @@ export default async function SitePage({ params }: { params: { id: string } }) {
           {s.access_notes && <div><div className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">Accès</div><div className="mt-1 whitespace-pre-line text-[15px]">{s.access_notes}</div></div>}
           {(s.specifics ?? []).length > 0 && <div className="sm:col-span-2"><div className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">Éléments spécifiques</div>
             <div className="mt-1.5 flex flex-wrap gap-2">{(s.specifics as string[]).map((t) => <span key={t} className="rounded-full bg-[#e8edf5] px-3 py-1 text-[13px] font-medium text-[#2b4c7e]">{t}</span>)}</div></div>}
+        </CardContent></Card>
+      )}
+      {stock && (
+        <Card className="mb-4"><CardContent className="space-y-3 py-5">
+          <div className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">Stock de produits · compté le {formatDate(stock.counted_at)}{stock.counted_by ? ` par ${stock.counted_by}` : ""}</div>
+          {stock.summary && <p className="text-[14px]">{stock.summary}</p>}
+          {stock.items.filter((i) => i.buy).length > 0 && (
+            <div className="rounded-lg bg-amber-50 p-3 text-[14px] text-amber-900">
+              <b>À racheter</b>
+              <ul className="mt-1 space-y-1">{stock.items.filter((i) => i.buy).map((i) => <li key={i.name}>• <b>{i.name}</b> — reste {String(i.left).replace(".", ",")} {i.unit} · {leftLabel(i)}</li>)}</ul>
+            </div>
+          )}
+          <ul className="grid gap-1 text-[14px] sm:grid-cols-2">{stock.items.filter((i) => !i.buy).map((i) => <li key={i.name}>• <b>{i.name}</b> — {String(i.left).replace(".", ",")} {i.unit} · {leftLabel(i)}</li>)}</ul>
+          <p className="text-xs text-muted-foreground">« environ » = estimation de l&apos;IA au premier comptage ; dès le deuxième, la durée est mesurée sur la consommation réelle.{stock.next_due ? ` Prochain comptage demandé à l'agent vers le ${formatDate(stock.next_due)}.` : ""}</p>
         </CardContent></Card>
       )}
       {(rot?.items?.length ?? 0) > 0 && (

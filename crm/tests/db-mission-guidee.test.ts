@@ -162,3 +162,36 @@ describe("0079 — agents ProClean : film, IA et rotation du site", () => {
     expect((await q("select ai_status s, stage from interventions where id = $1", [m2]))[0]).toEqual({ s: "reprise", stage: "affectee" });
   });
 });
+
+describe("0080 — stock de produits", () => {
+  const TS = "d".repeat(64);
+  let staff: string, site: string, m: string, bare: string;
+  beforeAll(async () => {
+    await db.exec(read("supabase/migrations/0080_stock_produits.sql"));
+    await db.exec(read("supabase/migrations/0080_stock_produits.sql")); // rejouable
+    staff = (await q("insert into staff(full_name, agent_token_hash) values ('Agent Stock',$1) returning id", [hash(TS)]))[0].id;
+    site = (await q("insert into sites(client_id, name) values ($1,'Site stock') returning id", [owner]))[0].id;
+    m = (await q("insert into interventions(client_id, site_id, title, scheduled_date, staff_id, unit_price_ht) values ($1,$2,'Passage',$3,$4,100) returning id", [owner, site, parisToday(), staff]))[0].id;
+    bare = (await q("insert into interventions(client_id, title, scheduled_date, staff_id, unit_price_ht) values ($1,'Sans site',$2,$3,100) returning id", [owner, parisToday(), staff]))[0].id;
+  });
+  it("le stock est celui du site de la mission, sinon de l'agent, sinon du nettoyeur ; le lien privé est vérifié", async () => {
+    expect((await q("select stock_status('agent',$1,$2) j", [TS, m]))[0].j).toMatchObject({ kind: "site", due: true, last: null });
+    expect((await q("select stock_status('agent',$1,$2) j", [TS, bare]))[0].j.kind).toBe("staff");
+    expect((await q("select stock_status('nettoyeur',$1,$2) j", [TA, m]))[0].j.kind).toBe("cleaner");
+    await fails("select stock_status('agent',$1,$2)", ["f".repeat(64), m], /.+/);
+    await fails("select stock_status('agent',$1,$2)", [TS, "00000000-0000-0000-0000-000000000000"], /INTROUVABLE/);
+  });
+  it("film, comptage enregistré, images effacées, prochain comptage plus tard", async () => {
+    await q("select stock_add_frame('agent',$1,$2,'image/jpeg',$3,true)", [TS, m, PIX]);
+    await q("select stock_add_frame('agent',$1,$2,'image/jpeg',$3,false)", [TS, m, PIX]);
+    await q("select stock_add_frame('agent',$1,$2,'image/jpeg',$3,true)", [TS, m, PIX]); // nouveau film : l'ancien est écarté
+    const inp = (await q("select automation_stock_input($1,'site',$2) j", [SECRET, site]))[0].j;
+    expect([inp.label, inp.frames.length, inp.previous]).toEqual(["Site stock", 1, null]);
+    expect(inp.frames[0].b64).not.toMatch(/\s/);
+    await fails("select automation_stock_input('mauvais','site',$1)", [site], /ACCES_REFUSE/);
+    await q("select automation_stock_save($1,'site',$2,'Agent Stock',$3,'Stock correct',$4)", [SECRET, site, JSON.stringify([{ name: "Javel", left: 1, unit: "bidon", buy: true }]), "2099-01-01"]);
+    const st = (await q("select stock_status('agent',$1,$2) j", [TS, m]))[0].j;
+    expect([st.due, st.last.items[0].name, st.last.next_due]).toEqual([false, "Javel", "2099-01-01"]);
+    expect((await q("select count(*)::int n from stock_frames"))[0].n).toBe(0);
+  });
+});

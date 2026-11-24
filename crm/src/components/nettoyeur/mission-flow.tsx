@@ -1,5 +1,6 @@
 "use client";
 
+import { StockCard, type StockStatus } from "@/components/agent/stock";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MapPin, KeyRound, Clock } from "lucide-react";
@@ -70,9 +71,12 @@ export function MissionFlow({
   token,
   job,
   tasks,
+  stock = null,
 }: {
   token: string;
   job: MissionJob;
+  /** Stock de produits du nettoyeur (demandé une fois le ménage envoyé ou validé, quand un comptage est dû). */
+  stock?: StockStatus;
   tasks: MissionTask[];
 }) {
   const router = useRouter();
@@ -468,6 +472,10 @@ export function MissionFlow({
               : "Restez sur place jusqu'à l'accord de la direction. Vous serez payé après validation."}
           </p>
         </section>
+      )}
+
+      {!busy && !cam && (phase === "attente" || phase === "ok") && (
+        <StockCard space="nettoyeur" token={token} refId={job.id} status={stock} />
       )}
 
       {!busy && phase === "ok" && (

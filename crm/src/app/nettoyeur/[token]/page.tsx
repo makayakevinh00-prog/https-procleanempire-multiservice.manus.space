@@ -1,3 +1,4 @@
+import type { StockStatus } from "@/components/agent/stock";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
@@ -49,7 +50,9 @@ export default async function CleanerToday({ params, searchParams }: { params: {
       photos_before: live.photos_before ?? 0, photos_after: live.photos_after ?? 0, review_note: live.review_note ?? null, departure: live.departure ?? null,
       before_report: live.before_report ?? null, ai_report: live.ai_report ?? null
     };
-    return <><Remember token={token} /><MissionFlow token={token} job={job} tasks={tasks} /></>;
+    // Le stock n'est demandé qu'une fois le ménage envoyé ou validé : inutile de le lire avant.
+    const st = job.status === "a_verifier" || job.status === "validee" ? await agentClient().rpc("stock_status", { p_space: "nettoyeur", p_token: token, p_ref: job.id }) : null;
+    return <><Remember token={token} /><MissionFlow token={token} job={job} tasks={tasks} stock={!st || st.error ? null : (st.data as StockStatus)} /></>;
   }
   return (
     <>

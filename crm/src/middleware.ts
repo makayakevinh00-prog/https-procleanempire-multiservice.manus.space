@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { pathAllowed, sanitizePerms } from "@/lib/team";
 
 // Les routes cron s'authentifient elles-mêmes (CRON_SECRET) ; tout le reste exige une session.
-const PUBLIC = ["/login", "/acces-refuse", "/api/stripe/webhook", "/mandat/", "/api/cron/", "/api/qonto/sync", "/api/inbound/", "/agent/", "/api/agent/", "/suivi/", "/api/public/", "/api/calendrier/", "/api/mcp", "/.well-known/", "/register", "/authorize", "/token", "/compta/activer", "/invitation", "/nettoyeur/", "/api/nettoyeur/", "/reserver", "/linge/", "/partenaire/", "/api/partenaire/", "/connexion", "/signer/", "/mentions-legales", "/cgu", "/confidentialite"];
+const PUBLIC = ["/login", "/acces-refuse", "/api/stripe/webhook", "/mandat/", "/api/cron/", "/api/qonto/sync", "/api/inbound/", "/agent/", "/api/agent/", "/api/stock/", "/suivi/", "/api/public/", "/api/calendrier/", "/api/mcp", "/.well-known/", "/register", "/authorize", "/token", "/compta/activer", "/invitation", "/nettoyeur/", "/api/nettoyeur/", "/reserver", "/linge/", "/partenaire/", "/api/partenaire/", "/connexion", "/signer/", "/mentions-legales", "/cgu", "/confidentialite"];
 
 // Espaces à lien privé (nettoyeur, partenaire, agent, linge, suivi) : aucun compte CRM n'y sert, donc aucune vérification de session.
 // On évite ainsi un aller-retour vers le service de connexion à chaque page et à chaque rafraîchissement de ces applications.

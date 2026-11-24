@@ -12,6 +12,7 @@ import { SiteVideo } from "@/components/agent/site-video";
 import { AiHelp } from "@/components/agent/ai-help";
 import { ArrivalAssistant } from "@/components/agent/arrival";
 import { AgentFilm } from "@/components/agent/film";
+import { StockCard, type StockStatus } from "@/components/agent/stock";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Mission — ProClean Empire", robots: { index: false, follow: false }, referrer: "no-referrer" };
@@ -44,6 +45,10 @@ export default async function MissionPage({ params, searchParams }: { params: { 
   // Film guidé par l'IA : dès l'arrivée pointée, et seulement si la base connaît déjà les films (sinon les photos une par une restent).
   const filmReady = m.photos_before !== undefined;
   const onSite = !!m.arrived_at && ["arrivee", "en_cours"].includes(m.stage);
+  // Stock de produits : demandé une fois le film de fin fait (ou la mission terminée), quand un comptage est dû.
+  const stockRes = await agentClient().rpc("stock_status", { p_space: "agent", p_token: token, p_ref: m.id });
+  const stock = (stockRes.error ? null : stockRes.data) as StockStatus;
+  const askStock = (onSite && (m.photos_after ?? 0) > 0 && !!m.ai_status) || m.stage === "terminee";
 
   return (
     <article className="space-y-3">
@@ -74,6 +79,7 @@ export default async function MissionPage({ params, searchParams }: { params: { 
       {filmReady && onSite && (
         <AgentFilm token={token} mission={m.id} before={m.before_report ?? null} after={m.ai_report ?? null} aiStatus={m.ai_status ?? null} nBefore={m.photos_before ?? 0} nAfter={m.photos_after ?? 0} site={m.site ?? m.client} />
       )}
+      {stock && (askStock || stock.last) && <StockCard space="agent" token={token} refId={m.id} status={askStock ? stock : { ...stock, due: false }} />}
       {filmReady && editable && !onSite && (
         <p className={`${card} text-[14px] text-[var(--a-mute)]`}>À votre arrivée sur place, la caméra vous est proposée : vous filmez le lieu, l&apos;IA vous donne vos tâches, des conseils et les produits à utiliser.</p>
       )}

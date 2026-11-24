@@ -23,6 +23,8 @@ export function VideoCapture({
   onDone,
   onCancel,
   endpoint = "/api/nettoyeur/photo",
+  lastLabel,
+  minHint,
 }: {
   token: string;
   job: string;
@@ -33,6 +35,10 @@ export function VideoCapture({
   onCancel?: () => void;
   /** Où partent les captures : l'appli nettoyeur par défaut, « /api/agent/photo » pour un agent ProClean. */
   endpoint?: string;
+  /** Message affiché pendant l'envoi de la dernière image (l'analyse) ; par défaut selon « kind ». */
+  lastLabel?: string;
+  /** Message quand le film est trop court ; par défaut « faites le tour du logement ». */
+  minHint?: string;
 }) {
   const video = useRef<HTMLVideoElement>(null);
   const stream = useRef<MediaStream | null>(null);
@@ -121,7 +127,7 @@ export function VideoCapture({
         for (let i = 0; i < list.length; i++) {
           setSending(
             i === list.length - 1
-              ? kind === "avant" ? "L'IA analyse le lieu…" : "L'IA contrôle votre travail…"
+              ? lastLabel ?? (kind === "avant" ? "L'IA analyse le lieu…" : "L'IA contrôle votre travail…")
               : `Envoi ${i + 1}/${list.length}…`,
           );
           const fd = new FormData();
@@ -130,6 +136,7 @@ export function VideoCapture({
           fd.set("kind", kind);
           fd.set("file", list[i]!, "image.jpg");
           fd.set("film", "1");
+          fd.set("index", String(i));
           if (i < list.length - 1) fd.set("defer", "1"); // l'analyse se fait une seule fois, sur la dernière image
           const r = await fetch(endpoint, {
             method: "POST",
@@ -148,7 +155,7 @@ export function VideoCapture({
         setMsg((e as Error).message || "Envoi impossible, réessayez.");
       }
     },
-    [token, job, kind, onDone, endpoint],
+    [token, job, kind, onDone, endpoint, lastLabel],
   );
 
   const start = async () => {
@@ -181,7 +188,7 @@ export function VideoCapture({
     if (frames.current.length < MIN_FRAMES) {
       setRec(false);
       setMsg(
-        "Filmez un peu plus longtemps : faites le tour du logement (au moins 10 secondes).",
+        minHint ?? "Filmez un peu plus longtemps : faites le tour du logement (au moins 10 secondes).",
       );
       frames.current = [];
       setCount(0);
