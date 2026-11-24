@@ -196,8 +196,8 @@ export function ImmersiveLanding() {
           <div className="relative flex items-center px-6 pb-16 md:px-12 lg:col-span-6 lg:col-start-7 lg:row-start-1 lg:py-12 lg:pl-4 lg:pr-12">
             <div className="relative w-full">
               <ParallaxPhoto
-                src={`${P}/equipe-vitrine.webp`}
-                alt="Agent ProClean Empire en tenue nettoyant les étagères en verre d'une boutique"
+                src="/media/photos/hero-showcase.webp"
+                alt="Logo ProClean Empire en métal entouré d'une hélice d'avion, d'un volant, d'un canapé et d'un linge : nos métiers"
                 priority
                 curtain
                 sizes="(min-width: 1024px) 46vw, 100vw"
@@ -205,8 +205,8 @@ export function ImmersiveLanding() {
               />
               <div className="absolute -bottom-10 -left-3 w-[42%] overflow-hidden rounded-3xl border-[6px] border-white shadow-[0_30px_60px_-30px_rgba(16,24,40,0.5)] lg:-left-10">
                 <ParallaxPhoto
-                  src="/media/photos/nettoyage-avion-cessna.webp"
-                  alt="Nettoyage du fuselage d'un avion léger par ProClean Empire"
+                  src={`${P}/equipe-vitrine.webp`}
+                  alt="Agent ProClean Empire en tenue nettoyant les étagères en verre d'une boutique"
                   curtain
                   sizes="(min-width: 1024px) 20vw, 42vw"
                   className="aspect-[4/3] w-full"
