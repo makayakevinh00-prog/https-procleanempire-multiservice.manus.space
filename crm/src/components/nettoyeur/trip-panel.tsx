@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { cleanerPingAction, cleanerTripAction, type CleanerTrip } from "@/app/actions/nettoyeur";
-import { RouteChoice, savedMode, type TravelMode } from "@/components/agent/route-choice";
+import { modeKey, routeLinks, savedMode, type TravelMode } from "@/components/agent/route-choice";
+import { DepartButton } from "@/components/agent/depart";
 
 const hm = (iso: string) => new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" }).replace(":", " h ");
 /** À cette distance du logement (à vol d'oiseau), le nettoyeur est considéré comme arrivé. */
@@ -56,12 +57,12 @@ export function TripPanel({ token, onArrive, address }: { token: string; onArriv
     return () => { navigator.geolocation.clearWatch(id); lock.current?.release?.().catch(() => undefined); lock.current = null; };
   }, [tracking, token]);
   if (!trip) return null;
-  const start = () => { if (!("geolocation" in navigator)) { setNote("Ce téléphone ne donne pas sa position."); return; } localStorage.setItem(`pce:trajet:${trip.job}`, "1"); setNote(""); setSharing(true); };
+  const start = () => { if (!("geolocation" in navigator)) { setNote("Ce téléphone ne donne pas sa position."); return; } localStorage.setItem(`pce:trajet:${trip.job}`, "1"); setNote(""); setMode(savedMode(trip.job)); setSharing(true); };
   const stop = () => { localStorage.removeItem(`pce:trajet:${trip.job}`); setSharing(false); };
   const km = dist == null ? "" : dist < 1000 ? `${Math.max(50, Math.round(dist / 50) * 50)} m` : `${(dist / 1000).toFixed(1).replace(".", ",")} km`;
   if (!sharing) return (
     <section aria-live="polite">
-      <button type="button" onClick={start} className="h-16 w-full rounded-full bg-[var(--a-pri)] text-[19px] font-extrabold text-white active:scale-[0.98]">Je pars</button>
+      <DepartButton id={trip.job} label="Je pars" address={address ?? null} depart={start} className="h-16 w-full rounded-full bg-[var(--a-pri)] text-[19px] font-extrabold text-white active:scale-[0.98]" />
       <p className="mt-2 text-center text-[13px] text-[var(--a-mute)]">Le client voit votre heure d&apos;arrivée. Sur place, la caméra s&apos;ouvre toute seule.</p>
       {note && <p role="status" className="mt-2 text-center text-[13px] font-semibold text-[var(--a-warn)]">{note}</p>}
     </section>
@@ -71,7 +72,9 @@ export function TripPanel({ token, onArrive, address }: { token: string; onArriv
       <p className="text-[13px] font-extrabold uppercase tracking-wider text-[var(--a-ok)]">En route</p>
       <p className="mt-1 text-[26px] font-extrabold leading-tight">{trip.eta_at ? `Arrivée à ${hm(trip.eta_at)}` : "Calcul du trajet…"}</p>
       <p className="mt-1 text-[14px] font-semibold text-[var(--a-mute)]">{[trip.eta_minutes != null ? (mode === "transports" ? `environ ${trip.eta_minutes} min en transports` : `${trip.eta_minutes} min avec la circulation`) : "", km ? `encore ${km}` : ""].filter(Boolean).join(" · ") || "Gardez l'application ouverte."}</p>
-      {address && <div className="mt-4 text-left"><RouteChoice id={trip.job} address={address} onPick={(m) => { setMode(m); last.current = 0; }} /></div>}
+      {address && (() => { const l = routeLinks(address); const set = (m: TravelMode) => () => { try { localStorage.setItem(modeKey(trip.job), m); } catch { /* sans effet */ } setMode(m); last.current = 0; }; return (
+        <p className="mt-3 text-[13px] text-[var(--a-mute)]">Rouvrir l&apos;itinéraire : <a href={l.waze} target="_blank" rel="noopener noreferrer" onClick={set("voiture")} className="font-bold text-[var(--a-pri)] underline">Waze</a> · <a href={l.transit} target="_blank" rel="noopener noreferrer" onClick={set("transports")} className="font-bold text-[var(--a-pri)] underline">Transports</a></p>
+      ); })()}
       <p className="mt-3 text-[13px] text-[var(--a-mute)]">Votre position est partagée tant que cette application est à l&apos;écran.</p>
       <button type="button" onClick={stop} className="mt-2 text-[13px] font-bold text-[var(--a-mute)] underline">Arrêter le partage</button>
       {note && <p role="status" className="mt-2 text-[13px] font-semibold text-[var(--a-warn)]">{note}</p>}

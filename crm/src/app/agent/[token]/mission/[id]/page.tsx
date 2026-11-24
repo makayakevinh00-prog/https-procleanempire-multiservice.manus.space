@@ -4,6 +4,7 @@ import { CheckSquare, Square, MapPin, Phone, KeyRound, AlertTriangle, Clock, Che
 import { agentClient, agentMessage, agentPrefs, isToken, type AgentMission } from "@/lib/agent";
 import { agentCheckAction, agentCheckInAction, agentFinishAction, agentIssueAction, agentStageAction, agentTripPingAction } from "@/app/actions/agent";
 import { GeoButton } from "@/components/crm/geo-button";
+import { DepartButton } from "@/components/agent/depart";
 import { PhotoButton } from "@/components/crm/photo-button";
 import { dayLabel, dict } from "@/lib/field-ui";
 import { StagePill } from "@/components/agent/stage-pill";
@@ -110,9 +111,12 @@ export default async function MissionPage({ params, searchParams }: { params: { 
       {m.photos > 0 && <div className="text-xs text-[var(--a-mute)]">{t.photosSent(m.photos)}</div>}
 
       {m.arrived_at && <div className="rounded-2xl bg-[var(--a-soft)] p-3 text-[14px] font-bold text-[var(--a-pri)]">{t.arrival} {hhmm(m.arrived_at)} {m.arrived_verified ? `✓ ${t.verified}` : `(${t.notVerified})`}{m.departed_at ? ` · ${t.departure} ${hhmm(m.departed_at)}` : ""}</div>}
-      {nextStage === "arrivee" && <GeoButton label={t.next.arrivee} action={agentCheckInAction.bind(null, token, m.id)} className="h-14 w-full rounded-2xl bg-[var(--a-pri)] text-lg font-extrabold text-white active:opacity-90 disabled:opacity-60" />}
+      {nextStage === "arrivee" && (autoArrive
+        ? <details className="px-1 text-[13px] text-[var(--a-mute)]"><summary className="cursor-pointer font-bold underline">L&apos;arrivée ne s&apos;est pas pointée toute seule ?</summary><div className="mt-2"><GeoButton label={t.next.arrivee} action={agentCheckInAction.bind(null, token, m.id)} className="h-14 w-full rounded-2xl bg-[var(--a-pri)] text-lg font-extrabold text-white active:opacity-90 disabled:opacity-60" /></div></details>
+        : <GeoButton label={t.next.arrivee} action={agentCheckInAction.bind(null, token, m.id)} className="h-14 w-full rounded-2xl bg-[var(--a-pri)] text-lg font-extrabold text-white active:opacity-90 disabled:opacity-60" />)}
       {nextStage === "terminee" && <GeoButton optional label={t.next.terminee} action={agentFinishAction.bind(null, token, m.id)} className="h-14 w-full rounded-2xl bg-[var(--a-ok)] text-lg font-extrabold text-[var(--a-bg)] active:opacity-90 disabled:opacity-60" />}
-      {nextStage && nextStage !== "arrivee" && nextStage !== "terminee" && (
+      {nextStage === "en_route" && <DepartButton id={m.id} label="Je pars" address={m.address ?? null} depart={agentStageAction.bind(null, token, m.id, "en_route")} />}
+      {nextStage && nextStage !== "arrivee" && nextStage !== "terminee" && nextStage !== "en_route" && (
         <form action={agentStageAction.bind(null, token, m.id, nextStage)}><button className="h-14 w-full rounded-2xl bg-[var(--a-pri)] text-lg font-extrabold text-white active:opacity-90">{t.next[nextStage]}</button></form>
       )}
       {finished && <div className="rounded-2xl bg-[var(--a-okbg)] p-3 text-center text-sm font-bold text-[var(--a-ok)]">{m.stage === "terminee" || m.stage === "a_verifier" ? t.finishedWait : t.checked}</div>}

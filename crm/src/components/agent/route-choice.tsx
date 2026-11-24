@@ -10,6 +10,12 @@ export function savedMode(id: string): TravelMode {
   try { return localStorage.getItem(modeKey(id)) === "transports" ? "transports" : "voiture"; } catch { return "voiture"; }
 }
 
+/** Liens d'itinéraire depuis la position du téléphone : Waze en voiture ; en transports, Plans sur iPhone, Google Maps ailleurs. */
+export function routeLinks(address: string, ios = typeof navigator !== "undefined" && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+  const q = encodeURIComponent(address);
+  return { waze: `https://waze.com/ul?q=${q}&navigate=yes`, transit: ios ? `https://maps.apple.com/?daddr=${q}&dirflg=r` : `https://www.google.com/maps/dir/?api=1&destination=${q}&travelmode=transit` };
+}
+
 /**
  * Choix de l'itinéraire au départ : en voiture, Waze s'ouvre avec le trajet depuis la position du téléphone ;
  * en transports, Plans (iPhone) ou Google Maps (Android) propose le trajet le plus rapide.

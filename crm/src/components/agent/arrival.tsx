@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { MapPin, X } from "lucide-react";
-import { RouteChoice, savedMode } from "@/components/agent/route-choice";
+import { modeKey, routeLinks, savedMode } from "@/components/agent/route-choice";
 
 type CheckIn = (lat: number | null, lng: number | null, acc: number | null) => Promise<{ error?: string } | void>;
 
@@ -82,7 +82,9 @@ export function ArrivalAssistant({ checkIn, auto, briefing, site, storeKey, trip
   return (
     <>
       {auto && !msg && <div role="status" className="flex items-center gap-2 rounded-2xl bg-[var(--a-soft)] p-3 text-[14px] font-bold text-[var(--a-pri)]"><MapPin className="h-5 w-5 shrink-0" />{far ? `Encore ${far} : votre arrivée se pointera toute seule sur place. Gardez l'application ouverte.` : "Localisation en cours : votre arrivée se pointe toute seule."}</div>}
-      {trip?.address && <div className="rounded-2xl bg-[var(--a-card)] p-4"><RouteChoice id={trip.id} address={trip.address} onPick={() => { last.current = 0; }} /></div>}
+      {trip?.address && (() => { const l = routeLinks(trip.address); const set = (m: string) => () => { try { localStorage.setItem(modeKey(trip.id), m); } catch { /* sans effet */ } last.current = 0; }; return (
+        <p className="px-1 text-[13px] text-[var(--a-mute)]">Rouvrir l&apos;itinéraire : <a href={l.waze} target="_blank" rel="noopener noreferrer" onClick={set("voiture")} className="font-bold text-[var(--a-pri)] underline">Waze</a> · <a href={l.transit} target="_blank" rel="noopener noreferrer" onClick={set("transports")} className="font-bold text-[var(--a-pri)] underline">Transports</a></p>
+      ); })()}
       {msg && <div role="status" className="rounded-2xl bg-[var(--a-warnbg)] p-3 text-[14px] font-semibold text-[var(--a-warn)]">{msg}</div>}
       {open && (
         <div className="rounded-2xl border-2 border-[var(--a-pri)] bg-[var(--a-card)] p-4">
