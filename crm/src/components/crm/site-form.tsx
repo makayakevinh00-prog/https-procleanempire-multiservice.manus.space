@@ -1,6 +1,6 @@
 import { saveSiteAction } from "@/app/actions/missions";
 import { Button } from "@/components/ui/button";
-import { zonesToText } from "@/lib/domain/site-zones";
+import { rotationToText, zonesToText } from "@/lib/domain/site-zones";
 import { Field, Input, Select, Textarea } from "@/components/ui/form";
 
 export function SiteForm({ site, clients, defaultClient }: { site?: any; clients: { id: string; name: string }[]; defaultClient?: string }) {
@@ -23,6 +23,9 @@ export function SiteForm({ site, clients, defaultClient }: { site?: any; clients
       <Field label="Éléments spécifiques" hint="Séparés par des virgules : parquet fragile, linge de maison, plantes à arroser…"><Input name="specifics" defaultValue={(site?.specifics ?? []).join(", ")} /></Field>
       <Field label="Zones (pièces)" hint="Une pièce par ligne, puis « - tâche » et « ! point d'attention ». Chaque nouvelle mission du site reçoit une check-list par pièce." className="sm:col-span-2">
         <Textarea name="zones" rows={9} defaultValue={zonesToText(site?.zones)} placeholder={"Salon\n- Aspirer et laver le sol\n- Dépoussiérer la télé\n! Parquet fragile : peu d'eau\n\nCuisine\n- Dégraisser les façades"} />
+      </Field>
+      <Field label="Rotation : un élément différent à chaque passage" hint="Un élément par ligne (« Étagère 1 », « Étagère 2 »…). À chaque arrivée d'un agent, l'application lui annonce l'élément du jour et passe au suivant pour la fois d'après. Laissez vide si le site ne tourne pas." className="sm:col-span-2">
+        <Textarea name="rotation" rows={4} defaultValue={rotationToText(site?.rotation)} placeholder={"Étagère 1\nÉtagère 2\nÉtagère 3"} />
       </Field>
       <Field label="Check-list type (un point par ligne)" hint="Utilisée seulement si le site n'a pas de zones." className="sm:col-span-2">
         <Textarea name="checklist" rows={5} defaultValue={(site?.checklist ?? []).join("\n")} placeholder={"Vider les poubelles\nAspirer et laver les sols\nDésinfecter les sanitaires"} />

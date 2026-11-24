@@ -27,6 +27,12 @@ export default async function SitePage({ params }: { params: { id: string } }) {
   const { data: media } = await supabase.from("site_media").select("id, kind, path, created_at, staff:staff_id(full_name)").eq("site_id", s.id).eq("uploaded", true).order("created_at", { ascending: false }).limit(24);
   const signed = ((media ?? []) as any[]).length ? (await supabase.storage.from("site-media").createSignedUrls(((media ?? []) as any[]).map((m) => m.path), 3600)).data ?? [] : [];
   const urlOf = new Map(signed.map((x) => [x.path, x.signedUrl]));
+  // Images du lieu : les captures du dernier film d'arrivée fait sur ce site (elles servent de repère aux prochains agents).
+  const siteMissions = [...((upcoming ?? []) as any[]), ...((past ?? []) as any[])].map((m) => m.id);
+  const { data: filmed } = siteMissions.length ? await supabase.from("mission_photos").select("id, intervention_id, taken_at").in("intervention_id", siteMissions).eq("kind", "avant").order("taken_at", { ascending: false }).limit(40) : { data: [] };
+  const lastFilm = ((filmed ?? []) as any[]).filter((p, _i, all) => p.intervention_id === all[0]?.intervention_id).slice(0, 14).reverse();
+  const rot = s.rotation as { items?: string[]; next?: number } | null;
+  const mem = s.visit_memory as { visits?: number; zones?: string[]; recurring?: string[]; last?: { date: string; summary: string }[] } | null;
   const back = `/sites/${s.id}`;
   return (
     <>
@@ -42,6 +48,35 @@ export default async function SitePage({ params }: { params: { id: string } }) {
           {(s.specifics ?? []).length > 0 && <div className="sm:col-span-2"><div className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">Éléments spécifiques</div>
             <div className="mt-1.5 flex flex-wrap gap-2">{(s.specifics as string[]).map((t) => <span key={t} className="rounded-full bg-[#e8edf5] px-3 py-1 text-[13px] font-medium text-[#2b4c7e]">{t}</span>)}</div></div>}
         </CardContent></Card>
+      )}
+      {(rot?.items?.length ?? 0) > 0 && (
+        <Card className="mb-4"><CardContent className="space-y-2 py-5">
+          <div className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">Rotation : un élément par passage</div>
+          <div className="text-[15px]">Au prochain passage : <b>{rot!.items![(rot!.next ?? 0) % rot!.items!.length]}</b></div>
+          <div className="flex flex-wrap gap-2">{rot!.items!.map((t, i) => <span key={t} className={`rounded-full px-3 py-1 text-[13px] font-medium ${i === (rot!.next ?? 0) % rot!.items!.length ? "bg-primary text-white" : "bg-[#e8edf5] text-[#2b4c7e]"}`}>{t}</span>)}</div>
+          <p className="text-xs text-muted-foreground">L&apos;élément du jour est annoncé à l&apos;agent quand il pointe son arrivée ; la liste se modifie ci-dessous, dans la fiche du site.</p>
+        </CardContent></Card>
+      )}
+      {(mem?.visits ?? 0) > 0 && (
+        <Card className="mb-4"><CardContent className="space-y-2 py-5">
+          <div className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">Ce que l&apos;IA connaît de ce site ({mem!.visits} passage{mem!.visits! > 1 ? "s" : ""} filmé{mem!.visits! > 1 ? "s" : ""})</div>
+          {(mem!.zones ?? []).length > 0 && <div className="flex flex-wrap gap-2">{mem!.zones!.map((z) => <span key={z} className="rounded-full bg-[#e8edf5] px-3 py-1 text-[13px] font-medium text-[#2b4c7e]">{z}</span>)}</div>}
+          {mem!.last?.[0]?.summary && <p className="text-[14px]">Dernier relevé ({formatDate(mem!.last[0].date)}) : {mem!.last[0].summary}</p>}
+        </CardContent></Card>
+      )}
+      {lastFilm.length > 0 && (
+        <div className="mb-4">
+          <h2 className="mb-2 text-[15px] font-semibold">Images du lieu (dernier film d&apos;arrivée, {formatDate(lastFilm[0].taken_at)})</h2>
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-7">
+            {lastFilm.map((p) => (
+              <a key={p.id} href={`/api/missions/photo/${p.id}`} target="_blank" rel="noopener noreferrer">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/api/missions/photo/${p.id}`} alt="Capture du site" loading="lazy" className="aspect-square w-full rounded-lg object-cover" />
+              </a>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">Le détail (relevé et contrôle de l&apos;IA) est sur la fiche de la mission.</p>
+        </div>
       )}
       {Array.isArray(s.zones) && s.zones.length > 0 && (
         <div className="mb-4">

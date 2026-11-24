@@ -104,3 +104,61 @@ describe("0078 — l'IA connaît le lieu", () => {
     await db.exec(read("supabase/migrations/0078_ia_connait_le_lieu.sql"));
   });
 });
+
+describe("0079 — agents ProClean : film, IA et rotation du site", () => {
+  const TS = "c".repeat(64);
+  let staff: string, site: string;
+  const mission = async () => (await q("insert into interventions(client_id, site_id, title, scheduled_date, staff_id, unit_price_ht, stage) values ($1,$2,'Passage',$3,$4,100,'planifiee') returning id", [owner, site, parisToday(), staff]))[0].id as string;
+  beforeAll(async () => {
+    await db.exec(read("supabase/migrations/0079_agent_film_ia.sql"));
+    await db.exec(read("supabase/migrations/0079_agent_film_ia.sql")); // rejouable
+    await q("select set_config('app.automation_secret', $1, false)", [SECRET]).catch(() => undefined);
+    staff = (await q("insert into staff(full_name, agent_token_hash) values ('Agent Film',$1) returning id", [hash(TS)]))[0].id;
+    site = (await q(`insert into sites(client_id, name, rotation) values ($1,'Boutique test','{"items":["Étagère 1","Étagère 2"],"next":0}') returning id`, [owner]))[0].id;
+  });
+  it("à l'arrivée, la mission reçoit l'élément du jour et le site passe au suivant, une seule fois", async () => {
+    const a = await mission(), b = await mission(), c = await mission();
+    await q("update interventions set arrived_at = now() where id = $1", [a]);
+    await q("update interventions set arrived_at = now() where id = $1", [a]); // rien ne bouge au second pointage
+    await q("update interventions set arrived_at = now() where id = $1", [b]);
+    await q("update interventions set arrived_at = now() where id = $1", [c]);
+    const got = async (id: string) => (await q("select rotation_item r from interventions where id = $1", [id]))[0].r;
+    expect([await got(a), await got(b), await got(c)]).toEqual(["Étagère 1", "Étagère 2", "Étagère 1"]);
+    expect((await q("select rotation->>'next' n from sites where id = $1", [site]))[0].n).toBe("1");
+  });
+  it("la mission vue par l'agent porte les films, le relevé et l'élément du jour ; 60 images au plus", async () => {
+    const m = await mission();
+    await q("select agent_add_photo($1,$2,'avant','image/jpeg',$3)", [TS, m, PIX]);
+    const o = (await q("select agent_mission($1,$2) j", [TS, m]))[0].j.mission;
+    expect([o.photos_before, o.photos_after, o.before_report, o.ai_status]).toEqual([1, 0, null, null]);
+    expect((await q("select agent_can_analyse($1,$2) ok", [TS, m]))[0].ok).toBe(true);
+    await q("insert into mission_photos(intervention_id, staff_id, kind, content_type, size_bytes, data) select $1,$2,'avant','image/jpeg',3,'\\xffd8ff' from generate_series(1,59)", [m, staff]);
+    await fails("select agent_add_photo($1,$2,'avant','image/jpeg',$3)", [TS, m, PIX], /60 images/);
+  });
+  it("l'IA lit le site et ses images ; ses tâches deviennent la check-list seulement si elle est vide ou déjà de l'IA, et le site s'en souvient", async () => {
+    const m = await mission();
+    await q("select agent_add_photo($1,$2,'avant','image/jpeg',$3)", [TS, m, PIX]);
+    await fails("select automation_mission_brief('mauvais',$1)", [m], /ACCES_REFUSE/);
+    const b = (await q("select automation_mission_brief($1,$2) j", [SECRET, m]))[0].j;
+    expect([b.site, b.has_site, b.agent]).toEqual(["Boutique test", true, "Agent"]);
+    const ph = (await q("select automation_mission_photos($1,$2,'avant') j", [SECRET, m]))[0].j;
+    expect(ph).toHaveLength(1);
+    expect(ph[0].b64).not.toMatch(/\s/);
+    await q("select automation_set_mission_analysis($1,$2,'avant',$3,null,$4,$5)", [SECRET, m, { seen: "Une boutique" }, JSON.stringify(["Étagère 1 : dépoussiérer", "Sol : laver"]), { visits: 1, zones: ["Boutique"], recurring: [], last: [] }]);
+    let row = (await q("select checklist c, before_report r, (select visit_memory from sites where id = $2) mem from interventions where id = $1", [m, site]))[0];
+    expect(row.c.map((x: any) => [x.label, x.done, x.ai])).toEqual([["Étagère 1 : dépoussiérer", false, true], ["Sol : laver", false, true]]);
+    expect([row.r.seen, row.mem.visits]).toEqual(["Une boutique", 1]);
+    // Une tâche cochée : la liste ne bouge plus.
+    await q("select agent_toggle_check($1,$2,0,true)", [TS, m]);
+    await q("select automation_set_mission_analysis($1,$2,'avant',$3,null,$4,null)", [SECRET, m, { seen: "Bis" }, JSON.stringify(["Autre"])]);
+    row = (await q("select checklist c from interventions where id = $1", [m]))[0];
+    expect(row.c).toHaveLength(2);
+    // Check-list du site (pas de l'IA) : jamais remplacée.
+    const m2 = await mission();
+    await q(`update interventions set checklist = '[{"label":"Vider les poubelles","done":false}]' where id = $1`, [m2]);
+    await q("select automation_set_mission_analysis($1,$2,'avant',$3,null,$4,null)", [SECRET, m2, { seen: "x" }, JSON.stringify(["Autre"])]);
+    expect((await q("select checklist c from interventions where id = $1", [m2]))[0].c[0].label).toBe("Vider les poubelles");
+    await q("select automation_set_mission_analysis($1,$2,'apres',$3,'reprise',null,null)", [SECRET, m2, { verdict: "reprise", summary: "À revoir" }]);
+    expect((await q("select ai_status s, stage from interventions where id = $1", [m2]))[0]).toEqual({ s: "reprise", stage: "affectee" });
+  });
+});

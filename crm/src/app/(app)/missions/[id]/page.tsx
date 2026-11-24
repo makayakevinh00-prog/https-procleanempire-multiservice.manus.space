@@ -200,6 +200,24 @@ export default async function MissionPage({ params }: { params: { id: string } }
             )}
           </Card>
 
+          {(m.rotation_item || m.before_report || m.ai_report) && (
+            <Card>
+              <CardHeader><CardTitle>Compte rendu de l&apos;IA</CardTitle><span className="text-xs text-slate-500">d&apos;après les films de l&apos;agent</span></CardHeader>
+              <div className="space-y-3 p-4 text-[14px]">
+                {m.rotation_item && <p>Élément du jour : <b>{m.rotation_item}</b></p>}
+                {m.before_report?.seen && <p><b>À l&apos;arrivée :</b> {m.before_report.seen}</p>}
+                {(m.before_report?.items ?? []).length > 0 && <ul className="space-y-1">{(m.before_report.items as { zone: string; todo: string }[]).map((x, i) => <li key={i}>• <b>{x.zone}</b> — {x.todo}</li>)}</ul>}
+                {m.ai_status && (
+                  <div className={`rounded-lg p-3 ${m.ai_status === "ok" ? "bg-emerald-50 text-emerald-800" : m.ai_status === "reprise" ? "bg-amber-50 text-amber-900" : "bg-secondary"}`}>
+                    <b>{m.ai_status === "ok" ? "Contrôle de fin : rien à reprendre" : m.ai_status === "reprise" ? "Contrôle de fin : points à reprendre" : "Contrôle de fin : l'IA n'a pas pu se prononcer"}</b>
+                    {m.ai_report?.summary && <p>{m.ai_report.summary}</p>}
+                    {(m.ai_report?.remaining ?? []).length > 0 && <ul className="mt-1 space-y-1">{(m.ai_report.remaining as { zone: string; why: string }[]).map((x, i) => <li key={i}>• <b>{x.zone}</b> — {x.why}</li>)}</ul>}
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+
           <Card>
             <CardHeader><CardTitle>Photos ({(photos ?? []).length})</CardTitle><span className="text-xs text-slate-500">envoyées par l&apos;agent depuis son téléphone</span></CardHeader>
             {!(photos ?? []).length ? <Empty>Aucune photo pour cette mission.</Empty> : (

@@ -140,3 +140,21 @@ describe("relevé d'arrivée : ce que l'IA voit et ses conseils", () => {
     expect(placePrompt(["Bureau 1", "Salle de réunion"], { rooms: [{ room: "Bureau 1", steps: ["vider la corbeille"] }], attention: ["écrans fragiles"] })).toMatch(/Bureau 1, Salle de réunion.*pas encore filmée.*vider la corbeille.*écrans fragiles/s);
   });
 });
+
+describe("site d'un agent ProClean : plan et rotation", () => {
+  it("les zones du CRM deviennent le plan donné à l'IA", async () => {
+    const { siteGuide } = await import("@/lib/marketplace/mission-inspect");
+    expect(siteGuide({ zones: [], specifics: [], site_notes: null, notes: null })).toEqual({ rooms: [], guide: null });
+    const g = siteGuide({ zones: [{ name: "Espace vente", tasks: ["Dépoussiérer les présentoirs"], attention: ["Verres fragiles"] }], specifics: ["parquet"], site_notes: null, notes: null });
+    expect(g.rooms).toEqual(["Espace vente"]);
+    expect(g.guide?.rooms[0]).toEqual({ room: "Espace vente", steps: ["Dépoussiérer les présentoirs"] });
+    expect(g.guide?.attention).toEqual(["Espace vente : Verres fragiles", "parquet"]);
+  });
+  it("la rotation garde où elle en est quand la liste ne change pas, et suit l'élément en cours sinon", async () => {
+    const { parseRotation } = await import("@/lib/domain/site-zones");
+    expect(parseRotation("", null)).toBeNull();
+    expect(parseRotation("A\nB\nC", { items: ["A", "B", "C"], next: 2 })).toEqual({ items: ["A", "B", "C"], next: 2 });
+    expect(parseRotation("Z\nA\nB", { items: ["A", "B"], next: 1 })).toEqual({ items: ["Z", "A", "B"], next: 2 });
+    expect(parseRotation("X\nY", { items: ["A", "B"], next: 1 })).toEqual({ items: ["X", "Y"], next: 0 });
+  });
+});

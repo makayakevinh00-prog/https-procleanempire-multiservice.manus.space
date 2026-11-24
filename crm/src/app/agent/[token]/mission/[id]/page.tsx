@@ -11,6 +11,7 @@ import { Invalid } from "@/components/agent/invalid";
 import { SiteVideo } from "@/components/agent/site-video";
 import { AiHelp } from "@/components/agent/ai-help";
 import { ArrivalAssistant } from "@/components/agent/arrival";
+import { AgentFilm } from "@/components/agent/film";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Mission — ProClean Empire", robots: { index: false, follow: false }, referrer: "no-referrer" };
@@ -40,6 +41,9 @@ export default async function MissionPage({ params, searchParams }: { params: { 
   const editable = ["planifiee", "affectee", "en_route", "arrivee", "en_cours"].includes(m.stage);
   const finished = ["terminee", "a_verifier", "validee", "facturable", "facturee"].includes(m.stage);
   const card = "rounded-2xl bg-[var(--a-card)] p-4";
+  // Film guidé par l'IA : dès l'arrivée pointée, et seulement si la base connaît déjà les films (sinon les photos une par une restent).
+  const filmReady = m.photos_before !== undefined;
+  const onSite = !!m.arrived_at && ["arrivee", "en_cours"].includes(m.stage);
 
   return (
     <article className="space-y-3">
@@ -64,6 +68,16 @@ export default async function MissionPage({ params, searchParams }: { params: { 
       {m.notes && <p className={`${card} text-[15px]`}><b>{t.instructions} :</b> {m.notes}</p>}
       {m.contact_phone && <a href={`tel:${m.contact_phone}`} className={`${card} flex items-center gap-3 text-[16px] font-bold text-[var(--a-pri)]`}><Phone className="h-5 w-5" />{m.contact_name ?? t.contact} · {m.contact_phone}</a>}
 
+      {m.rotation_item && (
+        <div className="rounded-2xl bg-[var(--a-soft)] p-4 text-[16px]"><span className="block text-[12px] font-extrabold uppercase tracking-wider text-[var(--a-pri)]">Aujourd&apos;hui sur ce site</span><b className="text-[20px]">{m.rotation_item}</b></div>
+      )}
+      {filmReady && onSite && (
+        <AgentFilm token={token} mission={m.id} before={m.before_report ?? null} after={m.ai_report ?? null} aiStatus={m.ai_status ?? null} nBefore={m.photos_before ?? 0} nAfter={m.photos_after ?? 0} site={m.site ?? m.client} />
+      )}
+      {filmReady && editable && !onSite && (
+        <p className={`${card} text-[14px] text-[var(--a-mute)]`}>À votre arrivée sur place, la caméra vous est proposée : vous filmez le lieu, l&apos;IA vous donne vos tâches, des conseils et les produits à utiliser.</p>
+      )}
+
       {m.checklist.length > 0 && (
         <section className={card}>
           <div className="mb-2 text-[15px] font-extrabold">{t.checklist} ({done}/{m.checklist.length})</div>
@@ -80,7 +94,7 @@ export default async function MissionPage({ params, searchParams }: { params: { 
         </section>
       )}
 
-      {editable && (
+      {editable && !filmReady && (
         <div className="grid grid-cols-2 gap-2">
           <PhotoButton token={token} mission={m.id} kind="avant" label={t.photoBefore} />
           <PhotoButton token={token} mission={m.id} kind="apres" label={t.photoAfter} />

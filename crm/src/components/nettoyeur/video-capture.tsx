@@ -22,6 +22,7 @@ export function VideoCapture({
   hint,
   onDone,
   onCancel,
+  endpoint = "/api/nettoyeur/photo",
 }: {
   token: string;
   job: string;
@@ -30,6 +31,8 @@ export function VideoCapture({
   hint: string;
   onDone: () => void;
   onCancel?: () => void;
+  /** Où partent les captures : l'appli nettoyeur par défaut, « /api/agent/photo » pour un agent ProClean. */
+  endpoint?: string;
 }) {
   const video = useRef<HTMLVideoElement>(null);
   const stream = useRef<MediaStream | null>(null);
@@ -117,8 +120,8 @@ export function VideoCapture({
       try {
         for (let i = 0; i < list.length; i++) {
           setSending(
-            kind === "avant" && i === list.length - 1
-              ? "L'IA analyse le logement…"
+            i === list.length - 1
+              ? kind === "avant" ? "L'IA analyse le lieu…" : "L'IA contrôle votre travail…"
               : `Envoi ${i + 1}/${list.length}…`,
           );
           const fd = new FormData();
@@ -126,8 +129,9 @@ export function VideoCapture({
           fd.set("job", job);
           fd.set("kind", kind);
           fd.set("file", list[i]!, "image.jpg");
+          fd.set("film", "1");
           if (i < list.length - 1) fd.set("defer", "1"); // l'analyse se fait une seule fois, sur la dernière image
-          const r = await fetch("/api/nettoyeur/photo", {
+          const r = await fetch(endpoint, {
             method: "POST",
             body: fd,
           });
@@ -144,7 +148,7 @@ export function VideoCapture({
         setMsg((e as Error).message || "Envoi impossible, réessayez.");
       }
     },
-    [token, job, kind, onDone],
+    [token, job, kind, onDone, endpoint],
   );
 
   const start = async () => {

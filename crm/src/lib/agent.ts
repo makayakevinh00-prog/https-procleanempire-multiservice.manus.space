@@ -17,6 +17,10 @@ export type AgentMission = {
   checklist: { label: string; done: boolean }[]; client: string; site: string | null; address: string | null; access: string | null;
   contact_name: string | null; contact_phone: string | null; photos: number; open_issues: number;
   arrived_at: string | null; departed_at: string | null; arrived_verified: boolean | null;
+  /** Film d'arrivée et de fin analysés par l'IA (absents tant que la base n'est pas à jour). */
+  photos_before?: number; photos_after?: number; ai_status?: string | null; rotation_item?: string | null;
+  before_report?: { seen?: string; summary?: string; state?: string; minutes?: number | null; items?: { zone: string; todo: string }[]; refilm?: { zone: string; why: string }[]; tips?: { surface: string; product: string; how: string }[] } | null;
+  ai_report?: { verdict?: "ok" | "reprise"; summary?: string; remaining?: { zone: string; why: string }[]; missing?: string[] } | null;
 };
 
 /** Nettoie un message d'erreur de la base pour l'agent (« CODE: texte » → texte). */

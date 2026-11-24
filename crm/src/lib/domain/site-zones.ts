@@ -21,3 +21,15 @@ export function zonesToText(zones: Zone[] | null | undefined): string {
 
 export const parseSpecifics = (text: string | null | undefined): string[] =>
   [...new Set((text ?? "").split(/[,\n]/).map((s) => s.trim()).filter(Boolean))].slice(0, 12);
+
+/** Rotation d'un site : les éléments faits à tour de rôle, un par passage (« Étagère 1 », « Étagère 2 »…), et celui du prochain passage. */
+export type Rotation = { items: string[]; next: number };
+export function parseRotation(text: string | null | undefined, prev?: Rotation | null): Rotation | null {
+  const items = [...new Set((text ?? "").split("\n").map((l) => l.trim().slice(0, 80)).filter(Boolean))].slice(0, 40);
+  if (!items.length) return null;
+  // La liste n'a pas changé : on garde où on en est. Sinon on reprend sur le même élément s'il existe encore, ou au début.
+  const cur = prev?.items?.[prev.next ?? 0];
+  const same = prev && prev.items.length === items.length && prev.items.every((x, i) => x === items[i]);
+  return { items, next: same ? prev!.next : Math.max(0, cur ? items.indexOf(cur) : 0) };
+}
+export const rotationToText = (r: Rotation | null | undefined) => (r?.items ?? []).join("\n");

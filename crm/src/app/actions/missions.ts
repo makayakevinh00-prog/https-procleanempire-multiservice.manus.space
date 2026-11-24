@@ -1,5 +1,5 @@
 "use server";
-import { parseSpecifics, parseZones } from "@/lib/domain/site-zones";
+import { parseRotation, parseSpecifics, parseZones, type Rotation } from "@/lib/domain/site-zones";
 
 import { requireAccess, requireOwner } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
@@ -37,6 +37,11 @@ export async function saveSiteAction(fd: FormData) {
   // Base pas encore migrée (0028) : on enregistre le reste de la fiche plutôt que d'échouer.
   if (res.error && /frequency|specifics|zones/.test(res.error.message)) { const { frequency: _f, specifics: _s, zones: _z, ...base } = row; res = await write(base); }
   if (res.error) flash(back, "error", dbMessage(res.error));
+  // Rotation du site (étagère du jour) : écrite à part, pour ne pas bloquer la fiche si la base n'est pas encore à jour ; on garde où on en est.
+  if (fd.has("rotation")) {
+    const cur = await supabase.from("sites").select("rotation").eq("id", res.data!.id).maybeSingle();
+    if (!cur.error) await supabase.from("sites").update({ rotation: parseRotation(str(fd, "rotation"), ((cur.data as { rotation?: Rotation | null } | null)?.rotation) ?? null) }).eq("id", res.data!.id);
+  }
   // Position GPS automatique à partir de l'adresse (sert au pointage des agents et à la carte).
   const geo = await geocodeAddress(row.address ?? null, row.postal_code ?? null, row.city ?? null);
   if (geo) await supabase.from("sites").update({ lat: geo.lat, lng: geo.lng, geocoded_at: new Date().toISOString() }).eq("id", res.data!.id);
