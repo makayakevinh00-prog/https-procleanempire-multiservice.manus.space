@@ -29,8 +29,13 @@ const SITE = [
  */
 export function ArrivalAssistant({ checkIn, auto, briefing, site, storeKey }: { checkIn: CheckIn; auto: boolean; briefing: "first" | "site" | null; site: string | null; storeKey: string }) {
   const [msg, setMsg] = useState("");
+  const [far, setFar] = useState("");
   const [open, setOpen] = useState(false);
   const started = useRef(false);
+  // L'action change d'identité à chaque rendu : on la garde dans une référence pour ne pas relancer le suivi (et ne pas rappeler le serveur en boucle).
+  const check = useRef(checkIn);
+  check.current = checkIn;
+  const last = useRef(0);
 
   useEffect(() => {
     if (!briefing) return;
@@ -38,22 +43,38 @@ export function ArrivalAssistant({ checkIn, auto, briefing, site, storeKey }: { 
     setOpen(true);
   }, [briefing, storeKey]);
 
+  // Tant que la mission du jour n'est pas pointée, la position est suivie : l'arrivée s'enregistre toute seule en entrant dans le rayon du site.
+  // En route, le serveur répond « trop loin » : on l'indique sans alarmer, et on réessaie au fil du trajet (toutes les 20 secondes au plus).
   useEffect(() => {
     if (!auto || started.current || typeof navigator === "undefined" || !navigator.geolocation) return;
     started.current = true;
-    navigator.geolocation.getCurrentPosition(
-      (p) => { void checkIn(p.coords.latitude, p.coords.longitude, p.coords.accuracy).then((r) => { if (r && r.error) setMsg(r.error); }).catch(() => undefined); },
-      (e) => setMsg(e.code === 1 ? "Localisation refusée : autorisez-la dans les réglages du téléphone pour que l'arrivée se pointe toute seule." : "Position introuvable pour le moment : utilisez le bouton « Arrivée » une fois sur place."),
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+    let busy = false;
+    const id = navigator.geolocation.watchPosition(
+      (p) => {
+        if (busy || Date.now() - last.current < 20_000) return;
+        last.current = Date.now(); busy = true;
+        void check.current(p.coords.latitude, p.coords.longitude, p.coords.accuracy)
+          .then((r) => {
+            if (!r || !r.error) return;
+            const far = /environ (\d+) m du site/.exec(r.error);
+            if (far) { const m = Number(far[1]); setFar(m >= 1000 ? `${(m / 1000).toFixed(1).replace(".", ",")} km` : `${Math.round(m / 10) * 10} m`); setMsg(""); }
+            else { setFar(""); setMsg(r.error); }
+          })
+          .catch(() => undefined)
+          .finally(() => { busy = false; });
+      },
+      (e) => { setFar(""); setMsg(e.code === 1 ? "Localisation refusée : autorisez-la dans les réglages du téléphone pour que l'arrivée se pointe toute seule." : "Position introuvable pour le moment : utilisez le bouton « Arrivée » une fois sur place."); },
+      { enableHighAccuracy: true, maximumAge: 10_000 }
     );
-  }, [auto, checkIn]);
+    return () => { navigator.geolocation.clearWatch(id); started.current = false; };
+  }, [auto]);
 
   function close() { setOpen(false); try { localStorage.setItem(storeKey, "1"); } catch { /* sans effet */ } }
   const lines = briefing === "first" ? FIRST : SITE;
 
   return (
     <>
-      {auto && !msg && <div role="status" className="flex items-center gap-2 rounded-2xl bg-[var(--a-soft)] p-3 text-[14px] font-bold text-[var(--a-pri)]"><MapPin className="h-5 w-5" />Localisation en cours : votre arrivée se pointe toute seule.</div>}
+      {auto && !msg && <div role="status" className="flex items-center gap-2 rounded-2xl bg-[var(--a-soft)] p-3 text-[14px] font-bold text-[var(--a-pri)]"><MapPin className="h-5 w-5 shrink-0" />{far ? `Encore ${far} : votre arrivée se pointera toute seule sur place. Gardez l'application ouverte.` : "Localisation en cours : votre arrivée se pointe toute seule."}</div>}
       {msg && <div role="status" className="rounded-2xl bg-[var(--a-warnbg)] p-3 text-[14px] font-semibold text-[var(--a-warn)]">{msg}</div>}
       {open && (
         <div className="rounded-2xl border-2 border-[var(--a-pri)] bg-[var(--a-card)] p-4">
