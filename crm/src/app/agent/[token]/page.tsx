@@ -85,7 +85,7 @@ export default async function AgentToday({ params, searchParams }: { params: { t
             <span className="num -mt-0 block w-12 pt-1 text-[15px] font-bold text-[var(--a-mute)]">{String(h).padStart(2, "0")}h</span>
           </div>
         ))}
-        {isToday && lay.hours.length > 0 && <NowLine firstHour={lay.hours[0]!} hours={lay.hours.length} row={ROW} />}
+        {isToday && lay.hours.length > 0 && <NowLine firstHour={lay.hours[0]!} hours={lay.hours.length} row={ROW} scroll={!current && !next} />}
         {!missions.length && <p className="absolute inset-x-0 text-center text-[17px] text-[var(--a-mute)]" style={{ top: 18 }}>{t.noMission}</p>}
         <div className="absolute inset-y-0 left-14 right-0">
           {lay.blocks.map((b) => { const m = byId.get(b.id)!; return (

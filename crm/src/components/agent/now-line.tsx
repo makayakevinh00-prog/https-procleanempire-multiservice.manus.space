@@ -7,8 +7,8 @@ const parisMinutes = () => {
   return Number(p.find((x) => x.type === "hour")?.value ?? 0) * 60 + Number(p.find((x) => x.type === "minute")?.value ?? 0);
 };
 
-/** Barre rouge de l'heure qu'il est sur la frise du jour : elle descend toute seule, et l'écran s'y place à l'ouverture. */
-export function NowLine({ firstHour, hours, row }: { firstHour: number; hours: number; row: number }) {
+/** Barre rouge de l'heure qu'il est sur la frise du jour : elle descend toute seule, et l'écran s'y place à l'ouverture (sauf si une carte « en cours » ou « prochain rendez-vous » est affichée au-dessus). */
+export function NowLine({ firstHour, hours, row, scroll = true }: { firstHour: number; hours: number; row: number; scroll?: boolean }) {
   const [min, setMin] = useState<number | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const placed = useRef(false);
@@ -20,7 +20,7 @@ export function NowLine({ firstHour, hours, row }: { firstHour: number; hours: n
     document.addEventListener("visibilitychange", vis);
     return () => { clearInterval(i); document.removeEventListener("visibilitychange", vis); };
   }, []);
-  useEffect(() => { if (min != null && !placed.current && ref.current) { placed.current = true; ref.current.scrollIntoView({ block: "center" }); } }, [min]);
+  useEffect(() => { if (scroll && min != null && !placed.current && ref.current) { placed.current = true; ref.current.scrollIntoView({ block: "center" }); } }, [min, scroll]);
   if (min == null) return null;
   const top = ((min - firstHour * 60) / 60) * row;
   if (top < 0 || top > hours * row) return null;
