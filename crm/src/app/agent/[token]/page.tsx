@@ -6,6 +6,7 @@ import { dayLabel, dict, isoDate, layoutDay, shiftDay, ROW } from "@/lib/field-u
 import { AgentHeader } from "@/components/agent/header";
 import { StagePill } from "@/components/agent/stage-pill";
 import { Invalid } from "@/components/agent/invalid";
+import { Countdown, NowLine } from "@/components/agent/now-line";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Mes missions — ProClean Empire", robots: { index: false, follow: false }, referrer: "no-referrer" };
@@ -26,6 +27,12 @@ export default async function AgentToday({ params, searchParams }: { params: { t
   const byId = new Map(missions.map((m) => [m.id, m]));
   const link = (d: string) => `/agent/${token}?d=${d}`;
   const href = (id: string) => `/agent/${token}/mission/${id}`;
+  // Où en est la journée : la mission en cours, sinon le prochain rendez-vous.
+  const isToday = date === today;
+  const byTime = [...missions].sort((a, b) => (a.time ?? "99").localeCompare(b.time ?? "99"));
+  const current = isToday ? byTime.find((m) => ["en_route", "arrivee", "en_cours"].includes(m.stage)) : undefined;
+  const next = isToday && !current ? byTime.find((m) => ["planifiee", "affectee"].includes(m.stage)) : undefined;
+  const LIVE: Record<string, string> = { en_route: "Vous êtes en route", arrivee: "Vous êtes sur place", en_cours: "Prestation en cours" };
 
   return (
     <>
@@ -42,6 +49,24 @@ export default async function AgentToday({ params, searchParams }: { params: { t
         </div>
         <Link href={link(shiftDay(date, 1))} aria-label={t.nextDay} className="flex h-10 w-10 items-center justify-center text-[var(--a-pri)]"><ChevronRight className="h-6 w-6" /></Link>
       </div>
+
+      {current && (
+        <Link href={href(current.id)} className="mb-4 block rounded-3xl bg-[var(--a-pri)] p-4 text-white active:scale-[0.99]">
+          <span className="flex items-center gap-2 text-[12px] font-extrabold uppercase tracking-wider opacity-90"><span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-white" />{LIVE[current.stage]}</span>
+          <span className="mt-1 block text-[22px] font-extrabold leading-tight">{current.client}</span>
+          <span className="block text-[14px] opacity-90">{current.time ? `${current.time.slice(0, 5)} · ` : ""}{current.title}{current.hours ? ` · ${current.hours} h` : ""}</span>
+          <span className="mt-3 flex h-12 items-center justify-center rounded-full bg-white text-[16px] font-extrabold text-[var(--a-pri)]">Reprendre la mission</span>
+        </Link>
+      )}
+      {next && (
+        <Link href={href(next.id)} className="mb-4 block rounded-3xl border-2 border-[var(--a-pri)] bg-[var(--a-card)] p-4 active:scale-[0.99]">
+          <span className="block text-[12px] font-extrabold uppercase tracking-wider text-[var(--a-pri)]">Prochain rendez-vous{next.time ? <> · <Countdown time={next.time} /></> : null}</span>
+          <span className="mt-1 block text-[22px] font-extrabold leading-tight">{next.client}</span>
+          <span className="block text-[14px] text-[var(--a-mute)]">{next.time ? `${next.time.slice(0, 5)} · ` : ""}{next.title}{next.address ? ` · ${next.address}` : ""}</span>
+          <span className="mt-3 flex h-12 items-center justify-center rounded-full bg-[var(--a-pri)] text-[16px] font-extrabold text-white">Ouvrir la mission</span>
+        </Link>
+      )}
+      {isToday && !current && !next && missions.length > 0 && <p className="mb-4 rounded-3xl bg-[var(--a-okbg)] p-4 text-center text-[15px] font-extrabold text-[var(--a-ok)]">Journée terminée : plus de rendez-vous aujourd&apos;hui.</p>}
 
       {lay.loose.length > 0 && (
         <section className="mb-3 space-y-2">
@@ -60,6 +85,7 @@ export default async function AgentToday({ params, searchParams }: { params: { t
             <span className="num -mt-0 block w-12 pt-1 text-[15px] font-bold text-[var(--a-mute)]">{String(h).padStart(2, "0")}h</span>
           </div>
         ))}
+        {isToday && lay.hours.length > 0 && <NowLine firstHour={lay.hours[0]!} hours={lay.hours.length} row={ROW} />}
         {!missions.length && <p className="absolute inset-x-0 text-center text-[17px] text-[var(--a-mute)]" style={{ top: 18 }}>{t.noMission}</p>}
         <div className="absolute inset-y-0 left-14 right-0">
           {lay.blocks.map((b) => { const m = byId.get(b.id)!; return (
