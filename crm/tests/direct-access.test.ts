@@ -104,7 +104,7 @@ describe("actions serveur appelées directement", () => {
   it("les actions de l'application des agents refusent un jeton invalide sans interroger la base", async () => {
     const mod: any = await import("../src/app/actions/agent");
     const fns = Object.entries(mod).filter(([, f]) => typeof f === "function") as [string, Function][];
-    expect(fns.length).toBe(8);
+    expect(fns.length).toBe(9);
     for (const [name, fn] of fns) {
       h.calls = [];
       const msg = await (async () => { try { await fn("pas-un-jeton", UUID, "x", true, 1); return null; } catch (e) { return (e as Error).message; } })();

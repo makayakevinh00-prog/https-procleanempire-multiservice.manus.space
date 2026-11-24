@@ -2,5 +2,5 @@
 export type LiveJob = {
   job: string; title: string; status: string; date: string; window_start: string; window_end: string; cleaner: string | null;
   dest: [number, number] | null; arrived_at: string | null; done_at?: string | null; duration_hours?: number | null; est_minutes?: number | null; rework_minutes?: number | null; moving: boolean; pos: [number, number] | null; seen_at: string | null;
-  eta_at: string | null; eta_minutes: number | null; eta_traffic: boolean; trail: [number, number][]; client?: string; cleaner_full?: string;
+  eta_at: string | null; eta_minutes: number | null; eta_traffic: boolean; trail: [number, number][]; client?: string; cleaner_full?: string; mode?: "voiture" | "transports"; agent?: boolean;
 };

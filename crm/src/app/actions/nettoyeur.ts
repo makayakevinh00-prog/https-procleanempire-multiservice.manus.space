@@ -154,8 +154,8 @@ export async function cleanerOnlineAction(token: string, online: boolean): Promi
 }
 
 /** Position en direct (application ouverte). */
-export async function cleanerPingAction(token: string, lat: number, lng: number): Promise<{ dist_m: number | null; eta_minutes: number | null } | null> {
-  const r = await tripPing(token, lat, lng);
+export async function cleanerPingAction(token: string, lat: number, lng: number, mode?: string): Promise<{ dist_m: number | null; eta_minutes: number | null } | null> {
+  const r = await tripPing(token, lat, lng, mode === "transports" ? "transports" : "voiture");
   return r ? { dist_m: r.dist_m ?? null, eta_minutes: r.eta_minutes } : null;
 }
 

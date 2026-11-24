@@ -195,3 +195,34 @@ describe("0080 — stock de produits", () => {
     expect((await q("select count(*)::int n from stock_frames"))[0].n).toBe(0);
   });
 });
+
+describe("0081 — trajet des agents et itinéraire", () => {
+  const TS = "e".repeat(64);
+  let site: string, m: string;
+  beforeAll(async () => {
+    await db.exec(read("supabase/migrations/0081_trajet_itineraire.sql"));
+    await db.exec(read("supabase/migrations/0081_trajet_itineraire.sql")); // rejouable
+    const staff = (await q("insert into staff(full_name, agent_token_hash) values ('Awa Trajet',$1) returning id", [hash(TS)]))[0].id;
+    site = (await q("insert into sites(client_id, name, lat, lng) values ($1,'Boutique',48.99,2.52) returning id", [owner]))[0].id;
+    m = (await q("insert into interventions(client_id, site_id, title, scheduled_date, staff_id, unit_price_ht) values ($1,$2,'Passage',$3,$4,100) returning id", [owner, site, parisToday(), staff]))[0].id;
+  });
+  it("rien n'est enregistré avant le départ ; en route, position, heure d'arrivée et tracé sont partagés", async () => {
+    expect((await q("select agent_trip_ping($1,$2,48.9,2.4) j", [TS, m]))[0].j).toBeNull();
+    expect((await q("select count(*)::int n from mission_trips"))[0].n).toBe(0);
+    await q("update interventions set stage = 'en_route' where id = $1", [m]);
+    const p = (await q("select agent_trip_ping($1,$2,48.9,2.4) j", [TS, m]))[0].j;
+    expect(p).toMatchObject({ dest_lat: 48.99, dest_lng: 2.52, need_eta: true });
+    await q("select agent_trip_eta($1,$2,25,'transports')", [TS, m]);
+    expect((await q("select agent_trip_ping($1,$2,48.95,2.45) j", [TS, m]))[0].j.need_eta).toBe(false);
+    const live = (await q("select mission_live(i) j from interventions i where id = $1", [m]))[0].j;
+    expect(live).toMatchObject({ title: "Boutique", cleaner: "Awa", moving: true, pos: [48.95, 2.45], eta_minutes: 25, mode: "transports", eta_traffic: false, agent: true });
+    await fails("select agent_trip_ping($1,$2,48.9,2.4)", ["f".repeat(64), m], /.+/);
+    await fails("select agent_trip_ping($1,$2,10,2.4)", [TS, m], /ARGUMENT/);
+  });
+  it("une fois l'arrivée pointée, la position n'est plus montrée", async () => {
+    await q("update interventions set arrived_at = now(), stage = 'arrivee' where id = $1", [m]);
+    expect((await q("select agent_trip_ping($1,$2,48.99,2.52) j", [TS, m]))[0].j).toBeNull();
+    const live = (await q("select mission_live(i) j from interventions i where id = $1", [m]))[0].j;
+    expect([live.moving, live.pos, live.trail]).toEqual([false, null, []]);
+  });
+});

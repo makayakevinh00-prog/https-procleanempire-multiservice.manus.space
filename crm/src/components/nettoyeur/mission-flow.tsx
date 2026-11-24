@@ -264,7 +264,7 @@ export function MissionFlow({
 
       {!busy && phase === "depart" && (
         <>
-          <TripPanel token={token} onArrive={() => void arrive()} />
+          <TripPanel token={token} onArrive={() => void arrive()} address={job.address ? `${job.address} ${job.postal_code ?? ""} ${job.city ?? ""}`.trim() : null} />
           <button
             type="button"
             onClick={arrive}

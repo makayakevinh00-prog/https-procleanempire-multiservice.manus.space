@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { MapPin, X } from "lucide-react";
+import { RouteChoice, savedMode } from "@/components/agent/route-choice";
 
 type CheckIn = (lat: number | null, lng: number | null, acc: number | null) => Promise<{ error?: string } | void>;
 
@@ -27,7 +28,9 @@ const SITE = [
  * (le serveur vérifie que le téléphone est bien dans le rayon du site). Si la personne n'a jamais fait ce lieu (ou jamais travaillé),
  * un rappel des grandes lignes du process s'affiche une seule fois.
  */
-export function ArrivalAssistant({ checkIn, auto, briefing, site, storeKey }: { checkIn: CheckIn; auto: boolean; briefing: "first" | "site" | null; site: string | null; storeKey: string }) {
+export function ArrivalAssistant({ checkIn, auto, briefing, site, storeKey, trip }: { checkIn: CheckIn; auto: boolean; briefing: "first" | "site" | null; site: string | null; storeKey: string;
+  /** En route : la position est aussi partagée (direction, client), et l'itinéraire est proposé. */
+  trip?: { id: string; address: string | null; ping: (lat: number, lng: number, mode?: string) => Promise<void> } }) {
   const [msg, setMsg] = useState("");
   const [far, setFar] = useState("");
   const [open, setOpen] = useState(false);
@@ -36,6 +39,8 @@ export function ArrivalAssistant({ checkIn, auto, briefing, site, storeKey }: { 
   const check = useRef(checkIn);
   check.current = checkIn;
   const last = useRef(0);
+  const tripRef = useRef(trip);
+  tripRef.current = trip;
 
   useEffect(() => {
     if (!briefing) return;
@@ -53,6 +58,8 @@ export function ArrivalAssistant({ checkIn, auto, briefing, site, storeKey }: { 
       (p) => {
         if (busy || Date.now() - last.current < 20_000) return;
         last.current = Date.now(); busy = true;
+        const tr = tripRef.current;
+        if (tr) void tr.ping(p.coords.latitude, p.coords.longitude, savedMode(tr.id)).catch(() => undefined);
         void check.current(p.coords.latitude, p.coords.longitude, p.coords.accuracy)
           .then((r) => {
             if (!r || !r.error) return;
@@ -75,6 +82,7 @@ export function ArrivalAssistant({ checkIn, auto, briefing, site, storeKey }: { 
   return (
     <>
       {auto && !msg && <div role="status" className="flex items-center gap-2 rounded-2xl bg-[var(--a-soft)] p-3 text-[14px] font-bold text-[var(--a-pri)]"><MapPin className="h-5 w-5 shrink-0" />{far ? `Encore ${far} : votre arrivée se pointera toute seule sur place. Gardez l'application ouverte.` : "Localisation en cours : votre arrivée se pointe toute seule."}</div>}
+      {trip?.address && <div className="rounded-2xl bg-[var(--a-card)] p-4"><RouteChoice id={trip.id} address={trip.address} onPick={() => { last.current = 0; }} /></div>}
       {msg && <div role="status" className="rounded-2xl bg-[var(--a-warnbg)] p-3 text-[14px] font-semibold text-[var(--a-warn)]">{msg}</div>}
       {open && (
         <div className="rounded-2xl border-2 border-[var(--a-pri)] bg-[var(--a-card)] p-4">

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckSquare, Square, MapPin, Phone, KeyRound, AlertTriangle, Clock, ChevronLeft } from "lucide-react";
 import { agentClient, agentMessage, agentPrefs, isToken, type AgentMission } from "@/lib/agent";
-import { agentCheckAction, agentCheckInAction, agentFinishAction, agentIssueAction, agentStageAction } from "@/app/actions/agent";
+import { agentCheckAction, agentCheckInAction, agentFinishAction, agentIssueAction, agentStageAction, agentTripPingAction } from "@/app/actions/agent";
 import { GeoButton } from "@/components/crm/geo-button";
 import { PhotoButton } from "@/components/crm/photo-button";
 import { dayLabel, dict } from "@/lib/field-ui";
@@ -56,7 +56,8 @@ export default async function MissionPage({ params, searchParams }: { params: { 
       {searchParams.error && <div role="alert" className="rounded-2xl bg-[var(--a-badbg)] p-3 text-sm font-semibold text-[var(--a-bad)]">{searchParams.error}</div>}
       {searchParams.ok && <div role="status" className="rounded-2xl bg-[var(--a-okbg)] p-3 text-sm font-semibold text-[var(--a-ok)]">{searchParams.ok}</div>}
 
-      {(autoArrive || briefing) && <ArrivalAssistant checkIn={agentCheckInAction.bind(null, token, m.id)} auto={autoArrive} briefing={briefing} site={m.site ?? m.client} storeKey={`ap-brief-${token.slice(0, 8)}-${briefing}-${m.client}-${m.site ?? ""}`} />}
+      {(autoArrive || briefing) && <ArrivalAssistant checkIn={agentCheckInAction.bind(null, token, m.id)} auto={autoArrive} briefing={briefing} site={m.site ?? m.client} storeKey={`ap-brief-${token.slice(0, 8)}-${briefing}-${m.client}-${m.site ?? ""}`}
+        trip={autoArrive && m.stage === "en_route" ? { id: m.id, address: m.address ?? null, ping: agentTripPingAction.bind(null, token, m.id) } : undefined} />}
 
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">

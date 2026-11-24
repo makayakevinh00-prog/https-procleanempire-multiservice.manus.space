@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { agentClient, agentMessage, isToken } from "@/lib/agent";
+import { agentTripPing } from "@/lib/marketplace/trip";
 import { isLang, isTheme } from "@/lib/field-ui";
 
 /** Retour sur la page de la mission avec un message (l'agent reste là où il travaillait). */
@@ -81,4 +82,11 @@ export async function agentRequestDeletionAction(token: string) {
 export async function agentMarkAppAction(token: string, installed: boolean): Promise<void> {
   guard(token);
   await agentClient().rpc("agent_mark_app", { p_token: token, p_installed: installed });
+}
+
+/** Position de l'agent en route vers sa mission (application à l'écran) : partagée jusqu'à l'arrivée pointée. */
+export async function agentTripPingAction(token: string, missionId: string, lat: number, lng: number, mode?: string): Promise<void> {
+  guard(token);
+  if (!/^[0-9a-f-]{36}$/i.test(missionId)) return;
+  await agentTripPing(token, missionId, lat, lng, mode === "transports" ? "transports" : "voiture");
 }

@@ -14,10 +14,10 @@ export function liveLine(j: LiveJob, now = Date.now()): { tone: "wait" | "go" | 
   const who = j.cleaner ?? "Le nettoyeur";
   if (j.status === "a_reprendre") return { tone: "check", title: `${who} reprend des points`, sub: `Le contrôle a relevé des points à refaire.${j.rework_minutes ? ` Temps de reprise estimé : ${j.rework_minutes} min.` : ""}` };
   if (j.status === "a_verifier") return { tone: "check", title: `${who} a terminé`, sub: "Le résultat est en cours de contrôle." };
-  if (j.arrived_at) return { tone: "here", title: `${who} est sur place`, sub: `Arrivée à ${hm(j.arrived_at)}. Le ménage est en cours.` };
+  if (j.arrived_at) return { tone: "here", title: `${who} est sur place`, sub: `Arrivée à ${hm(j.arrived_at)}. ${j.agent ? "La prestation" : "Le ménage"} est en cours.` };
   if (j.moving) {
     const left = j.eta_at ? Math.max(0, Math.round((new Date(j.eta_at).getTime() - now) / 60000)) : null;
-    return { tone: "go", title: `${who} est en route`, sub: j.eta_at ? `Arrivée estimée à ${hm(j.eta_at)}${left != null ? ` (dans ${left} min)` : ""}${j.eta_traffic ? ", trafic compris" : ""}.` : "Heure d'arrivée en cours de calcul." };
+    return { tone: "go", title: `${who} est en route`, sub: j.eta_at ? `Arrivée estimée à ${hm(j.eta_at)}${left != null ? ` (dans ${left} min)` : ""}${j.eta_traffic ? ", trafic compris" : j.mode === "transports" ? ", en transports (estimation)" : ""}.` : "Heure d'arrivée en cours de calcul." };
   }
   return { tone: "wait", title: `${who} n'est pas encore parti`, sub: `Créneau prévu : ${slot(j.window_start, j.window_end)}. Le trajet s'affichera ici dès son départ.` };
 }
@@ -79,7 +79,7 @@ function JobMap({ j }: { j: LiveJob }) {
     layer.clearLayers();
     const pts: [number, number][] = [];
     if (j.trail.length > 1) L.polyline(j.trail, { color: "#1d6fe0", weight: 4, opacity: 0.75 }).addTo(layer);
-    if (j.dest) { pts.push(j.dest); L.circleMarker(j.dest, { radius: 9, color: "#fff", weight: 3, fillColor: "#1e3a6e", fillOpacity: 1 }).addTo(layer).bindTooltip("Logement", { direction: "top" }); }
+    if (j.dest) { pts.push(j.dest); L.circleMarker(j.dest, { radius: 9, color: "#fff", weight: 3, fillColor: "#1e3a6e", fillOpacity: 1 }).addTo(layer).bindTooltip(j.agent ? "Site" : "Logement", { direction: "top" }); }
     if (j.pos) { pts.push(j.pos); L.circleMarker(j.pos, { radius: 10, color: "#fff", weight: 3, fillColor: "#1d6fe0", fillOpacity: 1 }).addTo(layer).bindTooltip(j.cleaner ?? "Nettoyeur", { direction: "top", permanent: true }); }
     if (!pts.length) return;
     if (pts.length === 1) { if (!s.fitted) map.setView(pts[0], 14); }

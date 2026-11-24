@@ -1,7 +1,8 @@
 import "server-only";
 
 export type Point = { lat: number; lng: number };
-export type RouteEstimate = { minutes: number; km: number; source: "trafic" | "route" | "distance" };
+export type RouteEstimate = { minutes: number; km: number; source: "trafic" | "route" | "distance" | "transports" };
+export type TravelMode = "voiture" | "transports";
 
 const R = 6371;
 const rad = (d: number) => (d * Math.PI) / 180;
@@ -17,6 +18,12 @@ export function roughEstimate(a: Point, b: Point): RouteEstimate {
   return { minutes: Math.max(2, Math.round((km / 28) * 60 + 5)), km: Math.round(km * 10) / 10, source: "distance" };
 }
 
+/** En transports en commun : pas de calcul d'horaires ici, une estimation prudente (22 km/h porte à porte, 10 minutes de marche et d'attente). L'horaire exact est dans Plans. */
+export function transitEstimate(a: Point, b: Point): RouteEstimate {
+  const km = crowKm(a, b) * 1.3;
+  return { minutes: Math.max(5, Math.round((km / 22) * 60 + 10)), km: Math.round(km * 10) / 10, source: "transports" };
+}
+
 const get = async (url: string) => {
   const r = await fetch(url, { signal: AbortSignal.timeout(5000), cache: "no-store" });
   if (!r.ok) throw new Error(String(r.status));
@@ -28,7 +35,8 @@ const get = async (url: string) => {
  * Avec TOMTOM_API_KEY : durée réelle selon le trafic du moment. Sans clé : itinéraire routier sans trafic (OSRM), majoré aux heures de pointe.
  * Si aucun service ne répond : estimation à la distance.
  */
-export async function routeEstimate(from: Point, to: Point, now = new Date()): Promise<RouteEstimate> {
+export async function routeEstimate(from: Point, to: Point, now = new Date(), mode: TravelMode = "voiture"): Promise<RouteEstimate> {
+  if (mode === "transports") return transitEstimate(from, to);
   const key = process.env.TOMTOM_API_KEY;
   if (key) {
     const loc = `${from.lat},${from.lng}:${to.lat},${to.lng}`, k = encodeURIComponent(key);
