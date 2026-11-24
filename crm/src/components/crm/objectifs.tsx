@@ -413,11 +413,15 @@ export async function Objectives({ today }: { today: string }) {
                 </li>
               ))}
             </ol>
-            {caTarget != null && (
+            {/* Le montant manquant est déjà dit dans le bandeau au-dessus du plan : ici, seulement ce qu'il ne dit pas. */}
+            {caTarget != null && missing > 0 && pipe < missing && (
               <p className="mt-3 border-t border-border/70 pt-3 text-xs text-secondary-foreground">
-                {pipe >= missing
-                  ? <>Si les étapes qui facturent aboutissent, vous atteignez <b className="font-medium text-foreground">{eur0(now.ca_facture + pipe)}</b> pour un objectif de {eur0(caTarget)}.</>
-                  : <>Même si tout aboutit, il resterait <b className="font-medium text-foreground">{eur0(missing - pipe)}</b> à aller chercher : nouveaux devis ou nouveaux clients.</>}
+                Ces étapes ne suffisent pas à elles seules : le reste viendra de nouveaux devis ou de nouveaux clients.
+              </p>
+            )}
+            {caTarget != null && missing <= 0 && (
+              <p className="mt-3 border-t border-border/70 pt-3 text-xs text-secondary-foreground">
+                Objectif de CA déjà atteint : <b className="font-medium text-foreground">{eur0(now.ca_facture)}</b> facturés pour {eur0(caTarget)} visés.
               </p>
             )}
           </section>
