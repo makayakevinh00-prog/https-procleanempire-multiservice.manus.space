@@ -27,7 +27,8 @@ function payload(fd: FormData) {
     address: str(fd, "address"), postal_code: str(fd, "postal_code"), city: str(fd, "city"),
     email: str(fd, "email"), phone: str(fd, "phone"), siret, notes: str(fd, "notes"),
     is_reserved: reserved, reserved_reason: reserved ? str(fd, "reserved_reason") : null,
-    auto_send_invoices: checked(fd, "auto_send_invoices") && !reserved
+    auto_send_invoices: checked(fd, "auto_send_invoices") && !reserved,
+    ...(str(fd, "same_as_set") === "1" ? { same_as: /^[0-9a-f-]{36}$/i.test(str(fd, "same_as") ?? "") ? str(fd, "same_as") : null } : {})
   };
 }
 

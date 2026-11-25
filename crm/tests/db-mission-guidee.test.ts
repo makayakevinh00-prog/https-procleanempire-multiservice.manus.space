@@ -226,3 +226,20 @@ describe("0081 — trajet des agents et itinéraire", () => {
     expect([live.moving, live.pos, live.trail]).toEqual([false, null, []]);
   });
 });
+
+describe("0082 — deux fiches, une même entreprise", () => {
+  const TS = "9".repeat(64);
+  it("l'arrivée pointée chez l'une pointe la mission du jour chez l'autre, pas chez un tiers", async () => {
+    await db.exec(read("supabase/migrations/0082_meme_entreprise.sql"));
+    await db.exec(read("supabase/migrations/0082_meme_entreprise.sql")); // rejouable
+    const staff = (await q("insert into staff(full_name, agent_token_hash) values ('Agent Lié',$1) returning id", [hash(TS)]))[0].id;
+    const twin = (await q("insert into clients(name, same_as) values ('Jumelle SARL',$1) returning id", [owner]))[0].id;
+    const other = (await q("insert into clients(name) values ('Tiers SAS') returning id"))[0].id;
+    const mk = async (c: string) => (await q("insert into interventions(client_id, title, scheduled_date, staff_id, unit_price_ht, stage) values ($1,'Passage',$2,$3,100,'affectee') returning id", [c, parisToday(), staff]))[0].id;
+    const a = await mk(owner), b = await mk(twin), c = await mk(other);
+    await q("select agent_check_in($1,$2,48.9,2.4,10)", [TS, a]);
+    const rows = await q("select id, arrived_at is not null arrived, stage::text stage from interventions where id = any($1)", [[a, b, c]]);
+    const by = Object.fromEntries(rows.map((r: any) => [r.id, r]));
+    expect([by[a].arrived, by[b].arrived, by[b].stage, by[c].arrived]).toEqual([true, true, "arrivee", false]);
+  });
+});

@@ -3,7 +3,9 @@ import { Field, Input, Select, Textarea } from "@/components/ui/form";
 import type { Client } from "@/lib/domain/types";
 import { CompanyLookup } from "@/components/crm/company-lookup";
 
-export function ClientForm({ action, client, submitLabel }: { action: (fd: FormData) => void | Promise<void>; client?: Partial<Client>; submitLabel: string }) {
+export function ClientForm({ action, client, submitLabel, others }: { action: (fd: FormData) => void | Promise<void>; client?: Partial<Client> & { same_as?: string | null }; submitLabel: string;
+  /** Les autres fiches client, pour indiquer qu'il s'agit de la même entreprise sous une autre dénomination. */
+  others?: { id: string; name: string }[] }) {
   return (
     <form action={action} className="grid gap-4 sm:grid-cols-2">
       <CompanyLookup client={client} />
@@ -24,6 +26,15 @@ export function ClientForm({ action, client, submitLabel }: { action: (fd: FormD
       <Field label="E-mail"><Input name="email" type="email" defaultValue={client?.email ?? ""} /></Field>
       <Field label="Téléphone"><Input name="phone" type="tel" defaultValue={client?.phone ?? ""} /></Field>
       <Field label="SIRET" hint="14 chiffres"><Input name="siret" inputMode="numeric" defaultValue={client?.siret ?? ""} /></Field>
+      {others && (
+        <Field label="Même entreprise que" hint="Deux dénominations pour une seule entreprise au même endroit : l'arrivée de l'agent chez l'une vaut pour l'autre. Contrats et factures restent séparés." className="sm:col-span-2">
+          <input type="hidden" name="same_as_set" value="1" />
+          <Select name="same_as" defaultValue={client?.same_as ?? ""}>
+            <option value="">Aucune</option>
+            {others.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+          </Select>
+        </Field>
+      )}
       <Field label="Notes" className="sm:col-span-2"><Textarea name="notes" defaultValue={client?.notes ?? ""} /></Field>
 
       <label className="flex items-start gap-2 rounded-md border bg-card p-3 text-sm sm:col-span-2">
