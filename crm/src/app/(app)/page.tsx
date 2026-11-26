@@ -49,6 +49,14 @@ export default async function Dashboard({ searchParams }: { searchParams?: { moi
     for (const a of pm) { const c = names.get(a.payload?.client_id); if (c && !c.reserved && a.payload?.subject && a.payload?.body) mails.push({ id: a.id, clientId: a.payload.client_id, client: c.name, subject: a.payload.subject }); }
   }
 
+  // E-mails reçus des clients, à répondre en priorité.
+  const inbox: { id: string; who: string; subject: string; at: string; known: boolean }[] = [];
+  let inboxTotal = 0;
+  if (await isOwner()) {
+    const r = await supabase.from("inbound_emails").select("id, from_email, from_name, subject, received_at, clients(name)", { count: "exact" }).eq("status", "a_repondre").order("received_at", { ascending: false }).limit(5);
+    inboxTotal = r.count ?? 0;
+    for (const m of (r.data ?? []) as any[]) inbox.push({ id: m.id, who: m.clients?.name ?? m.from_name ?? m.from_email, subject: m.subject || "(sans objet)", at: m.received_at, known: !!m.clients });
+  }
 
   const inv = (invoices.data ?? []) as any[];
   const drafts = inv.filter((i) => i.status === "brouillon");
@@ -167,7 +175,9 @@ export default async function Dashboard({ searchParams }: { searchParams?: { moi
         </div>
         <Card className="overflow-hidden">
           <div className="py-1.5">
-            {!actions.length ? <Empty>Rien à faire : tout est à jour.</Empty> : ordered.slice(0, 5).map((a) => (
+            {inboxTotal > 0 && <Row href="/boite" lead={inboxTotal} title="Mails clients à répondre" right={<ArrowRight className="h-4 w-4" />} />}
+            {mails.length > 0 && <Row href={`/clients/${mails[0].clientId}#mails`} lead={mails.length} title="E-mails préparés à envoyer" right={<ArrowRight className="h-4 w-4" />} />}
+            {!actions.length && !inboxTotal && !mails.length ? <Empty>Rien à faire : tout est à jour.</Empty> : ordered.slice(0, 5).map((a) => (
               <Row key={a.key} href={a.href} lead={a.count !== undefined ? a.count : ""} dot={a.count === undefined ? (a.tone === "red" ? "err" : a.tone === "orange" ? "warn" : undefined) : undefined}
                 title={a.label} right={<ArrowRight className="h-4 w-4" />} />
             ))}
@@ -220,16 +230,6 @@ export default async function Dashboard({ searchParams }: { searchParams?: { moi
         <CardHeader><CardTitle>Meilleurs clients (12 mois, HT)</CardTitle></CardHeader>
         <CardContent>{topClients.length ? <RankBars rows={topClients} /> : <Empty>Aucune facture émise.</Empty>}</CardContent>
       </Card>
-      {mails.length > 0 && (
-        <Card className="mt-8 border-amber-300 bg-amber-50/40">
-          <CardHeader><CardTitle>✉️ E-mails préparés à envoyer ({mails.length})</CardTitle></CardHeader>
-          <ul className="divide-y">
-            {mails.slice(0, 6).map((m) => (
-              <li key={m.id}><Link href={`/clients/${m.clientId}#mails`} className="flex items-center gap-3 px-6 py-3 text-[15px] hover:bg-amber-50"><span className="min-w-0 flex-1"><b className="font-medium">{m.client}</b><span className="block truncate text-sm text-muted-foreground">{m.subject}</span></span><span className="text-[13px] font-medium text-primary">Ouvrir la fiche</span></Link></li>
-            ))}
-          </ul>
-        </Card>
-      )}
 
     </>
   );
