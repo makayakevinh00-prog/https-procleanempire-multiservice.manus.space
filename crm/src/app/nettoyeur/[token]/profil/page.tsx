@@ -1,90 +1,76 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Award, ChevronRight, GraduationCap, ShieldCheck } from "lucide-react";
+import { Award, FileText, GraduationCap, HelpCircle, Home, Landmark, Phone, ShieldCheck, Star, UserCheck, LogOut } from "lucide-react";
 import { agentClient, agentMessage, isToken, type CleanerOverview } from "@/lib/agent";
-import { cleanerProfileAction } from "@/app/actions/nettoyeur";
-import { initials } from "@/lib/field-ui";
+import { dict, initials } from "@/lib/field-ui";
 import { MODULE_LIST, type TrainingState } from "@/lib/formation";
 import { Gate } from "@/components/agent/gate";
-import { GpsButton } from "@/components/nettoyeur/live";
+import { Permissions } from "@/components/agent/permissions";
 import { AvatarPicker } from "@/components/nettoyeur/avatar-picker";
+import { Row, RowList, sectionLabel } from "@/components/nettoyeur/profile-ui";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Profil — ProClean Empire", robots: { index: false, follow: false }, referrer: "no-referrer" };
 
-const input = "h-12 w-full rounded-xl border border-[var(--a-line)] bg-[var(--a-bg)] px-3 text-base";
-
+/** Profil : identité en haut, puis des rubriques rangées (activité, informations, autorisations, aide). Chaque modification se fait dans sa propre page. */
 export default async function CleanerProfile({ params, searchParams }: { params: { token: string }; searchParams: { ok?: string; error?: string } }) {
-  if (!isToken(params.token)) return <Gate text="Ce lien n'est pas valide." />;
-  const { data, error } = await agentClient().rpc("cleaner_overview", { p_token: params.token });
+  const token = params.token;
+  if (!isToken(token)) return <Gate text="Ce lien n'est pas valide." />;
+  const db = agentClient();
+  const { data, error } = await db.rpc("cleaner_overview", { p_token: token });
   if (error) return <Gate text={agentMessage(error.message)} />;
   const o = data as CleanerOverview;
-  const photo = (await agentClient().rpc("cleaner_avatar", { p_token: params.token })).data as string | null;
-  const tr = (await agentClient().rpc("cleaner_training", { p_token: params.token })).data as TrainingState | null;
-  const idn = (await agentClient().rpc("cleaner_identity", { p_token: params.token })).data as { status: string } | null;
+  const [av, trr, idr] = await Promise.all([db.rpc("cleaner_avatar", { p_token: token }), db.rpc("cleaner_training", { p_token: token }), db.rpc("cleaner_identity", { p_token: token })]);
+  const photo = av.data as string | null, tr = trr.data as TrainingState | null, idn = idr.data as { status: string } | null;
   const passed = tr ? MODULE_LIST.filter((m) => tr.modules[m].passed).length : 0;
+  const base = `/nettoyeur/${token}`, t = dict("fr");
+  const score = o.reliability?.score;
+  const place = [o.address_line, [o.postal_code, o.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+  const idSub = !idn ? "" : idn.status === "verifie" ? "Identité vérifiée" : idn.status === "en_cours" ? "Vérification en cours" : idn.status === "echec" ? "À refaire" : "Pièce d'identité et selfie, 2 minutes";
   return (
     <>
-      <section className="rounded-3xl border border-[var(--a-line)] p-6 text-center">
-        <AvatarPicker token={params.token} initials={initials(o.name)} current={photo} />
-        <h1 className="mt-3 text-[26px] font-extrabold tracking-tight">{o.name}</h1>
+      <section className="fx-in rounded-3xl border border-[var(--a-line)] p-6 text-center shadow-sm">
+        <AvatarPicker token={token} initials={initials(o.name)} current={photo} />
+        <h1 className="mt-3 text-[28px] font-extrabold tracking-tight">{o.name}</h1>
         <p className="text-[15px] text-[var(--a-mute)]">{o.email}</p>
-        {tr && (tr.certified_at
-          ? <Link href={`/nettoyeur/${params.token}/certificat`} className="mx-auto mt-3 inline-flex items-center gap-2 rounded-full bg-[var(--a-okbg)] px-4 py-2 text-[14px] font-extrabold text-[var(--a-ok)]"><Award className="h-5 w-5" />Certifié ProClean · {tr.score} %</Link>
-          : <Link href={`/nettoyeur/${params.token}/formation`} className="mx-auto mt-3 inline-flex items-center gap-2 rounded-full bg-[var(--a-warnbg)] px-4 py-2 text-[14px] font-extrabold text-[var(--a-warn)]"><GraduationCap className="h-5 w-5" />Formation à passer · {passed}/3</Link>)}
-        <div className="mt-3 text-[13px] font-extrabold uppercase tracking-[0.14em] text-[var(--a-mute)]">Ménages validés</div>
-        <b className="num text-[44px] leading-tight text-[var(--a-pri)]">{o.done}</b>
+        {tr?.certified_at && <Link href={`${base}/certificat`} className="mx-auto mt-3 inline-flex items-center gap-2 rounded-full bg-[var(--a-okbg)] px-4 py-2 text-[14px] font-extrabold text-[var(--a-ok)]"><Award className="h-5 w-5" />Certifié ProClean · {tr.score} %</Link>}
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="rounded-2xl bg-[var(--a-card)] p-3"><b className="num block text-[34px] leading-tight text-[var(--a-pri)]">{o.done}</b><span className="text-[12px] font-extrabold uppercase tracking-[0.12em] text-[var(--a-mute)]">Ménages validés</span></div>
+          <div className="rounded-2xl bg-[var(--a-card)] p-3"><b className="num block text-[34px] leading-tight text-[var(--a-ok)]">{score == null ? "—" : `${score} %`}</b><span className="text-[12px] font-extrabold uppercase tracking-[0.12em] text-[var(--a-mute)]">Fiabilité</span></div>
+        </div>
       </section>
-      {idn && idn.status !== "non_requis" && (
-        <Link href={`/nettoyeur/${params.token}/identite`} className={`mt-4 flex items-center justify-between rounded-3xl p-4 text-[16px] font-extrabold ${idn.status === "verifie" ? "bg-[var(--a-okbg)] text-[var(--a-ok)]" : "bg-[var(--a-warnbg)] text-[var(--a-warn)]"}`}><span className="inline-flex items-center gap-2"><ShieldCheck className="h-5 w-5" />{idn.status === "verifie" ? "Identité vérifiée" : idn.status === "en_cours" ? "Vérification d'identité en cours" : "Vérifier mon identité"}</span><ChevronRight className="h-5 w-5" /></Link>
-      )}
-      <Link href={`/nettoyeur/${params.token}/formation`} className="mt-4 flex items-center justify-between rounded-3xl bg-[var(--a-card)] p-4 text-[16px] font-extrabold">Formation et certificat ProClean<ChevronRight className="h-5 w-5 text-[var(--a-mute)]" /></Link>
-      <Reliability r={o.reliability} />
       {searchParams.error && <div role="alert" className="mt-4 rounded-2xl bg-[var(--a-badbg)] p-3 text-sm font-semibold text-[var(--a-bad)]">{searchParams.error}</div>}
       {searchParams.ok && <div role="status" className="mt-4 rounded-2xl bg-[var(--a-okbg)] p-3 text-sm font-semibold text-[var(--a-ok)]">{searchParams.ok}</div>}
-      <form action={cleanerProfileAction.bind(null, params.token)} className="mt-4 space-y-4 rounded-3xl bg-[var(--a-card)] p-4">
-        <label className="block"><span className="mb-1 block text-[14px] font-bold">Votre adresse</span><input name="address_line" defaultValue={o.address_line ?? ""} className={input} autoComplete="street-address" /></label>
-        <div className="grid grid-cols-[110px_1fr] gap-3">
-          <label className="block"><span className="mb-1 block text-[14px] font-bold">Code postal</span><input name="postal_code" defaultValue={o.postal_code ?? ""} required inputMode="numeric" pattern="\d{5}" maxLength={5} className={input} /></label>
-          <label className="block"><span className="mb-1 block text-[14px] font-bold">Ville</span><input name="city" defaultValue={o.city ?? ""} className={input} /></label>
-        </div>
-        <GpsButton />
-        <label className="block"><span className="mb-1 block text-[14px] font-bold">Rayon de déplacement (km)</span><input name="radius_km" type="number" min={1} max={100} defaultValue={o.radius_km} required className={input} /><span className="text-xs text-[var(--a-mute)]">{o.has_location ? "Adresse localisée : vous voyez les ménages dans ce rayon, avec la distance." : "Adresse non localisée : vous voyez les ménages de votre département. Complétez l'adresse pour activer le rayon."}</span></label>
-        <label className="block"><span className="mb-1 block text-[14px] font-bold">Téléphone</span><input name="phone" defaultValue={o.phone ?? ""} inputMode="tel" className={input} /></label>
-        <label className="block"><span className="mb-1 block text-[14px] font-bold">IBAN pour vos virements</span><input name="iban" autoComplete="off" className={input} placeholder={o.has_iban ? `Enregistré (${o.iban_hint}) : saisissez pour le remplacer` : "FR76 …"} /><span className="text-xs text-[var(--a-mute)]">Il n&apos;est jamais affiché en entier, ni à vous ni aux propriétaires.</span></label>
-        <button className="h-14 w-full rounded-2xl bg-[var(--a-pri)] text-lg font-extrabold text-white">Enregistrer</button>
-      </form>
-      <a href="/connexion?choisir=1" className="mt-4 flex h-12 items-center justify-center rounded-2xl border border-[var(--a-line)] text-[15px] font-extrabold text-[var(--a-mute)]">Changer d&apos;espace ou me déconnecter</a>
-      <section className="mt-4 rounded-3xl bg-[var(--a-card)] p-4 text-[14px] text-[var(--a-mute)]">
-        <b className="block text-[16px] text-[var(--a-ink)]">Comment ça marche</b>
-        <ul className="mt-2 list-disc space-y-1 pl-5">
-          <li>Les ménages ont lieu entre {o.window_start.slice(0, 5).replace(":", "h")} et {o.window_end.slice(0, 5).replace(":", "h")}, jamais après {o.max_end.slice(0, 5).replace(":", "h")}.</li>
-          <li>Le premier qui accepte obtient le ménage ; les favoris du propriétaire passent d&apos;abord.</li>
-          <li>Les ménages s&apos;affichent autour de votre adresse, du plus proche au plus loin.</li>
-          <li>Vous travaillez en indépendant : vous choisissez vos ménages.</li>
-        </ul>
-      </section>
-    </>
-  );
-}
 
-/** Ce que le nettoyeur voit de sa propre fiabilité : c'est ce chiffre qui le place en tête des demandes. */
-function Reliability({ r }: { r?: { clean: number; redo: number; missed: number; score: number | null; stars?: number | null; ratings?: number } | null }) {
-  if (!r) return null;
-  return (
-    <section className="mt-4 rounded-3xl bg-[var(--a-card)] p-4">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-[17px] font-extrabold">Votre fiabilité</h2>
-        <b className="num text-[26px] font-extrabold text-[var(--a-ok)]">{r.score == null ? "—" : `${r.score} %`}</b>
-      </div>
-      <p className="mt-1 text-[14px] text-[var(--a-mute)]">{r.score == null ? "Votre score s'affiche à partir de 3 ménages terminés." : "Part de vos ménages validés du premier coup."}</p>
-      <ul className="mt-3 grid grid-cols-3 gap-2 text-center text-[13px] font-bold">
-        <li className="rounded-2xl border border-[var(--a-line)] p-2"><div className="num text-[20px] font-extrabold">{r.clean}</div>validés du premier coup</li>
-        <li className="rounded-2xl border border-[var(--a-line)] p-2"><div className="num text-[20px] font-extrabold">{r.redo}</div>avec reprise</li>
-        <li className="rounded-2xl border border-[var(--a-line)] p-2"><div className="num text-[20px] font-extrabold">{r.missed}</div>non honorés</li>
-      </ul>
-      {r.ratings ? <p className="mt-3 text-[15px] font-bold">Note des clients : {String(r.stars).replace(".", ",")} / 5 <span className="font-normal text-[var(--a-mute)]">({r.ratings} avis)</span></p> : null}
-      <p className="mt-3 text-[14px] text-[var(--a-mute)]">Plus votre score est haut, plus vous recevez les demandes en premier. Passer une demande ne vous coûte rien : seuls comptent les ménages que vous avez acceptés.</p>
-    </section>
+      <h2 className={sectionLabel}>Mon activité</h2>
+      <RowList>
+        <Row href={`${base}/profil/fiabilite`} icon={Star} title="Ma fiabilité" sub={score == null ? "S'affiche à partir de 3 ménages" : `${score} % · détermine l'ordre des demandes`} />
+        {tr && <Row href={tr.certified_at ? `${base}/certificat` : `${base}/formation`} icon={GraduationCap} title="Formation et certificat" sub={tr.certified_at ? `Certifié · ${tr.score} %` : `À passer · ${passed}/3 modules`} warn={!tr.certified_at} />}
+        {idn && idn.status !== "non_requis" && <Row href={`${base}/identite`} icon={idn.status === "verifie" ? ShieldCheck : UserCheck} title="Vérification d'identité" sub={idSub} warn={idn.status !== "verifie"} />}
+        <Row href={`${base}/gains`} icon={FileText} title="Mes factures et virements" sub="Gains, demandes de virement, factures" />
+      </RowList>
+
+      <h2 className={sectionLabel}>Mes informations</h2>
+      <RowList>
+        <Row href={`${base}/profil/informations#adresse`} icon={Home} title="Adresse et secteur" sub={place ? `${place} · ${o.radius_km} km` : "À renseigner pour recevoir les ménages près de vous"} warn={!place} />
+        <Row href={`${base}/profil/informations#contact`} icon={Phone} title="Téléphone" sub={o.phone || "À renseigner"} warn={!o.phone} />
+        <Row href={`${base}/profil/informations#paiement`} icon={Landmark} title="IBAN pour mes virements" sub={o.has_iban ? o.iban_hint ?? "Enregistré" : "À renseigner pour être payé"} warn={!o.has_iban} />
+      </RowList>
+
+      <h2 className={sectionLabel}>{t.permissions}</h2>
+      <Permissions t={{ camera: t.camera, location: t.location, granted: t.granted, denied: t.denied, ask: t.ask, unknown: t.unknown, cameraOk: t.cameraOk, cameraNo: t.cameraNo, cameraAsk: t.cameraAsk, locOk: t.locOk, locNo: t.locNo, locAsk: t.locAsk, openSettings: t.openSettings }} />
+
+      <h2 className={sectionLabel}>Aide et confidentialité</h2>
+      <RowList>
+        <Row href={`${base}/profil/aide`} icon={HelpCircle} title="Comment ça marche" sub="Horaires, attribution des ménages, contact" />
+        <Row href="/confidentialite" icon={ShieldCheck} title="Politique de confidentialité" sub="Quelles données sont traitées, et pourquoi" />
+      </RowList>
+
+      <form method="post" action="/connexion/sortir" className="mt-4">
+        <input type="hidden" name="t" value={token} />
+        <button className="fx-press flex h-14 w-full items-center justify-center gap-2 rounded-2xl border border-[var(--a-line)] text-[16px] font-extrabold text-[var(--a-bad)]"><LogOut className="h-5 w-5" />Se déconnecter</button>
+      </form>
+      <a href="/connexion?choisir=1" className="mt-3 block text-center text-[14px] font-bold text-[var(--a-mute)]">Changer d&apos;espace</a>
+    </>
   );
 }

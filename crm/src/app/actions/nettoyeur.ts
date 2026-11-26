@@ -202,14 +202,14 @@ export async function cleanerProfileAction(token: string, fd: FormData) {
   const postal = String(fd.get("postal_code") ?? "").replace(/\s/g, "");
   const radius = Math.round(Number(fd.get("radius_km") ?? 15));
   const address = String(fd.get("address_line") ?? "").trim(), city = String(fd.get("city") ?? "").trim();
-  if (!/^\d{5}$/.test(postal)) go(token, "/profil", "error", "Indiquez le code postal de votre adresse (5 chiffres).");
-  if (!(radius >= 1 && radius <= 100)) go(token, "/profil", "error", "Le rayon doit être compris entre 1 et 100 km.");
-  if (iban && !ibanValid(iban)) go(token, "/profil", "error", "Cet IBAN n'est pas valide : vérifiez les chiffres.");
+  if (!/^\d{5}$/.test(postal)) go(token, "/profil/informations", "error", "Indiquez le code postal de votre adresse (5 chiffres).");
+  if (!(radius >= 1 && radius <= 100)) go(token, "/profil/informations", "error", "Le rayon doit être compris entre 1 et 100 km.");
+  if (iban && !ibanValid(iban)) go(token, "/profil/informations", "error", "Cet IBAN n'est pas valide : vérifiez les chiffres.");
   const gl = Number(fd.get("gps_lat")), gg = Number(fd.get("gps_lng"));
   const gps = fd.get("gps_lat") && fd.get("gps_lng") && Number.isFinite(gl) && Number.isFinite(gg) && inFrance({ lat: gl, lng: gg }) ? { lat: gl, lng: gg } : null;
   const pt = gps ?? (await geocode({ address, postal_code: postal, city }));
   const { error } = await agentClient().rpc("cleaner_update_profile2", { p_token: token, p_address: address, p_postal: postal, p_city: city, p_lat: pt?.lat ?? null, p_lng: pt?.lng ?? null, p_radius: radius, p_phone: String(fd.get("phone") ?? ""), p_iban: iban || null });
-  if (error) go(token, "/profil", "error", agentMessage(error.message));
+  if (error) go(token, "/profil/informations", "error", agentMessage(error.message));
   revalidatePath(base(token), "layout");
   go(token, "/profil", "ok", pt ? (gps ? "Profil enregistré avec votre position GPS : vous voyez les ménages dans votre rayon." : "Profil enregistré : vous voyez les ménages dans votre rayon.") : "Profil enregistré. Votre adresse n'a pas pu être localisée : vous voyez les ménages de votre département.");
 }
