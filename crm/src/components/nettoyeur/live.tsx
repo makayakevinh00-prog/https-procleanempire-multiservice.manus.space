@@ -88,12 +88,11 @@ async function enablePush(token: string): Promise<boolean> {
   } catch { return false; }
 }
 
-/** Le gros bouton des chauffeurs : se mettre en ligne pour recevoir les ménages (notification + position en direct). */
-export function OnlinePanel({ token, online, hasPush, zone }: { token: string; online: boolean; hasPush: boolean; zone: string }) {
+/** Logique « En ligne » partagée par l'accueil : notifications, position en direct (au plus toutes les 30 s) et bascule. */
+export function useOnlineToggle(token: string, online: boolean, hasPush: boolean) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
-  // Position en direct tant que l'écran est ouvert et qu'on est en ligne (au plus toutes les 30 s).
   useEffect(() => {
     if (!online || !("geolocation" in navigator)) return;
     let last = 0;
@@ -108,22 +107,12 @@ export function OnlinePanel({ token, online, hasPush, zone }: { token: string; o
       setNote(pushed ? "" : ios ? "Pour être prévenu sur iPhone : ajoutez l'application à l'écran d'accueil (Partager › Sur l'écran d'accueil). En attendant, vous serez prévenu par e-mail." : "Notifications non activées : vous serez prévenu par e-mail.");
       if ("geolocation" in navigator) navigator.geolocation.getCurrentPosition((p) => void cleanerPingAction(token, p.coords.latitude, p.coords.longitude), () => undefined, { enableHighAccuracy: true, timeout: 8000 });
     }
+    try { navigator.vibrate?.(online ? 15 : [20, 40, 20]); } catch { /* ignoré */ }
     const r = await cleanerOnlineAction(token, !online);
     if (!r.ok) setNote(r.error ?? "Impossible pour le moment.");
     setBusy(false); router.refresh();
   };
-  return (
-    <section className={`mb-4 rounded-3xl p-5 text-center ${online ? "bg-[var(--a-okbg)]" : "bg-[var(--a-card)]"}`}>
-      <button type="button" onClick={toggle} disabled={busy} aria-pressed={online} aria-label={online ? "Se mettre hors ligne" : "Se mettre en ligne"}
-        className={`mx-auto flex h-32 w-32 items-center justify-center rounded-full text-[28px] font-extrabold text-white shadow-lg active:scale-95 disabled:opacity-60 ${online ? "bg-[var(--a-ok)]" : "bg-[var(--a-pri)]"}`}>
-        {busy ? "…" : online ? "STOP" : "GO"}
-      </button>
-      <div className="mt-3 text-[20px] font-extrabold">{online ? "Vous êtes en ligne" : "Vous êtes hors ligne"}</div>
-      <p className="mt-0.5 text-[14px] text-[var(--a-mute)]">{online ? `Vous recherchez des ménages autour de ${zone}. Nous vous prévenons dès qu'un ménage apparaît.` : "Mettez-vous en ligne pour recevoir les ménages en priorité, avec une notification."}</p>
-      {online && <p className="mt-1 text-[12px] text-[var(--a-mute)]">{hasPush ? "🔔 Notifications activées" : "✉️ Vous serez aussi prévenu par e-mail"}</p>}
-      {note && <p role="status" className="mt-2 text-[13px] font-semibold text-[var(--a-warn)]">{note}</p>}
-    </section>
-  );
+  return { busy, note, toggle };
 }
 
 /** Une demande de ménage : « J'accepte » ou « Passer » (Passer la masque sur ce téléphone, sans rien changer pour les autres). */
