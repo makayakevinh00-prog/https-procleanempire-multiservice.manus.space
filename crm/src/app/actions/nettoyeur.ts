@@ -142,6 +142,24 @@ async function notifyTraining(before: TrainingState | null, module: string, r: T
   }
 }
 
+/** Le nettoyeur demande son virement : ses ménages validés non payés sont regroupés dans une facture numérotée, la direction est prévenue par e-mail. */
+export async function cleanerRequestPayoutAction(token: string) {
+  guard(token);
+  const { data, error } = await agentClient().rpc("cleaner_request_payout", { p_token: token });
+  if (error) go(token, "/gains", "error", agentMessage(error.message));
+  const r = data as { payout: string; invoice_no: string; amount: number; jobs: number; cleaner: string };
+  if (mailConfigured()) {
+    const eur = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(Number(r.amount));
+    await sendMail({
+      to: process.env.MAIL_ADMIN ?? "contact@procleanempire.com",
+      subject: `Demande de virement — ${r.cleaner} — ${eur}`,
+      text: `${r.cleaner} demande le virement de ${eur} pour ${r.jobs} ménage${r.jobs > 1 ? "s" : ""} validé${r.jobs > 1 ? "s" : ""}.\n\nFacture : ${r.invoice_no}\n\nPour la payer : CRM > Nettoyeurs > Paiements, téléchargez le fichier de virements (IBAN inclus) et importez-le dans Qonto, puis marquez le paiement comme payé.\n\nService Facturation & Recouvrement — ProClean Empire`,
+    }).catch(() => undefined);
+  }
+  revalidatePath(base(token), "layout");
+  go(token, `/factures/${r.payout}`, "ok", "Demande envoyée. Voici votre facture : vous serez payé par virement.");
+}
+
 /** Prime « linge lavé » : le nettoyeur indique qu'il a lavé les draps lui-même. */
 export async function cleanerLinenWashedAction(token: string, jobId: string, fd: FormData) {
   guard(token);
