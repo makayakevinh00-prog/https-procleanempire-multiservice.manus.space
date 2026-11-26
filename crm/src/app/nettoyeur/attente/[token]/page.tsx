@@ -35,6 +35,8 @@ export default async function PendingPage({ params, searchParams }: { params: { 
             {searchParams.ok && <div role="status" className="mt-4 rounded-2xl bg-[var(--a-okbg)] p-4 text-[15px] font-semibold text-[var(--a-ok)]">{searchParams.ok}</div>}
             {searchParams.error && <div role="alert" className="mt-4 rounded-2xl bg-[var(--a-badbg)] p-3 text-sm font-semibold text-[var(--a-bad)]">{searchParams.error}</div>}
 
+            <a href={`/nettoyeur/${token}/formation`} className="mt-5 block rounded-3xl bg-[var(--a-soft)] p-5 text-[var(--a-pri)]"><b className="block text-[18px]">Commencez la formation ProClean</b><span className="text-[14px] font-semibold">Pas besoin d&apos;attendre votre SIRET : réussissez les trois tests et obtenez votre certificat dès maintenant.</span></a>
+
             {p.state === "a_valider" ? (
               <section className="mt-5 rounded-3xl bg-[var(--a-card)] p-5 text-[16px]"><b className="block text-[18px]">SIRET reçu, vérification en cours</b><p className="mt-2 text-[var(--a-mute)]">Nous vérifions votre SIRET et activons votre compte très vite. Vous recevrez un e-mail.</p></section>
             ) : (

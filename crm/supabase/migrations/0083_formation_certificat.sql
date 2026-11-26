@@ -6,7 +6,7 @@ alter table cleaning_jobs add column if not exists linen_washed boolean not null
 
 create table if not exists training_questions (
   id uuid primary key default gen_random_uuid(),
-  module text not null check (module in ('app', 'process')),
+  module text not null check (module in ('app', 'process', 'incident')),
   position int not null,
   question text not null,
   options jsonb not null,
@@ -18,7 +18,7 @@ create table if not exists training_questions (
 create table if not exists training_attempts (
   id uuid primary key default gen_random_uuid(),
   cleaner_id uuid not null references cleaners(id) on delete cascade,
-  module text not null check (module in ('app', 'process')),
+  module text not null check (module in ('app', 'process', 'incident')),
   score int not null check (score between 0 and 100),
   passed boolean not null,
   created_at timestamptz not null default now()
@@ -59,7 +59,18 @@ insert into training_questions (module, position, question, options, answer, why
 ('process', 11, 'Il manque un produit ou un consommable. Que faire ?', '["Ne rien dire", "Le signaler dans l''application à la fin du ménage", "Aller en acheter sans le dire", "Utiliser les produits du voyageur"]'::jsonb, 1, 'Le signalement permet de réapprovisionner avant le prochain ménage.'),
 ('process', 12, 'Avant le film de fin, que faut-il faire ?', '["Rien", "Relire la check-list et vérifier chaque pièce, lumières éteintes et fenêtres fermées", "Filmer le plus vite possible", "Partir"]'::jsonb, 1, 'Le contrôle final évite les reprises. Une tâche oubliée se voit sur le film.'),
 ('process', 13, 'Comment se comporter dans le logement d''un client ?', '["Utiliser ses affaires", "Rester discret, respecter les lieux et ne rien prendre ni photographier d''objets personnels", "Inviter un ami", "Écouter la musique fort"]'::jsonb, 1, 'Vous entrez chez quelqu''un : discrétion et respect sont obligatoires.'),
-('process', 14, 'Taches sur les draps ou le linge. Que faire ?', '["Les ignorer", "Les signaler avec photo et mettre le linge à laver selon la consigne", "Les cacher sous le lit", "Jeter le linge"]'::jsonb, 1, 'Le signalement permet de traiter la tache ou de prévenir le propriétaire.')
+('process', 14, 'Taches sur les draps ou le linge. Que faire ?', '["Les ignorer", "Les signaler avec photo et mettre le linge à laver selon la consigne", "Les cacher sous le lit", "Jeter le linge"]'::jsonb, 1, 'Le signalement permet de traiter la tache ou de prévenir le propriétaire.'),
+('incident', 1, 'Un objet est cassé ou abîmé quand vous arrivez. Que faites-vous ?', '["Je le répare ou le remplace discrètement", "Je le photographie tel quel avant de toucher à quoi que ce soit, puis je le signale avant de commencer", "Je le jette pour que ça ne se voie pas", "Je n''en parle pas, ce n''est pas mon problème"]'::jsonb, 1, 'Votre photo, prise avant le ménage, prouve que le dégât n''est pas de votre fait et permet à la direction de prévenir le client.'),
+('incident', 2, 'Vous cassez quelque chose pendant le ménage. Que faites-vous ?', '["Je le cache ou je le jette", "Je le remplace moi-même sans rien dire", "Je le dis tout de suite à la direction, avec une photo : une casse déclarée se règle, une casse cachée devient un vrai problème", "J''attends que le client le remarque"]'::jsonb, 2, 'Une casse accidentelle arrive à tout le monde. Déclarée, elle peut être prise en charge ; cachée, elle détruit la confiance.'),
+('incident', 3, 'Le logement est dans un état extrême (déchets, taches, saleté inhabituelle). Que faites-vous ?', '["Je refuse de travailler et je pars sans rien dire", "Je photographie ou filme l''état d''arrivée, je préviens la direction, puis je fais le ménage prévu", "Je contacte moi-même le voyageur pour lui faire des reproches", "Je nettoie à moitié pour gagner du temps"]'::jsonb, 1, 'Les preuves d''arrivée permettent de facturer un supplément ou de demander un geste au voyageur : c''est la direction qui traite, pas vous.'),
+('incident', 4, 'Vous trouvez de l''argent, un bijou ou un objet de valeur. Que faites-vous ?', '["Je le mets de côté pour plus tard", "Je ne le déplace pas plus que nécessaire, je le photographie et je le signale à la direction", "Je le remets au premier voisin croisé", "Je le prends pour le protéger"]'::jsonb, 1, 'Ne jamais rien emporter : le signalement vous protège et permet de le restituer au bon propriétaire.'),
+('incident', 5, 'Le logement est saccagé : fête, murs ou meubles dégradés volontairement. Que faites-vous ?', '["Je range et je nettoie tout avant de prévenir", "Je filme et photographie d''abord l''état exact, je préviens la direction avant de nettoyer, puis j''attends ses consignes", "Je discute avec le voyageur pour qu''il rembourse", "Je pars sans rien faire"]'::jsonb, 1, 'Tant que les dégâts ne sont pas documentés, rien ne doit être nettoyé ni déplacé : ce sont les preuves du dossier d''assurance ou de caution.'),
+('incident', 6, 'Vous voyez une seringue, une drogue ou un objet dangereux. Que faites-vous ?', '["Je le ramasse à mains nues pour le jeter", "Je n''y touche pas, je préviens tout de suite la direction et j''attends ses consignes", "Je le range dans un tiroir", "J''en parle aux voisins"]'::jsonb, 1, 'Votre sécurité passe avant tout. Un objet dangereux ne se manipule pas : la direction décide de la suite.'),
+('incident', 7, 'Un voyageur est encore dans le logement à votre arrivée. Que faites-vous ?', '["Je commence quand même le ménage autour de lui", "Je reste poli, je ne commence pas, je préviens la direction depuis l''application et j''attends ses instructions", "Je lui demande de partir tout de suite", "Je repars sans prévenir"]'::jsonb, 1, 'L''heure de départ se règle entre le client et la direction : vous ne négociez pas, vous prévenez.'),
+('incident', 8, 'Un voyageur ou un propriétaire devient agressif ou menaçant. Que faites-vous ?', '["Je réponds sur le même ton", "Je reste calme, je ne discute pas, je quitte les lieux si je me sens en danger et je préviens la direction (112 en cas d''urgence)", "Je continue le ménage coûte que coûte", "Je poste un message sur les réseaux sociaux"]'::jsonb, 1, 'Aucun ménage ne vaut votre sécurité. Partez, prévenez la direction : nous gérons le client.'),
+('incident', 9, 'Fuite d''eau, odeur de gaz ou fumée dans le logement. Que faites-vous ?', '["Je continue le ménage", "Odeur de gaz : je n''allume rien, j''aère, je sors et j''appelle les secours ; fuite d''eau : je coupe l''arrivée si c''est simple ; dans tous les cas je préviens la direction", "J''attends de voir si ça s''arrête", "Je répare moi-même"]'::jsonb, 1, 'La sécurité d''abord (18 ou 112 en cas de danger), puis la direction. Vous n''avez jamais à réparer.'),
+('incident', 10, 'Le logement est abîmé : que dites-vous au voyageur ou au propriétaire ?', '["Je le tiens pour responsable devant lui", "Rien de définitif : je constate, je photographie et je signale, c''est la direction qui échange avec le client", "Je lui demande de payer sur place", "Je lui propose de réparer contre de l''argent"]'::jsonb, 1, 'Vous constatez et vous signalez. Accuser ou demander de l''argent n''est pas votre rôle et peut vous mettre en difficulté.'),
+('incident', 11, 'Un client vous propose un extra ou un paiement directement, en dehors de ProClean. Que faites-vous ?', '["J''accepte, c''est plus simple", "Je refuse poliment et je renvoie vers ProClean : tout passe par l''application", "J''accepte seulement en espèces", "J''en parle aux autres nettoyeurs"]'::jsonb, 1, 'Hors application, vous n''êtes ni payé ni couvert en cas de problème.')
 ) v(module, position, question, options, answer, why) where not exists (select 1 from training_questions);
 
 create or replace function training_pass_mark() returns int language sql immutable as $$ select 80 $$;
@@ -69,28 +80,29 @@ create or replace function training_paris_min() returns int language sql immutab
 create or replace function cleaner_training(p_token text) returns jsonb language plpgsql stable security definer set search_path = public as $$
 declare c cleaners;
 begin
-  c := cleaner_by_token(p_token);
+  c := cleaner_pending_by_token(p_token);
   return jsonb_build_object('name', c.full_name, 'certified_at', c.certified_at, 'certificate_no', c.certificate_no, 'score', c.training_score, 'pass_mark', training_pass_mark(), 'paris_min', training_paris_min(),
     'modules', jsonb_build_object(
       'app', jsonb_build_object('best', (select max(score) from training_attempts where cleaner_id = c.id and module = 'app'), 'passed', exists (select 1 from training_attempts where cleaner_id = c.id and module = 'app' and passed), 'attempts', (select count(*) from training_attempts where cleaner_id = c.id and module = 'app'), 'questions', (select count(*) from training_questions where module = 'app' and active)),
-      'process', jsonb_build_object('best', (select max(score) from training_attempts where cleaner_id = c.id and module = 'process'), 'passed', exists (select 1 from training_attempts where cleaner_id = c.id and module = 'process' and passed), 'attempts', (select count(*) from training_attempts where cleaner_id = c.id and module = 'process'), 'questions', (select count(*) from training_questions where module = 'process' and active))));
+      'process', jsonb_build_object('best', (select max(score) from training_attempts where cleaner_id = c.id and module = 'process'), 'passed', exists (select 1 from training_attempts where cleaner_id = c.id and module = 'process' and passed), 'attempts', (select count(*) from training_attempts where cleaner_id = c.id and module = 'process'), 'questions', (select count(*) from training_questions where module = 'process' and active)),
+      'incident', jsonb_build_object('best', (select max(score) from training_attempts where cleaner_id = c.id and module = 'incident'), 'passed', exists (select 1 from training_attempts where cleaner_id = c.id and module = 'incident' and passed), 'attempts', (select count(*) from training_attempts where cleaner_id = c.id and module = 'incident'), 'questions', (select count(*) from training_questions where module = 'incident' and active))));
 end $$;
 
 -- Questions d'un module, sans les réponses.
 create or replace function cleaner_training_questions(p_token text, p_module text) returns jsonb language plpgsql stable security definer set search_path = public as $$
 declare c cleaners;
 begin
-  c := cleaner_by_token(p_token);
-  if p_module not in ('app', 'process') then raise exception 'ARGUMENT: module inconnu'; end if;
+  c := cleaner_pending_by_token(p_token);
+  if p_module not in ('app', 'process', 'incident') then raise exception 'ARGUMENT: module inconnu'; end if;
   return coalesce((select jsonb_agg(jsonb_build_object('id', id, 'question', question, 'options', options) order by position) from training_questions where module = p_module and active), '[]'::jsonb);
 end $$;
 
--- Correction faite dans la base : la note ne peut pas être envoyée par l'application. Le certificat est délivré quand les deux modules sont réussis.
+-- Correction faite dans la base : la note ne peut pas être envoyée par l'application. Le certificat est délivré quand les trois modules sont réussis.
 create or replace function cleaner_training_submit(p_token text, p_module text, p_answers jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
 declare c cleaners; total int; good int := 0; pct int; ok boolean; wrong jsonb := '[]'::jsonb; r record; all_ok boolean; avg_score int; no text;
 begin
-  c := cleaner_by_token(p_token);
-  if p_module not in ('app', 'process') then raise exception 'ARGUMENT: module inconnu'; end if;
+  c := cleaner_pending_by_token(p_token);
+  if p_module not in ('app', 'process', 'incident') then raise exception 'ARGUMENT: module inconnu'; end if;
   if jsonb_typeof(coalesce(p_answers, 'null'::jsonb)) <> 'object' then raise exception 'ARGUMENT: réponses invalides'; end if;
   select count(*) into total from training_questions where module = p_module and active;
   if total = 0 then raise exception 'ARGUMENT: aucune question pour ce module'; end if;
@@ -101,7 +113,7 @@ begin
   pct := round(100.0 * good / total);
   ok := pct >= training_pass_mark();
   insert into training_attempts (cleaner_id, module, score, passed) values (c.id, p_module, pct, ok);
-  select bool_and(m.passed) into all_ok from (select exists (select 1 from training_attempts where cleaner_id = c.id and module = x and passed) as passed from unnest(array['app', 'process']) x) m;
+  select bool_and(m.passed) into all_ok from (select exists (select 1 from training_attempts where cleaner_id = c.id and module = x and passed) as passed from unnest(array['app', 'process', 'incident']) x) m;
   select round(avg(b))::int into avg_score from (select max(score) as b from training_attempts where cleaner_id = c.id and passed group by module) s;
   if all_ok then
     no := coalesce(c.certificate_no, 'PCE-' || to_char(now() at time zone 'Europe/Paris', 'YY') || '-' || lpad(nextval('certificate_seq')::text, 4, '0'));

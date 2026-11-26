@@ -1,5 +1,5 @@
 /** Formation ProClean : fiches de révision (les questions et la correction sont dans la base, voir la migration 0083). */
-export type FormationModule = "app" | "process";
+export type FormationModule = "app" | "process" | "incident";
 export type Revision = { title: string; points: string[] };
 
 export const MODULES: Record<FormationModule, { title: string; lead: string; revision: Revision[] }> = {
@@ -21,9 +21,20 @@ export const MODULES: Record<FormationModule, { title: string; lead: string; rev
       { title: "Les points qu'on regarde", points: ["Cuisine : évier, plaques, micro-ondes, réfrigérateur, surfaces et poignées.", "Lit : draps propres bien tendus, oreillers et couvertures en place.", "Poubelles vidées, sac propre remis, déchets sortis selon la consigne.", "Taches sur le linge, objet oublié, produit manquant : on photographie et on signale dans l'application."] },
       { title: "Avant de partir", points: ["Relisez la check-list pièce par pièce.", "Lumières éteintes, fenêtres fermées, clés selon la consigne.", "Soyez discret chez le client : rien n'est pris, rien n'est photographié d'objets personnels."] }
     ]
+  },
+  incident: {
+    title: "Casse, dégâts et voyageurs difficiles",
+    lead: "Que faire quand quelque chose est cassé, quand le logement est dans un état choquant ou quand un client dérape.",
+    revision: [
+      { title: "Constater avant de toucher", points: ["À l'arrivée, filmez ou photographiez tout dégât ou saleté inhabituelle avant de toucher à quoi que ce soit.", "Ne réparez pas, ne jetez pas, ne remplacez pas : signalez à la direction depuis l'application, preuves à l'appui.", "Logement saccagé : ne nettoyez rien avant d'avoir documenté et attendu les consignes."] },
+      { title: "Si c'est vous qui cassez", points: ["Dites-le tout de suite à la direction, avec une photo.", "Une casse déclarée se règle ; une casse cachée devient une faute.", "Ne remplacez jamais l'objet en douce."] },
+      { title: "Objets de valeur et objets dangereux", points: ["Argent, bijou, papiers : ne les emportez pas, photographiez et signalez.", "Seringue, drogue, objet dangereux : n'y touchez pas, prévenez la direction.", "Fuite d'eau, gaz, fumée : sécurité d'abord (18 ou 112), puis la direction. Vous ne réparez jamais."] },
+      { title: "Face aux personnes", points: ["Voyageur encore présent : ne commencez pas, prévenez la direction.", "Client agressif ou menaçant : restez calme, ne discutez pas, quittez les lieux si besoin, prévenez la direction.", "Vous constatez et vous signalez : n'accusez personne et ne demandez jamais d'argent. Tout paiement passe par ProClean."] }
+    ]
   }
 };
-export const isModule = (m: string): m is FormationModule => m === "app" || m === "process";
+export const MODULE_LIST: FormationModule[] = ["app", "process", "incident"];
+export const isModule = (m: string): m is FormationModule => (MODULE_LIST as string[]).includes(m);
 
 export type TrainingState = {
   name: string; certified_at: string | null; certificate_no: string | null; score: number | null; pass_mark: number; paris_min: number;
