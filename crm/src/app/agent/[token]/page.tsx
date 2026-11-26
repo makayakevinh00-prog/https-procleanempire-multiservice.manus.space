@@ -7,6 +7,8 @@ import { AgentHeader } from "@/components/agent/header";
 import { StagePill } from "@/components/agent/stage-pill";
 import { Invalid } from "@/components/agent/invalid";
 import { Countdown, NowLine } from "@/components/agent/now-line";
+import { DayStrip } from "@/components/agent/day-strip";
+import { Navigation } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Mes missions — ProClean Empire", robots: { index: false, follow: false }, referrer: "no-referrer" };
@@ -50,8 +52,18 @@ export default async function AgentToday({ params, searchParams }: { params: { t
         <Link href={link(shiftDay(date, 1))} aria-label={t.nextDay} className="flex h-10 w-10 items-center justify-center text-[var(--a-pri)]"><ChevronRight className="h-6 w-6" /></Link>
       </div>
 
+      <DayStrip token={token} date={date} today={today} />
+
+      {missions.length > 0 && (
+        <div className="fx-in mb-4 grid grid-cols-3 gap-2 text-center" style={{ animationDelay: "100ms" }}>
+          <div className="rounded-2xl bg-[var(--a-card)] p-3"><b className="num block text-[26px] leading-tight text-[var(--a-pri)]">{missions.length}</b><span className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-[var(--a-mute)]">Missions</span></div>
+          <div className="rounded-2xl bg-[var(--a-card)] p-3"><b className="num block text-[26px] leading-tight text-[var(--a-pri)]">{String(Math.round(missions.reduce((a, m) => a + (m.hours ?? 0), 0) * 10) / 10).replace(".", ",")} h</b><span className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-[var(--a-mute)]">Au total</span></div>
+          <div className="rounded-2xl bg-[var(--a-card)] p-3"><b className="num block text-[26px] leading-tight text-[var(--a-pri)]">{byTime[0]?.time ? byTime[0].time.slice(0, 5).replace(":", "h") : "—"}</b><span className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-[var(--a-mute)]">Début</span></div>
+        </div>
+      )}
+
       {current && (
-        <Link href={href(current.id)} className="mb-4 block rounded-3xl bg-[var(--a-pri)] p-4 text-white active:scale-[0.99]">
+        <Link href={href(current.id)} className="fx-hero fx-shine fx-in fx-press relative mb-4 block rounded-[32px] p-5 text-white shadow-[0_24px_44px_-20px_rgba(30,58,110,0.75)]">
           <span className="flex items-center gap-2 text-[12px] font-extrabold uppercase tracking-wider opacity-90"><span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-white" />{LIVE[current.stage]}</span>
           <span className="mt-1 block text-[22px] font-extrabold leading-tight">{current.client}</span>
           <span className="block text-[14px] opacity-90">{current.time ? `${current.time.slice(0, 5)} · ` : ""}{current.title}{current.hours ? ` · ${current.hours} h` : ""}</span>
@@ -59,12 +71,18 @@ export default async function AgentToday({ params, searchParams }: { params: { t
         </Link>
       )}
       {next && (
-        <Link href={href(next.id)} className="mb-4 block rounded-3xl border-2 border-[var(--a-pri)] bg-[var(--a-card)] p-4 active:scale-[0.99]">
-          <span className="block text-[12px] font-extrabold uppercase tracking-wider text-[var(--a-pri)]">Prochain rendez-vous{next.time ? <> · <Countdown time={next.time} /></> : null}</span>
-          <span className="mt-1 block text-[22px] font-extrabold leading-tight">{next.client}</span>
-          <span className="block text-[14px] text-[var(--a-mute)]">{next.time ? `${next.time.slice(0, 5)} · ` : ""}{next.title}{next.address ? ` · ${next.address}` : ""}</span>
-          <span className="mt-3 flex h-12 items-center justify-center rounded-full bg-[var(--a-pri)] text-[16px] font-extrabold text-white">Ouvrir la mission</span>
-        </Link>
+        <section className="fx-hero fx-shine fx-in relative mb-4 rounded-[32px] p-5 text-white shadow-[0_24px_44px_-20px_rgba(30,58,110,0.75)]">
+          <span className="flex items-center justify-between gap-2"><span className="rounded-full bg-white/20 px-3 py-1 text-[12px] font-extrabold uppercase tracking-wider">Prochain rendez-vous</span>{next.time && <span className="num text-[16px] font-extrabold"><Countdown time={next.time} /></span>}</span>
+          <Link href={href(next.id)} className="mt-4 block">
+            <span className="block text-[28px] font-extrabold leading-[1.05] tracking-tight">{next.client}</span>
+            <span className="mt-1.5 block text-[15px] font-semibold text-white/85">{next.time ? `${next.time.slice(0, 5)} · ` : ""}{next.title}{next.hours ? ` · ${next.hours} h` : ""}</span>
+            {next.address && <span className="block text-[14px] text-white/75">{next.address}</span>}
+          </Link>
+          <div className="mt-5 flex gap-2">
+            <Link href={href(next.id)} className="fx-press flex h-14 flex-1 items-center justify-center rounded-full bg-white text-[17px] font-extrabold" style={{ color: "#1e3a6e" }}>Ouvrir la mission</Link>
+            {next.address && <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(next.address)}`} target="_blank" rel="noopener noreferrer" aria-label="Itinéraire" className="fx-press flex h-14 w-14 items-center justify-center rounded-full bg-white/20"><Navigation className="h-6 w-6" /></a>}
+          </div>
+        </section>
       )}
       {isToday && !current && !next && missions.length > 0 && <p className="mb-4 rounded-3xl bg-[var(--a-okbg)] p-4 text-center text-[15px] font-extrabold text-[var(--a-ok)]">Journée terminée : plus de rendez-vous aujourd&apos;hui.</p>}
 
