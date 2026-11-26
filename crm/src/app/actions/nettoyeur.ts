@@ -207,20 +207,41 @@ export async function cleanerLinenWashedAction(token: string, jobId: string, fd:
 
 export async function cleanerProfileAction(token: string, fd: FormData) {
   guard(token);
-  const iban = String(fd.get("iban") ?? "").trim();
   const postal = String(fd.get("postal_code") ?? "").replace(/\s/g, "");
   const radius = Math.round(Number(fd.get("radius_km") ?? 15));
   const address = String(fd.get("address_line") ?? "").trim(), city = String(fd.get("city") ?? "").trim();
   if (!/^\d{5}$/.test(postal)) go(token, "/profil/informations", "error", "Indiquez le code postal de votre adresse (5 chiffres).");
   if (!(radius >= 1 && radius <= 100)) go(token, "/profil/informations", "error", "Le rayon doit être compris entre 1 et 100 km.");
-  if (iban && !ibanValid(iban)) go(token, "/profil/informations", "error", "Cet IBAN n'est pas valide : vérifiez les chiffres.");
   const gl = Number(fd.get("gps_lat")), gg = Number(fd.get("gps_lng"));
   const gps = fd.get("gps_lat") && fd.get("gps_lng") && Number.isFinite(gl) && Number.isFinite(gg) && inFrance({ lat: gl, lng: gg }) ? { lat: gl, lng: gg } : null;
   const pt = gps ?? (await geocode({ address, postal_code: postal, city }));
-  const { error } = await agentClient().rpc("cleaner_update_profile2", { p_token: token, p_address: address, p_postal: postal, p_city: city, p_lat: pt?.lat ?? null, p_lng: pt?.lng ?? null, p_radius: radius, p_phone: String(fd.get("phone") ?? ""), p_iban: iban || null });
+  // Le téléphone et l'IBAN ont leurs propres enregistrements : on reprend ici les valeurs actuelles pour ne rien changer.
+  const cur = await agentClient().rpc("cleaner_overview", { p_token: token });
+  if (cur.error) go(token, "/profil/informations", "error", agentMessage(cur.error.message));
+  const { error } = await agentClient().rpc("cleaner_update_profile2", { p_token: token, p_address: address, p_postal: postal, p_city: city, p_lat: pt?.lat ?? null, p_lng: pt?.lng ?? null, p_radius: radius, p_phone: String((cur.data as { phone?: string | null }).phone ?? ""), p_iban: null });
   if (error) go(token, "/profil/informations", "error", agentMessage(error.message));
   revalidatePath(base(token), "layout");
-  go(token, "/profil", "ok", pt ? (gps ? "Profil enregistré avec votre position GPS : vous voyez les ménages dans votre rayon." : "Profil enregistré : vous voyez les ménages dans votre rayon.") : "Profil enregistré. Votre adresse n'a pas pu être localisée : vous voyez les ménages de votre département.");
+  go(token, "/profil/informations", "ok", pt ? (gps ? "Profil enregistré avec votre position GPS : vous voyez les ménages dans votre rayon." : "Profil enregistré : vous voyez les ménages dans votre rayon.") : "Profil enregistré. Votre adresse n'a pas pu être localisée : vous voyez les ménages de votre département.");
+}
+
+/** Contact : le téléphone s'enregistre seul. */
+export async function cleanerPhoneAction(token: string, fd: FormData) {
+  guard(token);
+  const { error } = await agentClient().rpc("cleaner_update_phone", { p_token: token, p_phone: String(fd.get("phone") ?? "") });
+  if (error) go(token, "/profil/informations", "error", agentMessage(error.message));
+  revalidatePath(base(token), "layout");
+  go(token, "/profil/informations", "ok", "Téléphone enregistré.");
+}
+
+/** Paiement : l'IBAN s'enregistre seul. */
+export async function cleanerIbanAction(token: string, fd: FormData) {
+  guard(token);
+  const iban = String(fd.get("iban") ?? "").trim();
+  if (!ibanValid(iban)) go(token, "/profil/informations", "error", "Cet IBAN n'est pas valide : vérifiez les chiffres.");
+  const { error } = await agentClient().rpc("cleaner_update_iban", { p_token: token, p_iban: iban });
+  if (error) go(token, "/profil/informations", "error", agentMessage(error.message));
+  revalidatePath(base(token), "layout");
+  go(token, "/profil/informations", "ok", "IBAN enregistré.");
 }
 
 /** Photo de profil (JPEG carré réduit par le téléphone) ; chaîne vide = retirer la photo. */
