@@ -2,18 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { agentClient, agentMessage, isToken } from "@/lib/agent";
-import { MODULES, isModule, type TrainingQuestion } from "@/lib/formation";
+import { MODULES, isModule } from "@/lib/formation";
 import { Gate } from "@/components/agent/gate";
-import { Quiz } from "@/components/nettoyeur/quiz";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Formation — ProClean", robots: { index: false, follow: false }, referrer: "no-referrer" };
 
-/** Une seule page par module : la révision d'abord, le test juste en dessous. */
+/** Le cours seul : l'examen est sur une autre page, pour ne pas pouvoir remonter lire les réponses. */
 export default async function CleanerModule({ params }: { params: { token: string; module: string } }) {
   const { token, module } = params;
   if (!isToken(token) || !isModule(module)) return <Gate text="Ce lien n'est pas valide." />;
-  const { data, error } = await agentClient().rpc("cleaner_training_questions", { p_token: token, p_module: module });
+  const { error } = await agentClient().rpc("cleaner_training", { p_token: token });
   if (error) return <Gate text={agentMessage(error.message)} back={{ href: "/connexion", label: "Me connecter" }} />;
   const m = MODULES[module];
   return (
@@ -21,7 +20,7 @@ export default async function CleanerModule({ params }: { params: { token: strin
       <Link href={`/nettoyeur/${token}/formation`} className="mb-3 inline-flex items-center gap-1 text-[14px] font-bold text-[var(--a-mute)]"><ArrowLeft className="h-4 w-4" />Formation</Link>
       <h1 className="text-[26px] font-extrabold tracking-tight">{m.title}</h1>
       <p className="mb-4 text-[15px] text-[var(--a-mute)]">{m.lead}</p>
-      <h2 className="mb-2 px-1 text-[13px] font-extrabold uppercase tracking-wider text-[var(--a-mute)]">1. La révision</h2>
+      <h2 className="mb-2 px-1 text-[13px] font-extrabold uppercase tracking-wider text-[var(--a-mute)]">Le cours</h2>
       <div className="mb-6 space-y-3">
         {m.revision.map((r) => (
           <section key={r.title} className="rounded-3xl bg-[var(--a-card)] p-4">
@@ -30,8 +29,8 @@ export default async function CleanerModule({ params }: { params: { token: strin
           </section>
         ))}
       </div>
-      <h2 className="mb-2 px-1 text-[13px] font-extrabold uppercase tracking-wider text-[var(--a-mute)]">2. Le test</h2>
-      <Quiz token={token} module={module} questions={(data ?? []) as TrainingQuestion[]} />
+      <p className="mb-3 rounded-2xl bg-[var(--a-card)] p-3 text-[13px] text-[var(--a-mute)]">L&apos;examen est sur une page à part : une fois commencé, vous ne pourrez plus relire le cours. L&apos;examen est chronométré (20 minutes) : prenez le temps de bien le lire avant.</p>
+      <Link href={`/nettoyeur/${token}/formation/${module}/examen`} className="flex h-14 w-full items-center justify-center rounded-2xl bg-[var(--a-pri)] text-lg font-extrabold text-white">Passer l&apos;examen</Link>
     </>
   );
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Award, CheckCircle2, ChevronRight, Lock } from "lucide-react";
+import { Award, BookOpen, CheckCircle2, Lock, PenLine } from "lucide-react";
 import { agentClient, agentMessage, isToken } from "@/lib/agent";
 import { MODULES, MODULE_LIST, type TrainingState } from "@/lib/formation";
 import { AgentHeader } from "@/components/agent/header";
@@ -18,7 +18,7 @@ export default async function CleanerTraining({ params }: { params: { token: str
   const left = MODULE_LIST.filter((m) => !t.modules[m].passed).length;
   return (
     <>
-      <AgentHeader token={token} base="nettoyeur" name={t.name} title="Formation ProClean" sub="Révision, puis test. Trois modules à réussir." />
+      <AgentHeader token={token} base="nettoyeur" name={t.name} title="Formation ProClean" sub="Le cours, puis l'examen. Trois modules à réussir." />
       <section className={`mb-4 rounded-3xl p-5 ${t.certified_at ? "bg-[var(--a-okbg)] text-[var(--a-ok)]" : "bg-[var(--a-soft)] text-[var(--a-pri)]"}`}>
         <div className="flex items-center gap-3">
           {t.certified_at ? <Award className="h-9 w-9 shrink-0" /> : <Lock className="h-9 w-9 shrink-0" />}
@@ -33,15 +33,20 @@ export default async function CleanerTraining({ params }: { params: { token: str
         {MODULE_LIST.map((m) => {
           const s = t.modules[m];
           return (
-            <Link key={m} href={`/nettoyeur/${token}/formation/${m}`} className="flex items-center gap-3 rounded-3xl bg-[var(--a-card)] p-4">
-              <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${s.passed ? "bg-[var(--a-okbg)] text-[var(--a-ok)]" : "bg-[var(--a-soft)] text-[var(--a-pri)]"}`}>{s.passed ? <CheckCircle2 className="h-6 w-6" /> : <span className="num text-[18px] font-extrabold">{MODULE_LIST.indexOf(m) + 1}</span>}</span>
-              <span className="min-w-0 flex-1"><b className="block text-[17px]">{MODULES[m].title}</b><span className="text-[13px] text-[var(--a-mute)]">{MODULES[m].lead}</span><span className="mt-1 block text-[13px] font-bold">{s.passed ? `Réussi · meilleure note ${s.best} %` : s.attempts ? `Meilleure note ${s.best} % · ${t.pass_mark} % demandés` : `${s.questions} questions · ${t.pass_mark} % demandés`}</span></span>
-              <ChevronRight className="h-5 w-5 shrink-0 text-[var(--a-mute)]" />
-            </Link>
+            <div key={m} className="rounded-3xl bg-[var(--a-card)] p-4">
+              <div className="flex items-center gap-3">
+                <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${s.passed ? "bg-[var(--a-okbg)] text-[var(--a-ok)]" : "bg-[var(--a-soft)] text-[var(--a-pri)]"}`}>{s.passed ? <CheckCircle2 className="h-6 w-6" /> : <span className="num text-[18px] font-extrabold">{MODULE_LIST.indexOf(m) + 1}</span>}</span>
+                <span className="min-w-0 flex-1"><b className="block text-[17px]">{MODULES[m].title}</b><span className="text-[13px] text-[var(--a-mute)]">{MODULES[m].lead}</span><span className="mt-1 block text-[13px] font-bold">{s.passed ? `Réussi · meilleure note ${s.best} %` : s.attempts ? `Meilleure note ${s.best} % · ${t.pass_mark} % demandés` : `${s.questions} questions · ${t.pass_mark} % demandés`}</span></span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <Link href={`/nettoyeur/${token}/formation/${m}`} className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-[var(--a-soft)] text-[15px] font-extrabold text-[var(--a-pri)]"><BookOpen className="h-5 w-5" />Le cours</Link>
+                <Link href={`/nettoyeur/${token}/formation/${m}/examen`} className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-[var(--a-pri)] text-[15px] font-extrabold text-white"><PenLine className="h-5 w-5" />L&apos;examen</Link>
+              </div>
+            </div>
           );
         })}
       </div>
-      <p className="mt-4 rounded-2xl bg-[var(--a-card)] p-3 text-[13px] text-[var(--a-mute)]">Les ménages à Paris sont attribués aux meilleures notes : {t.paris_min} % de moyenne minimum. Vous pouvez repasser un test autant de fois que nécessaire.</p>
+      <p className="mt-4 rounded-2xl bg-[var(--a-card)] p-3 text-[13px] text-[var(--a-mute)]">Les ménages à Paris sont attribués aux meilleures notes : {t.paris_min} % de moyenne minimum. Vous pouvez repasser un examen autant de fois que nécessaire.</p>
     </>
   );
 }
