@@ -52,9 +52,9 @@ export default async function CleanerProfile({ params, searchParams }: { params:
 
       <h2 className={sectionLabel}>Mes informations</h2>
       <RowList>
-        <Row href={`${base}/profil/informations#adresse`} icon={Home} title="Adresse et secteur" sub={place ? `${place} · ${o.radius_km} km` : "À renseigner pour recevoir les ménages près de vous"} warn={!place} />
-        <Row href={`${base}/profil/informations#contact`} icon={Phone} title="Téléphone" sub={o.phone || "À renseigner"} warn={!o.phone} />
-        <Row href={`${base}/profil/informations#paiement`} icon={Landmark} title="IBAN pour mes virements" sub={o.has_iban ? o.iban_hint ?? "Enregistré" : "À renseigner pour être payé"} warn={!o.has_iban} />
+        <Row href={`${base}/profil/adresse`} icon={Home} title="Adresse et secteur" sub={place ? `${place} · ${o.radius_km} km` : "À renseigner pour recevoir les ménages près de vous"} warn={!place} />
+        <Row href={`${base}/profil/telephone`} icon={Phone} title="Téléphone" sub={o.phone || "À renseigner"} warn={!o.phone} />
+        <Row href={`${base}/profil/iban`} icon={Landmark} title="IBAN pour mes virements" sub={o.has_iban ? o.iban_hint ?? "Enregistré" : "À renseigner pour être payé"} warn={!o.has_iban} />
       </RowList>
 
       <h2 className={sectionLabel}>{t.permissions}</h2>

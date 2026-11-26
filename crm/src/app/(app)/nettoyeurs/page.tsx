@@ -19,6 +19,7 @@ import { LiveRefreshBadge } from "@/components/crm/live-refresh";
 import { adminLiveAction } from "@/app/actions/live";
 import { isOwner } from "@/lib/auth";
 import { LiveTracking } from "@/components/live/live-map";
+import { Stat } from "@/components/crm/home-kit";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Nettoyeurs" };
@@ -301,24 +302,70 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
 
       {tab === "nettoyeurs" && (
         <>
-          <Card className="mb-4">
-            <CardHeader><CardTitle>Nettoyeurs ({active.length})</CardTitle></CardHeader>
-            {!active.length ? <Empty>Aucun nettoyeur actif.</Empty> : (
-              <ul className="divide-y text-sm">{active.map((c) => {
-                const mine = J.filter((j) => j.cleaner_id === c.id);
-                return (
-                  <li key={c.id} className="flex flex-wrap items-center gap-3 px-5 py-3">
-                    <span className="min-w-0 flex-1"><b className="font-medium">{c.full_name}</b> {c.status === "suspendu" && <Badge tone="red">Suspendu</Badge>} {c.certified_at ? <Badge tone="green">Certifié · {c.training_score} %</Badge> : <Badge tone="orange">Formation à faire</Badge>}<span className="block text-xs text-muted-foreground">{c.email} · {c.lat != null ? `${c.radius_km} km autour de ${c.postal_code ?? ""}` : c.departments.join(", ")} · {mine.filter((j) => j.status === "validee").length} validé(s) · IBAN {c.iban ? "renseigné" : <b className="text-amber-700">manquant</b>}</span>
-                      <span className="mt-1 flex flex-wrap gap-1.5 text-xs">{training(c.id).map((t) => <span key={t.label} className={`rounded-full px-2 py-0.5 font-medium ${t.passed ? "bg-emerald-50 text-emerald-700" : t.tries ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-500"}`}>{t.label} : {t.tries ? `${t.best} %${t.passed ? " ✓" : " ✗"} · ${t.tries} essai${t.tries > 1 ? "s" : ""}` : "pas commencé"}</span>)}{c.certified_at && <span className="text-muted-foreground">Certificat {c.certificate_no}</span>}</span></span>
-                    {c.status === "actif" ? (<>
-                      <ConfirmAction action={renewCleanerLinkAction.bind(null, c.id)} label="Nouveau lien" size="sm" variant="outline" title="Créer un nouveau lien ?" description="L'ancien lien cesse de fonctionner. Le nouveau est envoyé par e-mail et affiché ici une fois." confirmLabel="Créer" />
-                      <ConfirmAction action={setCleanerStatusAction.bind(null, c.id, "suspendu")} label="Suspendre" size="sm" variant="ghost" title={`Suspendre ${c.full_name} ?`} description="Son lien est coupé et ses ménages à venir non commencés sont remis en ligne." confirmLabel="Suspendre" />
-                    </>) : <ConfirmAction action={setCleanerStatusAction.bind(null, c.id, "actif")} label="Réactiver" size="sm" variant="outline" title="Réactiver ce compte ?" description="Un nouveau lien devra lui être envoyé." confirmLabel="Réactiver" />}
-                  </li>
-                );
-              })}</ul>
-            )}
-          </Card>
+          {(() => {
+            const paidBy = new Map<string, number>();
+            for (const x of ((pay.data ?? []) as any[]).filter((q) => q.status === "paye")) paidBy.set(x.cleaner_id, (paidBy.get(x.cleaner_id) ?? 0) + Number(x.amount ?? 0));
+            const online = active.filter((c) => c.status === "actif" && c.online).length, certified = active.filter((c) => c.certified_at).length;
+            const idOk = active.filter((c) => ["verifie", "non_requis"].includes(c.identity_status)).length;
+            const dueTotal = J.filter((j) => j.status === "validee" && !j.payout_id).reduce((t, j) => t + Number(j.cleaner_amount ?? 0), 0);
+            const ID: Record<string, [string, "green" | "gray" | "orange" | "red"]> = { verifie: ["Identité vérifiée", "green"], non_requis: ["Identité non exigée", "gray"], en_cours: ["Identité en cours", "orange"], echec: ["Vérification échouée", "red"], a_verifier: ["Identité à vérifier", "orange"] };
+            const ago = (iso: string | null) => { if (!iso) return "jamais"; const m = Math.round((Date.now() - Date.parse(iso)) / 60000); return m < 1 ? "à l'instant" : m < 60 ? `il y a ${m} min` : m < 1440 ? `il y a ${Math.round(m / 60)} h` : `il y a ${Math.round(m / 1440)} j`; };
+            const STATUT: Record<string, string> = { etudiant: "Étudiant", auto_entrepreneur: "Auto-entrepreneur", entreprise: "Entreprise" };
+            return (
+              <>
+                <div className="pce-card mb-5 grid grid-cols-2 divide-x divide-y rounded-xl border bg-card px-4 sm:grid-cols-4 sm:divide-y-0 sm:px-6">
+                  <Stat label="Nettoyeurs actifs" value={String(active.filter((c) => c.status === "actif").length)} hint={online ? `${online} en ligne maintenant` : "aucun en ligne"} tone={online ? "ok" : undefined} href={href("carte")} />
+                  <Stat label="Formés et certifiés" value={`${certified}/${active.length}`} hint={certified === active.length ? "tous prêts" : `${active.length - certified} à former`} tone={certified === active.length ? "ok" : "warn"} href={href("nettoyeurs")} />
+                  <Stat label="Identité vérifiée" value={`${idOk}/${active.length}`} hint={idOk === active.length ? "tous contrôlés" : `${active.length - idOk} à contrôler`} tone={idOk === active.length ? "ok" : "warn"} href={href("nettoyeurs")} />
+                  <Stat label="À payer" value={eur(dueTotal).replace(" €", "")} unit="€" hint={dueTotal ? "ménages validés non payés" : "rien en attente"} href={href("paiements")} />
+                </div>
+                {!active.length ? <Card><Empty>Aucun nettoyeur actif.</Empty></Card> : (
+                  <div className="page-enter grid gap-4 lg:grid-cols-2">{active.map((c) => {
+                    const mine = J.filter((j) => j.cleaner_id === c.id), done = mine.filter((j) => j.status === "validee").length;
+                    const todo = mine.filter((j) => ["acceptee", "a_reprendre"].includes(j.status) && j.job_date >= today).length, review = mine.filter((j) => j.status === "a_verifier").length;
+                    const due = mine.filter((j) => j.status === "validee" && !j.payout_id).reduce((t, j) => t + Number(j.cleaner_amount ?? 0), 0), paid = paidBy.get(c.id) ?? 0;
+                    const [idLabel, idTone] = ID[c.identity_status] ?? ID.a_verifier;
+                    const initials = String(c.full_name).split(/\s+/).map((w: string) => w[0]).slice(0, 2).join("").toUpperCase();
+                    const issues = [!c.certified_at && "formation à terminer", !["verifie", "non_requis"].includes(c.identity_status) && "identité à vérifier", !c.iban && "IBAN manquant", !c.siret && "SIRET manquant"].filter(Boolean) as string[];
+                    return (
+                      <article key={c.id} className="pce-card flex flex-col gap-4 rounded-xl border bg-card p-5">
+                        <header className="flex items-start gap-3.5">
+                          <span className="relative shrink-0">
+                            {c.avatar ? <img src={`data:image/jpeg;base64,${c.avatar}`} alt="" className="h-14 w-14 rounded-full object-cover" /> : <span className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-lg font-semibold text-muted-foreground">{initials}</span>}
+                            {c.online && c.status === "actif" && <span className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-2 border-card bg-emerald-500" title="En ligne" />}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="truncate text-[17px] font-semibold leading-tight">{c.full_name}</h3>
+                            <p className="mt-0.5 text-xs text-muted-foreground">{STATUT[c.statut_pro] ?? "Indépendant"} · inscrit le {formatDate(c.created_at)} · vu {ago(c.last_seen_at)}</p>
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {c.status === "suspendu" && <Badge tone="red">Suspendu</Badge>}
+                              {c.certified_at ? <Badge tone="green">Certifié · {c.training_score} %</Badge> : <Badge tone="orange">Formation à faire</Badge>}
+                              <Badge tone={idTone}>{idLabel}</Badge>
+                            </div>
+                          </div>
+                        </header>
+                        <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                          <div><dt className="text-xs text-muted-foreground">Secteur</dt><dd className="font-medium">{c.lat != null ? `${c.radius_km} km autour de ${c.city ?? c.postal_code}` : `Dép. ${c.departments.join(", ")}`}</dd><dd className="text-xs text-muted-foreground">{c.postal_code ?? ""}{c.lat == null ? " · adresse non localisée" : ""}</dd></div>
+                          <div><dt className="text-xs text-muted-foreground">Contact</dt><dd className="font-medium">{c.phone ? <a className="hover:underline" href={`tel:${c.phone}`}>{c.phone}</a> : <b className="text-amber-700">pas de téléphone</b>}</dd><dd className="truncate text-xs text-muted-foreground"><a className="hover:underline" href={`mailto:${c.email}`}>{c.email}</a></dd></div>
+                          <div><dt className="text-xs text-muted-foreground">Activité (30 jours)</dt><dd className="font-medium">{done} validé{done > 1 ? "s" : ""} · {todo} à faire</dd>{review > 0 && <dd className="text-xs text-amber-700">{review} à vérifier par vous</dd>}</div>
+                          <div><dt className="text-xs text-muted-foreground">Argent</dt><dd className="num font-medium">{eur(due)} <span className="text-xs font-normal text-muted-foreground">à payer</span></dd><dd className="num text-xs text-muted-foreground">{eur(paid)} déjà versés · IBAN {c.iban ? "✓" : <b className="text-amber-700">manquant</b>}</dd></div>
+                        </dl>
+                        <div className="flex flex-wrap gap-1.5 text-xs">{training(c.id).map((t) => <span key={t.label} className={`rounded-full px-2 py-0.5 font-medium ${t.passed ? "bg-emerald-50 text-emerald-700" : t.tries ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-500"}`}>{t.label} : {t.tries ? `${t.best} %${t.passed ? " ✓" : " ✗"} · ${t.tries} essai${t.tries > 1 ? "s" : ""}` : "pas commencé"}</span>)}{c.certified_at && <span className="py-0.5 text-muted-foreground">Certificat {c.certificate_no}</span>}</div>
+                        {issues.length > 0 && c.status === "actif" && <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">À régler avant de lui confier des ménages : {issues.join(", ")}.</p>}
+                        <footer className="mt-auto flex flex-wrap gap-2 border-t pt-3">
+                          {c.status === "actif" ? (<>
+                            <ConfirmAction action={renewCleanerLinkAction.bind(null, c.id)} label="Nouveau lien" size="sm" variant="outline" title="Créer un nouveau lien ?" description="L'ancien lien cesse de fonctionner. Le nouveau est envoyé par e-mail et affiché ici une fois." confirmLabel="Créer" />
+                            <ConfirmAction action={setCleanerStatusAction.bind(null, c.id, "suspendu")} label="Suspendre" size="sm" variant="ghost" title={`Suspendre ${c.full_name} ?`} description="Son lien est coupé et ses ménages à venir non commencés sont remis en ligne." confirmLabel="Suspendre" />
+                          </>) : <ConfirmAction action={setCleanerStatusAction.bind(null, c.id, "actif")} label="Réactiver" size="sm" variant="outline" title="Réactiver ce compte ?" description="Un nouveau lien devra lui être envoyé." confirmLabel="Réactiver" />}
+                        </footer>
+                      </article>
+                    );
+                  })}</div>
+                )}
+                <div className="mb-4" />
+              </>
+            );
+          })()}
           <Card>
             <CardHeader><CardTitle>Favoris des propriétaires</CardTitle></CardHeader>
             <CardContent className="space-y-3 text-sm">
@@ -339,12 +386,95 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
         </>
       )}
 
-      {tab === "draps" && (
-        <>
-          <Card className="mb-4">
+      {tab === "draps" && (() => {
+        const runsOpen = linenRuns.filter((r) => r.status !== "fait" && r.cleaning_jobs?.status !== "annulee");
+        const runsDue = runsOpen.filter((r) => r.due_date <= today), washNow = linenRows.filter((l) => ["depose", "lave"].includes(l.status));
+        const STEPS = ["a_deposer", "depose", "lave", "renvoye", "recupere", "remis"];
+        const rel = (d: string) => (d === today ? "Aujourd'hui" : d < today ? `En retard (${dayFr(d)})` : dayFr(d));
+        const todoCount = runsDue.length + lowStock.length + washNow.length;
+        return (
+        <div className="page-enter space-y-4">
+          <section className="pce-card rounded-xl border bg-card p-5">
+            <h2 className="text-[17px] font-semibold">Comment ça marche</h2>
+            <ol className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+              <li className="rounded-lg bg-secondary/60 p-3"><b className="block">1 · Avant le ménage</b><span className="text-muted-foreground">Un livreur dépose les draps propres au logement. C&apos;est une « tournée de livraison ».</span></li>
+              <li className="rounded-lg bg-secondary/60 p-3"><b className="block">2 · Après le ménage</b><span className="text-muted-foreground">Le linge sale est récupéré (tournée « récupération ») ou envoyé en lavage par le nettoyeur.</span></li>
+              <li className="rounded-lg bg-secondary/60 p-3"><b className="block">3 · Lavage et retour</b><span className="text-muted-foreground">Lavé, renvoyé, remis en place : vous suivez chaque étape et le stock se met à jour tout seul.</span></li>
+            </ol>
+          </section>
+
+          <div className="pce-card grid grid-cols-2 divide-x divide-y rounded-xl border bg-card px-4 sm:grid-cols-4 sm:divide-y-0 sm:px-6">
+            <Stat label="Tournées à faire" value={String(runsOpen.length)} hint={runsDue.length ? `${runsDue.length} pour aujourd'hui ou en retard` : "rien d'urgent"} tone={runsDue.length ? "warn" : "ok"} href="#tournees" />
+            <Stat label="Linge en lavage" value={String(linenOpen.length)} hint={washNow.length ? `${washNow.length} à faire avancer` : "suivi à jour"} tone={washNow.length ? "warn" : undefined} href="#lavage" />
+            <Stat label="Logements à réapprovisionner" value={String(lowStock.length)} hint={lowStock.length ? "pas assez de linge propre" : "stock suffisant"} tone={lowStock.length ? "err" : "ok"} href="#stock" />
+            <Stat label="Livreurs actifs" value={String(couriers.filter((k) => k.active).length)} hint={couriers.length ? "voir plus bas" : "aucun : ajoutez-en un"} tone={couriers.length ? undefined : "warn"} href="#livreurs" />
+          </div>
+
+          <section className={`pce-card rounded-xl border p-5 ${todoCount ? "border-amber-300 bg-amber-50/50" : "bg-card"}`}>
+            <h2 className="text-[17px] font-semibold">{todoCount ? `À faire maintenant (${todoCount})` : "Tout est à jour ✓"}</h2>
+            {todoCount > 0 ? (
+              <ul className="mt-3 space-y-2 text-sm">
+                {runsDue.map((r) => <li key={r.id}><a href="#tournees" className="font-medium hover:underline">{r.kind === "livraison" ? "Livrer le linge propre" : "Récupérer le linge sale"}</a> · {r.cleaning_jobs?.title} · <span className="text-red-700">{rel(r.due_date)}</span>{r.linen_couriers?.full_name ? "" : " · aucun livreur assigné"}</li>)}
+                {lowStock.map((l) => <li key={l.id}><a href="#stock" className="font-medium hover:underline">{l.name}</a> : {l.linen_clean} parure{l.linen_clean > 1 ? "s" : ""} propre{l.linen_clean > 1 ? "s" : ""} pour {l.linen_per_stay} nécessaire{l.linen_per_stay > 1 ? "s" : ""} par séjour</li>)}
+                {washNow.map((l) => <li key={l.id}><a href="#lavage" className="font-medium hover:underline">{l.cleaning_jobs?.title}</a> : {l.status === "depose" ? "linge déposé, à marquer comme lavé" : "linge lavé, à marquer comme renvoyé"}</li>)}
+              </ul>
+            ) : <p className="mt-1 text-sm text-muted-foreground">Aucune tournée en retard, aucun stock bas, aucun lavage en attente de votre part.</p>}
+          </section>
+
+          <Card id="tournees" className="scroll-mt-24">
+            <CardHeader><CardTitle>Tournées ({runsOpen.length} à faire)</CardTitle></CardHeader>
+            {!linenRuns.length ? <Empty>{couriers.length ? "Aucune tournée : elles se créent avec les ménages publiés." : "Ajoutez un livreur (en bas de page) pour que les tournées se créent avec les ménages."}</Empty> : (
+              <ul className="divide-y text-sm">{linenRuns.filter((r) => r.cleaning_jobs?.status !== "annulee").map((r) => (
+                <li key={r.id} className="flex flex-wrap items-center gap-3 px-5 py-3">
+                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base ${r.kind === "livraison" ? "bg-blue-50" : "bg-orange-50"}`}>{r.kind === "livraison" ? "📦" : "🧺"}</span>
+                  <span className="min-w-0 flex-1"><b className="font-medium">{r.kind === "livraison" ? "Livrer le linge propre" : "Récupérer le linge sale"}</b> · {r.cleaning_jobs?.title}<span className="block text-xs text-muted-foreground">{r.status === "fait" ? `Fait${r.done_at ? ` le ${formatDate(r.done_at)}` : ""}` : rel(r.due_date)} · {r.cleaning_jobs?.city ?? ""}{r.linen_couriers?.full_name ? ` · ${r.linen_couriers.full_name}` : " · aucun livreur pour l'instant"}</span></span>
+                  <Badge tone={r.status === "fait" ? "green" : r.status === "en_route" ? "orange" : r.due_date <= today ? "red" : "blue"}>{r.status === "fait" ? "Fait" : r.status === "en_route" ? "En route" : "À faire"}</Badge>
+                </li>
+              ))}</ul>
+            )}
+          </Card>
+
+          <Card id="stock" className={`scroll-mt-24 ${lowStock.length ? "border-red-300" : ""}`}>
+            <CardHeader><CardTitle>Stock par logement{lowStock.length ? ` · ${lowStock.length} à réapprovisionner` : ""}</CardTitle></CardHeader>
+            {!stock.length ? <Empty>Aucun logement : ajoutez-les dans Conciergerie pour suivre leur linge.</Empty> : (
+              <ul className="divide-y text-sm">{stock.map((l) => {
+                const need = Math.max(1, l.linen_per_stay), pct = Math.min(100, Math.round((l.linen_clean / need) * 100)), low = l.linen_per_stay > 0 && l.linen_clean < l.linen_per_stay;
+                return (
+                  <li key={l.id} className="px-5 py-3">
+                    <form action={setListingLinenAction.bind(null, l.id)} className="flex flex-wrap items-end gap-3">
+                      <span className="min-w-0 flex-1 basis-56"><b className="font-medium">{l.name}</b><span className="block text-xs text-muted-foreground">{l.clients?.name}</span>
+                        {l.linen_per_stay > 0 && <span className="mt-1.5 block h-1.5 max-w-xs overflow-hidden rounded-full bg-secondary"><span className={`block h-full rounded-full ${low ? "bg-red-500" : "bg-emerald-500"}`} style={{ width: `${pct}%` }} /></span>}
+                        <span className={`mt-1 block text-xs ${low ? "font-medium text-red-700" : "text-muted-foreground"}`}>{l.linen_per_stay > 0 ? (low ? `Pas assez de linge propre : ${l.linen_clean} pour ${l.linen_per_stay} par séjour` : `Suffisant : ${l.linen_clean} propre${l.linen_clean > 1 ? "s" : ""} pour ${l.linen_per_stay} par séjour`) : "Besoin par séjour non renseigné"}</span></span>
+                      <label className="text-xs text-muted-foreground">Propres<Input name="linen_clean" type="number" min={0} max={200} defaultValue={l.linen_clean} className="mt-0.5 h-9 w-20" /></label>
+                      <label className="text-xs text-muted-foreground">Sales<Input name="linen_dirty" type="number" min={0} max={200} defaultValue={l.linen_dirty} className="mt-0.5 h-9 w-20" /></label>
+                      <label className="text-xs text-muted-foreground">Besoin par séjour<Input name="linen_per_stay" type="number" min={0} max={20} defaultValue={l.linen_per_stay} className="mt-0.5 h-9 w-24" /></label>
+                      <Button size="sm" variant="outline">Enregistrer</Button>
+                    </form>
+                  </li>
+                );
+              })}</ul>
+            )}
+            <p className="px-5 pb-4 pt-2 text-xs text-muted-foreground">Le stock bouge tout seul : un ménage terminé retire les parures d&apos;un séjour du propre et les ajoute au sale ; le livreur ajoute ce qu&apos;il dépose et emporte le sale. Corrigez ici si besoin.</p>
+          </Card>
+
+          <Card id="lavage" className="scroll-mt-24">
+            <CardHeader><CardTitle>Lavage des draps ({linenOpen.length} en cours)</CardTitle></CardHeader>
+            {!linenRows.length ? <Empty>Aucun linge en lavage pour l&apos;instant : il apparaît quand un nettoyeur termine un ménage ou qu&apos;un livreur récupère le linge sale.</Empty> : (
+              <ul className="divide-y text-sm">{linenRows.map((l) => { const idx = Math.max(0, STEPS.indexOf(l.status)); return (
+                <li key={l.id} className="flex flex-wrap items-center gap-3 px-5 py-3">
+                  <span className="min-w-0 flex-1 basis-56"><b className="font-medium">{l.cleaning_jobs?.title}</b><span className="block text-xs text-muted-foreground">{l.cleaning_jobs?.cleaners?.full_name} · {dayFr(l.cleaning_jobs?.job_date)}{l.method ? ` · ${l.method === "poste" ? "envoyé par la poste" : "par le livreur"}` : ""}{l.tracking ? ` · suivi ${l.tracking}` : ""}</span>
+                    <span className="mt-1.5 flex items-center gap-1" aria-hidden>{STEPS.map((_, i) => <span key={i} className={`h-1.5 w-7 rounded-full ${i <= idx ? (l.status === "remis" ? "bg-emerald-500" : "bg-primary") : "bg-secondary"}`} />)}</span></span>
+                  <Badge tone={l.status === "remis" ? "green" : l.status === "renvoye" || l.status === "recupere" ? "blue" : "orange"}>{LINEN_STEP[l.status]}</Badge>
+                  {l.status === "depose" && <form action={setLinenStatusAction.bind(null, l.job_id, "lave")}><Button size="sm" variant="outline">Marquer lavé</Button></form>}
+                  {l.status === "lave" && <form action={setLinenStatusAction.bind(null, l.job_id, "renvoye")}><Button size="sm" variant="outline">Marquer renvoyé</Button></form>}
+                </li>); })}</ul>
+            )}
+          </Card>
+
+          <Card id="livreurs" className="scroll-mt-24">
             <CardHeader><CardTitle>Livreurs de linge ({couriers.filter((k) => k.active).length})</CardTitle></CardHeader>
             <div className="space-y-4 px-5 pb-5">
-              <p className="text-sm text-muted-foreground">Le livreur a sa propre page : il voit ses tournées (livrer le linge propre avant le ménage, récupérer le linge sale après), appuie sur « Je pars », et le nettoyeur voit où il est. Dès qu&apos;un livreur existe, chaque ménage publié crée ses deux tournées.</p>
+              <p className="text-sm text-muted-foreground">Le livreur a sa propre page : il voit ses tournées, appuie sur « Je pars », et le nettoyeur voit où il est. Dès qu&apos;un livreur existe, chaque ménage publié crée ses deux tournées.</p>
               {couriers.length > 0 && <ul className="divide-y rounded-lg border text-sm">{couriers.map((k) => (
                 <li key={k.id} className="flex flex-wrap items-center gap-3 px-4 py-2.5">
                   <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${k.active ? "bg-emerald-500" : "bg-slate-300"}`} />
@@ -361,50 +491,9 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
               </form>
             </div>
           </Card>
-          <Card className="mb-4">
-            <CardHeader><CardTitle>Tournées de linge ({linenRuns.filter((r) => r.status !== "fait" && r.cleaning_jobs?.status !== "annulee").length} à faire)</CardTitle></CardHeader>
-            {!linenRuns.length ? <Empty>{couriers.length ? "Aucune tournée : elles se créent avec les ménages publiés." : "Ajoutez un livreur pour que les tournées se créent avec les ménages."}</Empty> : (
-              <ul className="divide-y text-sm">{linenRuns.filter((r) => r.cleaning_jobs?.status !== "annulee").map((r) => (
-                <li key={r.id} className="flex flex-wrap items-center gap-3 px-5 py-2.5">
-                  <span className="min-w-0 flex-1"><b className="font-medium">{r.kind === "livraison" ? "Livrer le linge propre" : "Récupérer le linge sale"}</b> · {r.cleaning_jobs?.title}<span className="block text-xs text-muted-foreground">{dayFr(r.due_date)} · {r.cleaning_jobs?.city ?? ""}{r.linen_couriers?.full_name ? ` · ${r.linen_couriers.full_name}` : " · aucun livreur pour l'instant"}{r.done_at ? ` · fait le ${formatDate(r.done_at)}` : ""}</span></span>
-                  <Badge tone={r.status === "fait" ? "green" : r.status === "en_route" ? "orange" : r.due_date <= today ? "red" : "blue"}>{r.status === "fait" ? "Fait" : r.status === "en_route" ? "En route" : "À faire"}</Badge>
-                </li>
-              ))}</ul>
-            )}
-          </Card>
-          <Card className={`mb-4 ${lowStock.length ? "border-red-300" : ""}`}>
-            <CardHeader><CardTitle>Stock de linge par logement{lowStock.length ? ` · ${lowStock.length} à réapprovisionner` : ""}</CardTitle></CardHeader>
-            {!stock.length ? <Empty>Aucun logement : ajoutez-les dans Conciergerie pour suivre leur linge.</Empty> : (
-              <ul className="divide-y text-sm">{stock.map((l) => (
-                <li key={l.id} className="px-5 py-2.5">
-                  <form action={setListingLinenAction.bind(null, l.id)} className="flex flex-wrap items-end gap-3">
-                    <span className="min-w-0 flex-1"><b className="font-medium">{l.name}</b><span className="block text-xs text-muted-foreground">{l.clients?.name}</span></span>
-                    {l.linen_per_stay > 0 && l.linen_clean < l.linen_per_stay && <Badge tone="red">Pas assez de linge propre</Badge>}
-                    <label className="text-xs text-muted-foreground">Propres<Input name="linen_clean" type="number" min={0} max={200} defaultValue={l.linen_clean} className="mt-0.5 h-9 w-20" /></label>
-                    <label className="text-xs text-muted-foreground">Sales<Input name="linen_dirty" type="number" min={0} max={200} defaultValue={l.linen_dirty} className="mt-0.5 h-9 w-20" /></label>
-                    <label className="text-xs text-muted-foreground">Par séjour<Input name="linen_per_stay" type="number" min={0} max={20} defaultValue={l.linen_per_stay} className="mt-0.5 h-9 w-20" /></label>
-                    <Button size="sm" variant="outline">Enregistrer</Button>
-                  </form>
-                </li>
-              ))}</ul>
-            )}
-            <p className="px-5 pb-4 pt-2 text-xs text-muted-foreground">Le stock bouge tout seul : un ménage terminé retire les parures d&apos;un séjour du propre et les ajoute au sale ; le livreur ajoute ce qu&apos;il dépose et emporte le sale. Corrigez ici si besoin.</p>
-          </Card>
-          <Card>
-            <CardHeader><CardTitle>Lavage des draps ({linenOpen.length} en cours)</CardTitle></CardHeader>
-            {!linenRows.length ? <Empty>Aucun linge en lavage pour l&apos;instant : il apparaît quand un nettoyeur termine un ménage ou qu&apos;un livreur récupère le linge sale.</Empty> : (
-              <ul className="divide-y text-sm">{linenRows.map((l) => (
-                <li key={l.id} className="flex flex-wrap items-center gap-3 px-5 py-2.5">
-                  <span className="min-w-0 flex-1"><b className="font-medium">{l.cleaning_jobs?.title}</b><span className="block text-xs text-muted-foreground">{l.cleaning_jobs?.cleaners?.full_name} · {dayFr(l.cleaning_jobs?.job_date)}{l.method ? ` · ${l.method === "poste" ? "poste" : "livreur"}` : ""}{l.tracking ? ` · suivi ${l.tracking}` : ""}</span></span>
-                  <Badge tone={l.status === "remis" ? "green" : l.status === "renvoye" || l.status === "recupere" ? "blue" : "orange"}>{LINEN_STEP[l.status]}</Badge>
-                  {l.status === "depose" && <form action={setLinenStatusAction.bind(null, l.job_id, "lave")}><Button size="sm" variant="outline">Marquer lavé</Button></form>}
-                  {l.status === "lave" && <form action={setLinenStatusAction.bind(null, l.job_id, "renvoye")}><Button size="sm" variant="outline">Marquer renvoyé</Button></form>}
-                </li>
-              ))}</ul>
-            )}
-          </Card>
-        </>
-      )}
+        </div>
+        );
+      })()}
 
       {tab === "paiements" && (
         <>
