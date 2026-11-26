@@ -143,6 +143,23 @@ export default async function Dashboard({ searchParams }: { searchParams?: { moi
         </div>
       )}
 
+      <section aria-label="À faire maintenant" className="mt-6">
+        <div className="mb-3 flex items-baseline justify-between">
+          <h2 className="text-[17px] font-semibold tracking-tight text-foreground">À faire maintenant</h2>
+          {actionsCount > 0 && <Link href="/actions" className="text-[13px] font-medium text-primary hover:underline">Tout voir ({actionsCount})</Link>}
+        </div>
+        <Card className="overflow-hidden">
+          <div className="py-1.5">
+            {inboxTotal > 0 && <Row href="/boite" lead={inboxTotal} title="Mails clients à répondre" right={<ArrowRight className="h-4 w-4" />} />}
+            {mails.length > 0 && <Row href={`/clients/${mails[0].clientId}#mails`} lead={mails.length} title="E-mails préparés à envoyer" right={<ArrowRight className="h-4 w-4" />} />}
+            {!actions.length && !inboxTotal && !mails.length ? <Empty>Rien à faire : tout est à jour.</Empty> : ordered.slice(0, 5).map((a) => (
+              <Row key={a.key} href={a.href} lead={a.count !== undefined ? a.count : ""} dot={a.count === undefined ? (a.tone === "red" ? "err" : a.tone === "orange" ? "warn" : undefined) : undefined}
+                title={a.label} right={<ArrowRight className="h-4 w-4" />} />
+            ))}
+          </div>
+        </Card>
+      </section>
+
       <Cockpit goal={cockpit.goal} activities={cockpit.activities} week={cockpit.week} />
 
       <PalierCard recurrent={mrr} contracts={rows.length} />
@@ -168,26 +185,16 @@ export default async function Dashboard({ searchParams }: { searchParams?: { moi
           hint={`${cl.filter((c) => c.status === "prospect").length} prospect(s)`} />
       </section>
 
-      <section aria-label="À faire maintenant" className="mt-9">
-        <div className="mb-3 flex items-baseline justify-between">
-          <h2 className="text-[17px] font-semibold tracking-tight text-foreground">À faire maintenant</h2>
-          {actionsCount > 0 && <Link href="/actions" className="text-[13px] font-medium text-primary hover:underline">Tout voir ({actionsCount})</Link>}
-        </div>
-        <Card className="overflow-hidden">
-          <div className="py-1.5">
-            {inboxTotal > 0 && <Row href="/boite" lead={inboxTotal} title="Mails clients à répondre" right={<ArrowRight className="h-4 w-4" />} />}
-            {mails.length > 0 && <Row href={`/clients/${mails[0].clientId}#mails`} lead={mails.length} title="E-mails préparés à envoyer" right={<ArrowRight className="h-4 w-4" />} />}
-            {!actions.length && !inboxTotal && !mails.length ? <Empty>Rien à faire : tout est à jour.</Empty> : ordered.slice(0, 5).map((a) => (
-              <Row key={a.key} href={a.href} lead={a.count !== undefined ? a.count : ""} dot={a.count === undefined ? (a.tone === "red" ? "err" : a.tone === "orange" ? "warn" : undefined) : undefined}
-                title={a.label} right={<ArrowRight className="h-4 w-4" />} />
-            ))}
-          </div>
-        </Card>
-      </section>
 
       <Objectives today={today} />
 
-      <h2 className="mb-3 mt-12 text-[17px] font-semibold tracking-tight text-foreground">Évolution et clients</h2>
+      <details className="group mt-10 rounded-2xl border border-border bg-card/60 open:bg-transparent open:border-transparent">
+        <summary className="flex cursor-pointer list-none items-center justify-between rounded-2xl px-5 py-3.5 text-[15px] font-semibold tracking-tight text-foreground hover:bg-secondary/50 group-open:px-0">
+          Évolution et clients
+          <span className="text-[13px] font-medium text-primary group-open:hidden">Afficher</span>
+        </summary>
+        <div className="pt-2">
+
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
@@ -230,6 +237,9 @@ export default async function Dashboard({ searchParams }: { searchParams?: { moi
         <CardHeader><CardTitle>Meilleurs clients (12 mois, HT)</CardTitle></CardHeader>
         <CardContent>{topClients.length ? <RankBars rows={topClients} /> : <Empty>Aucune facture émise.</Empty>}</CardContent>
       </Card>
+
+        </div>
+      </details>
 
     </>
   );
