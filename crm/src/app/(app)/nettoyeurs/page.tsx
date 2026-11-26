@@ -30,7 +30,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
   const tab = TABS.includes(searchParams.tab ?? "") ? searchParams.tab! : "carte";
   const sb = createClient();
   const today = parisToday();
-  const [cl, jobs, fav, pay, set, clients, pub, photos, linen, staffRes, bookRes, courRes, runRes, stockRes] = await Promise.all([
+  const [cl, jobs, fav, pay, set, clients, pub, photos, linen, staffRes, bookRes, courRes, runRes, stockRes, attRes] = await Promise.all([
     sb.from("cleaners").select("*").order("created_at", { ascending: false }),
     sb.from("cleaning_jobs").select("*, cleaners!cleaning_jobs_cleaner_id_fkey(full_name), clients(name)").neq("status", "annulee").gte("job_date", addDays(today, -30)).order("job_date"),
     sb.from("cleaner_favorites").select("cleaner_id, client_id, cleaners(full_name), clients(name)"),
@@ -44,8 +44,16 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
     sb.from("cleaning_bookings").select("*").order("created_at", { ascending: false }).limit(60),
     sb.from("linen_couriers").select("*").order("created_at"),
     sb.from("linen_runs").select("*, linen_couriers(full_name), cleaning_jobs(title, city, job_date, status)").gte("due_date", addDays(today, -2)).order("due_date").limit(120),
-    sb.from("concierge_listings").select("id, name, linen_clean, linen_dirty, linen_per_stay, clients(name)").order("name")
+    sb.from("concierge_listings").select("id, name, linen_clean, linen_dirty, linen_per_stay, clients(name)").order("name"),
+    sb.from("training_attempts").select("cleaner_id, module, score, passed, created_at").order("created_at", { ascending: false }).limit(500)
   ]);
+  const attempts = (attRes.error ? [] : (attRes.data ?? [])) as any[];
+  const MOD_LABEL: Record<string, string> = { app: "App", process: "Ménage", incident: "Casse" };
+  /** Résultat de formation d'un nettoyeur, module par module (meilleure note, nombre d'essais, dernier passage). */
+  const training = (id: string) => ["app", "process", "incident"].map((m) => {
+    const a = attempts.filter((x) => x.cleaner_id === id && x.module === m);
+    return { label: MOD_LABEL[m], tries: a.length, best: a.length ? Math.max(...a.map((x) => x.score)) : null, passed: a.some((x) => x.passed), last: a[0]?.created_at as string | undefined };
+  });
   const stock = (stockRes.error ? [] : (stockRes.data ?? [])) as any[], lowStock = stock.filter((l) => l.linen_per_stay > 0 && l.linen_clean < l.linen_per_stay);
   const couriers = (courRes.error ? [] : (courRes.data ?? [])) as any[], linenRuns = (runRes.error ? [] : (runRes.data ?? [])) as any[];
   if (cl.error) return (<><PageHeader title="Nettoyeurs" /><Card><Empty>Les nettoyeurs s&apos;installent : réessayez dans une minute.</Empty></Card></>);
@@ -300,7 +308,8 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
                 const mine = J.filter((j) => j.cleaner_id === c.id);
                 return (
                   <li key={c.id} className="flex flex-wrap items-center gap-3 px-5 py-3">
-                    <span className="min-w-0 flex-1"><b className="font-medium">{c.full_name}</b> {c.status === "suspendu" && <Badge tone="red">Suspendu</Badge>}<span className="block text-xs text-muted-foreground">{c.email} · {c.lat != null ? `${c.radius_km} km autour de ${c.postal_code ?? ""}` : c.departments.join(", ")} · {mine.filter((j) => j.status === "validee").length} validé(s) · IBAN {c.iban ? "renseigné" : <b className="text-amber-700">manquant</b>}</span></span>
+                    <span className="min-w-0 flex-1"><b className="font-medium">{c.full_name}</b> {c.status === "suspendu" && <Badge tone="red">Suspendu</Badge>} {c.certified_at ? <Badge tone="green">Certifié · {c.training_score} %</Badge> : <Badge tone="orange">Formation à faire</Badge>}<span className="block text-xs text-muted-foreground">{c.email} · {c.lat != null ? `${c.radius_km} km autour de ${c.postal_code ?? ""}` : c.departments.join(", ")} · {mine.filter((j) => j.status === "validee").length} validé(s) · IBAN {c.iban ? "renseigné" : <b className="text-amber-700">manquant</b>}</span>
+                      <span className="mt-1 flex flex-wrap gap-1.5 text-xs">{training(c.id).map((t) => <span key={t.label} className={`rounded-full px-2 py-0.5 font-medium ${t.passed ? "bg-emerald-50 text-emerald-700" : t.tries ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-500"}`}>{t.label} : {t.tries ? `${t.best} %${t.passed ? " ✓" : " ✗"} · ${t.tries} essai${t.tries > 1 ? "s" : ""}` : "pas commencé"}</span>)}{c.certified_at && <span className="text-muted-foreground">Certificat {c.certificate_no}</span>}</span></span>
                     {c.status === "actif" ? (<>
                       <ConfirmAction action={renewCleanerLinkAction.bind(null, c.id)} label="Nouveau lien" size="sm" variant="outline" title="Créer un nouveau lien ?" description="L'ancien lien cesse de fonctionner. Le nouveau est envoyé par e-mail et affiché ici une fois." confirmLabel="Créer" />
                       <ConfirmAction action={setCleanerStatusAction.bind(null, c.id, "suspendu")} label="Suspendre" size="sm" variant="ghost" title={`Suspendre ${c.full_name} ?`} description="Son lien est coupé et ses ménages à venir non commencés sont remis en ligne." confirmLabel="Suspendre" />
