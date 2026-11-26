@@ -23,7 +23,7 @@ export const SECTIONS_NAV: Section[] = [
     { href: "/croissance", label: "Croissance" }, { href: "/veille/territoire", label: "Territoire", also: ["/sites"] }, { href: "/veille", label: "Veille concurrentielle" }, { href: "/croissance/aides", label: "Aides publiques" }
   ] },
   { key: "media", label: "Média", icon: Clapperboard, tabs: [{ href: "/media", label: "Média" }] },
-  { key: "messages", label: "Messages", icon: MessageCircle, tabs: [{ href: "/messages", label: "Agents" }] }
+  { key: "messages", label: "Messages", icon: MessageCircle, tabs: [{ href: "/messages", label: "Messages" }] }
 ];
 
 /** Menu du profil : réglages et supervision, hors du menu principal. */
