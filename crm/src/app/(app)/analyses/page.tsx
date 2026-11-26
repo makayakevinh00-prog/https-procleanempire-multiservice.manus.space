@@ -22,11 +22,11 @@ import {
   GroupedBars,
   Legend,
   LineChart,
-  PALETTE,
   PieChart,
   Waterfall,
   type WaterStep,
 } from "@/components/crm/charts-more";
+import { PALETTE } from "@/lib/chart-colors";
 import { CATEGORY as SUPPLIER_CATEGORY } from "@/components/crm/supplier-fields";
 import { formatEUR, round2 } from "@/lib/utils";
 

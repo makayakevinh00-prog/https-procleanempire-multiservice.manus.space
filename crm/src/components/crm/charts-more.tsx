@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { formatEUR } from "@/lib/utils";
 
 /** Palette sobre, lisible aussi pour les daltoniens : bleu, orange, vert, gris. Le texte reste en encre neutre. */
-export const PALETTE = ["#2b4c7e", "#c98a2b", "#2f7a55", "#9aa3b2"] as const;
+import { PALETTE } from "@/lib/chart-colors";
 /** Coupe un libellé en 2 lignes au plus, sur les espaces. */
 const wrap = (t: string): string[] => {
   if (t.length <= 11 || !t.includes(" ")) return [t];
