@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdmin } from "@/lib/supabase/server";
 import { stripe, verifyStripeSignature } from "@/lib/stripe";
+import { syncIdentity } from "@/lib/identity";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,9 @@ export async function POST(req: Request) {
   const obj = event?.data?.object ?? {};
 
   try {
-    if (event.type === "checkout.session.completed" && obj.mode === "setup" && obj.setup_intent) {
+    if (typeof event.type === "string" && event.type.startsWith("identity.verification_session.") && obj.id && obj.metadata?.cleaner_id) {
+      await syncIdentity(obj.metadata.cleaner_id, obj.id);
+    } else if (event.type === "checkout.session.completed" && obj.mode === "setup" && obj.setup_intent) {
       const clientId = obj.metadata?.client_id;
       if (clientId) {
         const si = await stripe<any>("GET", `/setup_intents/${obj.setup_intent}`, { expand: ["payment_method"] });

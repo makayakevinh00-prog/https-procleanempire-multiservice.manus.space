@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Award, ChevronRight, GraduationCap } from "lucide-react";
+import { Award, ChevronRight, GraduationCap, ShieldCheck } from "lucide-react";
 import { agentClient, agentMessage, isToken, type CleanerOverview } from "@/lib/agent";
 import { cleanerProfileAction } from "@/app/actions/nettoyeur";
 import { initials } from "@/lib/field-ui";
@@ -21,6 +21,7 @@ export default async function CleanerProfile({ params, searchParams }: { params:
   const o = data as CleanerOverview;
   const photo = (await agentClient().rpc("cleaner_avatar", { p_token: params.token })).data as string | null;
   const tr = (await agentClient().rpc("cleaner_training", { p_token: params.token })).data as TrainingState | null;
+  const idn = (await agentClient().rpc("cleaner_identity", { p_token: params.token })).data as { status: string } | null;
   const passed = tr ? MODULE_LIST.filter((m) => tr.modules[m].passed).length : 0;
   return (
     <>
@@ -34,6 +35,9 @@ export default async function CleanerProfile({ params, searchParams }: { params:
         <div className="mt-3 text-[13px] font-extrabold uppercase tracking-[0.14em] text-[var(--a-mute)]">Ménages validés</div>
         <b className="num text-[44px] leading-tight text-[var(--a-pri)]">{o.done}</b>
       </section>
+      {idn && idn.status !== "non_requis" && (
+        <Link href={`/nettoyeur/${params.token}/identite`} className={`mt-4 flex items-center justify-between rounded-3xl p-4 text-[16px] font-extrabold ${idn.status === "verifie" ? "bg-[var(--a-okbg)] text-[var(--a-ok)]" : "bg-[var(--a-warnbg)] text-[var(--a-warn)]"}`}><span className="inline-flex items-center gap-2"><ShieldCheck className="h-5 w-5" />{idn.status === "verifie" ? "Identité vérifiée" : idn.status === "en_cours" ? "Vérification d'identité en cours" : "Vérifier mon identité"}</span><ChevronRight className="h-5 w-5" /></Link>
+      )}
       <Link href={`/nettoyeur/${params.token}/formation`} className="mt-4 flex items-center justify-between rounded-3xl bg-[var(--a-card)] p-4 text-[16px] font-extrabold">Formation et certificat ProClean<ChevronRight className="h-5 w-5 text-[var(--a-mute)]" /></Link>
       <Reliability r={o.reliability} />
       {searchParams.error && <div role="alert" className="mt-4 rounded-2xl bg-[var(--a-badbg)] p-3 text-sm font-semibold text-[var(--a-bad)]">{searchParams.error}</div>}

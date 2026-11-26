@@ -15,7 +15,9 @@ import { automationClient, automationSecret } from "@/lib/automation/deps";
 import { notifyOutcome, runAfterAnalysis, type AfterOutcome } from "@/lib/marketplace/inspect";
 import { autoAcceptBookings, trackUrl } from "@/lib/marketplace/auto-accept";
 import { hashPassword, passwordOk, verifyPassword } from "@/lib/password";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdmin } from "@/lib/supabase/server";
+import { stripe } from "@/lib/stripe";
+import type { CleanerIdentity } from "@/lib/identity";
 import { tripPing } from "@/lib/marketplace/trip";
 import type { LiveJob } from "@/lib/live";
 import { MODULES, isModule, type TrainingResult, type TrainingState } from "@/lib/formation";
@@ -158,6 +160,30 @@ export async function cleanerRequestPayoutAction(token: string) {
   }
   revalidatePath(base(token), "layout");
   go(token, `/factures/${r.payout}`, "ok", "Demande envoyée. Voici votre facture : vous serez payé par virement.");
+}
+
+/** Démarre la vérification d'identité (pièce + selfie) chez Stripe Identity : la personne est envoyée sur la page sécurisée de Stripe, puis revient ici. */
+export async function startIdentityAction(token: string) {
+  guard(token);
+  const { data, error } = await agentClient().rpc("cleaner_identity", { p_token: token });
+  if (error) go(token, "/identite", "error", agentMessage(error.message));
+  const c = data as CleanerIdentity;
+  if (c.status === "verifie" || c.status === "non_requis") go(token, "/identite", "ok", "Votre identité est déjà vérifiée.");
+  let url: string | null = null;
+  try {
+    const s = await stripe<{ id: string; url: string }>("POST", "/identity/verification_sessions", {
+      type: "document",
+      options: { document: { require_matching_selfie: true, require_live_capture: true, allowed_types: ["driving_license", "passport", "id_card"] } },
+      metadata: { cleaner_id: c.id },
+      provided_details: { email: c.email },
+      return_url: `${origin()}${base(token, "/identite")}`
+    });
+    await createAdmin().from("cleaners").update({ identity_status: "en_cours", identity_session_id: s.id }).eq("id", c.id);
+    url = s.url;
+  } catch (e) {
+    go(token, "/identite", "error", e instanceof Error && /identity/i.test(e.message) ? "La vérification d'identité n'est pas encore activée. Prévenez votre responsable." : "Impossible de démarrer la vérification pour le moment. Réessayez dans quelques minutes.");
+  }
+  if (url) redirect(url);
 }
 
 /** Prime « linge lavé » : le nettoyeur indique qu'il a lavé les draps lui-même. */
