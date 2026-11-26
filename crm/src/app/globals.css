@@ -99,6 +99,23 @@ html.lights-on .pce-app { animation: pce-wake 1.5s cubic-bezier(0.16, 1, 0.3, 1)
 .page-enter tbody tr:nth-child(9) { animation-delay: 380ms; } .page-enter tbody tr:nth-child(10) { animation-delay: 410ms; }
 .page-enter tbody tr:nth-child(n + 11) { animation-delay: 440ms; }
 
+/* Pages dont tout est dans un seul bloc : ce sont les blocs à l'intérieur qui entrent un à un. */
+.page-enter > div:only-child { animation: none; }
+.page-enter > div:only-child > * { animation: pce-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+.page-enter > div:only-child > *:nth-child(2) { animation-delay: 60ms; }
+.page-enter > div:only-child > *:nth-child(3) { animation-delay: 120ms; }
+.page-enter > div:only-child > *:nth-child(4) { animation-delay: 180ms; }
+.page-enter > div:only-child > *:nth-child(5) { animation-delay: 240ms; }
+.page-enter > div:only-child > *:nth-child(6) { animation-delay: 300ms; }
+.page-enter > div:only-child > *:nth-child(n + 7) { animation-delay: 360ms; }
+/* Listes : les lignes arrivent en cascade légère. */
+.page-enter li { animation: pce-row 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+.page-enter li:nth-child(2) { animation-delay: 40ms; } .page-enter li:nth-child(3) { animation-delay: 80ms; }
+.page-enter li:nth-child(4) { animation-delay: 120ms; } .page-enter li:nth-child(5) { animation-delay: 160ms; }
+.page-enter li:nth-child(n + 6) { animation-delay: 200ms; }
+/* Boutons et liens cliquables : léger retour au toucher, comme sur iPhone. */
+.page-enter button:not(:disabled):active, .page-enter a.pce-lift:active { transform: scale(0.98); transition: transform 0.12s ease; }
+
 /* Cartes : un reflet suit la souris, la carte se soulève quand elle est cliquable. */
 .pce-card { position: relative; transition: box-shadow 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease; }
 .pce-card::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity 0.35s ease;
@@ -128,7 +145,7 @@ tbody tr { position: relative; }
 .pce-live-dot { display: inline-block; height: 6px; width: 6px; border-radius: 9999px; background: currentColor; animation: pce-pulse 1.8s ease-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .pce-ambient, .page-enter > *, .page-enter tbody tr, .pce-nav-ind, .pce-skeleton, .pce-live-dot, html.lights-on .pce-app { animation: none !important; }
+  .pce-ambient, .page-enter > *, .page-enter > div:only-child > *, .page-enter li, .page-enter tbody tr, .pce-nav-ind, .pce-skeleton, .pce-live-dot, html.lights-on .pce-app { animation: none !important; }
   html.lights-on body:has(.pce-app)::before { display: none; }
   .pce-card, .pce-nav-link svg { transition: none; }
 }
