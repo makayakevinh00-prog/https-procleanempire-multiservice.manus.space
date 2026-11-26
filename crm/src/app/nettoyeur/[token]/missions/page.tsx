@@ -152,9 +152,9 @@ export default async function CleanerMissions({ params, searchParams }: { params
                   {needPhotos && (roomsOf[j.id]?.some((r) => !r.avant || !r.apres) ?? false) && <p className="text-center text-xs text-[var(--a-mute)]">Il manque des photos de pièces : prenez-les, ou expliquez pourquoi dans le mot ci-dessus.</p>}
                 </form>
               )}
-              {(j.status === "acceptee" || j.status === "a_verifier" || j.status === "a_reprendre") && (
+              {(j.status === "acceptee" || j.status === "a_verifier" || j.status === "a_reprendre" || j.status === "validee") && (
                 <form action={cleanerLinenWashedAction.bind(null, token, j.id)} className="flex items-center justify-between gap-3 rounded-2xl bg-[var(--a-bg)] p-3 text-[14px]">
-                  <span className="min-w-0"><b className="block text-[15px]">🧺 Je lave les draps moi-même</b><span className="text-[var(--a-mute)]">{j.linen_washed ? `Prime linge de ${eur(Number(j.linen_bonus ?? 0))} ajoutée à ce ménage.` : "Une prime est ajoutée à votre paie pour ce ménage."}</span></span>
+                  <span className="min-w-0"><b className="block text-[15px]">🧺 J&apos;ai lavé les draps moi-même</b><span className="text-[var(--a-mute)]">{j.linen_washed ? `Lavage des draps facturé : ${eur(Number(j.linen_bonus ?? 0))} ajoutés à ce ménage.` : "Si vous lavez les draps, vous nous les facturez ici : le lavage est ajouté à votre paie pour ce ménage."}</span></span>
                   <input type="hidden" name="washed" value={j.linen_washed ? "0" : "1"} />
                   <button className={`h-11 shrink-0 rounded-xl px-4 text-[14px] font-extrabold ${j.linen_washed ? "bg-[var(--a-card)] text-[var(--a-ink)]" : "bg-[var(--a-pri)] text-white"}`}>{j.linen_washed ? "Retirer" : "Ajouter"}</button>
                 </form>
