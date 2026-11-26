@@ -18,7 +18,7 @@ import { hashPassword, passwordOk, verifyPassword } from "@/lib/password";
 import { createClient } from "@/lib/supabase/server";
 import { tripPing } from "@/lib/marketplace/trip";
 import type { LiveJob } from "@/lib/live";
-import { isModule, type TrainingResult } from "@/lib/formation";
+import { MODULES, isModule, type TrainingResult, type TrainingState } from "@/lib/formation";
 
 const sha = (c: string) => createHash("sha256").update(c).digest("hex");
 const origin = () => { const h = headers(); return `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`; };
@@ -121,10 +121,25 @@ export async function cleanerLinenAction(token: string, jobId: string, fd: FormD
 export async function cleanerTrainingSubmitAction(token: string, module: string, answers: Record<string, number>): Promise<{ error?: string; result?: TrainingResult }> {
   guard(token);
   if (!isModule(module)) return { error: "Module inconnu." };
+  const before = (await agentClient().rpc("cleaner_training", { p_token: token })).data as TrainingState | null;
   const { data, error } = await agentClient().rpc("cleaner_training_submit", { p_token: token, p_module: module, p_answers: answers });
   if (error) return { error: agentMessage(error.message) };
   revalidatePath(base(token), "layout");
-  return { result: data as TrainingResult };
+  const r = data as TrainingResult;
+  await notifyTraining(before, module, r).catch(() => undefined);
+  return { result: r };
+}
+
+/** Prévient la direction : certification obtenue (une seule fois) ou module raté. Un module déjà réussi qu'on repasse ne déclenche rien. */
+async function notifyTraining(before: TrainingState | null, module: string, r: TrainingResult) {
+  if (!mailConfigured() || !before || !isModule(module)) return;
+  const to = process.env.MAIL_ADMIN ?? "contact@procleanempire.com", name = before.name ?? "Un nettoyeur", title = MODULES[module].title;
+  if (r.certified && !before.certified_at) {
+    await sendMail({ to, subject: `Nettoyeur certifié — ${name}`, text: `${name} vient d'obtenir le certificat ProClean : dernier module « ${title} » réussi à ${r.score} %.\n\nSes ménages sont maintenant débloqués.\nDétail : CRM › Nettoyeurs.` });
+  } else if (!r.passed) {
+    const tries = (before.modules[module]?.attempts ?? 0) + 1;
+    await sendMail({ to, subject: `Examen raté — ${name}`, text: `${name} a raté le module « ${title} » : ${r.score} % (${r.pass_mark} % demandés), essai n° ${tries}.\n\nIl ou elle peut repasser l'examen après avoir relu le cours.\nDétail : CRM › Nettoyeurs.` });
+  }
 }
 
 /** Prime « linge lavé » : le nettoyeur indique qu'il a lavé les draps lui-même. */
