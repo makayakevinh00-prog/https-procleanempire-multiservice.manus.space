@@ -13,7 +13,7 @@ export interface PreparedMail { id: string; agent_key: string; created_at: strin
 export function PreparedMails({ mails, recipients, back }: { mails: PreparedMail[]; recipients: Recipient[]; back: string }) {
   if (!mails.length) return null;
   return (
-    <section id="mails" className="mb-4 scroll-mt-24 rounded-xl border border-amber-300 bg-amber-50/40">
+    <section id="mails" className="mb-4 scroll-mt-24 rounded-xl border border-border bg-secondary/40">
       <h2 className="flex items-center gap-2 px-4 pt-2.5 text-sm font-semibold"><Mail className="h-4 w-4 text-amber-700" />E-mails préparés ({mails.length}) · à vérifier et envoyer</h2>
       <ul className="divide-y divide-amber-200/60">
         {mails.map((m) => (

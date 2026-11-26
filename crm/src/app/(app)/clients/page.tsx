@@ -49,7 +49,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: { q?
         <Stat label="Archivés" value={archived.length} tone="slate" icon={Archive} href="/clients?etape=archives" />
       </div>
 
-      {mailsTotal > 0 && <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50/60 px-4 py-3 text-sm"><b>{mailsTotal} e-mail(s) préparé(s)</b> attendent votre envoi : repérez la pastille orange sur la ligne du client, ouvrez sa fiche et cliquez sur Envoyer.</div>}
+      {mailsTotal > 0 && <div className="mb-4 rounded-xl border border-border bg-secondary/50 px-4 py-3 text-sm"><b>{mailsTotal} e-mail(s) préparé(s)</b> attendent votre envoi : repérez la pastille orange sur la ligne du client, ouvrez sa fiche et cliquez sur Envoyer.</div>}
 
       <Tabs items={tabs} />
 
