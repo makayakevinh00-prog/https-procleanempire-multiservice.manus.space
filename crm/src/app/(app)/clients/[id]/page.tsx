@@ -45,7 +45,6 @@ export default async function ClientPage({ params, searchParams }: { params: { i
   const inv = invoices.data ?? [];
   const recipients = await loadRecipients(supabase, c.id);
   const prepared = owner && !c.is_reserved ? (((await supabase.from("jarvis_actions").select("id, agent_key, created_at, payload").eq("kind", "send_email").eq("status", "proposed").filter("payload->>client_id", "eq", c.id).order("created_at", { ascending: false })).data ?? []) as PreparedMail[]).filter((m) => m.payload?.subject && m.payload?.body) : [];
-  const unanswered = owner ? ((await supabase.from("inbound_emails").select("id", { count: "exact", head: true }).eq("client_id", c.id).eq("status", "a_repondre")).count ?? 0) : 0;
   const issued = inv.filter((i) => i.status !== "brouillon" && i.status !== "annule");
   const billedHt = issued.reduce((a, i) => a + n(i.total_ht), 0);
   const due = inv.filter((i) => ["envoye", "en_retard"].includes(i.status)).reduce((a, i) => a + n(i.total_ttc) - n(i.paid_amount), 0);
@@ -103,7 +102,6 @@ export default async function ClientPage({ params, searchParams }: { params: { i
         <Stat label="Devis" value={quotes.data?.length ?? 0} sub={`${(quotes.data ?? []).filter((q) => q.status === "envoye").length} en attente de réponse`} tone="violet" icon={FilePlus} />
       </div>
 
-      {unanswered > 0 && <Link href="/boite" className="mb-4 flex items-center gap-2 rounded-xl border border-sky-300 bg-sky-50/40 px-4 py-2 text-sm font-medium text-sky-900 hover:bg-sky-50"><Mail className="h-4 w-4" />{unanswered} mail(s) de ce client à répondre — ouvrir la boîte</Link>}
       <PreparedMails mails={prepared} recipients={recipients} back={`/clients/${c.id}`} />
 
       <Tabs items={tabs} />
