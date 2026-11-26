@@ -15,8 +15,14 @@ export async function POST(req: Request) {
   if (!verifyStripeSignature(payload, req.headers.get("stripe-signature"), secret)) return NextResponse.json({ error: "signature" }, { status: 400 });
   let event: any;
   try { event = JSON.parse(payload); } catch { return NextResponse.json({ error: "format" }, { status: 400 }); }
-  const sb = createAdmin();
   const obj = event?.data?.object ?? {};
+  if (typeof event.type === "string" && event.type.startsWith("identity.verification_session.")) {
+    if (obj.id && obj.metadata?.cleaner_id) {
+      try { await syncIdentity(obj.metadata.cleaner_id, obj.id); } catch (e) { console.error("[identité] webhook", e); return NextResponse.json({ error: "traitement" }, { status: 500 }); }
+    }
+    return NextResponse.json({ received: true });
+  }
+  const sb = createAdmin();
 
   try {
     if (typeof event.type === "string" && event.type.startsWith("identity.verification_session.") && obj.id && obj.metadata?.cleaner_id) {

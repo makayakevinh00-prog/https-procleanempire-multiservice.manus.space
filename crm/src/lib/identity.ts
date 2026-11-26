@@ -1,4 +1,4 @@
-import { createAdmin } from "@/lib/supabase/server";
+import { agentClient } from "@/lib/agent";
 import { stripe } from "@/lib/stripe";
 
 export type IdentityStatus = "a_verifier" | "en_cours" | "verifie" | "echec" | "non_requis";
@@ -12,6 +12,9 @@ export const statusFromSession = (s: { status?: string; last_error?: unknown }):
 export async function syncIdentity(cleanerId: string, sessionId: string): Promise<IdentityStatus> {
   const s = await stripe<{ status?: string; last_error?: unknown }>("GET", `/identity/verification_sessions/${sessionId}`);
   const status = statusFromSession(s);
-  await createAdmin().from("cleaners").update({ identity_status: status, identity_verified_at: status === "verifie" ? new Date().toISOString() : null }).eq("id", cleanerId).eq("identity_session_id", sessionId);
+  const secret = process.env.IDENTITY_SYNC_SECRET;
+  if (!secret) throw new Error("IDENTITY_SYNC_SECRET manquante");
+  const { error } = await agentClient().rpc("cleaner_identity_apply", { p_secret: secret, p_id: cleanerId, p_session: sessionId, p_status: status });
+  if (error) throw new Error(`Enregistrement du statut d'identité refusé : ${error.message}`);
   return status;
 }
