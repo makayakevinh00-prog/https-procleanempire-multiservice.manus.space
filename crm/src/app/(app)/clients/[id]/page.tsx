@@ -21,6 +21,7 @@ import { RecipientPicker } from "@/components/crm/recipient-picker";
 import { remainingOf, sendable } from "@/lib/invoice-batch";
 import { isOwner } from "@/lib/auth";
 import { loadRecipients } from "@/lib/recipients";
+import { PreparedMails, type PreparedMail } from "@/components/crm/prepared-mails";
 import { PIPELINE, PIPELINE_LABEL, PIPELINE_TONE, type Pipeline } from "@/lib/request-type";
 import { cn, dueInfo, formatDate, formatEUR, formatHours } from "@/lib/utils";
 
@@ -43,6 +44,7 @@ export default async function ClientPage({ params, searchParams }: { params: { i
   ]);
   const inv = invoices.data ?? [];
   const recipients = await loadRecipients(supabase, c.id);
+  const prepared = owner && !c.is_reserved ? (((await supabase.from("jarvis_actions").select("id, agent_key, created_at, payload").eq("kind", "send_email").eq("status", "proposed").filter("payload->>client_id", "eq", c.id).order("created_at", { ascending: false })).data ?? []) as PreparedMail[]).filter((m) => m.payload?.subject && m.payload?.body) : [];
   const issued = inv.filter((i) => i.status !== "brouillon" && i.status !== "annule");
   const billedHt = issued.reduce((a, i) => a + n(i.total_ht), 0);
   const due = inv.filter((i) => ["envoye", "en_retard"].includes(i.status)).reduce((a, i) => a + n(i.total_ttc) - n(i.paid_amount), 0);
@@ -99,6 +101,8 @@ export default async function ClientPage({ params, searchParams }: { params: { i
         <Stat label="Contrats actifs" value={activeContracts} sub={`${contracts.data?.length ?? 0} au total`} tone="blue" icon={Repeat} />
         <Stat label="Devis" value={quotes.data?.length ?? 0} sub={`${(quotes.data ?? []).filter((q) => q.status === "envoye").length} en attente de réponse`} tone="violet" icon={FilePlus} />
       </div>
+
+      <PreparedMails mails={prepared} recipients={recipients} back={`/clients/${c.id}`} />
 
       <Tabs items={tabs} />
 

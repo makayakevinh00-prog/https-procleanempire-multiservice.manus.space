@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Lock, ArrowRight, Sparkles } from "lucide-react";
+import { Lock, ArrowRight } from "lucide-react";
+import { isOwner } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getSettings, num, numOrNull } from "@/lib/data";
 import { menuCountsFrom } from "@/lib/actions";
@@ -37,6 +38,16 @@ export default async function Dashboard({ searchParams }: { searchParams?: { moi
     supabase.from("clients").select("kind, status")
   ]);
   for (const r of [contracts, invoices, quotes, payments, reserved, clients]) if (r.error) throw new Error(r.error.message);
+
+  // E-mails préparés par les agents, à envoyer depuis la fiche du client.
+  const mails: { id: string; clientId: string; client: string; subject: string }[] = [];
+  if (await isOwner()) {
+    const pm = ((await supabase.from("jarvis_actions").select("id, payload, created_at").eq("kind", "send_email").eq("status", "proposed").order("created_at", { ascending: false })).data ?? []) as any[];
+    const ids = Array.from(new Set(pm.map((a) => a.payload?.client_id).filter(Boolean)));
+    const names = new Map<string, { name: string; reserved: boolean }>();
+    if (ids.length) for (const c of ((await supabase.from("clients").select("id, name, is_reserved").in("id", ids)).data ?? []) as any[]) names.set(c.id, { name: c.name, reserved: c.is_reserved });
+    for (const a of pm) { const c = names.get(a.payload?.client_id); if (c && !c.reserved && a.payload?.subject && a.payload?.body) mails.push({ id: a.id, clientId: a.payload.client_id, client: c.name, subject: a.payload.subject }); }
+  }
 
   const inv = (invoices.data ?? []) as any[];
   const drafts = inv.filter((i) => i.status === "brouillon");
@@ -208,11 +219,16 @@ export default async function Dashboard({ searchParams }: { searchParams?: { moi
         <CardHeader><CardTitle>Meilleurs clients (12 mois, HT)</CardTitle></CardHeader>
         <CardContent>{topClients.length ? <RankBars rows={topClients} /> : <Empty>Aucune facture émise.</Empty>}</CardContent>
       </Card>
-      <Link href="/jarvis" className="mt-8 flex items-center gap-4 rounded-2xl bg-card px-5 py-4 text-[15px] text-secondary-foreground shadow-[0_1px_2px_rgba(17,18,20,0.04),0_8px_24px_rgba(17,18,20,0.04)] transition-colors hover:bg-secondary/40">
-        <Sparkles className="h-5 w-5 text-primary" strokeWidth={1.5} />
-        <span><b className="font-medium text-foreground">JARVIS</b> · vos agents et leurs alertes</span>
-        <span className="ml-auto inline-flex items-center gap-1 text-[13px] font-medium text-primary">Ouvrir la supervision <ArrowRight className="h-4 w-4" /></span>
-      </Link>
+      {mails.length > 0 && (
+        <Card className="mt-8 border-amber-300 bg-amber-50/40">
+          <CardHeader><CardTitle>✉️ E-mails préparés à envoyer ({mails.length})</CardTitle></CardHeader>
+          <ul className="divide-y">
+            {mails.slice(0, 6).map((m) => (
+              <li key={m.id}><Link href={`/clients/${m.clientId}#mails`} className="flex items-center gap-3 px-6 py-3 text-[15px] hover:bg-amber-50"><span className="min-w-0 flex-1"><b className="font-medium">{m.client}</b><span className="block truncate text-sm text-muted-foreground">{m.subject}</span></span><span className="text-[13px] font-medium text-primary">Ouvrir la fiche</span></Link></li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
     </>
   );

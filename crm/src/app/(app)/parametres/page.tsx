@@ -36,7 +36,6 @@ export default async function SettingsPage() {
         <CardContent className="space-y-2 text-sm text-secondary-foreground">
           <p>La supervision de vos agents (validation des e-mails proposés, alertes) et l&apos;Open space animé ne sont plus dans le menu. Ils restent disponibles ici.</p>
           <div className="flex flex-wrap gap-3 font-medium">
-            <Link href="/jarvis" className="text-primary hover:underline">Supervision JARVIS</Link>
             <Link href="/jarvis/alertes" className="text-primary hover:underline">Alertes</Link>
           </div>
         </CardContent>

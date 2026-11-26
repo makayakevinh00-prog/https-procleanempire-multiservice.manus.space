@@ -11,12 +11,17 @@ import { Stat } from "@/components/ui/stat";
 import { Tabs } from "@/components/ui/tabs";
 import { PIPELINE, PIPELINE_LABEL, PIPELINE_TONE, type Pipeline } from "@/lib/request-type";
 import { cn } from "@/lib/utils";
+import { MailBadge } from "@/components/crm/prepared-mails";
+import { isOwner } from "@/lib/auth";
 
 export default async function ClientsPage({ searchParams }: { searchParams: { q?: string; filtre?: string; etape?: string } }) {
   const supabase = createClient();
   const { data: all, error } = await supabase.from("clients").select("*").order("name");
   if (error) throw new Error(error.message);
   const rows = (all ?? []) as any[];
+  const mailsBy = new Map<string, number>();
+  if (await isOwner()) for (const a of ((await supabase.from("jarvis_actions").select("payload").eq("kind", "send_email").eq("status", "proposed")).data ?? []) as any[]) if (a.payload?.client_id && a.payload?.subject) mailsBy.set(a.payload.client_id, (mailsBy.get(a.payload.client_id) ?? 0) + 1);
+  const mailsTotal = Array.from(mailsBy.values()).reduce((t, v) => t + v, 0);
   const q = searchParams.q?.trim().toLowerCase();
 
   const archived = rows.filter((c) => c.status === "inactif");
@@ -44,6 +49,8 @@ export default async function ClientsPage({ searchParams }: { searchParams: { q?
         <Stat label="Archivés" value={archived.length} tone="slate" icon={Archive} href="/clients?etape=archives" />
       </div>
 
+      {mailsTotal > 0 && <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50/60 px-4 py-3 text-sm"><b>{mailsTotal} e-mail(s) préparé(s)</b> attendent votre envoi : repérez la pastille orange sur la ligne du client, ouvrez sa fiche et cliquez sur Envoyer.</div>}
+
       <Tabs items={tabs} />
 
       {searchParams.filtre === "sans_email" && (
@@ -67,7 +74,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: { q?
                   </Td>
                   <Td className="hidden text-slate-600 md:table-cell">{c.city ?? "—"}</Td>
                   <Td className="hidden text-slate-600 lg:table-cell"><div>{c.email ?? "—"}</div><div className="text-xs text-slate-400">{c.phone ?? ""}</div></Td>
-                  <Td>{c.pipeline ? <span className={cn("rounded-full px-3 py-1 text-xs font-bold", PIPELINE_TONE[c.pipeline as Pipeline])}>{PIPELINE_LABEL[c.pipeline as Pipeline]}</span> : <StatusBadge status={c.status} />}</Td>
+                  <Td>{c.pipeline ? <span className={cn("rounded-full px-3 py-1 text-xs font-bold", PIPELINE_TONE[c.pipeline as Pipeline])}>{PIPELINE_LABEL[c.pipeline as Pipeline]}</span> : <StatusBadge status={c.status} />}{mailsBy.get(c.id) ? <MailBadge clientId={c.id} n={mailsBy.get(c.id)!} /> : null}</Td>
                 </Tr>
               ))}
             </tbody>

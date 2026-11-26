@@ -29,7 +29,7 @@ export const SECTIONS_NAV: Section[] = [
 /** Menu du profil : réglages et supervision, hors du menu principal. */
 export const PROFILE_LINKS: Tab[] = [
   { href: "/parametres", label: "Paramètres" }, { href: "/journal", label: "Journal" }, { href: "/compte", label: "Mon compte" },
-  { href: "/jarvis", label: "Supervision JARVIS" }, { href: "/jarvis/alertes", label: "Alertes JARVIS" }
+  { href: "/jarvis/alertes", label: "Alertes JARVIS" }
 ];
 
 /** Pages à part, trouvables par la recherche Commande K mais sans onglet. */

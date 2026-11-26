@@ -9,7 +9,8 @@ import { logEmail } from "@/lib/email-log";
 import { loadRecipients, pickRecipients } from "@/lib/recipients";
 import { senderName, serviceFor } from "@/lib/mail-identity";
 
-const BACK = "/jarvis";
+/** Retour limité aux pages du CRM (jamais une adresse extérieure). */
+const safeBack = (b: string) => (/^\/[a-z0-9/_-]*$/i.test(b) ? b : "/");
 
 const esc = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
@@ -17,7 +18,8 @@ const esc = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
  * Valide un e-mail proposé par un agent ET l'envoie. L'e-mail part aux adresses cochées (celles de la fiche client ou une adresse ajoutée par vous),
  * jamais à une adresse fournie par l'agent. La proposition n'est marquée « exécutée » qu'après l'envoi réel.
  */
-export async function approveAndSendEmailAction(id: string, fd: FormData) {
+export async function approveAndSendEmailAction(id: string, back: string, fd: FormData) {
+  const BACK = safeBack(back);
   await requireOwner();
   const sb = createClient();
   const { data: a } = await sb.from("jarvis_actions").select("id, kind, status, payload, agent_key").eq("id", id).maybeSingle();
@@ -38,6 +40,18 @@ export async function approveAndSendEmailAction(id: string, fd: FormData) {
   if (!r.sent) flash(BACK, "error", `E-mail NON envoyé : ${r.reason}. La proposition reste à valider.`);
   const { error } = await sb.rpc("jarvis_mark_sent", { p_id: id, p_result: `E-mail envoyé à ${list.join(", ")}${extra.length ? " (dont une adresse ajoutée par vous)" : ""}.` });
   revalidatePath(BACK);
+  revalidatePath("/");
   if (error) flash(BACK, "error", `E-mail envoyé, mais l'enregistrement a échoué : ${dbMessage(error)}`);
   flash(BACK, "ok", `E-mail envoyé à ${list.join(", ")}.`);
+}
+
+/** Refuse un e-mail préparé : il disparaît de la liste, rien n'est envoyé. */
+export async function rejectPreparedEmailAction(id: string, back: string, _fd?: FormData) {
+  const BACK = safeBack(back);
+  await requireOwner();
+  const { error } = await createClient().rpc("jarvis_decide_action", { p_id: id, p_decision: "reject", p_note: null });
+  if (error) flash(BACK, "error", dbMessage(error));
+  revalidatePath(BACK);
+  revalidatePath("/");
+  flash(BACK, "ok", "E-mail écarté : rien n'a été envoyé.");
 }
