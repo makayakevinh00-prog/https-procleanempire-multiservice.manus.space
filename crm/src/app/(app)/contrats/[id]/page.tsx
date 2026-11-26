@@ -8,7 +8,7 @@ import { ClientName } from "@/components/crm/client-name";
 import { updateContractAction, terminateContractAction } from "@/app/actions/contracts";
 import { deleteContractAction } from "@/app/actions/manage";
 import { formatHours } from "@/lib/utils";
-import { sendContractForSignatureAction } from "@/app/actions/signature";
+import { sendContractForSignatureAction, markContractSignedAction } from "@/app/actions/signature";
 import { guessCategory, CATEGORY_LABEL, type ContractCategory } from "@/lib/contracts/clauses";
 import { numOrNull } from "@/lib/data";
 import type { Contract } from "@/lib/domain/types";
@@ -66,6 +66,15 @@ export default async function ContractPage({ params }: { params: { id: string } 
           <button className="h-10 rounded-md bg-primary px-4 font-medium text-primary-foreground">Envoyer à signer</button>
         </form>
         {((sigs ?? []) as any[]).length > 0 && <ul className="mt-3 space-y-1 text-xs text-muted-foreground">{((sigs ?? []) as any[]).map((x) => <li key={x.id}>{new Date(x.created_at).toLocaleDateString("fr-FR")} · {x.signer_email} · <b>{x.status === "signe" ? `signé le ${new Date(x.signed_at).toLocaleDateString("fr-FR")} par ${x.signer_name}` : x.status === "en_attente" ? "en attente de signature" : x.status}</b>{x.status === "signe" && <> · <a className="text-primary underline" href={`/api/signature/${x.id}/pdf`}>document signé</a></>}</li>)}</ul>}
+      </CardContent></Card>
+      <Card className="mb-4"><CardContent className="text-sm">
+        <p className="mb-2 font-semibold">Contrat déjà signé hors du CRM ?</p>
+        <p className="mb-3 text-muted-foreground">Signé sur papier ou renvoyé par e-mail : indiquez la date, il apparaîtra comme « Signé » dans la liste des contrats.{(k as any).signed_on ? <> Actuellement : <b>signé le {new Date((k as any).signed_on).toLocaleDateString("fr-FR")}</b>{(k as any).signed_note ? ` · ${(k as any).signed_note}` : ""}.</> : null}</p>
+        <form action={markContractSignedAction.bind(null, k.id)} className="flex flex-wrap items-end gap-2">
+          <label className="block">Date de signature<input name="signed_on" type="date" required defaultValue={(k as any).signed_on ?? ""} className="mt-1 h-10 rounded-md border px-2" /></label>
+          <label className="block">Précision (facultatif)<input name="signed_note" defaultValue={(k as any).signed_note ?? ""} placeholder="ex. signé sur papier" className="mt-1 h-10 w-56 rounded-md border px-2" /></label>
+          <button className="h-10 rounded-md border px-4 font-medium hover:bg-muted">Enregistrer</button>
+        </form>
       </CardContent></Card>
       <Card><CardContent>
         <ContractForm action={updateContractAction.bind(null, k.id)} clients={clients ?? []} contract={k as unknown as Contract} staff={staff ?? []} sites={sites ?? []} submitLabel="Enregistrer" />

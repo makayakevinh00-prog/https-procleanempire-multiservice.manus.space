@@ -28,3 +28,16 @@ export async function sendContractForSignatureAction(id: string, fd: FormData) {
   flash(back, "ok", `Contrat envoyé à ${to} avec un lien pour le signer en ligne.`);
 }
 
+
+/** Contrat signé hors signature en ligne (papier, PDF renvoyé par e-mail) : on enregistre la date pour qu'il apparaisse comme signé. */
+export async function markContractSignedAction(id: string, fd: FormData) {
+  await requireOwner();
+  const back = `/contrats/${id}`;
+  const on = String(fd.get("signed_on") ?? "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(on)) flash(back, "error", "Indiquez la date de signature.");
+  const note = String(fd.get("signed_note") ?? "").trim().slice(0, 200) || null;
+  const { error } = await createClient().from("contracts").update({ signed_on: on, signed_note: note }).eq("id", id);
+  if (error) flash(back, "error", error.message);
+  revalidatePath(back); revalidatePath("/contrats");
+  flash(back, "ok", "Contrat marqué comme signé.");
+}

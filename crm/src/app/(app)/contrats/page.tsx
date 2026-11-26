@@ -21,6 +21,9 @@ export default async function ContractsPage({ searchParams }: { searchParams: { 
     .from("contracts").select("*, clients(id, name, is_reserved)").order("status").order("label");
   if (error) throw new Error(error.message);
 
+  const { data: sigRows } = await createClient().from("signature_requests").select("contract_id, status, signed_at").eq("kind", "contrat");
+  const sigBy = new Map<string, { signed?: string; pending: boolean }>();
+  for (const x of (sigRows ?? []) as any[]) { const e = sigBy.get(x.contract_id) ?? { pending: false }; if (x.status === "signe") e.signed = x.signed_at; if (x.status === "en_attente") e.pending = true; sigBy.set(x.contract_id, e); }
   const rows = (data ?? []).map((k: any) => {
     const issues = contractIssues({ ...k, monthly_amount_ht: numOrNull(k.monthly_amount_ht), per_visit_amount_ht: numOrNull(k.per_visit_amount_ht), hours_per_visit: numOrNull(k.hours_per_visit), visits_per_week: numOrNull(k.visits_per_week) });
     const family = contractActivity({ clientId: k.client_id, activity: isActivity(k.activity) ? k.activity : null, label: k.label, terms: k.terms, clientName: k.clients?.name ?? null, monthly: monthlyOf(k) });
@@ -90,7 +93,9 @@ export default async function ContractsPage({ searchParams }: { searchParams: { 
                     {k.assignee ? <span className="block text-muted-foreground">{k.assignee}</span> : null}
                   </Td>
                   <Td className="font-semibold">{numOrNull(k.weekly_hours) != null ? formatHours(numOrNull(k.weekly_hours)) : <span className="text-xs font-normal text-muted-foreground">—</span>}</Td>
-                  <Td><StatusBadge status={k.status} /></Td>
+                  <Td><StatusBadge status={k.status} />
+                    {(() => { const sg = sigBy.get(k.id); const on = sg?.signed ?? k.signed_on; return on ? <span className="mt-1 block"><Badge tone="green">✓ Signé le {formatDate(on)}</Badge></span> : sg?.pending ? <span className="mt-1 block"><Badge tone="orange">Signature en attente</Badge></span> : k.status === "actif" ? <span className="mt-1 block"><Badge tone="red">Non signé</Badge></span> : null; })()}
+                  </Td>
                 </Tr>
               ))}
             </tbody>

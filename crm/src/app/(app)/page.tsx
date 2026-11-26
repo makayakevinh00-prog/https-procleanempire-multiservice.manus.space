@@ -49,6 +49,15 @@ export default async function Dashboard({ searchParams }: { searchParams?: { moi
     for (const a of pm) { const c = names.get(a.payload?.client_id); if (c && !c.reserved && a.payload?.subject && a.payload?.body) mails.push({ id: a.id, clientId: a.payload.client_id, client: c.name, subject: a.payload.subject }); }
   }
 
+  // E-mails reçus des clients, à répondre en priorité.
+  const inbox: { id: string; who: string; subject: string; at: string; known: boolean }[] = [];
+  let inboxTotal = 0;
+  if (await isOwner()) {
+    const r = await supabase.from("inbound_emails").select("id, from_email, from_name, subject, received_at, clients(name)", { count: "exact" }).eq("status", "a_repondre").order("received_at", { ascending: false }).limit(5);
+    inboxTotal = r.count ?? 0;
+    for (const m of (r.data ?? []) as any[]) inbox.push({ id: m.id, who: m.clients?.name ?? m.from_name ?? m.from_email, subject: m.subject || "(sans objet)", at: m.received_at, known: !!m.clients });
+  }
+
   const inv = (invoices.data ?? []) as any[];
   const drafts = inv.filter((i) => i.status === "brouillon");
   const open = inv.filter((i) => ["envoye", "en_retard"].includes(i.status));
@@ -125,6 +134,17 @@ export default async function Dashboard({ searchParams }: { searchParams?: { moi
           <b className="font-medium text-foreground">{actionsCount} point{actionsCount > 1 ? "s" : ""} à traiter</b>, {bits.join(", ")}.
         </p>
       </header>
+
+      {inboxTotal > 0 && (
+        <Card className="mt-5 border-sky-300 bg-sky-50/40">
+          <CardHeader><CardTitle>📥 Mails clients à répondre ({inboxTotal})</CardTitle></CardHeader>
+          <ul className="divide-y">
+            {inbox.map((m) => (
+              <li key={m.id}><Link href="/boite" className="flex items-center gap-3 px-6 py-2.5 text-[15px] hover:bg-sky-50"><span className="min-w-0 flex-1"><b className="font-medium">{m.who}</b><span className="block truncate text-sm text-muted-foreground">{m.subject}</span></span><span className="text-[13px] font-medium text-primary">Répondre</span></Link></li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       {(reserved.data?.length ?? 0) > 0 && (
         <div className="mt-5 flex flex-wrap items-center gap-2 rounded-xl bg-[#f6e4e1] px-4 py-3 text-sm text-[#7d261d]">
