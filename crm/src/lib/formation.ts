@@ -42,3 +42,40 @@ export type TrainingState = {
 };
 export type TrainingResult = { score: number; passed: boolean; good: number; total: number; wrong: { id: string; why: string }[]; certified: boolean; pass_mark: number };
 export type TrainingQuestion = { id: string; question: string; options: string[] };
+
+/** Formation des agents salariés : même moteur, trois modules à eux (migration 0087). Les pages utilisent app / process / incident ; la base les appelle agent_app / agent_process / agent_incident. */
+export const AGENT_MODULES: Record<FormationModule, { title: string; lead: string; revision: Revision[] }> = {
+  app: {
+    title: "Utiliser l'application",
+    lead: "Votre journée de mission dans l'application, de « Je pars » jusqu'à la fiche de paie.",
+    revision: [
+      { title: "Avant la mission", points: ["Gardez la localisation activée : votre arrivée est pointée toute seule quand vous êtes sur place.", "Appuyez sur « Je pars » : le trajet et l'heure d'arrivée sont partagés avec la direction.", "Le bouton « Arrivée » ne sert que de secours si le pointage automatique ne s'est pas fait.", "Code ou clé qui ne marche pas : ne forcez jamais, contactez la direction."] },
+      { title: "Pendant la mission", points: ["Filmez d'abord le lieu : c'est le film d'arrivée, l'IA prépare votre liste de tâches.", "Dégât ou oubli du client : « Signaler un problème » avec une photo, avant de toucher à quoi que ce soit.", "Un endroit vous résiste : « Je suis bloqué », photographiez, l'aide vous donne la méthode et les produits.", "Cochez les tâches de la check-list au fur et à mesure."] },
+      { title: "Après la mission", points: ["Filmez le lieu propre : c'est le film de fin, l'IA le compare à l'arrivée.", "Zones signalées à reprendre : refaites-les, refilmez, puis terminez.", "Filmez aussi le stock de produits, étiquettes visibles : on sait ce qu'il faut recommander.", "Vos fiches de paie sont dans la rubrique Paie : la direction les dépose chaque mois."] }
+    ]
+  },
+  process: {
+    title: "Les process de ménage",
+    lead: "Les gestes ProClean pour un résultat impeccable, chez chaque client.",
+    revision: [
+      { title: "L'ordre de travail", points: ["Du haut vers le bas et du fond vers la porte : poussières d'abord, sol en dernier.", "Dépoussiérez avant de laver le sol.", "Chiffons séparés par zone : sanitaires, cuisine, bureaux. Jamais le même."] },
+      { title: "Produits et sécurité", points: ["Ne mélangez jamais l'eau de Javel avec du vinaigre ou de l'ammoniaque : gaz toxique.", "Un produit à la fois, fenêtre ouverte.", "Vitres et miroirs : produit adapté, puis microfibre propre et sèche, du haut vers le bas."] },
+      { title: "Les points qu'on regarde", points: ["Poignées, interrupteurs, rampes, télécommandes : les zones les plus touchées, à désinfecter à chaque passage.", "Poubelles vidées, sac propre remis, déchets sortis selon la consigne du lieu.", "Avant de partir : relisez la check-list pièce par pièce, fermez selon la consigne, puis filmez la fin."] },
+      { title: "Chez le client", points: ["Soyez discret : rien n'est pris, rien n'est photographié d'objets personnels ou de documents.", "Vous utilisez vos produits et votre matériel, jamais ceux du client."] }
+    ]
+  },
+  incident: {
+    title: "Casse, dégâts et situations difficiles",
+    lead: "Que faire quand quelque chose est cassé, dangereux, ou quand une personne dérape.",
+    revision: [
+      { title: "Constater avant de toucher", points: ["Objet cassé ou abîmé à l'arrivée : photographiez-le avant de toucher à quoi que ce soit, puis signalez.", "Ne réparez pas, ne jetez pas, ne remplacez pas."] },
+      { title: "Si c'est vous qui cassez", points: ["Dites-le tout de suite à la direction, avec une photo.", "Une casse déclarée se règle ; une casse cachée détruit la confiance."] },
+      { title: "Objets de valeur et dangers", points: ["Argent, bijou : ne les emportez pas, photographiez et signalez.", "Seringue ou objet dangereux : n'y touchez pas, prévenez la direction.", "Fuite d'eau, gaz, fumée : sécurité d'abord (18 ou 112), puis la direction. Vous ne réparez jamais."] },
+      { title: "Face aux personnes et à vous-même", points: ["Personne agressive : restez calme, ne discutez pas, quittez les lieux si besoin, prévenez la direction (112 en urgence).", "Un client propose un extra payé en direct : refusez poliment, tout passe par ProClean.", "Blessure ou malaise : arrêtez-vous, appelez le 15 ou le 112 si c'est grave, puis prévenez la direction."] }
+    ]
+  }
+};
+export type AgentTrainingState = {
+  name: string; certified_at: string | null; certificate_no: string | null; score: number | null; pass_mark: number;
+  modules: Record<string, { best: number | null; passed: boolean; attempts: number; questions: number }>;
+};

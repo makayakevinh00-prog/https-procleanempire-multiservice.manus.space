@@ -181,7 +181,15 @@ export async function startIdentityAction(token: string) {
     await createAdmin().from("cleaners").update({ identity_status: "en_cours", identity_session_id: s.id }).eq("id", c.id);
     url = s.url;
   } catch (e) {
-    go(token, "/identite", "error", e instanceof Error && /identity/i.test(e.message) ? "La vérification d'identité n'est pas encore activée. Prévenez votre responsable." : "Impossible de démarrer la vérification pour le moment. Réessayez dans quelques minutes.");
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[identité] Stripe Identity a refusé la session :", msg);
+    // La cause la plus fréquente : Stripe Identity n'est pas activé sur le compte. La direction est prévenue (une seule fois par heure et par nettoyeur suffit : le message reste court).
+    if (mailConfigured()) await sendMail({
+      to: process.env.MAIL_ADMIN ?? "contact@procleanempire.com",
+      subject: `Vérification d'identité bloquée — ${c.name}`,
+      text: `${c.name} n'a pas pu démarrer la vérification d'identité.\n\nRéponse de Stripe : « ${msg} »\n\nSi Stripe parle d'activation ou de permissions, activez Stripe Identity : https://dashboard.stripe.com/identity/overview (puis réessayez). Les nettoyeurs concernés n'ont rien à refaire, le bouton refonctionnera tout seul.\n\nService Facturation & Recouvrement — ProClean Empire`
+    }).catch(() => undefined);
+    go(token, "/identite", "error", /identity|permission|activ/i.test(msg) ? "Le service de vérification est en cours d'activation : la direction vient d'être prévenue. Revenez dans quelques heures, rien d'autre à faire." : "Impossible de démarrer la vérification pour le moment. Réessayez dans quelques minutes.");
   }
   if (url) redirect(url);
 }

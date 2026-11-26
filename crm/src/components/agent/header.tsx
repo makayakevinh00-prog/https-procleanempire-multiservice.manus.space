@@ -9,7 +9,7 @@ export function AgentHeader({ token, name, title, sub, base = "agent", right }: 
     <header className="mb-4">
       <div className="flex items-center justify-between">
         <span className="text-[26px] font-extrabold tracking-tight text-[var(--a-pri)]">ProClean</span>
-        <div className="flex items-center gap-3">{right}<Link href={`/${base}/${token}/profil`} aria-label="Profil" className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border-2 border-[var(--a-soft)] bg-[var(--a-card)] text-[15px] font-extrabold text-[var(--a-pri)]">{initials(name)}{base === "nettoyeur" && isToken(token) && <AvatarImg token={token} />}</Link></div>
+        <div className="flex items-center gap-3">{right}<Link href={`/${base}/${token}/profil`} aria-label="Profil" className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border-2 border-[var(--a-soft)] bg-[var(--a-card)] text-[15px] font-extrabold text-[var(--a-pri)]">{initials(name)}{isToken(token) && <AvatarImg token={token} base={base} />}</Link></div>
       </div>
       <h1 className="mt-2 text-[32px] font-extrabold leading-tight tracking-tight">{title}</h1>
       {sub && <p className="text-[15px] text-[var(--a-mute)]">{sub}</p>}

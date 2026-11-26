@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Sun, Moon, Smartphone, Languages, KeyRound, HelpCircle, ShieldCheck, Trash2, ChevronRight, Wallet, LogOut } from "lucide-react";
+import { Sun, Moon, Smartphone, Languages, KeyRound, GraduationCap, Award, HelpCircle, ShieldCheck, Trash2, ChevronRight, Wallet, LogOut } from "lucide-react";
 import { agentClient, agentMessage, agentPrefs, isToken, type AgentProfile } from "@/lib/agent";
 import { agentPrefAction } from "@/app/actions/agent";
 import { dict, initials } from "@/lib/field-ui";
 import { Permissions } from "@/components/agent/permissions";
 import { Invalid } from "@/components/agent/invalid";
+import { AvatarPicker } from "@/components/nettoyeur/avatar-picker";
+import type { AgentTrainingState } from "@/lib/formation";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Profil — ProClean Empire", robots: { index: false, follow: false }, referrer: "no-referrer" };
@@ -39,9 +41,11 @@ export default async function ProfilePage({ params }: { params: { token: string 
   const t = dict(lang);
   const token = params.token;
   if (!isToken(token)) return <Invalid t={t} text={t.invalidText} />;
-  const { data, error } = await agentClient().rpc("agent_profile", { p_token: token });
+  const [{ data, error }, av, tr] = await Promise.all([agentClient().rpc("agent_profile", { p_token: token }), agentClient().rpc("agent_avatar", { p_token: token }), agentClient().rpc("agent_training", { p_token: token })]);
   if (error) return <Invalid t={t} text={agentMessage(error.message)} />;
   const p = data as AgentProfile;
+  const training = (tr.data ?? null) as AgentTrainingState | null;
+  const done = training ? Object.values(training.modules).filter((m) => m.passed).length : 0;
   const base = `/agent/${token}`;
   const th = (v: "light" | "dark" | "system") => agentPrefAction.bind(null, token, "theme", v);
   const lg = (v: "fr" | "en") => agentPrefAction.bind(null, token, "lang", v);
@@ -49,11 +53,17 @@ export default async function ProfilePage({ params }: { params: { token: string 
   return (
     <>
       <section className="rounded-3xl border border-[var(--a-line)] p-6 text-center shadow-sm">
-        <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-full border-4 border-[var(--a-soft)] bg-[var(--a-card)] text-[40px] font-extrabold text-[var(--a-pri)]">{initials(p.name)}</div>
+        <AvatarPicker base="agent" token={token} initials={initials(p.name)} current={typeof av.data === "string" ? av.data : null} />
         <h1 className="mt-4 text-[30px] font-extrabold tracking-tight">{p.name}</h1>
+        {training?.certified_at && <span className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-[var(--a-okbg)] px-3 py-1 text-[13px] font-extrabold text-[var(--a-ok)]"><Award className="h-4 w-4" />Certifié ProClean</span>}
         {(p.email || p.phone) && <p className="text-[17px] text-[var(--a-mute)]">{p.email ?? p.phone}</p>}
         <div className="mt-5 text-[13px] font-extrabold uppercase tracking-[0.16em] text-[var(--a-mute)]">{t.missionsDone}</div>
         <b className="num text-[52px] leading-tight text-[var(--a-pri)]">{p.missions_done}</b>
+      </section>
+
+      <h2 className={label}>Ma formation</h2>
+      <section className="rounded-3xl bg-[var(--a-card)]">
+        <Row href={`${base}/formation`} icon={GraduationCap} title="Formation et examens" sub={training?.certified_at ? `Certificat ${training.certificate_no}` : `${done} module${done > 1 ? "s" : ""} réussi${done > 1 ? "s" : ""} sur 3`} />
       </section>
 
       <h2 className={label}>{t.preferences}</h2>

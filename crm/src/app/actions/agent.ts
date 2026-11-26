@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { agentClient, agentMessage, isToken } from "@/lib/agent";
 import { agentTripPing } from "@/lib/marketplace/trip";
 import { isLang, isTheme } from "@/lib/field-ui";
+import { isModule, type TrainingResult } from "@/lib/formation";
 
 /** Retour sur la page de la mission avec un message (l'agent reste là où il travaillait). */
 const go = (token: string, kind: "ok" | "error", msg: string, missionId?: string): never => redirect(`/agent/${token}${missionId ? `/mission/${missionId}` : ""}?${kind}=${encodeURIComponent(msg)}`);
@@ -98,4 +99,24 @@ export async function agentTaskAction(token: string, missionId: string, index: n
   if (error) return { ok: false, error: agentMessage(error.message) };
   revalidatePath(`/agent/${token}`);
   return { ok: true };
+}
+
+/** Photo de profil de l'agent (JPEG réduit par le téléphone). */
+export async function agentAvatarAction(token: string, b64: string): Promise<{ ok: boolean; error?: string }> {
+  guard(token);
+  if (b64.length > 220_000 || !/^[A-Za-z0-9+/=]*$/.test(b64)) return { ok: false, error: "Photo trop lourde ou illisible." };
+  const { error } = await agentClient().rpc("agent_set_avatar", { p_token: token, p_b64: b64 });
+  if (error) return { ok: false, error: /PHOTO_TROP_LOURDE/.test(error.message) ? "Photo trop lourde." : /PHOTO_FORMAT/.test(error.message) ? "Format de photo non accepté." : agentMessage(error.message) };
+  revalidatePath(`/agent/${token}`, "layout");
+  return { ok: true };
+}
+
+/** Examen de formation : la correction est faite dans la base. */
+export async function agentTrainingSubmitAction(token: string, module: string, answers: Record<string, number>): Promise<{ error?: string; result?: TrainingResult }> {
+  guard(token);
+  if (!isModule(module)) return { error: "Module inconnu." };
+  const { data, error } = await agentClient().rpc("agent_training_submit", { p_token: token, p_module: `agent_${module}`, p_answers: answers });
+  if (error) return { error: agentMessage(error.message) };
+  revalidatePath(`/agent/${token}`, "layout");
+  return { result: data as TrainingResult };
 }

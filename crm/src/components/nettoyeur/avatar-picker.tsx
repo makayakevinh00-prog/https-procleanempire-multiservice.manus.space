@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { cleanerAvatarAction } from "@/app/actions/nettoyeur";
+import { agentAvatarAction } from "@/app/actions/agent";
 
 /** Recadre au carré et réduit à 320 px dans le téléphone : seule une petite image part vers le serveur. */
 async function square(file: File): Promise<string> {
@@ -20,7 +21,7 @@ async function square(file: File): Promise<string> {
   } finally { URL.revokeObjectURL(url); }
 }
 
-export function AvatarPicker({ token, initials, current }: { token: string; initials: string; current: string | null }) {
+export function AvatarPicker({ token, initials, current, base = "nettoyeur" }: { token: string; initials: string; current: string | null; base?: "nettoyeur" | "agent" }) {
   const input = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const [src, setSrc] = useState(current ? `data:image/jpeg;base64,${current}` : "");
@@ -28,7 +29,7 @@ export function AvatarPicker({ token, initials, current }: { token: string; init
   const [msg, setMsg] = useState("");
   const save = async (b64: string) => {
     setBusy(true); setMsg("");
-    const r = await cleanerAvatarAction(token, b64);
+    const r = await (base === "agent" ? agentAvatarAction : cleanerAvatarAction)(token, b64);
     setBusy(false);
     if (!r.ok) { setMsg(r.error ?? "Photo non enregistrée."); return false; }
     try { localStorage.setItem("pce:photo:v", String(Date.now())); } catch { /* ignoré */ }
