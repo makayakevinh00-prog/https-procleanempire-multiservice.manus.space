@@ -18,6 +18,7 @@ import { hashPassword, passwordOk, verifyPassword } from "@/lib/password";
 import { createClient } from "@/lib/supabase/server";
 import { tripPing } from "@/lib/marketplace/trip";
 import type { LiveJob } from "@/lib/live";
+import { isModule, type TrainingResult } from "@/lib/formation";
 
 const sha = (c: string) => createHash("sha256").update(c).digest("hex");
 const origin = () => { const h = headers(); return `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`; };
@@ -114,6 +115,26 @@ export async function cleanerLinenAction(token: string, jobId: string, fd: FormD
   if (error) go(token, "/missions", "error", agentMessage(error.message));
   revalidatePath(base(token), "layout");
   go(token, "/missions", "ok", "Draps mis à jour. Merci !");
+}
+
+/** Formation : la correction se fait dans la base, l'application n'envoie que les réponses. */
+export async function cleanerTrainingSubmitAction(token: string, module: string, answers: Record<string, number>): Promise<{ error?: string; result?: TrainingResult }> {
+  guard(token);
+  if (!isModule(module)) return { error: "Module inconnu." };
+  const { data, error } = await agentClient().rpc("cleaner_training_submit", { p_token: token, p_module: module, p_answers: answers });
+  if (error) return { error: agentMessage(error.message) };
+  revalidatePath(base(token), "layout");
+  return { result: data as TrainingResult };
+}
+
+/** Prime « linge lavé » : le nettoyeur indique qu'il a lavé les draps lui-même. */
+export async function cleanerLinenWashedAction(token: string, jobId: string, fd: FormData) {
+  guard(token);
+  const washed = fd.get("washed") === "1";
+  const { error } = await agentClient().rpc("cleaner_linen_washed", { p_token: token, p_job: jobId, p_washed: washed });
+  if (error) go(token, "/missions", "error", agentMessage(error.message));
+  revalidatePath(base(token), "layout");
+  go(token, "/missions", "ok", washed ? "Prime linge ajoutée à ce ménage. Merci !" : "Prime linge retirée.");
 }
 
 export async function cleanerProfileAction(token: string, fd: FormData) {

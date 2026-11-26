@@ -62,4 +62,5 @@ export type CleanerJob = {
   before_report?: { items: { zone: string; todo: string }[]; level: number | null; summary: string; state?: string; tidy?: string; minutes?: number | null; zones?: string[]; tasks?: string[]; frame_rooms?: string[] } | null;
   ai_status?: "ok" | "reprise" | "indisponible" | null; ai_report?: { summary?: string; cleaned?: string[]; remaining?: { zone: string; why: string }[] } | null;
   linen?: { status: string; method: string | null; tracking: string | null } | null;
+  linen_washed?: boolean; linen_bonus?: number;
 };

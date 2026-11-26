@@ -134,7 +134,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
                 <CardHeader><CardTitle>Nettoyeurs</CardTitle></CardHeader>
                 {!cleaners.filter((c) => c.status === "actif").length ? <Empty>Aucun nettoyeur actif.</Empty> : <ul className="divide-y text-sm">{cleaners.filter((c) => c.status === "actif").sort((a, b) => Number(!!b.online) - Number(!!a.online)).map((c) => {
                   const mine = live.find((j) => j.cleaner_id === c.id && ["acceptee", "a_reprendre"].includes(j.status));
-                  return (<li key={c.id} className="flex items-center gap-3 px-5 py-2.5"><span className={`h-2.5 w-2.5 shrink-0 rounded-full ${c.online ? "bg-emerald-500" : "bg-slate-300"}`} /><span className="min-w-0 flex-1"><b className="font-medium">{c.full_name}</b><span className="block text-xs text-muted-foreground">{c.online ? "En ligne" : "Hors ligne"} · vu {ago(c.last_seen_at)}{mine ? ` · va à : ${mine.title} (${mine.city ?? ""})` : ""}</span></span></li>);
+                  return (<li key={c.id} className="flex items-center gap-3 px-5 py-2.5"><span className={`h-2.5 w-2.5 shrink-0 rounded-full ${c.online ? "bg-emerald-500" : "bg-slate-300"}`} /><span className="min-w-0 flex-1"><b className="font-medium">{c.full_name}</b>{c.certified_at ? <Badge tone="green">Certifié · {c.training_score} %</Badge> : <Badge tone="orange">Formation à faire</Badge>}<span className="block text-xs text-muted-foreground">{c.online ? "En ligne" : "Hors ligne"} · vu {ago(c.last_seen_at)}{mine ? ` · va à : ${mine.title} (${mine.city ?? ""})` : ""}</span></span></li>);
                 })}</ul>}
               </Card>
             </div>

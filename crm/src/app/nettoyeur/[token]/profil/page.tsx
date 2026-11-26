@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { agentClient, agentMessage, isToken, type CleanerOverview } from "@/lib/agent";
 import { cleanerProfileAction } from "@/app/actions/nettoyeur";
 import { initials } from "@/lib/field-ui";
@@ -26,6 +28,7 @@ export default async function CleanerProfile({ params, searchParams }: { params:
         <div className="mt-3 text-[13px] font-extrabold uppercase tracking-[0.14em] text-[var(--a-mute)]">Ménages validés</div>
         <b className="num text-[44px] leading-tight text-[var(--a-pri)]">{o.done}</b>
       </section>
+      <Link href={`/nettoyeur/${params.token}/formation`} className="mt-4 flex items-center justify-between rounded-3xl bg-[var(--a-card)] p-4 text-[16px] font-extrabold">Formation et certificat ProClean<ChevronRight className="h-5 w-5 text-[var(--a-mute)]" /></Link>
       <Reliability r={o.reliability} />
       {searchParams.error && <div role="alert" className="mt-4 rounded-2xl bg-[var(--a-badbg)] p-3 text-sm font-semibold text-[var(--a-bad)]">{searchParams.error}</div>}
       {searchParams.ok && <div role="status" className="mt-4 rounded-2xl bg-[var(--a-okbg)] p-3 text-sm font-semibold text-[var(--a-ok)]">{searchParams.ok}</div>}

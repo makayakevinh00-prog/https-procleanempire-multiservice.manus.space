@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { MapPin, KeyRound, Clock, ChevronRight } from "lucide-react";
 import { agentClient, agentMessage, isToken, type CleanerJob } from "@/lib/agent";
-import { cleanerArriveAction, cleanerFinishAction, cleanerLinenAction, cleanerReleaseAction } from "@/app/actions/nettoyeur";
+import { cleanerArriveAction, cleanerFinishAction, cleanerLinenAction, cleanerLinenWashedAction, cleanerReleaseAction } from "@/app/actions/nettoyeur";
 import { CleanerVideoButton, TaskList } from "@/components/nettoyeur/live";
 import { CleanerPhotoButton } from "@/components/agent/cleaner-photo";
 import { JOB_STATUS, LINEN_STEP, dayFr, eur, slot } from "@/lib/cleaner-ui";
@@ -150,6 +150,13 @@ export default async function CleanerMissions({ params, searchParams }: { params
                   <textarea name="note" rows={2} maxLength={1000} placeholder="Un mot pour la direction : obligatoire s'il manque une photo ou une tâche (dites pourquoi)." className="w-full rounded-xl border border-[var(--a-line)] bg-[var(--a-bg)] p-3 text-base" />
                   <button disabled={needPhotos && !(roomsOf[j.id]?.length) && ((j.photos_before ?? 0) === 0 || (j.photos_after ?? 0) === 0)} className="h-14 w-full rounded-2xl bg-[var(--a-ok)] text-lg font-extrabold text-[var(--a-bg)] active:opacity-90 disabled:opacity-40">3. J&apos;ai terminé le ménage</button>
                   {needPhotos && (roomsOf[j.id]?.some((r) => !r.avant || !r.apres) ?? false) && <p className="text-center text-xs text-[var(--a-mute)]">Il manque des photos de pièces : prenez-les, ou expliquez pourquoi dans le mot ci-dessus.</p>}
+                </form>
+              )}
+              {(j.status === "acceptee" || j.status === "a_verifier" || j.status === "a_reprendre") && (
+                <form action={cleanerLinenWashedAction.bind(null, token, j.id)} className="flex items-center justify-between gap-3 rounded-2xl bg-[var(--a-bg)] p-3 text-[14px]">
+                  <span className="min-w-0"><b className="block text-[15px]">🧺 Je lave les draps moi-même</b><span className="text-[var(--a-mute)]">{j.linen_washed ? `Prime linge de ${eur(Number(j.linen_bonus ?? 0))} ajoutée à ce ménage.` : "Une prime est ajoutée à votre paie pour ce ménage."}</span></span>
+                  <input type="hidden" name="washed" value={j.linen_washed ? "0" : "1"} />
+                  <button className={`h-11 shrink-0 rounded-xl px-4 text-[14px] font-extrabold ${j.linen_washed ? "bg-[var(--a-card)] text-[var(--a-ink)]" : "bg-[var(--a-pri)] text-white"}`}>{j.linen_washed ? "Retirer" : "Ajouter"}</button>
                 </form>
               )}
               {j.linen && j.status !== "annulee" && (

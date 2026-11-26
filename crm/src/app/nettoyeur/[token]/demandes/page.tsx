@@ -6,6 +6,7 @@ import { dayFr, eur, slot } from "@/lib/cleaner-ui";
 import { AgentHeader } from "@/components/agent/header";
 import { Gate } from "@/components/agent/gate";
 import { LiveRefresh } from "@/components/nettoyeur/live";
+import { TrainingBanner } from "@/components/nettoyeur/training-banner";
 import { JobRequest } from "@/components/nettoyeur/job-request";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +28,7 @@ export default async function CleanerRequests({ params, searchParams }: { params
   return (
     <>
       <AgentHeader token={token} base="nettoyeur" name={o.name} title="Demandes" sub={`${o.has_location ? `Dans un rayon de ${o.radius_km} km` : `Département ${o.departments.join(", ")}`} · créneau ${slot(o.window_start, o.window_end)}`} right={<LiveRefresh ids={jobs.map((j) => j.id)} />} />
+      <TrainingBanner token={token} />
       {searchParams.error && <div role="alert" className="mb-3 rounded-2xl bg-[var(--a-badbg)] p-3 text-sm font-semibold text-[var(--a-bad)]">{searchParams.error}</div>}
       {searchParams.ok && <div role="status" className="mb-3 rounded-2xl bg-[var(--a-okbg)] p-3 text-sm font-semibold text-[var(--a-ok)]">{searchParams.ok}</div>}
       {!jobs.length && <p className="mb-4 rounded-3xl bg-[var(--a-card)] p-6 text-center text-[16px] text-[var(--a-mute)]">{o.online ? "Aucun ménage pour le moment. Restez en ligne : dès qu'un voyageur réserve près de vous, la demande apparaît ici et sur votre téléphone." : "Aucun ménage visible. Mettez-vous en ligne (bouton GO, onglet Aujourd'hui) : les nouvelles demandes vous arrivent en priorité."}</p>}

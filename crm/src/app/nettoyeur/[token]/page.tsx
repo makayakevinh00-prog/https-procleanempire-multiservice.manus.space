@@ -8,6 +8,7 @@ import { ROW, layoutDay } from "@/lib/field-ui";
 import { AgentHeader } from "@/components/agent/header";
 import { Gate } from "@/components/agent/gate";
 import { LiveRefresh, OnlinePanel, Remember } from "@/components/nettoyeur/live";
+import { TrainingBanner } from "@/components/nettoyeur/training-banner";
 import { JobRequest } from "@/components/nettoyeur/job-request";
 import { MissionFlow, type MissionJob } from "@/components/nettoyeur/mission-flow";
 import { cookies } from "next/headers";
@@ -61,6 +62,7 @@ export default async function CleanerToday({ params, searchParams }: { params: {
       {searchParams.error && <div role="alert" className="mb-3 rounded-2xl bg-[var(--a-badbg)] p-3 text-sm font-semibold text-[var(--a-bad)]">{searchParams.error}</div>}
       {searchParams.ok && <div role="status" className="mb-3 rounded-2xl bg-[var(--a-okbg)] p-3 text-sm font-semibold text-[var(--a-ok)]">{searchParams.ok}</div>}
 
+      <TrainingBanner token={token} />
       <OnlinePanel token={token} online={o.online} hasPush={pushRes.data === true} zone={o.city ?? o.postal_code ?? "vous"} />
 
       <section className="mb-5 grid grid-cols-3 gap-2 text-center">
