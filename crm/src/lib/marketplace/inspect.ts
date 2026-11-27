@@ -47,7 +47,7 @@ async function flagObjects(jobId: string, moment: "arrivee" | "fin", missing: Ob
   }
   if (!mailConfigured()) return;
   const when = moment === "arrivee" ? "à l'arrivée du nettoyeur, avant le ménage" : "à la fin du ménage";
-  const text = `${title} : l'analyse des films relève ceci ${when}.\n\n${parts}\n\nL'IA décrit ce que les films montrent ; elle ne peut pas conclure seule. Les captures tirées des films sont dans le CRM (Nettoyeurs › Demandes). Merci de vérifier sur place.\n\nL'équipe ProClean Empire`;
+  const text = `${title} : l'analyse des films relève ceci ${when}.\n\n${parts}\n\nL'IA décrit ce que les films montrent ; elle ne peut pas conclure seule. Le détail figure dans le CRM (Nettoyeurs › Contrôle automatique). Merci de vérifier sur place.\n\nL'équipe ProClean Empire`;
   const subject = `Objet à vérifier — ${title}`;
   await sendMail({ to: admin(), subject, text }).catch(() => undefined);
   const to = (brief?.emails ?? []).filter((e) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e) && e !== admin().toLowerCase()).slice(0, 4);
