@@ -16,7 +16,7 @@ export function PageHeader({ title, subtitle, actions }: { title: string; subtit
 export function Empty({ children, action, icon: Icon = Inbox }: { children: React.ReactNode; action?: React.ReactNode; icon?: React.ComponentType<{ className?: string }> }) {
   return (
     <div className="flex flex-col items-center gap-3 px-6 py-14 text-center">
-      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-muted-foreground"><Icon className="h-7 w-7" /></span>
+      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#dbe6fc] text-primary"><Icon className="h-7 w-7" /></span>
       <p className="max-w-md text-[15px] text-muted-foreground">{children}</p>
       {action}
     </div>
