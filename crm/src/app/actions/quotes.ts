@@ -48,9 +48,18 @@ export async function updateQuoteAction(id: string, fd: FormData) {
     subject: str(fd, "subject"), notes: str(fd, "notes"), valid_until: str(fd, "valid_until")
   }).eq("id", id);
   if (error) flash(back, "error", dbMessage(error));
-  await supabase.from("quote_lines").delete().eq("quote_id", id);
+  // Remplacement des lignes SANS jamais laisser le devis vide : on insère les nouvelles lignes d'abord, puis on retire les anciennes.
+  // (Avant : suppression puis insertion — si l'insertion échouait, le devis restait sans ligne et son total retombait à 0 €.)
+  // Le déclencheur SQL recalcule les totaux à chaque insertion/suppression : le résultat final est toujours la somme des nouvelles lignes.
+  const { data: oldLines, error: oe } = await supabase.from("quote_lines").select("id").eq("quote_id", id);
+  if (oe) flash(back, "error", dbMessage(oe));
   const { error: le } = await supabase.from("quote_lines").insert(lines.map((l, position) => ({ ...l, position, quote_id: id })));
-  if (le) flash(back, "error", `Lignes non enregistrées : ${dbMessage(le)}`);
+  if (le) flash(back, "error", `Lignes non enregistrées, devis inchangé : ${dbMessage(le)}`);
+  const oldIds = (oldLines ?? []).map((r: { id: string }) => r.id);
+  if (oldIds.length) {
+    const { error: de } = await supabase.from("quote_lines").delete().in("id", oldIds);
+    if (de) flash(back, "error", `Anciennes lignes non retirées (le devis contient maintenant les lignes en double) : ${dbMessage(de)}`);
+  }
   revalidatePath("/devis");
   flash(`/devis/${id}`, "ok", "Devis mis à jour.");
 }

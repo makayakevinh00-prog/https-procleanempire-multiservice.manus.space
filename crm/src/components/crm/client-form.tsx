@@ -26,7 +26,7 @@ export function ClientForm({ action, client, submitLabel }: { action: (fd: FormD
 
       <label className="flex items-start gap-2 rounded-md border bg-card p-3 text-sm sm:col-span-2">
         <input type="checkbox" name="auto_send_invoices" className="mt-1" defaultChecked={client?.auto_send_invoices} />
-        <span><b>Envoyer automatiquement la facture mensuelle</b> à ce client (fin de mois, par e-mail avec le PDF).
+        <span><b>Envoyer automatiquement la facture mensuelle</b> à ce client (le 30 du mois, par e-mail avec le PDF).
           <span className="block text-xs text-muted-foreground">Ignoré pour un contact réservé, un montant au-dessus du seuil d&apos;alerte ou un client sans e-mail : ces factures restent en brouillon pour validation.</span></span>
       </label>
 

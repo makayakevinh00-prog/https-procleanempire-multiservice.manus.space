@@ -62,3 +62,28 @@ export function overdueSequence(
   steps.push({ key: "manuel", day: s.reminder_manual_days, kind: "manuel", label: "Action manuelle : appel, courrier recommandé", state: daysLate >= s.reminder_manual_days ? "du" : "a_venir" });
   return steps.sort((a, b) => a.day - b.day);
 }
+
+export interface NoticeCandidate {
+  status: string;
+  due_date: string | null;
+  reminder_count: number;
+  last_reminder_at: string | null;
+}
+
+/**
+ * Le bouton « mise en demeure » n'apparaît qu'une fois TOUTES les relances épuisées :
+ * facture en retard, toutes les relances prévues envoyées, et le délai qui suit la dernière écoulé. Jamais avant.
+ * (Un contact réservé ne reçoit aucune relance automatique : il n'atteint donc jamais ce seuil.)
+ */
+export function formalNoticeEligibility(
+  inv: NoticeCandidate,
+  s: Pick<Settings, "reminder_interval_days" | "reminder_max_count">,
+  now = new Date()
+): { eligible: boolean; reason?: string } {
+  if (inv.status !== "en_retard") return { eligible: false, reason: "facture non en retard" };
+  if (!inv.due_date || daysBetween(inv.due_date, now) < 1) return { eligible: false, reason: "échéance non dépassée" };
+  if (inv.reminder_count < s.reminder_max_count) return { eligible: false, reason: `relances en cours (${inv.reminder_count}/${s.reminder_max_count})` };
+  if (!inv.last_reminder_at) return { eligible: false, reason: "aucune relance enregistrée" };
+  if (daysBetween(inv.last_reminder_at, now) < s.reminder_interval_days) return { eligible: false, reason: "délai après la dernière relance non écoulé" };
+  return { eligible: true };
+}

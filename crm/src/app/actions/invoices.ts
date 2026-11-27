@@ -62,11 +62,18 @@ export async function updateInvoiceAction(id: string, fd: FormData) {
     .update({ subject: str(fd, "subject"), notes: str(fd, "notes") })
     .eq("id", id);
   if (error) flash(back, "error", dbMessage(error));
-  await supabase.from("invoice_lines").delete().eq("invoice_id", id);
+  // Même règle que pour les devis : insérer les nouvelles lignes avant de retirer les anciennes (jamais de brouillon vidé par une erreur).
+  const { data: oldLines, error: oe } = await supabase.from("invoice_lines").select("id").eq("invoice_id", id);
+  if (oe) flash(back, "error", dbMessage(oe));
   const { error: le } = await supabase
     .from("invoice_lines")
     .insert(lines.map((l, position) => ({ ...l, position, invoice_id: id })));
-  if (le) flash(back, "error", `Lignes non enregistrées : ${dbMessage(le)}`);
+  if (le) flash(back, "error", `Lignes non enregistrées, brouillon inchangé : ${dbMessage(le)}`);
+  const oldIds = (oldLines ?? []).map((r: { id: string }) => r.id);
+  if (oldIds.length) {
+    const { error: de } = await supabase.from("invoice_lines").delete().in("id", oldIds);
+    if (de) flash(back, "error", `Anciennes lignes non retirées (lignes en double dans le brouillon) : ${dbMessage(de)}`);
+  }
   revalidatePath("/factures");
   flash(`/factures/${id}`, "ok", "Brouillon mis à jour.");
 }

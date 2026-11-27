@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Archive, FilePlus, Mail, MapPin, Pencil, Phone, Plus, Receipt, Repeat, Trash2, Undo2, Wallet } from "lucide-react";
+import { Archive, FilePlus, Gavel, Mail, MapPin, Pencil, Phone, Plus, Receipt, Repeat, Trash2, Undo2, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getSettings } from "@/lib/data";
+import { formalNoticeEligibility } from "@/lib/domain/reminders";
+import { DraftEditor } from "@/components/crm/draft-editor";
+import { dismissDraftAction, markMailHandledAction, prepareFormalNoticeAction, prepareReplyAction, saveDraftAction, sendDraftAction } from "@/app/actions/mails";
 import { clientImpact } from "@/lib/impact";
 import { Empty } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,19 +30,37 @@ export default async function ClientPage({ params, searchParams }: { params: { i
   const { data: c } = await supabase.from("clients").select("*").eq("id", params.id).maybeSingle();
   if (!c) notFound();
 
-  const [contracts, quotes, invoices, interactions, impact] = await Promise.all([
+  const [contracts, quotes, invoices, interactions, impact, mails, drafts, settings] = await Promise.all([
     supabase.from("contracts").select("*").eq("client_id", c.id).order("created_at"),
     supabase.from("quotes").select("id, number, status, subject, total_ht, invoice_id").eq("client_id", c.id).order("number", { ascending: false }),
-    supabase.from("invoices").select("id, number, status, subject, total_ht, total_ttc, paid_amount, due_date").eq("client_id", c.id).order("created_at", { ascending: false }),
+    supabase.from("invoices").select("id, number, status, subject, total_ht, total_ttc, paid_amount, due_date, issue_date, reminder_count, last_reminder_at").eq("client_id", c.id).order("created_at", { ascending: false }),
     supabase.from("interactions").select("*").eq("client_id", c.id).order("occurred_at", { ascending: false }).limit(60),
-    clientImpact(c.id)
+    clientImpact(c.id),
+    supabase.from("client_mails").select("id, direction, kind, subject, body, occurred_at, handled, from_email, to_email").eq("client_id", c.id).order("occurred_at", { ascending: false }).limit(60),
+    supabase.from("mail_drafts").select("id, kind, status, subject, body, to_email, generated_by, reply_to_mail_id, created_at").eq("client_id", c.id).eq("status", "a_valider").order("created_at", { ascending: false }),
+    getSettings(supabase)
   ]);
+  // Les tables de mails arrivent avec la migration 0020 : tant qu'elle manque, la fiche le dit au lieu de planter.
+  const mailsMissing = [mails, drafts].some((r) => r.error && (r.error.code === "42P01" || r.error.code === "PGRST205" || /does not exist|schema cache/i.test(r.error.message)));
+  for (const r of [mails, drafts]) if (r.error && !mailsMissing) throw new Error(r.error.message);
+  const mailRows = mailsMissing ? [] : (mails.data ?? []);
+  const draftRows = mailsMissing ? [] : (drafts.data ?? []);
+  const { data: reminderRows } = await supabase.from("reminders").select("id, sent_at, level, channel, origin, invoices!inner(number, client_id)").eq("invoices.client_id", c.id).order("sent_at", { ascending: false }).limit(40);
   const inv = invoices.data ?? [];
   const issued = inv.filter((i) => i.status !== "brouillon" && i.status !== "annule");
   const billedHt = issued.reduce((a, i) => a + n(i.total_ht), 0);
   const due = inv.filter((i) => ["envoye", "en_retard"].includes(i.status)).reduce((a, i) => a + n(i.total_ttc) - n(i.paid_amount), 0);
   const lateCount = inv.filter((i) => i.status === "en_retard").length;
   const activeContracts = (contracts.data ?? []).filter((k) => k.status === "actif").length;
+  // « Mise en demeure » : visible seulement quand TOUTES les relances d'une facture sont épuisées (jamais avant).
+  const noticeInvoices = inv.filter((i) => formalNoticeEligibility({ status: i.status, due_date: i.due_date, reminder_count: n(i.reminder_count), last_reminder_at: i.last_reminder_at }, settings).eligible);
+  const noticeDraft = draftRows.find((d) => d.kind === "mise_en_demeure");
+  type Entry = { type: "mail"; at: string; m: (typeof mailRows)[number] } | { type: "relance"; at: string; r: any } | { type: "note"; at: string; i: NonNullable<typeof interactions.data>[number] };
+  const timeline: Entry[] = [
+    ...mailRows.map((m): Entry => ({ type: "mail", at: m.occurred_at, m })),
+    ...((reminderRows ?? []) as any[]).map((r): Entry => ({ type: "relance", at: r.sent_at, r })),
+    ...(interactions.data ?? []).map((i): Entry => ({ type: "note", at: i.occurred_at, i }))
+  ].sort((a, b) => b.at.localeCompare(a.at));
 
   const tab = ["contrats", "documents", "historique"].includes(searchParams.onglet ?? "") ? searchParams.onglet! : "resume";
   const base = `/clients/${c.id}`;
@@ -46,7 +68,7 @@ export default async function ClientPage({ params, searchParams }: { params: { i
     { href: base, label: "Résumé", active: tab === "resume" },
     { href: `${base}?onglet=contrats`, label: "Contrats", count: contracts.data?.length ?? 0, active: tab === "contrats" },
     { href: `${base}?onglet=documents`, label: "Devis & factures", count: (quotes.data?.length ?? 0) + inv.length, active: tab === "documents" },
-    { href: `${base}?onglet=historique`, label: "Historique", count: interactions.data?.length ?? 0, active: tab === "historique" }
+    { href: `${base}?onglet=historique`, label: "Historique", count: (interactions.data?.length ?? 0) + mailRows.length, active: tab === "historique" }
   ];
   const address = [c.address, [c.postal_code, c.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
   const reservedName = c.is_reserved ? c.name : null;
@@ -90,6 +112,27 @@ export default async function ClientPage({ params, searchParams }: { params: { i
         <Stat label="Contrats actifs" value={activeContracts} sub={`${contracts.data?.length ?? 0} au total`} tone="blue" icon={Repeat} />
         <Stat label="Devis" value={quotes.data?.length ?? 0} sub={`${(quotes.data ?? []).filter((q) => q.status === "envoye").length} en attente de réponse`} tone="violet" icon={FilePlus} />
       </div>
+
+      {(noticeInvoices.length > 0 || noticeDraft) && (
+        <Card className="mb-5 border-red-200 bg-red-50/60">
+          <CardContent className="flex flex-wrap items-center gap-3 p-4 text-sm text-red-950">
+            <Gavel className="h-5 w-5 text-red-600" />
+            {noticeDraft ? (
+              <>
+                <span className="flex-1"><b>Mise en demeure préparée</b> — relisez-la dans l&apos;historique. Elle ne part que sur votre clic.</span>
+                <Link href={`${base}?onglet=historique`} className={cn(buttonVariants({ size: "sm", variant: "outline" }))}>Ouvrir le courrier</Link>
+              </>
+            ) : (
+              <>
+                <span className="flex-1">Toutes les relances sont épuisées pour {noticeInvoices.map((i) => i.number).join(", ")} ({formatEUR(noticeInvoices.reduce((a, i) => a + n(i.total_ttc) - n(i.paid_amount), 0))} TTC).</span>
+                <ConfirmAction action={prepareFormalNoticeAction.bind(null, c.id)} label="Mise en demeure" variant="outline" className="border-red-300 text-red-800 hover:bg-red-100"
+                  title="Préparer la mise en demeure ?" description="Le courrier est préparé et placé dans l'historique pour relecture. Rien n'est envoyé : il ne part que sur votre clic « Valider et envoyer »."
+                  confirmLabel="Préparer le courrier" reservedName={reservedName} />
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs items={tabs} />
 
@@ -180,29 +223,63 @@ export default async function ClientPage({ params, searchParams }: { params: { i
       )}
 
       {tab === "historique" && (
-        <Card>
-          <CardHeader><CardTitle>Historique des échanges</CardTitle></CardHeader>
-          <CardContent className="space-y-5">
-            <form action={addInteractionAction.bind(null, c.id)} className="grid gap-3 sm:grid-cols-[11rem_1fr_auto] sm:items-end">
-              <Field label="Type"><Select name="kind">{Object.entries(KIND).filter(([k]) => !["demande", "statut"].includes(k)).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select></Field>
-              <Field label="Résumé"><Input name="summary" required placeholder="Ex. : appelé pour confirmer le passage de jeudi" /></Field>
-              <Button><Plus className="h-5 w-5" /> Ajouter</Button>
-            </form>
-            {!interactions.data?.length ? <Empty>Aucun échange enregistré.</Empty> : (
-              <ul className="divide-y divide-slate-100 text-[15px]">
-                {interactions.data.map((i) => (
-                  <li key={i.id} className="flex items-start gap-4 py-3">
-                    <span className="w-24 shrink-0 text-sm text-slate-400">{formatDate(i.occurred_at)}</span>
-                    <span className="w-36 shrink-0 font-medium text-slate-700">{KIND[i.kind] ?? i.kind}</span>
-                    <span className="flex-1 text-slate-800">{i.summary}</span>
-                    <ConfirmAction action={deleteInteractionAction.bind(null, i.id, c.id)} label="✕" variant="ghost" size="sm" className="text-slate-400 hover:text-red-600"
-                      title="Supprimer cette ligne ?" description="La ligne est retirée de l'historique de ce client." confirmLabel="Supprimer" reservedName={reservedName} />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+        <div className="space-y-5">
+          {mailsMissing && <p className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900">Les mails et les réponses préparées s&apos;afficheront ici après application de la migration 0020 (historique des mails).</p>}
+
+          {draftRows.map((d) => (
+            <DraftEditor key={d.id} kind={d.kind as "reponse" | "mise_en_demeure"} generatedBy={d.generated_by as "ia" | "modele" | "manuel"} subject={d.subject} body={d.body} to={d.to_email ?? c.email}
+              reservedName={reservedName} save={saveDraftAction.bind(null, d.id, c.id)} send={sendDraftAction.bind(null, d.id, c.id)} dismiss={dismissDraftAction.bind(null, d.id, c.id)} />
+          ))}
+
+          <Card>
+            <CardHeader><CardTitle>Historique des échanges</CardTitle></CardHeader>
+            <CardContent className="space-y-5">
+              <form action={addInteractionAction.bind(null, c.id)} className="grid gap-3 sm:grid-cols-[11rem_1fr_auto] sm:items-end">
+                <Field label="Type"><Select name="kind">{Object.entries(KIND).filter(([k]) => !["demande", "statut"].includes(k)).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select></Field>
+                <Field label="Résumé"><Input name="summary" required placeholder="Ex. : appelé pour confirmer le passage de jeudi" /></Field>
+                <Button><Plus className="h-5 w-5" /> Ajouter</Button>
+              </form>
+              {!timeline.length ? <Empty>Aucun échange enregistré.</Empty> : (
+                <ul className="divide-y divide-slate-100 text-[15px]">
+                  {timeline.map((e) => e.type === "mail" ? (
+                    <li key={`m_${e.m.id}`} className="py-3">
+                      <div className="flex items-start gap-4">
+                        <span className="w-24 shrink-0 text-sm text-slate-400">{formatDate(e.at)}</span>
+                        <span className="w-36 shrink-0 font-medium text-slate-700">{e.m.direction === "recu" ? "📥 Mail reçu" : e.m.kind === "mise_en_demeure" ? "⚖️ Mise en demeure" : "📤 Mail envoyé"}</span>
+                        <details className="flex-1">
+                          <summary className="cursor-pointer text-slate-800">{e.m.subject ?? "(sans objet)"}{e.m.direction === "recu" && !e.m.handled && <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700">à traiter</span>}</summary>
+                          <p className="mt-2 whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{e.m.body}</p>
+                        </details>
+                      </div>
+                      {e.m.direction === "recu" && !e.m.handled && (
+                        <div className="mt-2 flex flex-wrap gap-2 pl-[15.5rem]">
+                          {draftRows.some((d) => d.reply_to_mail_id === e.m.id)
+                            ? <span className="text-sm text-slate-500">Réponse préparée : voir en haut de page.</span>
+                            : <form action={prepareReplyAction.bind(null, c.id, e.m.id)}><Button size="sm">Préparer la réponse</Button></form>}
+                          <form action={markMailHandledAction.bind(null, e.m.id, c.id)}><Button size="sm" variant="ghost" className="text-slate-500">Marquer comme traité</Button></form>
+                        </div>
+                      )}
+                    </li>
+                  ) : e.type === "relance" ? (
+                    <li key={`r_${e.r.id}`} className="flex items-start gap-4 py-3">
+                      <span className="w-24 shrink-0 text-sm text-slate-400">{formatDate(e.at)}</span>
+                      <span className="w-36 shrink-0 font-medium text-slate-700">🔔 Relance</span>
+                      <span className="flex-1 text-slate-800">Relance n° {e.r.level} — facture {e.r.invoices?.number ?? "—"} ({e.r.channel}, {e.r.origin === "auto" ? "automatique" : "manuelle"})</span>
+                    </li>
+                  ) : (
+                    <li key={`i_${e.i.id}`} className="flex items-start gap-4 py-3">
+                      <span className="w-24 shrink-0 text-sm text-slate-400">{formatDate(e.at)}</span>
+                      <span className="w-36 shrink-0 font-medium text-slate-700">{KIND[e.i.kind] ?? e.i.kind}</span>
+                      <span className="flex-1 text-slate-800">{e.i.summary}</span>
+                      <ConfirmAction action={deleteInteractionAction.bind(null, e.i.id, c.id)} label="✕" variant="ghost" size="sm" className="text-slate-400 hover:text-red-600"
+                        title="Supprimer cette ligne ?" description="La ligne est retirée de l'historique de ce client." confirmLabel="Supprimer" reservedName={reservedName} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       )}
     </>
   );
