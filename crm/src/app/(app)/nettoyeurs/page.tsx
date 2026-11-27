@@ -165,7 +165,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
           <>
             <p className="mb-3 text-sm text-muted-foreground">Chaque réservation Airbnb ou Booking devient un ménage proposé automatiquement aux nettoyeurs de la zone. Vous recevez un e-mail à chaque acceptation, et une alerte si personne n&apos;accepte à moins de 24 h.</p>
             <div className="grid gap-4 lg:grid-cols-3">
-              {col("À pourvoir", openJ.some((j) => soon(j.job_date)) ? "border-red-300" : "", openJ, (j) => `${dayFr(j.job_date)} · ${j.city ?? ""} · ${eur(j.cleaner_amount)} pour le nettoyeur${soon(j.job_date) ? " · URGENT : sans nettoyeur d'ici demain" : ""}`, "Aucun ménage en attente de nettoyeur.")}
+              {col("À pourvoir", openJ.some((j) => soon(j.job_date)) ? "border-red-300" : "", openJ, (j) => `${dayFr(j.job_date)} · ${j.city ?? ""} · ${eur(j.cleaner_amount)} pour le nettoyeur · marge ${eur(Number(j.price_ht ?? 0) - Number(j.cleaner_amount ?? 0))}${Number(j.price_ht ?? 0) > 0 && (Number(j.price_ht) - Number(j.cleaner_amount ?? 0)) / Number(j.price_ht) < 0.1 ? " · MARGE FAIBLE" : ""}${soon(j.job_date) ? " · URGENT : sans nettoyeur d'ici demain" : ""}`, "Aucun ménage en attente de nettoyeur.")}
               {col("Acceptés", "", accepted, (j) => `${dayFr(j.job_date)} · ${j.cleaners?.full_name ?? "—"}${j.status === "a_reprendre" ? " · à reprendre" : ""}`, "Aucun ménage accepté à venir.")}
               {col("Envoyés pour vérification", sent.length ? "border-amber-300" : "", sent, (j) => `${j.cleaners?.full_name ?? ""} · ${dayFr(j.job_date)} · à valider dans l'onglet Demandes`, "Rien à vérifier.")}
             </div>
@@ -175,6 +175,8 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
                 <Field label="Client"><Select name="client_id" required defaultValue="">{<option value="" disabled>Choisir…</option>}{((clients.data ?? []) as any[]).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select></Field>
                 <Field label="Date"><Input name="job_date" type="date" required min={today} /></Field>
                 <Field label="Prix HT facturé"><Input name="price_ht" type="number" step="0.01" min="0" required /></Field>
+                <Field label="Type"><Select name="job_kind" defaultValue="logement"><option value="logement">Logement (Airbnb, ménage)</option><option value="bureau">Bureaux</option></Select></Field>
+                <Field label="Durée prévue (h)" hint="Sert au plancher horaire"><Input name="duration_hours" type="number" step="0.5" min="0" /></Field>
                 <Field label="Adresse"><Input name="address" /></Field>
                 <Field label="Code postal"><Input name="postal_code" required inputMode="numeric" maxLength={5} /></Field>
                 <Field label="Ville"><Input name="city" /></Field>
@@ -555,6 +557,9 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
               <Field label="2 pièces (€ HT)"><Input name="price_t2" inputMode="decimal" defaultValue={S.price_t2} /></Field>
               <Field label="3 pièces (€ HT)"><Input name="price_t3" inputMode="decimal" defaultValue={S.price_t3} /></Field>
               <Field label="Maison (€ HT)" className="sm:col-span-3"><Input name="price_maison" inputMode="decimal" defaultValue={S.price_maison} /></Field>
+              <Field label="Plancher horaire : Paris (€/h)" hint="Le nettoyeur touche le plus élevé entre sa part et ce taux × la durée prévue"><Input name="hourly_floor_paris" inputMode="decimal" defaultValue={S.hourly_floor_paris} /></Field>
+              <Field label="Plancher horaire : ailleurs (€/h)"><Input name="hourly_floor_other" inputMode="decimal" defaultValue={S.hourly_floor_other} /></Field>
+              <Field label="Plancher horaire : bureaux (€/h)"><Input name="hourly_floor_office" inputMode="decimal" defaultValue={S.hourly_floor_office} /></Field>
               <div className="space-y-3 rounded-lg border p-4 sm:col-span-3">
                 <label className="flex items-start gap-2 text-sm"><input type="checkbox" name="rules_validate" defaultChecked={S.rules_validate} className="mt-1" /><span><b className="font-medium">Valider automatiquement par règles, sans IA</b> quand l&apos;analyse des photos est indisponible : le nettoyeur a pointé, coché toutes les tâches, envoyé assez de photos, est resté assez longtemps, et il a fait ses preuves. Sinon le ménage vous arrive avec la raison.</span></label>
                 <div className="grid gap-3 sm:grid-cols-4">
