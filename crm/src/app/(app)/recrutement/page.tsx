@@ -100,11 +100,11 @@ export default async function RecruitmentPage() {
         <CardHeader><CardTitle>Contrat entrepreneur indépendant (6 mois)</CardTitle></CardHeader>
         <CardContent className="space-y-3 text-sm">
           <p className="text-muted-foreground">
-            Sous-traitance de l'entretien du site de Herblay (SEA + Île-de-France Recyclage) : 2 passages par semaine, mercredi et samedi, de 7 h à 10 h.
-            Engagement minimal d'un mois, préavis de 15 jours ensuite. Les champs laissés vides s'impriment en bleu, à compléter à la main. À faire relire par un conseil juridique avant signature.
+            Sous-traitance de l&apos;entretien du site de Herblay (SEA + Île-de-France Recyclage) : 2 passages par semaine, mercredi et samedi, de 7 h à 10 h.
+            Engagement minimal d&apos;un mois, préavis de 15 jours ensuite. Les champs laissés vides s&apos;impriment en bleu, à compléter à la main. À faire relire par un conseil juridique avant signature.
           </p>
           <form method="get" action="/api/recrutement/contrat" target="_blank" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <label className="block">Nom de l'entrepreneur<input name="name" className="mt-1 h-10 w-full rounded-md border px-2" /></label>
+            <label className="block">Nom de l&apos;entrepreneur<input name="name" className="mt-1 h-10 w-full rounded-md border px-2" /></label>
             <label className="block">SIRET<input name="siret" className="mt-1 h-10 w-full rounded-md border px-2" /></label>
             <label className="block">Adresse<input name="address" className="mt-1 h-10 w-full rounded-md border px-2" /></label>
             <label className="block">Statut<input name="form" placeholder="micro-entrepreneur" className="mt-1 h-10 w-full rounded-md border px-2" /></label>
