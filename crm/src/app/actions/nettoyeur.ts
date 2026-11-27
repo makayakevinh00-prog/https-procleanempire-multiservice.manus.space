@@ -233,6 +233,15 @@ export async function cleanerPhoneAction(token: string, fd: FormData) {
   go(token, "/profil/telephone", "ok", "Téléphone enregistré.");
 }
 
+/** Linge : le nettoyeur indique s'il peut laver du linge (machine à laver) ; la direction le voit dans le CRM. */
+export async function cleanerLinenPrefAction(token: string, fd: FormData) {
+  guard(token);
+  const { error } = await agentClient().rpc("cleaner_set_linen", { p_token: token, p_ok: fd.get("lave_linge") === "on", p_note: String(fd.get("note") ?? "") });
+  if (error) go(token, "/profil/linge", "error", agentMessage(error.message));
+  revalidatePath(base(token), "layout");
+  go(token, "/profil/linge", "ok", "Enregistré.");
+}
+
 /** Paiement : l'IBAN s'enregistre seul. */
 export async function cleanerIbanAction(token: string, fd: FormData) {
   guard(token);

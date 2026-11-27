@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Award, FileText, GraduationCap, HelpCircle, Home, Landmark, Phone, ShieldCheck, Star, UserCheck, LogOut } from "lucide-react";
+import { Award, FileText, Shirt, GraduationCap, HelpCircle, Home, Landmark, Phone, ShieldCheck, Star, UserCheck, LogOut } from "lucide-react";
 import { agentClient, agentMessage, isToken, type CleanerOverview } from "@/lib/agent";
 import { dict, initials } from "@/lib/field-ui";
 import { MODULE_LIST, type TrainingState } from "@/lib/formation";
@@ -20,7 +20,8 @@ export default async function CleanerProfile({ params, searchParams }: { params:
   const { data, error } = await db.rpc("cleaner_overview", { p_token: token });
   if (error) return <Gate text={agentMessage(error.message)} />;
   const o = data as CleanerOverview;
-  const [av, trr, idr] = await Promise.all([db.rpc("cleaner_avatar", { p_token: token }), db.rpc("cleaner_training", { p_token: token }), db.rpc("cleaner_identity", { p_token: token })]);
+  const [av, trr, idr, lnr] = await Promise.all([db.rpc("cleaner_avatar", { p_token: token }), db.rpc("cleaner_training", { p_token: token }), db.rpc("cleaner_identity", { p_token: token }), db.rpc("cleaner_linen_pref", { p_token: token })]);
+  const ln = (lnr.error ? null : lnr.data) as { lave_linge: boolean; note: string | null } | null;
   const photo = av.data as string | null, tr = trr.data as TrainingState | null, idn = idr.data as { status: string } | null;
   const passed = tr ? MODULE_LIST.filter((m) => tr.modules[m].passed).length : 0;
   const base = `/nettoyeur/${token}`, t = dict("fr");
@@ -54,6 +55,7 @@ export default async function CleanerProfile({ params, searchParams }: { params:
       <RowList>
         <Row href={`${base}/profil/adresse`} icon={Home} title="Adresse et secteur" sub={place ? `${place} · ${o.radius_km} km` : "À renseigner pour recevoir les ménages près de vous"} warn={!place} />
         <Row href={`${base}/profil/telephone`} icon={Phone} title="Téléphone" sub={o.phone || "À renseigner"} warn={!o.phone} />
+        <Row href={`${base}/profil/linge`} icon={Shirt} title="Lavage du linge" sub={ln?.lave_linge ? "Je peux laver du linge" : "Dites si vous avez une machine à laver"} />
         <Row href={`${base}/profil/iban`} icon={Landmark} title="IBAN pour mes virements" sub={o.has_iban ? o.iban_hint ?? "Enregistré" : "À renseigner pour être payé"} warn={!o.has_iban} />
       </RowList>
 

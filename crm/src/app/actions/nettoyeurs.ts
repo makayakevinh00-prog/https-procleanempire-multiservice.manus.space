@@ -540,3 +540,11 @@ export async function deletePayslipAction(id: string) {
   revalidatePath(TEAM);
   flash(TEAM, "ok", "Fiche de paie supprimée.");
 }
+
+/** La direction indique qu'un nettoyeur peut (ou ne peut plus) laver du linge. */
+export async function setCleanerLaundryAction(id: string, ok: boolean) {
+  await requireOwner();
+  const { error } = await createClient().from("cleaners").update({ lave_linge: ok }).eq("id", id);
+  if (error) flash(to("nettoyeurs"), "error", dbMessage(error));
+  done("nettoyeurs", ok ? "Il peut laver du linge." : "Il ne lave plus de linge.");
+}
