@@ -36,7 +36,7 @@ export default async function CleanerJobThread({ params, searchParams }: { param
             <option value="degat">Dégât constaté</option><option value="acces">Accès impossible</option><option value="sale">Logement très sale</option><option value="manque">Matériel ou linge manquant</option><option value="autre">Autre</option>
           </select>
           <textarea name="text" required minLength={3} maxLength={800} rows={3} placeholder="Décrivez ce que vous voyez" className={field} />
-          <p className="text-[12px] text-[var(--a-mute)]">Pensez à prendre une photo avec le bouton photo de la mission. La direction et la conciergerie sont prévenues tout de suite.</p>
+          <p className="text-[12px] text-[var(--a-mute)]">La direction et la conciergerie sont prévenues tout de suite. Le film de la mission reste la preuve (pas de photos).</p>
           <button className="h-12 w-full rounded-2xl bg-[var(--a-bad)] text-base font-extrabold text-white">Signaler</button>
         </form>
       </details>
