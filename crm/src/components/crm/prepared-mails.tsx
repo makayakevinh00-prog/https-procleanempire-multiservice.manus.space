@@ -38,5 +38,5 @@ export function PreparedMails({ mails, recipients, back }: { mails: PreparedMail
 
 /** Rappel compact : pastille « n e-mail(s) » qui mène à la fiche client. */
 export const MailBadge = ({ clientId, n }: { clientId: string; n: number }) => (
-  <Link href={`/clients/${clientId}#mails`} className="ml-2 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800 hover:bg-amber-200"><Mail className="h-3 w-3" />{n} à envoyer</Link>
+  <Link href={`/clients/${clientId}#mails`} title={`${n} e-mail${n > 1 ? "s" : ""} à envoyer`} className="ml-2 inline-flex items-center gap-1 rounded-full bg-[#dbe6fc] px-2 py-0.5 text-xs font-semibold text-primary hover:bg-[#c9d9fa]"><Mail className="h-3 w-3" />{n}</Link>
 );

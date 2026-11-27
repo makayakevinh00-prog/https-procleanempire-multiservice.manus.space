@@ -30,11 +30,11 @@ export function requestType(type: unknown, service: unknown): RequestType {
 
 export const PIPELINE = [
   ["nouveau_prospect", "Nouveau prospect"], ["a_contacter", "À contacter"], ["rdv_programme", "Rendez-vous programmé"],
-  ["devis_envoye", "Devis envoyé"], ["devis_accepte", "Devis accepté"], ["devis_refuse", "Devis refusé"], ["client_actif", "Client actif"]
+  ["devis_envoye", "Devis envoyé"], ["devis_accepte", "Devis accepté"], ["devis_refuse", "Devis refusé"], ["client_actif", "Actif"]
 ] as const;
 export type Pipeline = (typeof PIPELINE)[number][0];
 export const PIPELINE_LABEL = Object.fromEntries(PIPELINE) as Record<Pipeline, string>;
 export const PIPELINE_TONE: Record<Pipeline, string> = {
   nouveau_prospect: "bg-sky-100 text-sky-800", a_contacter: "bg-amber-100 text-amber-900", rdv_programme: "bg-violet-100 text-violet-800",
-  devis_envoye: "bg-blue-100 text-blue-800", devis_accepte: "bg-emerald-100 text-emerald-800", devis_refuse: "bg-red-100 text-red-800", client_actif: "bg-green-200 text-green-900"
+  devis_envoye: "bg-blue-100 text-blue-800", devis_accepte: "bg-emerald-100 text-emerald-800", devis_refuse: "bg-red-100 text-red-800", client_actif: "bg-[#e6f1ea] text-[#2f7a55]"
 };
