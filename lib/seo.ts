@@ -4,6 +4,12 @@
  * Pour changer le titre d'une page, modifier ici : la page, Open Graph et Twitter suivent.
  */
 export const TITLE_OVERRIDES: Record<string, string> = {
+  "/nettoyage-argenteuil": "Nettoyage à Argenteuil (95) – Bureaux et immeubles",
+  "/nettoyage-sarcelles": "Nettoyage à Sarcelles (95) – Immeubles et commerces",
+  "/nettoyage-enghien-les-bains": "Nettoyage à Enghien-les-Bains (95) – Hôtels, cabinets",
+  "/nettoyage-paris-8": "Entreprise de nettoyage Paris 8e – Bureaux, hôtels",
+  "/nettoyage-paris-9": "Entreprise de nettoyage Paris 9e – Bureaux, Airbnb",
+  "/nettoyage-paris-17": "Entreprise de nettoyage Paris 17e – Cabinets, immeubles",
   "/": "Entreprise de nettoyage à Cergy-Pontoise (95) et Paris",
   "/nettoyage-paris": "Entreprise de nettoyage à Paris – Bureaux, commerces",
   "/entreprise-de-nettoyage-paris-16": "Entreprise de nettoyage Paris 16e – Bureaux, cabinets",
