@@ -672,7 +672,7 @@ export const localPages: LocalPage[] = [
     label: "Nettoyage à Argenteuil",
     metaTitle: "Nettoyage à Argenteuil (95) : bureaux, commerces, immeubles",
     metaDescription:
-      "Entreprise de nettoyage à Argenteuil (95100) : entretien de bureaux, commerces, parties communes d'immeubles et ménage de logements meublés. Équipe basée à Pontoise, devis sous 24 h.",
+      "Entreprise de nettoyage à Argenteuil (95100) : entretien de bureaux, commerces, parties communes d'immeubles et remise en état de logements. Équipe basée à Pontoise, devis sous 24 h.",
     serviceName: "Nettoyage à Argenteuil",
     serviceType: "Nettoyage de bureaux, commerces, parties communes et logements vacants",
     related: [
