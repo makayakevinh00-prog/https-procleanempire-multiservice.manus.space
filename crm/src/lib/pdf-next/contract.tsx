@@ -49,9 +49,9 @@ export function ContractDoc({ built, co, clientName, signedAt }: { built: BuiltC
 
         <Text style={[s.h2, { marginBottom: 8 }]}>Entre les soussignés</Text>
         <View style={[s.row, { marginBottom: 6 }]}>
-          <Party title="Le Prestataire" lines={[{ t: co.name, b: true }, { t: `${co.legal} au capital de ${co.capital}`.trim() }, { t: co.address }, { t: [co.siret ? `SIRET ${co.siret}` : "", co.rcs].filter(Boolean).join(" · ") }, ...built.parties.provider.slice(1).map((t) => ({ t }))]} />
+          <Party title={built.reverse ? "Le Donneur d'ordre" : "Le Prestataire"} lines={[{ t: co.name, b: true }, { t: `${co.legal} au capital de ${co.capital}`.trim() }, { t: co.address }, { t: [co.siret ? `SIRET ${co.siret}` : "", co.rcs].filter(Boolean).join(" · ") }, ...built.parties.provider.slice(1).map((t) => ({ t }))]} />
           <View style={{ width: 12 }} />
-          <Party tint title="Le Client" lines={built.parties.client.map((t, i) => ({ t, b: i === 0 }))} />
+          <Party tint title={built.reverse ? "Le Prestataire" : "Le Client"} lines={built.parties.client.map((t, i) => ({ t, b: i === 0 }))} />
         </View>
         <Text style={{ fontSize: 9, color: C.grey, marginBottom: 16 }}>{built.parties.place} Il a été convenu ce qui suit.</Text>
 
@@ -62,7 +62,7 @@ export function ContractDoc({ built, co, clientName, signedAt }: { built: BuiltC
           <Text style={[s.h2, { fontSize: 18, marginBottom: 6 }]}>Signatures</Text>
           <Text style={{ fontSize: 9, color: C.grey, marginBottom: 12 }}>Fait à {"[ ville ]"}, le {"[ date ]"}, en deux exemplaires originaux. Signature électronique : la version signée et son dossier de preuve sont archivés dans le CRM.</Text>
           <View style={s.row}>
-            {[["Pour le Prestataire", `${co.name}\n${LEGAL_REP.name}, ${LEGAL_REP.title}`, false], ["Le Client", clientName, true]].map(([k, v, blue], i) => (
+            {[[built.reverse ? "Pour le Donneur d'ordre" : "Pour le Prestataire", `${co.name}\n${LEGAL_REP.name}, ${LEGAL_REP.title}`, false], [built.reverse ? "Le Prestataire" : "Le Client", clientName, true]].map(([k, v, blue], i) => (
               <View key={String(k)} style={{ flex: 1, borderWidth: 1, borderColor: blue ? C.blue : C.line, borderRadius: 8, padding: 14, minHeight: 130, marginLeft: i ? 8 : 0, marginRight: i ? 0 : 8 }}>
                 <Text style={[s.label, blue ? { color: C.blue } : {}]}>{String(k)}</Text>
                 <Multi text={String(v)} style={{ fontSize: 9.5, fontWeight: 600 }} />

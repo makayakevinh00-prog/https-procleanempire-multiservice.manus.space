@@ -25,6 +25,8 @@ export interface BuiltContract {
   summary: [string, string][];
   parties: { provider: string[]; client: string[]; place: string };
   articles: Article[];
+  /** Rôles inversés (sous-traitance) : ProClean Empire est le Donneur d'ordre, la contrepartie est le Prestataire. */
+  reverse?: boolean;
 }
 
 const ph = (x: string) => `[ ${x} ]`;

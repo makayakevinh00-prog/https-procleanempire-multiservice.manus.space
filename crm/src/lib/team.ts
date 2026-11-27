@@ -11,7 +11,7 @@ export const SECTIONS = [
   { key: "devis", label: "Devis", hint: "Création et suivi des devis (le patron valide et envoie)", routes: ["/devis", "/api/devis"] },
   { key: "contrats", label: "Contrats", hint: "Contrats récurrents", routes: ["/contrats", "/api/contrats"] },
   { key: "missions", label: "Missions et planning", hint: "Interventions, planning, sites", routes: ["/missions", "/planning", "/calendrier", "/sites", "/sur-place", "/api/missions"] },
-  { key: "rh", label: "Équipe et RH", hint: "Agents, prestataires, recrutement", routes: ["/equipe", "/recrutement"] },
+  { key: "rh", label: "Équipe et RH", hint: "Agents, prestataires, recrutement", routes: ["/equipe", "/recrutement", "/api/recrutement"] },
   { key: "conciergerie", label: "Conciergerie", hint: "Logements gérés, réservations, ménages", routes: ["/conciergerie"] },
   { key: "veille", label: "Veille concurrentielle", hint: "Concurrents, certifications, formations", routes: ["/veille"] },
   { key: "catalogue", label: "Catalogue", hint: "Prestations, coûts et marges (attention : visibles)", routes: ["/catalogue"] },
