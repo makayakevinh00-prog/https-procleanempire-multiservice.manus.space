@@ -240,6 +240,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
                     <b className="block text-[13px]">Contrôle automatique : {j.ai_status === "ok" ? "rien à signaler" : j.ai_status === "reprise" ? "reprise demandée" : j.ai_status === "indisponible" ? "indisponible" : "en cours"}</b>
                     {rep?.summary && <p className="mt-0.5">{rep.summary}{rep.confidence ? ` (confiance ${rep.confidence})` : ""}</p>}
                     {Array.isArray(rep?.remaining) && rep.remaining.length > 0 && <ul className="mt-1 list-disc pl-4">{rep.remaining.map((r: any, i: number) => <li key={i}><b>{r.zone}</b> {r.why}</li>)}</ul>}
+                    {[["Objet non vu à l'arrivée", bef?.absent], ["Objet non retrouvé à la fin", rep?.objects_missing], ["Objet abîmé", rep?.damage]].map(([t, l]: any) => Array.isArray(l) && l.length > 0 ? <div key={t} className="mt-1 rounded bg-red-100 p-2 text-red-900"><b>{t} (d&apos;après les films, à vérifier sur place) :</b><ul className="list-disc pl-4">{l.map((o: any, i: number) => <li key={i}>{o.object}{o.room ? ` (${o.room})` : ""}{o.why ? ` : ${o.why}` : ""}</li>)}</ul></div> : null)}
                     {Array.isArray(bef?.items) && bef.items.length > 0 && <p className="mt-1 text-muted-foreground">Relevé avant : {bef.items.map((x: any) => x.zone).join(", ")}</p>}
                     {j.ai_status === "indisponible" && !aiConfigured() && <p className="mt-0.5">L&apos;analyse par IA n&apos;est pas activée (clé manquante) : regardez les photos ci-dessous.</p>}
                   </div>

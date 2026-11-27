@@ -1,6 +1,7 @@
 import "server-only";
 import { automationClient, automationSecret } from "@/lib/automation/deps";
-import { aiConfigured, analyzeAfter, analyzeBefore, placePrompt, type AfterReport, type BeforeReport, type Guide, type Img } from "@/lib/ai-inspect";
+import { aiConfigured, analyzeAfter, analyzeBefore, placePrompt, type AfterReport, type BeforeReport, type Guide, type Img, type ObjFlag } from "@/lib/ai-inspect";
+import { createAdmin } from "@/lib/supabase/server";
 import { isMemory, memoryPrompt, updateMemory } from "@/lib/marketplace/memory";
 import { outcomeNotice, startNotice, type JobBrief } from "@/lib/marketplace/job-notices";
 import { mailConfigured, sendMail } from "@/lib/mail";
@@ -16,6 +17,41 @@ async function tell(b: JobBrief, owner: { subject: string; text: string }, direc
   await sendMail({ to: admin(), ...direction }).catch(() => undefined);
   const to = b.emails.filter((e) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e) && e !== admin().toLowerCase()).slice(0, 4);
   if (to.length) await sendMail({ to, ...owner, attachments }).catch(() => undefined);
+}
+
+/**
+ * Objets non retrouvés ou abîmés, d'après les films. « arrivee » : manque dès l'arrivée (avant le ménage, donc pas imputable au nettoyeur) ;
+ * « fin » : présent à l'arrivée, plus vu à la fin, ou abîmé pendant le ménage. Une anomalie est ouverte (une seule par ménage et par moment) et la direction
+ * et la conciergerie sont prévenues. L'IA décrit ce que le film montre : elle ne conclut jamais à un vol.
+ */
+async function flagObjects(jobId: string, moment: "arrivee" | "fin", missing: ObjFlag[], damage: ObjFlag[]): Promise<void> {
+  if (!missing.length && !damage.length) return;
+  const a = automationClient(), secret = automationSecret();
+  const briefRes = await a.rpc("automation_job_brief", { p_secret: secret, p_job: jobId });
+  const brief = (briefRes.error ? null : briefRes.data) as JobBrief | null;
+  const title = brief ? (brief.listing ?? brief.title) : "Ménage";
+  const line = (f: ObjFlag) => `- ${f.object}${f.room ? ` (${f.room})` : ""}${f.why ? ` : ${f.why}` : ""}`;
+  const parts = [
+    missing.length ? `${moment === "arrivee" ? "Objets de l'inventaire non vus sur le film d'arrivée (avant le ménage)" : "Objets vus à l'arrivée mais non retrouvés sur le film de fin"} :\n${missing.map(line).join("\n")}` : "",
+    damage.length ? `Objets abîmés vus sur le film de fin, absents du film d'arrivée :\n${damage.map(line).join("\n")}` : ""
+  ].filter(Boolean).join("\n\n");
+  if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    const sb = createAdmin(), by = `ia:${moment}:${jobId.slice(0, 8)}`;
+    const { data: job } = await sb.from("cleaning_jobs").select("client_id, intervention_id").eq("id", jobId).maybeSingle();
+    const { count } = await sb.from("mission_issues").select("id", { count: "exact", head: true }).eq("reported_by", by);
+    if (job?.client_id && !count) {
+      let site: string | null = null;
+      if (job.intervention_id) site = ((await sb.from("interventions").select("site_id").eq("id", job.intervention_id).maybeSingle()).data?.site_id as string | null) ?? null;
+      await sb.from("mission_issues").insert({ kind: "anomalie", intervention_id: job.intervention_id, site_id: site, client_id: job.client_id, severity: "haute", description: `Contrôle IA du film — ${parts}`.slice(0, 1500), status: "ouverte", reported_by: by });
+    } else if (count) return; // déjà signalé pour ce ménage
+  }
+  if (!mailConfigured()) return;
+  const when = moment === "arrivee" ? "à l'arrivée du nettoyeur, avant le ménage" : "à la fin du ménage";
+  const text = `${title} : l'analyse des films relève ceci ${when}.\n\n${parts}\n\nL'IA décrit ce que les films montrent ; elle ne peut pas conclure seule. Les captures tirées des films sont dans le CRM (Nettoyeurs › Demandes). Merci de vérifier sur place.\n\nL'équipe ProClean Empire`;
+  const subject = `Objet à vérifier — ${title}`;
+  await sendMail({ to: admin(), subject, text }).catch(() => undefined);
+  const to = (brief?.emails ?? []).filter((e) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e) && e !== admin().toLowerCase()).slice(0, 4);
+  if (to.length) await sendMail({ to, subject, text }).catch(() => undefined);
 }
 
 export type AfterOutcome = { status: "validee" | "a_reprendre" | "a_verifier"; verdict: "ok" | "reprise" | "indisponible"; summary: string; by: "ia" | "regles" | null; reason: string | null };
@@ -34,6 +70,7 @@ export async function runBeforeAnalysis(jobId: string): Promise<string | null> {
   const r = await analyzeBefore(photos, memoryPrompt(memory, today), placePrompt(brief?.rooms, brief?.guide));
   if (!r.report) return r.error;
   await a.rpc("automation_set_job_analysis", { p_secret: secret, p_job: jobId, p_kind: "avant", p_report: r.report, p_verdict: null });
+  await flagObjects(jobId, "arrivee", r.report.absent ?? [], []).catch(() => undefined);
   // La liste des tâches du nettoyeur devient celle de l'IA, dans l'ordre (sans effet si le ménage a déjà des tâches cochées ou si la base n'est pas à jour).
   if (r.report.tasks?.length) await a.rpc("automation_set_job_tasks", { p_secret: secret, p_job: jobId, p_tasks: r.report.tasks });
   const labelled = photos.map((p, i) => ({ ...p, room: p.room ?? (r.report!.frame_rooms?.length === photos.length ? r.report!.frame_rooms[i] || null : null) }));
@@ -83,6 +120,7 @@ export async function runAfterAnalysis(jobId: string): Promise<AfterOutcome> {
     else summary = `Analyse automatique impossible : ${r.error ?? "raison inconnue"}.`;
   }
   await a.rpc("automation_set_job_analysis", { p_secret: secret, p_job: jobId, p_kind: "apres", p_report: report ?? { summary }, p_verdict: verdict });
+  if (report) await flagObjects(jobId, "fin", (report as AfterReport).objects_missing ?? [], (report as AfterReport).damage ?? []).catch(() => undefined);
   await a.rpc("automation_set_rework", { p_secret: secret, p_job: jobId, p_minutes: verdict === "reprise" ? rework : null }); // sans effet tant que la base n'est pas à jour
   // Sans avis de l'IA : validation par règles (pointage, tâches, photos, durée, confiance, contrôle au hasard).
   let reason: string | null = null, byRules = false;

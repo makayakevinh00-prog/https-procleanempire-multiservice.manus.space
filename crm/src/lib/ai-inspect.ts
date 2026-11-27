@@ -4,8 +4,9 @@
  * L'IA demande les reprises. Elle ne valide seule que si le réglage « validation automatique » est activé et qu'elle n'est pas peu sûre ; sinon la direction valide.
  */
 export type Img = { content_type: string; b64: string; room?: string | null };
-export type BeforeReport = { items: { zone: string; todo: string }[]; level: number | null; summary: string; state?: string; tidy?: string; minutes?: number | null; zones?: string[]; tasks?: string[]; frame_rooms?: string[]; seen?: string; refilm?: { zone: string; why: string }[]; tips?: { surface: string; product: string; how: string }[] };
-export type AfterReport = { cleaned: string[]; remaining: { zone: string; why: string }[]; verdict: "ok" | "reprise"; summary: string; confidence: "haute" | "moyenne" | "faible"; missing?: string[]; rework_minutes?: number | null };
+export type ObjFlag = { object: string; room: string; why: string };
+export type BeforeReport = { absent?: ObjFlag[]; items: { zone: string; todo: string }[]; level: number | null; summary: string; state?: string; tidy?: string; minutes?: number | null; zones?: string[]; tasks?: string[]; frame_rooms?: string[]; seen?: string; refilm?: { zone: string; why: string }[]; tips?: { surface: string; product: string; how: string }[] };
+export type AfterReport = { objects_missing?: ObjFlag[]; damage?: ObjFlag[]; cleaned: string[]; remaining: { zone: string; why: string }[]; verdict: "ok" | "reprise"; summary: string; confidence: "haute" | "moyenne" | "faible"; missing?: string[]; rework_minutes?: number | null };
 
 export const aiConfigured = () => Boolean(process.env.ANTHROPIC_API_KEY?.trim());
 
@@ -27,7 +28,7 @@ export function parseBefore(text: string): BeforeReport | null {
   const tasks = given.length ? given : items.map((x: any) => (x.zone && x.todo ? `${x.zone} : ${x.todo}` : x.zone || x.todo)).slice(0, 14);
   return { items, level: Number.isFinite(lv) && lv >= 1 && lv <= 5 ? Math.round(lv) : null, summary: str(j.summary, 400), state: str(j.state, 300), tidy: str(j.tidy, 300),
     minutes: Number.isFinite(mn) && mn >= 5 && mn <= 720 ? Math.round(mn) : null, zones: (Array.isArray(j.zones) ? j.zones : []).map((x: any) => str(x, 60)).filter(Boolean).slice(0, 16),
-    tasks, seen: str(j.seen, 500), refilm: (Array.isArray(j.refilm) ? j.refilm : []).map((x: any) => ({ zone: str(x?.zone, 60), why: str(x?.why, 120) })).filter((x: any) => x.zone).slice(0, 5), tips: (Array.isArray(j.tips) ? j.tips : []).map((x: any) => ({ surface: str(x?.surface, 60), product: str(x?.product, 120), how: str(x?.how, 200) })).filter((x: any) => x.surface && (x.product || x.how)).slice(0, 6), frame_rooms: (Array.isArray(j.frame_rooms) ? j.frame_rooms : []).map((x: any) => str(x, 40)).slice(0, 16) };
+    tasks, seen: str(j.seen, 500), refilm: (Array.isArray(j.refilm) ? j.refilm : []).map((x: any) => ({ zone: str(x?.zone, 60), why: str(x?.why, 120) })).filter((x: any) => x.zone).slice(0, 5), tips: (Array.isArray(j.tips) ? j.tips : []).map((x: any) => ({ surface: str(x?.surface, 60), product: str(x?.product, 120), how: str(x?.how, 200) })).filter((x: any) => x.surface && (x.product || x.how)).slice(0, 6), frame_rooms: (Array.isArray(j.frame_rooms) ? j.frame_rooms : []).map((x: any) => str(x, 40)).slice(0, 16), absent: flags(j.absent_arrivee) };
 }
 
 export function parseAfter(text: string, labels: string[] = []): AfterReport | null {
@@ -51,11 +52,13 @@ export function parseAfter(text: string, labels: string[] = []): AfterReport | n
     cleaned: (Array.isArray(j.cleaned) ? j.cleaned : []).map((x: any) => str(x, 120)).filter(Boolean).slice(0, 20), remaining, verdict,
     summary: str(j.summary, 500) || (verdict === "ok" ? "Le ménage paraît complet." : "Des points restent à nettoyer."),
     confidence: j.confidence === "haute" || j.confidence === "faible" ? j.confidence : "moyenne",
+    objects_missing: flags(j.objects_missing), damage: flags(j.damage),
     missing, rework_minutes: remaining.length && Number.isFinite(rw) && rw >= 1 && rw <= 240 ? Math.round(rw) : null
   };
 }
 
-export type Guide = { summary: string; rooms: { room: string; steps: string[] }[]; attention: string[] };
+export type Guide = { summary: string; rooms: { room: string; steps: string[] }[]; attention: string[]; objects?: { room: string; items: string[] }[] };
+const flags = (v: unknown): ObjFlag[] => (Array.isArray(v) ? v : []).map((x: any) => ({ object: str(x?.object, 80), room: str(x?.room, 60), why: str(x?.why, 160) })).filter((x) => x.object).slice(0, 12);
 export type AiResult<T> = { report: T | null; error: string | null };
 
 export function parseGuide(text: string): Guide | null {
@@ -63,7 +66,8 @@ export function parseGuide(text: string): Guide | null {
   if (!j || !Array.isArray(j.rooms)) return null;
   const rooms = j.rooms.map((r: any) => ({ room: str(r?.room, 60), steps: (Array.isArray(r?.steps) ? r.steps : []).map((x: any) => str(x, 160)).filter(Boolean).slice(0, 10) })).filter((r: any) => r.room && r.steps.length).slice(0, 12);
   if (!rooms.length) return null;
-  return { summary: str(j.summary, 300), rooms, attention: (Array.isArray(j.attention) ? j.attention : []).map((x: any) => str(x, 160)).filter(Boolean).slice(0, 8) };
+  const objects = (Array.isArray(j.objects) ? j.objects : []).map((r: any) => ({ room: str(r?.room, 60), items: (Array.isArray(r?.items) ? r.items : []).map((x: any) => str(x, 80)).filter(Boolean).slice(0, 25) })).filter((r: any) => r.room && r.items.length).slice(0, 12);
+  return { summary: str(j.summary, 300), rooms, attention: (Array.isArray(j.attention) ? j.attention : []).map((x: any) => str(x, 160)).filter(Boolean).slice(0, 8), objects };
 }
 
 /** Raison lisible d'un échec de l'IA (affichée au patron, jamais au client). */
@@ -113,12 +117,13 @@ export async function askWith(system: string, content: Part[], maxTokens: number
 
 /** Relevé à l'arrivée : ce qu'il y a à nettoyer, l'état général, le rangement, et la durée de ménage estimée. `memory` = ce que l'IA sait déjà de ce logement. */
 /** Ce que le propriétaire, la conciergerie ou la direction ont déclaré du lieu : l'IA sait quelles pièces doivent apparaître sur le film. */
-export function placePrompt(rooms: string[] = [], guide?: { rooms?: { room: string; steps: string[] }[]; attention?: string[] } | null): string {
+export function placePrompt(rooms: string[] = [], guide?: { rooms?: { room: string; steps: string[] }[]; attention?: string[]; objects?: { room: string; items: string[] }[] } | null): string {
   const list = rooms.map((r) => str(r, 60)).filter(Boolean).slice(0, 20);
-  if (!list.length && !guide?.attention?.length) return "";
+  if (!list.length && !guide?.attention?.length && !guide?.objects?.length) return "";
   const steps = (guide?.rooms ?? []).slice(0, 12).map((r) => `${str(r.room, 60)} — ${r.steps.slice(0, 6).map((x) => str(x, 120)).join(", ")}`).join(" ; ");
   return (list.length ? ` PLAN DU LIEU, déclaré par son responsable — pièces à nettoyer : ${list.join(", ")}. Chacune de ces pièces doit apparaître sur les images : toute pièce de cette liste que tu ne vois sur aucune image va en tête de "refilm" (raison : « pas encore filmée »), avant les autres demandes. Utilise ces noms de pièces. Ne donne aucune tâche pour une pièce non filmée.` : "")
     + (steps ? ` Ce qui est attendu dans chaque pièce : ${steps}.` : "")
+    + (guide?.objects?.length ? ` INVENTAIRE DU LOGEMENT (objets présents sur la référence du propriétaire) : ${guide.objects.slice(0, 12).map((o) => `${str(o.room, 60)} — ${o.items.slice(0, 25).map((x) => str(x, 80)).join(", ")}`).join(" ; ")}.` : "")
     + (guide?.attention?.length ? ` Points d'attention du lieu : ${guide.attention.slice(0, 8).map((x) => str(x, 160)).join(" ; ")}.` : "");
 }
 
@@ -126,6 +131,7 @@ export async function analyzeBefore(images: Img[], memory = "", place = ""): Pro
   // Chaque image est numérotée : l'IA indique de quelle pièce elle vient (les captures sont tirées de la vidéo, sans que le nettoyeur ait rien à choisir).
   const shots: Part[] = images.flatMap((im, i): Part[] => [{ type: "text", text: `Image ${i + 1}${im.room ? ` (pièce : ${str(im.room, 60)})` : ""}` }, { type: "image", source: { type: "base64", media_type: im.content_type, data: im.b64 } }]);
   const content: Part[] = [...shots, { type: "text", text: `Ces ${images.length} images, tirées dans l'ordre de la vidéo du nettoyeur, montrent le lieu À SON ARRIVÉE, avant le ménage.${memory}${place} Regarde chaque image en détail avant de répondre. RÈGLE ABSOLUE : tout ce que tu écris doit venir de ces images. Ne cite aucune pièce, aucun meuble, aucun objet qui n'apparaît pas sur une image (pas de cuisine, de lit, de salle de bain ou de WC s'ils ne sont pas filmés) et ne donne aucune tâche « habituelle » ou générique : seulement ce que ces images justifient. Fais le compte rendu : (0) "seen" : en UNE phrase de 25 mots au plus, ce que tu vois précisément — le type de lieu (bureau, chambre, salon, cuisine…), les meubles et objets reconnaissables avec leur nombre et leur position, et ce qui est en désordre (par exemple « Un bureau avec deux écrans et quatre chaises, dont deux écartées de la table ; des papiers et une tasse sur le plateau ; un carton au sol près de la fenêtre ») ; (1) "items" : ce qu'il faut nettoyer ou ranger (l'élément précis vu à l'image, et quoi faire), au maximum 8 points courts, du plus sale au moins sale ; (2) "tasks" : la liste des tâches à donner au nettoyeur, DANS L'ORDRE où il doit les faire (3 à 10 tâches à l'impératif, de 10 mots au plus chacune, sans parenthèses ni explication, chacune nommant un élément visible sur les images et ce qu'il faut en faire, par exemple « Bureau : replacer les quatre chaises autour de la table » ou « Plan de travail : jeter les emballages et essuyer les traces ») ; s'il y a peu à faire, donne peu de tâches ; (3) "frame_rooms" : pour CHAQUE image, dans l'ordre, la pièce ou le lieu (Bureau, Cuisine, Salon, Chambre, Salle de bain, WC, Entrée, Autre) — exactement ${images.length} valeurs ; (4) un niveau de saleté global de 1 (propre) à 5 (très sale), l'état général en une phrase, le rangement en une phrase (ce qui traîne, ce qui est déplacé), la liste des zones réellement visibles, et le temps de ménage estimé pour une personne pour ces seules zones, en minutes. (5) "tips" : 2 à 6 conseils de nettoyage adaptés aux sols et matériaux RÉELLEMENT visibles (carrelage, parquet, stratifié, moquette, tapis, bois verni ou brut, verre, inox, marbre ou pierre, tissu, cuir, écrans…) : pour chacun, la surface vue, le type de produit à utiliser (sans marque : par exemple « nettoyant sol neutre dilué », « microfibre humide sans produit », « vinaigre blanc dilué », « aspirateur brosse douce ») et le geste ou la précaution (par exemple « serpillière bien essorée, jamais d'eau stagnante sur du parquet », « pas de vinaigre ni d'anticalcaire sur le marbre », « pas de produit sur un écran : microfibre sèche »). Ne recommande jamais de mélanger des produits (jamais javel avec un autre produit). Si tu n'es pas sûr du matériau, dis-le et propose le geste le plus doux. (6) "refilm" : les zones que le nettoyeur doit filmer à nouveau pour que le relevé soit précis, 5 au plus, chacune avec la raison en 10 mots au plus : une image floue, trop sombre ou filmée trop vite ; une zone vue seulement en partie (le sol, un coin, un meuble coupé) ; une pièce qu'on devine par une porte ouverte mais qui n'est pas filmée ; une zone connue des visites précédentes absente des images d'aujourd'hui. Nomme la zone clairement (« Coin canapé », « Sol sous la table », « Pièce derrière la porte du fond »). Si tout est bien filmé, renvoie une liste vide : ne demande jamais de refilmer sans raison. Si les images sont floues, trop sombres ou ne montrent presque rien, dis-le dans "seen" et ne donne que les tâches dont tu es sûr. STYLE : le nettoyeur lit sur son téléphone, debout, en quelques secondes. Écris des points clés, des mots simples, aucune phrase longue : "todo" en 8 mots au plus, "product" en 5 mots au plus, "how" en 10 mots au plus, "state" et "tidy" en 12 mots au plus chacun, "summary" en une phrase de 15 mots au plus. Réponds : {"seen":"...","items":[{"zone":"...","todo":"..."}],"tasks":["..."],"refilm":[{"zone":"...","why":"..."}],"tips":[{"surface":"Sol carrelé","product":"...","how":"..."}],"frame_rooms":["Bureau"],"level":3,"state":"...","tidy":"...","zones":["Bureau"],"minutes":30,"summary":"une ou deux phrases"}` }];
+  if (place.includes("INVENTAIRE DU LOGEMENT")) content.push({ type: "text", text: ` OBJETS : compare les images à l'INVENTAIRE DU LOGEMENT. Ajoute au même JSON la clé "absent_arrivee" : [{"object":"nom","room":"pièce","why":"pourquoi, 12 mots au plus"}], uniquement pour un objet de l'inventaire dont la pièce est clairement filmée et qui n'apparaît sur aucune image alors qu'il devrait être visible. Si la pièce n'est pas filmée ou si tu hésites, ne le cite pas. Sinon [].` });
   const r = await ask(content);
   if (!r.text) return { report: null, error: r.error };
   let report = parseBefore(r.text);
@@ -146,7 +152,7 @@ export async function analyzeBefore(images: Img[], memory = "", place = ""): Pro
  */
 export async function analyzeAfter(images: Img[], before: BeforeReport | null, ref?: { guide: Guide | null; images: Img[] }, beforeImages: Img[] = []): Promise<AiResult<AfterReport>> {
   const list = before?.items.length ? `Points relevés à l'arrivée : ${before.items.map((i) => `${i.zone} (${i.todo})`).join(" ; ")}.` : "Aucun relevé d'arrivée n'est disponible.";
-  const guide = ref?.guide ? ` Guide de ce logement : ${ref.guide.rooms.map((r) => `${r.room} — ${r.steps.join(", ")}`).join(" ; ")}.${ref.guide.attention.length ? ` Points d'attention : ${ref.guide.attention.join(" ; ")}.` : ""}` : "";
+  const guide = ref?.guide ? ` Guide de ce logement : ${ref.guide.rooms.map((r) => `${r.room} — ${r.steps.join(", ")}`).join(" ; ")}.${ref.guide.attention.length ? ` Points d'attention : ${ref.guide.attention.join(" ; ")}.` : ""}${ref.guide.objects?.length ? ` Inventaire des objets du logement : ${ref.guide.objects.map((o) => `${o.room} — ${o.items.join(", ")}`).join(" ; ")}.` : ""}` : "";
   const taskList = before?.tasks?.length ? ` Tâches données au nettoyeur, dans l'ordre : ${before.tasks.map((t, i) => `${i + 1}. ${t}`).join(" ; ")}.` : "";
   const content: Part[] = [];
   if (ref?.images.length) content.push({ type: "text", text: "RÉFÉRENCE DU PROPRIÉTAIRE — le logement propre et rangé, tel qu'il doit être rendu :" }, ...imgs(ref.images));
@@ -157,6 +163,7 @@ export async function analyzeAfter(images: Img[], before: BeforeReport | null, r
     + (beforeImages.length ? " Reprends chaque zone filmée à l'arrivée et vérifie-la sur les images de fin, sous le même angle : ce qui était sale est-il propre ? Si une zone filmée à l'arrivée n'apparaît sur aucune image de fin, cite-la dans \"missing\" (ne la compte pas comme sale)." : " Si une zone n'est pas filmée, ne la compte pas comme sale.")
     + (ref?.images.length ? " Compare aussi à la référence du propriétaire : signale ce qui n'est pas rendu comme sur la référence (lit non fait, coussins ou objets déplacés ou manquants, meuble mal replacé)." : "")
     + ` Vérifie trois choses : la propreté, que rien ne traîne (linge, déchets, vaisselle, produits ou matériel de ménage oubliés), et que tout est rangé. Dis ce qui est propre, et ce qui ne l'est CLAIREMENT pas. Ne demande une reprise que pour des défauts visibles. Quand une pièce est indiquée avant une image, cite cette pièce. S'il y a des points à reprendre, estime le temps de reprise en minutes. Le nettoyeur lit ta réponse sur son téléphone : chaque \"why\" en 12 mots au plus, \"summary\" en une phrase de 20 mots au plus, des mots simples. Réponds : {"cleaned":["..."],"tasks":[{"n":1,"ok":true,"why":""}],"remaining":[{"zone":"...","why":"..."}],"missing":["zone non refilmée"],"rework_minutes":15,"verdict":"ok" ou "reprise","summary":"une ou deux phrases","confidence":"haute|moyenne|faible"}` });
+  content.push({ type: "text", text: ` OBJETS (important, soit irréprochable) : ajoute au même JSON deux clés. "objects_missing" : [{"object":"nom","room":"pièce","why":"12 mots au plus"}] = objet CLAIREMENT visible à l'arrivée (ou dans l'inventaire/la référence) dont la zone est bien refilmée à la fin sous un angle comparable, mais qui n'apparaît sur aucune image de fin. "damage" : [{"object":"nom","room":"pièce","why":"12 mots au plus"}] = objet cassé, taché, abîmé ou rayé visible à la fin et absent des images d'arrivée. Si la zone n'est pas refilmée, si l'angle est différent ou si tu hésites, ne cite rien. Ne mentionne jamais de vol : décris seulement ce que les images montrent. Sinon [].` });
   const r = await ask(content);
   if (!r.text) return { report: null, error: r.error };
   const report = parseAfter(r.text, before?.tasks ?? []);
@@ -165,7 +172,7 @@ export async function analyzeAfter(images: Img[], before: BeforeReport | null, r
 
 /** Référence d'un logement : à partir de photos du logement propre, l'IA rédige le guide de ménage (pièce par pièce) et les points d'attention. */
 export async function analyzeReference(images: Img[], name: string): Promise<AiResult<Guide>> {
-  const r = await ask([...imgs(images), { type: "text", text: `Ces photos montrent le logement « ${name.replace(/[«»"]/g, "")} » propre et prêt pour des voyageurs : c'est l'état de référence. Rédige le guide de ménage pour un nettoyeur qui ne connaît pas les lieux : pour chaque pièce visible, les étapes concrètes dans l'ordre (ce qu'il faut nettoyer, ranger, remettre en place comme sur les photos), puis les points d'attention propres à ce logement (matériaux fragiles, objets à replacer, zones qui se salissent). Ne décris que ce qui est visible. Réponds : {"summary":"une phrase qui décrit le logement","rooms":[{"room":"Cuisine","steps":["..."]}],"attention":["..."]}` }]);
+  const r = await ask([...imgs(images), { type: "text", text: `Ces photos montrent le logement « ${name.replace(/[«»"]/g, "")} » propre et prêt pour des voyageurs : c'est l'état de référence. Rédige le guide de ménage pour un nettoyeur qui ne connaît pas les lieux : pour chaque pièce visible, les étapes concrètes dans l'ordre (ce qu'il faut nettoyer, ranger, remettre en place comme sur les photos), puis les points d'attention propres à ce logement (matériaux fragiles, objets à replacer, zones qui se salissent). Fais aussi l'INVENTAIRE des objets visibles, pièce par pièce (télévision, lampes, décoration, vaisselle et petit électroménager, cadres, plantes, télécommandes, linge de maison…), avec leur nombre quand il y en a plusieurs. Ne décris que ce qui est visible. Réponds : {"summary":"une phrase qui décrit le logement","rooms":[{"room":"Cuisine","steps":["..."]}],"attention":["..."],"objects":[{"room":"Cuisine","items":["4 assiettes","bouilloire"]}]}` }]);
   if (!r.text) return { report: null, error: r.error };
   const report = parseGuide(r.text);
   return { report, error: report ? null : "réponse de l'IA illisible" };

@@ -375,7 +375,8 @@ export async function saveListingGuideAction(id: string, fd: FormData) {
   }
   if (!rooms.size) flash(REF(id), "error", "Écrivez une étape par ligne, sous la forme « Cuisine : dégraisser la plaque ».");
   const attention = String(fd.get("attention") ?? "").split("\n").map((x) => x.trim().slice(0, 160)).filter(Boolean).slice(0, 8);
-  const guide = { summary: (str(fd, "summary") ?? "").slice(0, 300), rooms: [...rooms].slice(0, 12).map(([room, steps]) => ({ room, steps })), attention };
+  const { data: prev } = await createClient().from("concierge_listings").select("ref_guide").eq("id", id).maybeSingle();
+  const guide = { summary: (str(fd, "summary") ?? "").slice(0, 300), rooms: [...rooms].slice(0, 12).map(([room, steps]) => ({ room, steps })), attention, objects: ((prev as any)?.ref_guide?.objects ?? []) as unknown[] };
   const { error } = await createClient().from("concierge_listings").update({ ref_guide: guide, ref_at: new Date().toISOString() }).eq("id", id);
   if (error) flash(REF(id), "error", dbMessage(error));
   revalidatePath(REF(id));
@@ -503,8 +504,8 @@ export async function setListingAttentionAction(id: string, fd: FormData) {
   const sb = createClient();
   const { data: l } = await sb.from("concierge_listings").select("ref_guide").eq("id", id).maybeSingle();
   if (!l) flash("/conciergerie", "error", "Logement introuvable.");
-  const g = ((l as any).ref_guide ?? { summary: "", rooms: [] }) as { summary?: string; rooms?: unknown[] };
-  const { error } = await sb.from("concierge_listings").update({ ref_guide: { summary: g.summary ?? "", rooms: g.rooms ?? [], attention }, ref_at: new Date().toISOString() }).eq("id", id);
+  const g = ((l as any).ref_guide ?? { summary: "", rooms: [] }) as { summary?: string; rooms?: unknown[]; objects?: unknown[] };
+  const { error } = await sb.from("concierge_listings").update({ ref_guide: { summary: g.summary ?? "", rooms: g.rooms ?? [], attention, objects: g.objects ?? [] }, ref_at: new Date().toISOString() }).eq("id", id);
   if (error) flash(REF(id), "error", dbMessage(error));
   revalidatePath(REF(id));
   flash(REF(id), "ok", attention.length ? "Points d'attention enregistrés : l'IA et le nettoyeur en tiennent compte." : "Points d'attention retirés.");
