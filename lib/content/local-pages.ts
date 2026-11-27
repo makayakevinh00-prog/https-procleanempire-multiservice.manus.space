@@ -660,6 +660,409 @@ export const localPages: LocalPage[] = [
         { question: "Le devis est-il gratuit ?", answer: "Oui, gratuit et sans engagement, envoyé sous 24 h après votre demande." }
       ]
     }
+  },
+  {
+    slug: "nettoyage-argenteuil",
+    city: "Argenteuil",
+    postalCode: "95100",
+    label: "Nettoyage à Argenteuil",
+    metaTitle: "Nettoyage à Argenteuil (95) : bureaux, commerces, immeubles",
+    metaDescription:
+      "Entreprise de nettoyage à Argenteuil (95100) : entretien de bureaux, commerces, parties communes d'immeubles et ménage de logements meublés. Équipe basée à Pontoise, devis sous 24 h.",
+    serviceName: "Nettoyage à Argenteuil",
+    serviceType: "Nettoyage de bureaux, commerces, parties communes et logements meublés",
+    related: [
+      { href: "/nettoyage-pontoise", label: "Nettoyage à Pontoise" },
+      { href: "/nettoyage-bureaux", label: "Nettoyage de bureaux" },
+      { href: "/services/parties-communes", label: "Parties communes" },
+      { href: "/menage-airbnb", label: "Ménage Airbnb dans le 95" }
+    ],
+    props: {
+      eyebrow: "Argenteuil · Val-d'Oise (95)",
+      title: "Nettoyage de bureaux et d'immeubles à Argenteuil.",
+      lead: "Argenteuil est l'une des plus grandes villes du Val-d'Oise : entreprises, commerces de centre-ville, copropriétés et logements loués. Nous venons de Pontoise et nous intervenons à Argenteuil à jours et heures fixes.",
+      image: { src: "/media/photos/hero-showcase.webp", alt: "Locaux professionnels entretenus par ProClean Empire à Argenteuil" },
+      serviceId: "bureaux",
+      ctaLabel: "Demander un devis à Argenteuil",
+      intro: [
+        { title: "Une grande ville, des besoins variés", text: "Petits bureaux, commerces, halls d'immeuble : chaque lieu a sa propre fréquence de passage." },
+        { title: "Horaires adaptés", text: "Avant l'ouverture, après la fermeture ou le week-end, selon votre activité." },
+        { title: "Interlocuteur unique", text: "Le même contact pour le devis, le planning et les ajustements." }
+      ],
+      blocks: [
+        {
+          heading: "Ce que nous entretenons à Argenteuil.",
+          items: [
+            { title: "Bureaux et plateaux", text: "Entretien régulier des postes de travail, sanitaires, cuisines et salles de réunion." },
+            { title: "Commerces", text: "Surface de vente, vitrine intérieure et réserve prêtes avant l'ouverture." },
+            { title: "Parties communes", text: "Halls, escaliers et paliers des copropriétés, à jour fixe." },
+            { title: "Logements meublés", text: "Préparation entre deux locataires ou voyageurs, linge et consommables compris si vous le souhaitez." },
+            { title: "Remise en état", text: "Grand nettoyage avant une mise en location ou à la fin d'un bail." },
+            { title: "Nettoyage de vitres", text: "Vitres et portes vitrées sans traces, intérieur et accès faciles." }
+          ]
+        }
+      ],
+      steps: [
+        { title: "Vous décrivez vos locaux", text: "Surface, type de lieu, fréquence et horaires d'accès." },
+        { title: "Nous chiffrons", text: "Devis clair sous 24 h, visite sur place si nécessaire." },
+        { title: "Nous intervenons", text: "Même check-list à chaque passage." }
+      ],
+      faq: [
+        { question: "Intervenez-vous dans tous les quartiers d'Argenteuil ?", answer: "Oui : centre-ville, Val d'Argent, Orgemont, Coteaux, Joliot-Curie et Val-Notre-Dame." },
+        { question: "Quel est votre délai de réponse ?", answer: "Nous répondons aux demandes sous 24 h pendant nos horaires de traitement et chiffrons gratuitement." },
+        { question: "Entretenez-vous les copropriétés ?", answer: "Oui, halls, escaliers et paliers, à jour et heure fixes, pour les syndics comme pour les conseils syndicaux." }
+      ]
+    },
+    article: [
+      {
+        heading: "Faire nettoyer ses locaux à Argenteuil",
+        paragraphs: [
+          "Argenteuil réunit des quartiers très différents : un centre-ville commerçant, de grands ensembles résidentiels, des zones d'activité et des secteurs pavillonnaires. Selon le lieu, les besoins ne sont pas les mêmes : un cabinet a besoin d'un passage discret avant les rendez-vous, un commerce d'une surface prête avant l'ouverture, une copropriété de parties communes propres chaque semaine.",
+          "Nous partons de votre planning et non du nôtre. Le passage est fixé avec vous, noté dans une check-list, et ajusté si vos horaires changent. Pour les entreprises du secteur, nous proposons aussi la [conciergerie d'entreprise](/conciergerie-entreprise) : plantes, consommables et décoration de fin d'année.",
+          "Vous êtes propriétaire d'un logement meublé à Argenteuil ? Voir notre page [ménage Airbnb dans le Val-d'Oise](/menage-airbnb)."
+        ]
+      }
+    ],
+    districts: {
+      heading: "Quartiers desservis",
+      intro: "Nous intervenons dans toute la commune d'Argenteuil et dans les villes voisines.",
+      list: ["Centre-ville", "Val d'Argent", "Orgemont", "Les Coteaux", "Joliot-Curie", "Val-Notre-Dame", "Les Champioux", "Bezons", "Sannois", "Cormeilles-en-Parisis"]
+    }
+  },
+  {
+    slug: "nettoyage-sarcelles",
+    city: "Sarcelles",
+    postalCode: "95200",
+    label: "Nettoyage à Sarcelles",
+    metaTitle: "Nettoyage à Sarcelles (95) : immeubles, commerces, bureaux",
+    metaDescription:
+      "Entreprise de nettoyage à Sarcelles (95200) : parties communes d'immeubles, commerces, bureaux et remise en état de logements. Devis gratuit sous 24 h, interventions à jours fixes.",
+    serviceName: "Nettoyage à Sarcelles",
+    serviceType: "Nettoyage de parties communes, commerces, bureaux et remise en état de logements",
+    related: [
+      { href: "/services/parties-communes", label: "Entretien des parties communes" },
+      { href: "/remise-en-etat", label: "Remise en état" },
+      { href: "/nettoyage-commerces", label: "Nettoyage de commerces" },
+      { href: "/nettoyage-argenteuil", label: "Nettoyage à Argenteuil" }
+    ],
+    props: {
+      eyebrow: "Sarcelles · Val-d'Oise (95)",
+      title: "Immeubles, commerces et bureaux propres à Sarcelles.",
+      lead: "À Sarcelles, beaucoup de logements sont en copropriété et les commerces de quartier accueillent du monde toute la journée. Nous entretenons les parties communes, les boutiques et les locaux d'activité à une fréquence qui tient dans votre budget.",
+      image: { src: "/media/photos/airbnb-entree-logement.webp", alt: "Hall d'entrée propre entretenu par ProClean Empire à Sarcelles" },
+      serviceId: "bureaux",
+      ctaLabel: "Demander un devis à Sarcelles",
+      intro: [
+        { title: "Copropriétés", text: "Halls, escaliers, paliers et locaux poubelles entretenus à fréquence fixe." },
+        { title: "Commerces de quartier", text: "Sols, vitrines intérieures et réserves nettoyés avant l'ouverture." },
+        { title: "Budget clair", text: "Un devis détaillé : surface, fréquence et prix par passage." }
+      ],
+      blocks: [
+        {
+          heading: "Ce que nous faisons à Sarcelles.",
+          items: [
+            { title: "Parties communes", text: "Entretien hebdomadaire ou plusieurs fois par semaine, selon la taille de l'immeuble." },
+            { title: "Commerces", text: "Boutiques, restaurants et services de proximité entretenus aux heures creuses." },
+            { title: "Bureaux et associations", text: "Locaux administratifs, salles et permanences entretenus régulièrement." },
+            { title: "Désinfection", text: "Points de contact et sanitaires traités après une épidémie ou à fréquence régulière." },
+            { title: "Remise en état", text: "Appartements et locaux vidés ou rénovés, prêts à être reloués." },
+            { title: "Après travaux", text: "Poussières et résidus retirés pour rendre le lieu utilisable." }
+          ]
+        }
+      ],
+      steps: [
+        { title: "Contactez-nous", text: "Adresse, type d'immeuble ou de local et fréquence souhaitée." },
+        { title: "Devis gratuit", text: "Prix et prestations détaillés sous 24 h." },
+        { title: "Passage régulier", text: "Équipe identifiée, planning fixe, retour d'intervention." }
+      ],
+      faq: [
+        { question: "Intervenez-vous pour les syndics et conseils syndicaux ?", answer: "Oui, nous établissons un devis adapté à la taille de la résidence et nous pouvons fournir une attestation d'assurance sur demande." },
+        { question: "Travaillez-vous aussi à Garges-lès-Gonesse et Villiers-le-Bel ?", answer: "Oui, ces communes voisines sont dans notre secteur d'intervention." },
+        { question: "Combien coûte un entretien de hall d'immeuble ?", answer: "Cela dépend du nombre d'étages et de la fréquence : nous chiffrons gratuitement après visite ou photos." }
+      ]
+    },
+    article: [
+      {
+        heading: "Un entretien régulier plutôt qu'un grand nettoyage",
+        paragraphs: [
+          "Dans une grande résidence, la saleté s'accumule vite : sols, boîtes aux lettres, ascenseurs et poignées. Un passage régulier coûte moins cher qu'un grand nettoyage tous les six mois, et il évite les plaintes des résidents.",
+          "Nous proposons des formules simples pour les copropriétés : fréquence fixe, check-list affichable et interlocuteur unique pour le syndic. Voir aussi notre page [entretien des parties communes](/services/parties-communes) et la [remise en état](/remise-en-etat) pour les logements vidés ou rénovés."
+        ]
+      }
+    ],
+    districts: {
+      heading: "Quartiers desservis",
+      intro: "Nous intervenons à Sarcelles et dans les communes proches.",
+      list: ["Sarcelles village", "Les Lochères", "Chantepie", "Les Rosiers", "Gare de Garges-Sarcelles", "Garges-lès-Gonesse", "Villiers-le-Bel", "Arnouville", "Écouen"]
+    }
+  },
+  {
+    slug: "nettoyage-enghien-les-bains",
+    city: "Enghien-les-Bains",
+    postalCode: "95880",
+    label: "Nettoyage à Enghien-les-Bains",
+    metaTitle: "Ménage Airbnb et nettoyage à Enghien-les-Bains (95)",
+    metaDescription:
+      "Ménage de logements meublés, cabinets, boutiques et hôtels à Enghien-les-Bains (95880), autour du lac. Préparation entre deux séjours, linge et consommables, devis gratuit sous 24 h.",
+    serviceName: "Ménage et nettoyage à Enghien-les-Bains",
+    serviceType: "Ménage de logements meublés, cabinets, boutiques et hôtels",
+    related: [
+      { href: "/menage-airbnb", label: "Ménage Airbnb dans le Val-d'Oise" },
+      { href: "/proprietaires", label: "Propriétaires : gestion de votre bien" },
+      { href: "/nettoyage-hotels", label: "Nettoyage d'hôtels" },
+      { href: "/nettoyage-argenteuil", label: "Nettoyage à Argenteuil" }
+    ],
+    props: {
+      eyebrow: "Enghien-les-Bains · Val-d'Oise (95)",
+      title: "Ménage de logements meublés et de commerces à Enghien-les-Bains.",
+      lead: "Le lac, le casino et les thermes attirent chaque semaine des visiteurs. Les logements meublés, hôtels, cabinets et boutiques de la ville doivent être impeccables à chaque arrivée : nous nous en chargeons.",
+      image: { src: "/media/photos/airbnb-entree-logement.webp", alt: "Logement meublé préparé pour des voyageurs à Enghien-les-Bains" },
+      serviceId: "airbnb",
+      ctaLabel: "Demander un devis à Enghien-les-Bains",
+      intro: [
+        { title: "Entre deux séjours", text: "Ménage complet, linge changé et logement prêt avant l'arrivée suivante." },
+        { title: "Commerces du centre", text: "Boutiques, restaurants et salons entretenus avant l'ouverture." },
+        { title: "Cabinets", text: "Locaux de santé et de conseil entretenus avec discrétion." }
+      ],
+      blocks: [
+        {
+          heading: "Ce que nous faisons à Enghien-les-Bains.",
+          items: [
+            { title: "Ménage de logements meublés", text: "Check-out, ménage, linge et remise en place, au jour que vous fixez." },
+            { title: "Hôtels et chambres d'hôtes", text: "Chambres et parties communes entretenues à la journée." },
+            { title: "Cabinets et professions libérales", text: "Salle d'attente et bureaux prêts avant l'arrivée du premier client." },
+            { title: "Commerces du centre", text: "Boutiques et restaurants entretenus aux heures creuses." },
+            { title: "Remise en état", text: "Avant une mise en location ou à la fin d'un bail." },
+            { title: "Vitres", text: "Vitrines et grandes baies sans traces." }
+          ]
+        }
+      ],
+      steps: [
+        { title: "Vous nous envoyez le planning", text: "Nous nous calons sur vos arrivées et départs." },
+        { title: "Devis sous 24 h", text: "Un prix par logement ou par passage." },
+        { title: "Nous intervenons", text: "Compte rendu et photos si vous le souhaitez." }
+      ],
+      faq: [
+        { question: "Fournissez-vous le linge ?", answer: "Nous pouvons changer le linge fourni par vos soins ou l'organiser avec vous ; la formule est précisée dans le devis." },
+        { question: "Pouvez-vous intervenir le week-end ?", answer: "Oui, les départs ont souvent lieu le week-end : nous planifions les passages en conséquence." },
+        { question: "Travaillez-vous aussi à Montmorency et Saint-Gratien ?", answer: "Oui, ces communes voisines sont dans notre secteur." }
+      ]
+    },
+    article: [
+      {
+        heading: "Un lieu de séjour qui demande un travail soigné",
+        paragraphs: [
+          "À Enghien-les-Bains, les voyageurs viennent pour le lac, la balade et les soins : ils s'attendent à un logement irréprochable. Un cheveu sur le lavabo ou une poussière sur une étagère se retrouve dans les avis. Notre check-list couvre chaque pièce, dans le même ordre à chaque passage.",
+          "Si vous êtes propriétaire et que vous ne souhaitez pas gérer les départs vous-même, voir la page [propriétaires](/proprietaires) et notre offre de [ménage Airbnb dans le Val-d'Oise](/menage-airbnb)."
+        ]
+      }
+    ],
+    districts: {
+      heading: "Communes desservies",
+      intro: "Nous intervenons à Enghien-les-Bains et dans les communes voisines.",
+      list: ["Enghien-les-Bains", "Montmorency", "Saint-Gratien", "Deuil-la-Barre", "Soisy-sous-Montmorency", "Eaubonne", "Sannois"]
+    }
+  },
+  {
+    slug: "nettoyage-paris-8",
+    city: "Paris 8e",
+    postalCode: "75008",
+    label: "Nettoyage Paris 8e",
+    metaTitle: "Nettoyage Paris 8e : bureaux, boutiques, hôtels, appartements",
+    metaDescription:
+      "Entreprise de nettoyage dans le 8e arrondissement de Paris (Madeleine, Champs-Élysées, Saint-Lazare, Monceau) : bureaux, boutiques, hôtels et appartements meublés. Devis sous 24 h.",
+    serviceName: "Entreprise de nettoyage à Paris 8e",
+    serviceType: "Nettoyage de bureaux, boutiques, hôtels et appartements meublés",
+    related: [
+      { href: "/nettoyage-paris", label: "Entreprise de nettoyage à Paris" },
+      { href: "/entreprise-de-nettoyage-paris-16", label: "Nettoyage Paris 16e" },
+      { href: "/nettoyage-hotels", label: "Nettoyage d'hôtels" },
+      { href: "/nettoyage-vitrerie", label: "Vitres et vitrines" }
+    ],
+    props: {
+      eyebrow: "Paris 8e · Madeleine · Champs-Élysées · Saint-Lazare",
+      title: "Entreprise de nettoyage dans le 8e arrondissement",
+      lead: "Sièges de sociétés, cabinets d'affaires, boutiques de luxe, hôtels et appartements : dans le 8e, l'image se joue dès l'entrée. Nous entretenons vos locaux tôt le matin ou en soirée, sans gêner votre activité.",
+      image: { src: "/media/photos/hero-showcase.webp", alt: "Bureaux nettoyés par ProClean Empire à Paris 8e" },
+      serviceId: "bureaux",
+      ctaLabel: "Demander un devis dans le 8e",
+      intro: [
+        { title: "Avant l'arrivée des équipes", text: "Passages tôt le matin pour que vos bureaux soient prêts à l'ouverture." },
+        { title: "Sols et surfaces délicats", text: "Parquets, marbre, verre et laiton traités avec les bons produits." },
+        { title: "Un seul interlocuteur", text: "Devis, planning et ajustements avec la même personne." }
+      ],
+      blocks: [
+        {
+          heading: "Ce que nous entretenons dans le 8e.",
+          items: [
+            { title: "Sièges et bureaux", text: "Plateaux, salles de réunion, accueil et sanitaires." },
+            { title: "Boutiques", text: "Surface de vente et vitrines intérieures prêtes avant l'ouverture." },
+            { title: "Hôtels et résidences", text: "Chambres, couloirs et parties communes entretenus à la journée." },
+            { title: "Cabinets d'avocats et de conseil", text: "Salles d'attente et bureaux avec discrétion." },
+            { title: "Appartements meublés", text: "Préparation entre deux occupants ou avant une nouvelle location." },
+            { title: "Vitres", text: "Vitres intérieures, portes vitrées et miroirs." }
+          ]
+        }
+      ],
+      steps: [
+        { title: "Vous nous écrivez", text: "Adresse, surface, horaires d'accès et fréquence." },
+        { title: "Nous chiffrons", text: "Devis sous 24 h, visite sur place si besoin." },
+        { title: "Nous assurons le suivi", text: "Check-list identique à chaque passage." }
+      ],
+      faq: [
+        { question: "Intervenez-vous dans tout le 8e ?", answer: "Oui : Madeleine, Champs-Élysées, Saint-Lazare, Monceau, Europe et Faubourg-Saint-Honoré." },
+        { question: "Pouvez-vous passer avant l'ouverture ?", answer: "Oui, tôt le matin ou en soirée, selon vos contraintes d'accès." },
+        { question: "Gérez-vous les clés et les badges ?", answer: "Oui, selon vos consignes de sécurité, avec une procédure d'accès notée dans le dossier." }
+      ]
+    },
+    article: [
+      {
+        heading: "Nettoyer dans le 8e : discrétion et régularité",
+        paragraphs: [
+          "Le 8e concentre des sièges d'entreprises, des cabinets, des hôtels et des boutiques qui reçoivent une clientèle exigeante. Les accès sont souvent contraints : digicodes, badges, ascenseurs de service, créneaux de livraison. Nous organisons nos passages autour de ces règles.",
+          "Pour les propriétaires d'appartements meublés du quartier, nous préparons le logement entre deux occupants (voir [ménage Airbnb à Paris](/menage-airbnb-paris)). Pour le 16e arrondissement, voir [nettoyage Paris 16e](/entreprise-de-nettoyage-paris-16)."
+        ]
+      }
+    ],
+    districts: {
+      heading: "Quartiers desservis",
+      intro: "Nous intervenons dans tout le 8e arrondissement.",
+      list: ["Madeleine", "Champs-Élysées", "Saint-Lazare", "Parc Monceau", "Europe", "Faubourg-Saint-Honoré", "Miromesnil", "Triangle d'or"]
+    }
+  },
+  {
+    slug: "nettoyage-paris-9",
+    city: "Paris 9e",
+    postalCode: "75009",
+    label: "Nettoyage Paris 9e",
+    metaTitle: "Nettoyage Paris 9e : bureaux, hôtels, ménage Airbnb",
+    metaDescription:
+      "Entreprise de nettoyage dans le 9e arrondissement de Paris (Opéra, Grands Boulevards, Saint-Georges, Trinité) : bureaux, hôtels, commerces et ménage de logements meublés. Devis sous 24 h.",
+    serviceName: "Entreprise de nettoyage à Paris 9e",
+    serviceType: "Nettoyage de bureaux, hôtels, commerces et ménage de logements meublés",
+    related: [
+      { href: "/nettoyage-paris", label: "Entreprise de nettoyage à Paris" },
+      { href: "/menage-airbnb-paris", label: "Ménage Airbnb à Paris" },
+      { href: "/nettoyage-paris-8", label: "Nettoyage Paris 8e" },
+      { href: "/nettoyage-restaurants", label: "Nettoyage de restaurants" }
+    ],
+    props: {
+      eyebrow: "Paris 9e · Opéra · Grands Boulevards · Saint-Georges",
+      title: "Entreprise de nettoyage dans le 9e arrondissement",
+      lead: "Théâtres, hôtels, agences, restaurants et nombreux appartements loués à la nuitée : le 9e vit à toute heure. Nous nous adaptons à vos horaires pour garder vos locaux et vos logements propres sans interrompre l'activité.",
+      image: { src: "/media/photos/airbnb-entree-logement.webp", alt: "Appartement préparé par ProClean Empire à Paris 9e" },
+      serviceId: "airbnb",
+      ctaLabel: "Demander un devis dans le 9e",
+      intro: [
+        { title: "Un quartier qui ne s'arrête pas", text: "Restaurants, hôtels et spectacles : nous passons avant ou après l'activité." },
+        { title: "Logements en location courte durée", text: "Ménage et linge entre deux voyageurs, planning calé sur vos arrivées." },
+        { title: "Bureaux et agences", text: "Entretien régulier, tôt le matin ou en soirée." }
+      ],
+      blocks: [
+        {
+          heading: "Ce que nous faisons dans le 9e.",
+          items: [
+            { title: "Ménage Airbnb", text: "Check-out, ménage complet, linge et remise en place." },
+            { title: "Hôtels", text: "Chambres et parties communes entretenues à la journée." },
+            { title: "Bureaux et agences", text: "Postes de travail, salles de réunion et sanitaires." },
+            { title: "Restaurants et brasseries", text: "Salle, sanitaires et vitrines, hors du service." },
+            { title: "Halls d'immeuble", text: "Parties communes des copropriétés haussmanniennes." },
+            { title: "Remise en état", text: "Avant une location ou après un dégât." }
+          ]
+        }
+      ],
+      steps: [
+        { title: "Vous nous écrivez", text: "Adresse, type de lieu et fréquence." },
+        { title: "Devis gratuit", text: "Prix clair sous 24 h." },
+        { title: "Nous intervenons", text: "Même check-list à chaque passage." }
+      ],
+      faq: [
+        { question: "Intervenez-vous dans tout le 9e ?", answer: "Oui : Opéra, Grands Boulevards, Saint-Georges, Trinité, Pigalle-Sud et Faubourg-Montmartre." },
+        { question: "Pouvez-vous faire le ménage entre deux voyageurs dans la journée ?", answer: "Oui, nous nous calons sur l'heure de départ et d'arrivée que vous nous communiquez." },
+        { question: "Faites-vous les restaurants ?", answer: "Oui, en dehors du service : salle, sanitaires et vitres." }
+      ]
+    },
+    article: [
+      {
+        heading: "Nettoyer dans le 9e : s'adapter au rythme du quartier",
+        paragraphs: [
+          "Le 9e mêle sièges d'entreprises, théâtres, hôtels et appartements de location. Les passages doivent s'insérer dans un rythme serré : un départ à 11 h, une arrivée à 15 h, un restaurant qui ouvre à midi. Nous construisons le planning à partir de ces horaires.",
+          "Pour la location courte durée, voir [ménage Airbnb à Paris](/menage-airbnb-paris). Pour les bureaux et sièges plus à l'ouest, voir [nettoyage Paris 8e](/nettoyage-paris-8)."
+        ]
+      }
+    ],
+    districts: {
+      heading: "Quartiers desservis",
+      intro: "Nous intervenons dans tout le 9e arrondissement.",
+      list: ["Opéra", "Grands Boulevards", "Saint-Georges", "La Trinité", "Faubourg-Montmartre", "Chaussée-d'Antin", "Notre-Dame-de-Lorette", "Rochechouart"]
+    }
+  },
+  {
+    slug: "nettoyage-paris-17",
+    city: "Paris 17e",
+    postalCode: "75017",
+    label: "Nettoyage Paris 17e",
+    metaTitle: "Nettoyage Paris 17e : cabinets, copropriétés, bureaux, Airbnb",
+    metaDescription:
+      "Entreprise de nettoyage dans le 17e arrondissement de Paris (Batignolles, Ternes, Wagram, Épinettes) : cabinets, copropriétés, bureaux et appartements meublés. Devis sous 24 h.",
+    serviceName: "Entreprise de nettoyage à Paris 17e",
+    serviceType: "Nettoyage de cabinets, copropriétés, bureaux et appartements meublés",
+    related: [
+      { href: "/nettoyage-paris", label: "Entreprise de nettoyage à Paris" },
+      { href: "/entreprise-de-nettoyage-paris-16", label: "Nettoyage Paris 16e" },
+      { href: "/services/parties-communes", label: "Parties communes" },
+      { href: "/menage-airbnb-paris", label: "Ménage Airbnb à Paris" }
+    ],
+    props: {
+      eyebrow: "Paris 17e · Batignolles · Ternes · Wagram",
+      title: "Entreprise de nettoyage dans le 17e arrondissement",
+      lead: "Quartier résidentiel et d'affaires, le 17e rassemble copropriétés, cabinets, bureaux et logements meublés. Nous assurons un entretien régulier, fiable et discret, avec un planning fixé à l'avance.",
+      image: { src: "/media/photos/hero-showcase.webp", alt: "Locaux entretenus par ProClean Empire à Paris 17e" },
+      serviceId: "bureaux",
+      ctaLabel: "Demander un devis dans le 17e",
+      intro: [
+        { title: "Copropriétés", text: "Halls, escaliers et paliers entretenus à jour fixe." },
+        { title: "Cabinets et bureaux", text: "Passage avant l'arrivée du premier client ou en soirée." },
+        { title: "Logements meublés", text: "Ménage entre deux occupants, linge compris si besoin." }
+      ],
+      blocks: [
+        {
+          heading: "Ce que nous entretenons dans le 17e.",
+          items: [
+            { title: "Parties communes", text: "Syndics et conseils syndicaux : un passage régulier et une check-list." },
+            { title: "Cabinets médicaux et juridiques", text: "Salle d'attente, bureaux et sanitaires prêts avant les rendez-vous." },
+            { title: "Bureaux", text: "Plateaux, cuisines et salles de réunion entretenus." },
+            { title: "Boutiques", text: "Commerces des Batignolles et des Ternes prêts avant l'ouverture." },
+            { title: "Appartements meublés", text: "Préparation entre deux locataires ou voyageurs." },
+            { title: "Remise en état", text: "Après travaux ou avant une mise en vente ou en location." }
+          ]
+        }
+      ],
+      steps: [
+        { title: "Vous nous écrivez", text: "Adresse, surface, fréquence et horaires d'accès." },
+        { title: "Nous chiffrons", text: "Devis clair sous 24 h." },
+        { title: "Nous intervenons", text: "Planning fixe et suivi régulier." }
+      ],
+      faq: [
+        { question: "Intervenez-vous dans tout le 17e ?", answer: "Oui : Batignolles, Ternes, Wagram, Monceau, Épinettes, Porte Maillot et Porte de Clichy." },
+        { question: "Travaillez-vous pour des syndics ?", answer: "Oui, avec un devis adapté à la taille de la résidence et une attestation d'assurance sur demande." },
+        { question: "Pouvez-vous intervenir à Levallois-Perret ou Neuilly ?", answer: "Oui, ces communes voisines sont dans notre secteur." }
+      ]
+    },
+    article: [
+      {
+        heading: "Nettoyer dans le 17e : de la copropriété au cabinet",
+        paragraphs: [
+          "Le 17e est un arrondissement de contrastes : immeubles haussmanniens autour de Wagram et des Ternes, quartier vivant des Batignolles, secteurs plus récents vers Clichy-Batignolles. Les besoins vont du hall d'immeuble au cabinet médical, en passant par le studio loué à la semaine.",
+          "Pour les propriétaires qui louent en courte durée, voir [ménage Airbnb à Paris](/menage-airbnb-paris). Pour l'arrondissement voisin, voir [nettoyage Paris 16e](/entreprise-de-nettoyage-paris-16)."
+        ]
+      }
+    ],
+    districts: {
+      heading: "Quartiers desservis",
+      intro: "Nous intervenons dans tout le 17e arrondissement et à proximité.",
+      list: ["Batignolles", "Ternes", "Wagram", "Monceau", "Épinettes", "Porte Maillot", "Porte de Clichy", "Levallois-Perret", "Neuilly-sur-Seine"]
+    }
   }
 ];
 
