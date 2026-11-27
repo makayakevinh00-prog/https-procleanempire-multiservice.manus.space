@@ -143,7 +143,7 @@ export function ImmersiveLanding() {
         <div className="mx-auto grid max-w-[1680px] grid-cols-[minmax(0,1fr)] lg:min-h-[calc(100svh-4rem)] lg:grid-cols-12">
           <div className="relative z-10 flex flex-col justify-between gap-14 px-6 pb-10 pt-10 md:px-12 lg:col-span-6 lg:row-start-1 lg:pb-12 lg:pt-12">
             <FadeIn className={`${LABEL} flex flex-wrap items-center gap-x-4 gap-y-2 text-[#667085]`}>
-              <span>Facility service</span>
+              <span>Nettoyage de locaux</span>
               <span aria-hidden className="h-px w-10 bg-[#101828]/30" />
               <span>Val-d&apos;Oise · Paris</span>
             </FadeIn>
@@ -157,7 +157,7 @@ export function ImmersiveLanding() {
               </h1>
               <FadeIn delay={0.55} className="mt-10 grid gap-8 lg:max-w-[34rem]">
                 <p className="text-lg leading-relaxed text-[#475467] sm:text-xl">
-                  Logements Airbnb, bureaux, commerces : ProClean Empire prend en charge la propreté de vos espaces, du premier devis au contrôle final.
+                  Bureaux, commerces, boutiques, hôtels et logements Airbnb : ProClean Empire prend en charge la propreté de vos locaux, du premier devis au contrôle final.
                 </p>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
                   <Cta href="#devis">Demander un devis</Cta>
@@ -203,8 +203,8 @@ export function ImmersiveLanding() {
               />
               <div className="absolute -bottom-10 -left-3 w-[42%] overflow-hidden rounded-3xl border-[6px] border-white shadow-[0_30px_60px_-30px_rgba(16,24,40,0.5)] lg:-left-10">
                 <ParallaxPhoto
-                  src={`${P}/appart-salon-large.webp`}
-                  alt="Salon lumineux d'un appartement, canapé blanc et table basse en verre, prêt à accueillir les voyageurs"
+                  src={`${P}/boutique-presentoirs.webp`}
+                  alt="Boutique d'optique nettoyée : présentoirs lumineux, vitrines et parquet impeccables"
                   curtain
                   sizes="(min-width: 1024px) 20vw, 42vw"
                   className="aspect-[4/3] w-full"
@@ -404,8 +404,8 @@ export function ImmersiveLanding() {
           <div className="max-lg:order-first lg:sticky lg:top-16 lg:h-[calc(100svh-4rem)]">
             <ParallaxPhoto
               curtain
-              src={`${P}/appart-salle-a-manger.webp`}
-              alt="Salle à manger lumineuse d'un appartement : table en verre, chaises vertes et grandes fenêtres"
+              src={`${P}/decoration-salon.webp`}
+              alt="Espace d'accueil décoré et entretenu : console blanche, tableau et sol brillant"
               sizes="(min-width: 1024px) 50vw, 100vw"
               className="aspect-[4/5] w-full lg:aspect-auto lg:h-full"
             />
