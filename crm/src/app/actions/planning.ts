@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { checked, dbMessage, flash, numField, str } from "@/lib/data";
 import { contractVisits, type ScheduleContract } from "@/lib/domain/schedule";
 import { monthBounds, monthOf, parisToday } from "@/lib/domain/dates";
+import { publishPendingNow } from "@/lib/marketplace/sync";
 
 const back = (month: string) => `/planning?mois=${month}`;
 
@@ -33,8 +34,9 @@ export async function addInterventionAction(fd: FormData) {
     unit_price_ht: billable ? price : null, vat_rate: vat ?? 20, billable, site_address: str(fd, "site_address"), notes: str(fd, "notes")
   });
   if (error) flash(back(month), "error", dbMessage(error));
+  const pub = await publishPendingNow();
   revalidatePath("/planning");
-  flash(back(month), "ok", "Intervention ajoutée.");
+  flash(back(month), "ok", pub.published ? "Intervention ajoutée et publiée aux nettoyeurs." : "Intervention ajoutée.");
 }
 
 export async function setInterventionStatusAction(id: string, status: "planifie" | "realise" | "annule", month: string) {
@@ -66,8 +68,9 @@ export async function generateFromContractsAction(month: string) {
   if (!visits.length) flash(back(month), "error", "Aucun contrat actif avec des jours de passage définis (à renseigner dans la fiche contrat).");
   const { data, error: e2 } = await supabase.from("interventions").upsert(visits, { onConflict: "source_key", ignoreDuplicates: true }).select("id");
   if (e2) flash(back(month), "error", dbMessage(e2));
+  const pub = await publishPendingNow();
   revalidatePath("/planning");
-  flash(back(month), "ok", `${data?.length ?? 0} passage(s) créé(s) (${visits.length - (data?.length ?? 0)} déjà présent(s)).`);
+  flash(back(month), "ok", `${data?.length ?? 0} passage(s) créé(s) (${visits.length - (data?.length ?? 0)} déjà présent(s)).${pub.published ? ` ${pub.published} publié(s) aux nettoyeurs.` : ""}`);
 }
 
 /** Confirme en bloc les passages planifiés dont la date est passée. */

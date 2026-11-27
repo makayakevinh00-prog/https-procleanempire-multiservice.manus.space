@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { checked, dbMessage, flash, numField, str } from "@/lib/data";
 import { parisToday } from "@/lib/domain/dates";
+import { publishPendingNow } from "@/lib/marketplace/sync";
 import { PLATFORMS, checkIcalUrl, type Platform } from "@/lib/concierge/ical";
 import {
   createCommissionDraft,
@@ -94,6 +95,8 @@ export async function saveListingAction(id: string | null, fd: FormData) {
       note = ` ${s.stays} réservation(s) importée(s), ${p.created} ménage(s) créé(s).`;
     }
   }
+  const pub = await publishPendingNow();
+  if (pub.published) note += ` ${pub.published} ménage(s) publié(s) aux nettoyeurs.`;
   done(
     "logements",
     `${id ? "Logement mis à jour." : "Logement ajouté."}${note}`,
@@ -142,9 +145,10 @@ export async function syncListingNowAction(id: string) {
   const s = await syncListing(sb, l as any, today);
   if (s.error) done("logements", `Synchronisation impossible : ${s.error}.`);
   const p = await scheduleCleanings(sb, today);
+  const pub = await publishPendingNow();
   done(
     "logements",
-    `${s.stays} réservation(s) lue(s) ; ${p.created} ménage(s) créé(s), ${p.moved} déplacé(s), ${p.cancelled} annulé(s).`,
+    `${s.stays} réservation(s) lue(s) ; ${p.created} ménage(s) créé(s), ${p.moved} déplacé(s), ${p.cancelled} annulé(s)${pub.published ? `, ${pub.published} publié(s) aux nettoyeurs` : ""}.`,
   );
 }
 
@@ -157,7 +161,9 @@ export async function runAllAction() {
       "error",
       "La conciergerie n'est pas encore installée en base.",
     );
+  const pub = await publishPendingNow();
   const bits = [
+    pub.published ? `${pub.published} ménage(s) publié(s) aux nettoyeurs` : null,
     r.sync && `${r.sync.stays} réservation(s) lue(s)`,
     r.menages && `${r.menages.created} ménage(s) créé(s)`,
     r.messages && `${r.messages.proposed} message(s) à valider`,

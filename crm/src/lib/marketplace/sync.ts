@@ -30,13 +30,30 @@ export async function syncMarketplace(o: { minutes?: number; force?: boolean } =
       await a.rpc("automation_listing_sync_error", { p_secret: secret, p_listing: l.id, p_error: (e as Error).message });
     }
   }
-  const pub = await a.rpc("automation_publish_cleaning_jobs", { p_secret: secret });
-  out.published = Number(pub.data ?? 0);
-  const todo = await a.rpc("automation_jobs_to_geocode", { p_secret: secret });
-  for (const j of ((todo.data ?? []) as { id: string; address: string | null; postal_code: string; city: string | null }[])) {
-    const p = await geocode({ address: j.address, postal_code: j.postal_code, city: j.city });
-    if (p) { await a.rpc("automation_set_job_geo", { p_secret: secret, p_job: j.id, p_lat: p.lat, p_lng: p.lng }); out.geocoded++; }
+  const pub = await publishPendingNow();
+  out.published = pub.published; out.geocoded = pub.geocoded;
+  return out;
+}
+
+/**
+ * Publie tout de suite les ménages prêts (planning, réservations), les localise et prévient les nettoyeurs proches.
+ * À appeler après toute création de ménage dans le CRM : plus aucune ressaisie dans « Demandes » ou « Direct ».
+ * Ne lève jamais d'erreur : le planning reste enregistré même si la publication échoue (rattrapage au prochain passage).
+ */
+export async function publishPendingNow() {
+  const out = { published: 0, geocoded: 0 };
+  try {
+    const a = automationClient(), secret = automationSecret();
+    const pub = await a.rpc("automation_publish_cleaning_jobs", { p_secret: secret });
+    out.published = Number(pub.data ?? 0);
+    const todo = await a.rpc("automation_jobs_to_geocode", { p_secret: secret });
+    for (const j of ((todo.data ?? []) as { id: string; address: string | null; postal_code: string; city: string | null }[])) {
+      const p = await geocode({ address: j.address, postal_code: j.postal_code, city: j.city });
+      if (p) { await a.rpc("automation_set_job_geo", { p_secret: secret, p_job: j.id, p_lat: p.lat, p_lng: p.lng }); out.geocoded++; }
+    }
+    await dispatchTick({ force: true }).catch(() => undefined);
+  } catch (e) {
+    console.error("publishPendingNow", (e as Error).message);
   }
-  await dispatchTick({ force: true }).catch(() => undefined);
   return out;
 }
