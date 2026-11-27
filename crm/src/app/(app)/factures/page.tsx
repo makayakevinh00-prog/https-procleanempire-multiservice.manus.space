@@ -30,6 +30,9 @@ export default async function InvoicesPage({ searchParams }: { searchParams: { s
   const famOf = (i: any): Activity => invoiceActivity({ activity: isActivity(i.activity) ? (i.activity as Activity) : null, clientId: i.client_id }, model.byClient);
   const famSel = isActivity(searchParams.famille) ? (searchParams.famille as Activity) : "";
   const allRows = (all ?? []) as any[];
+  const { data: opens } = await supabase.from("email_opens").select("entity_id, first_opened_at").eq("entity", "invoice").not("first_opened_at", "is", null);
+  const openedAt = new Map<string, string>();
+  for (const o of (opens ?? []) as any[]) { const prev = openedAt.get(o.entity_id); if (!prev || o.first_opened_at < prev) openedAt.set(o.entity_id, o.first_opened_at); }
   const famCounts: Record<string, number> = {};
   for (const i of allRows) if (i.status !== "annule") famCounts[famOf(i)] = (famCounts[famOf(i)] ?? 0) + 1;
   const rows = allRows.filter((i) => !famSel || famOf(i) === famSel);
@@ -103,6 +106,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams: { s
                         {i.status === "brouillon" && i.billing_month && <Badge tone="blue">auto</Badge>}
                         {["envoye", "en_retard"].includes(i.status) && !i.sent_at && <Badge tone="orange">non envoyée</Badge>}
                         {i.sent_at && ["envoye", "en_retard"].includes(i.status) && <Badge tone="green">envoyée</Badge>}
+                        {openedAt.has(i.id) && i.status !== "paye" && <Badge tone="blue">👁 ouverte</Badge>}
                         {i.reminder_count > 0 && i.status !== "paye" && <Badge tone="gray">relancée ×{i.reminder_count}</Badge>}
                         {i.status === "en_retard" && lateDays >= settings.unpaid_alert_days && <Badge tone="red">⚠ &gt; {settings.unpaid_alert_days} j</Badge>}
                       </div>

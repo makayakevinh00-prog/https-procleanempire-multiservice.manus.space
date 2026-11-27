@@ -124,7 +124,7 @@ export async function validateInvoiceAction(id: string, fd: FormData) {
   const pdf = await buildPdf("facture", id);
   if (!pdf) flash(back, "error", `Facture ${inv.number} validée, mais le PDF est introuvable.`);
   const res = await sendMail({
-    to, subject: `Facture ${inv.number} — ProClean Empire`, text: mailText(fresh as any), fromName: BILLING_FROM,
+    to, subject: `Facture ${inv.number} — ProClean Empire`, text: mailText(fresh as any), fromName: BILLING_FROM, track: { entity: "invoice", entityId: id },
     attachment: { filename: pdf!.filename, bytes: pdf!.bytes }
   });
   await logEmail(supabase, { kind: "facture", to: to.join(", "), subject: `Facture ${inv.number}`, ok: res.sent, error: res.sent ? undefined : res.reason, entity: "invoice", entityId: id });
@@ -149,7 +149,7 @@ export async function resendInvoiceAction(id: string, fd: FormData) {
   await requireReservedAck((inv as any).client_id, fd, back);
   const pdf = await buildPdf("facture", id);
   if (!pdf) flash(back, "error", "PDF introuvable.");
-  const res = await sendMail({ to, subject: `Facture ${(inv as any).number} — ProClean Empire`, text: mailText(inv as any), fromName: BILLING_FROM, attachment: { filename: pdf!.filename, bytes: pdf!.bytes } });
+  const res = await sendMail({ to, subject: `Facture ${(inv as any).number} — ProClean Empire`, text: mailText(inv as any), fromName: BILLING_FROM, track: { entity: "invoice", entityId: id }, attachment: { filename: pdf!.filename, bytes: pdf!.bytes } });
   await logEmail(supabase, { kind: "facture", to: to.join(", "), subject: `Facture ${(inv as any).number} (renvoi)`, ok: res.sent, error: res.sent ? undefined : res.reason, entity: "invoice", entityId: id });
   if (!res.sent) flash(back, "error", `Facture non envoyée : ${res.reason}.`);
   await supabase.from("invoices").update({ sent_at: new Date().toISOString(), sent_to: to.join(", ") }).eq("id", id);
@@ -253,7 +253,7 @@ export async function remindInvoiceAction(id: string, fd: FormData) {
     const res = await sendMail({
       to,
       subject: mail.subject,
-      text: mail.text, html: mail.html, fromName: mail.fromName,
+      text: mail.text, html: mail.html, fromName: mail.fromName, track: { entity: "invoice", entityId: id },
       attachment: pdf ? { filename: pdf.filename, bytes: pdf.bytes } : undefined
     });
     await logEmail(supabase, { kind: "relance_facture", to: to.join(", "), subject: mail.subject, ok: res.sent, error: res.sent ? undefined : res.reason, entity: "invoice", entityId: id });

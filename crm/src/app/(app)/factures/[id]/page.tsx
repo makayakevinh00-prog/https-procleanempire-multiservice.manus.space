@@ -52,6 +52,11 @@ export default async function InvoicePage({ params }: { params: { id: string } }
   const fam = invoiceActivity({ activity: isActivity(i.activity) ? (i.activity as Activity) : null, clientId: c.id }, model.byClient);
   const lines = [...i.invoice_lines].sort((a: any, b: any) => a.position - b.position);
   const reminders = [...i.reminders].sort((a: any, b: any) => b.sent_at.localeCompare(a.sent_at));
+  const { data: opensRaw } = await supabase.from("email_opens").select("sent_at, first_opened_at, last_opened_at, open_count, to_email").eq("entity", "invoice").eq("entity_id", i.id).order("sent_at", { ascending: false });
+  const opens = (opensRaw ?? []) as any[];
+  const opened = opens.filter((o) => o.first_opened_at);
+  const firstOpen = opened.length ? opened.map((o) => o.first_opened_at as string).sort()[0]! : null;
+  const openTotal = opens.reduce((n, o) => n + (o.open_count ?? 0), 0);
   const isDraft = i.status === "brouillon";
   const open = ["envoye", "en_retard"].includes(i.status);
   const reservedName = c.is_reserved ? c.name : null;
@@ -113,6 +118,9 @@ export default async function InvoicePage({ params }: { params: { id: string } }
               {i.reminder_count >= REMINDER_FEE_LEVEL && !["paye", "annule"].includes(i.status) && feeApplies(c.kind) && <div className="rounded-md bg-red-50 p-2 text-red-800">Frais de recouvrement dus : <b>{formatEUR(REMINDER_FEE_EUR)}</b> (ajoutés à la relance n° {REMINDER_FEE_LEVEL}) · total à régler <b>{formatEUR(Number(i.total_ttc) - Number(i.paid_amount) + REMINDER_FEE_EUR)}</b></div>}
               {i.validated_at && <div>Validée le {formatDate(i.validated_at)}</div>}
               {i.sent_at ? <div>Envoyée à {i.sent_to} le {formatDate(i.sent_at)}</div> : !isDraft && i.status !== "annule" && <div className="text-amber-700">E-mail non envoyé</div>}
+              {i.sent_at && !isDraft && i.status !== "annule" && (firstOpen
+                ? <div className="text-sky-700">👁 Ouverte par le client le {new Date(firstOpen).toLocaleString("fr-FR", { timeZone: "Europe/Paris", dateStyle: "short", timeStyle: "short" })} · {openTotal} ouverture{openTotal > 1 ? "s" : ""}</div>
+                : <div className="text-muted-foreground">👁 Pas encore ouverte (mesure approximative : certains logiciels de messagerie bloquent le suivi)</div>)}
               {i.paid_at && <div className="text-emerald-700">Payée le {formatDate(i.paid_at)}</div>}
               {i.quotes && <div>Devis : <Link href={`/devis/${i.quotes.id}`} className="text-primary hover:underline">{i.quotes.number}</Link></div>}
               {i.cancel_reason && <div className="text-muted-foreground">Motif d&apos;annulation : {i.cancel_reason}</div>}

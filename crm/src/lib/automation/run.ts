@@ -72,7 +72,7 @@ export async function runDaily(deps: Deps, opts: RunOptions = {}): Promise<Repor
   };
   /** Envoi + trace dans le journal des e-mails (la trace ne bloque jamais l'envoi). */
   const send = async (kind: string, m: MailInput, entity?: string, entityId?: string): Promise<MailResult> => {
-    const res = await deps.sendMail(m);
+    const res = await deps.sendMail(!opts.dryRun && entity === "invoice" && entityId ? { ...m, track: { entity, entityId } } : m);
     if (!opts.dryRun) {
       try {
         await call("automation_log_email", { p_kind: kind, p_to: Array.isArray(m.to) ? m.to.join(", ") : m.to, p_subject: m.subject, p_ok: res.sent, p_error: res.sent ? null : res.reason, p_entity: entity ?? null, p_entity_id: entityId ?? null });
