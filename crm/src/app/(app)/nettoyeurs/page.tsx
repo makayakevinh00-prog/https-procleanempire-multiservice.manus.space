@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Field, Input, Select } from "@/components/ui/form";
 import { Tabs } from "@/components/ui/tabs";
 import { ConfirmAction } from "@/components/crm/confirm-action";
-import { approveCleanerAction, renewCleanerLinkAction, setCleanerStatusAction, toggleFavoriteAction, publishJobAction, publishAllJobsAction, cancelJobAction, validateJobAction, requestRedoAction, saveMarketplaceSettingsAction, createPayoutsAction, markPayoutPaidAction, setDepartureAction, sendControlAction, setLinenStatusAction, acceptBookingAction, refuseBookingAction, createManualJobAction, reanalyzeJobAction, createCourierAction, renewCourierLinkAction, setCourierActiveAction, setListingLinenAction, setCleanerLaundryAction } from "@/app/actions/nettoyeurs";
+import { approveCleanerAction, renewCleanerLinkAction, setCleanerStatusAction, toggleFavoriteAction, publishJobAction, publishAllJobsAction, cancelJobAction, validateJobAction, requestRedoAction, saveMarketplaceSettingsAction, createPayoutsAction, markPayoutPaidAction, setDepartureAction, sendControlAction, setLinenStatusAction, acceptBookingAction, refuseBookingAction, createManualJobAction, createManualPayoutAction, reanalyzeJobAction, createCourierAction, renewCourierLinkAction, setCourierActiveAction, setListingLinenAction, setCleanerLaundryAction } from "@/app/actions/nettoyeurs";
 import { JOB_STATUS, LINEN_STEP, dayFr, eur, slot } from "@/lib/cleaner-ui";
 import { aiConfigured } from "@/lib/ai-inspect";
 import { formatDate } from "@/lib/utils";
@@ -181,7 +181,10 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
                 <Field label="Code postal"><Input name="postal_code" required inputMode="numeric" maxLength={5} /></Field>
                 <Field label="Ville"><Input name="city" /></Field>
                 <Field label="Consignes d'accès (visibles après acceptation)"><Input name="access_notes" /></Field>
-                <div className="flex items-end"><Button>Publier aux nettoyeurs</Button></div>
+                <Field label="Rémunération du nettoyeur (€)" hint="Vide = calcul automatique"><Input name="cleaner_amount" type="number" step="0.01" min="0" /></Field>
+                <Field label="Nettoyeur imposé" hint="Vide = proposé à tous"><Select name="cleaner_id" defaultValue=""><option value="">Proposer à tous</option>{cleaners.filter((c) => c.status === "actif").map((c) => <option key={c.id} value={c.id}>{c.full_name}</option>)}</Select></Field>
+                <Field label="Répéter chaque semaine jusqu'au" hint="Même jour de la semaine, 26 fois max"><Input name="repeat_until" type="date" min={today} /></Field>
+                <div className="flex items-end"><Button>Publier</Button></div>
               </form>
             </Card>
           </>
@@ -525,6 +528,18 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
                 <Field label="Au"><Input name="end" type="date" defaultValue={lastSun} className="h-9" /></Field>
                 <Button size="sm" disabled={!unpaid.size}>Créer les paiements</Button>
                 <span className="text-xs text-muted-foreground">Chaque début de semaine, ou en fin de mois : tous les ménages validés jusqu&apos;à la fin de la période sont regroupés.</span>
+              </form>
+            </CardContent>
+          </Card>
+          <Card className="mb-4">
+            <CardHeader><CardTitle>Ajouter un paiement à la main</CardTitle></CardHeader>
+            <CardContent>
+              <form action={createManualPayoutAction} className="flex flex-wrap items-end gap-2">
+                <Field label="Nettoyeur"><Select name="cleaner_id" required defaultValue="" className="h-9"><option value="" disabled>Choisir…</option>{cleaners.filter((x) => x.status === "actif").map((x) => <option key={x.id} value={x.id}>{x.full_name}</option>)}</Select></Field>
+                <Field label="Montant (€)"><Input name="amount" type="number" step="0.01" min="0" required className="h-9" /></Field>
+                <Field label="Date du ménage"><Input name="day" type="date" defaultValue={today} className="h-9" /></Field>
+                <Button size="sm">Ajouter</Button>
+                <span className="text-xs text-muted-foreground">Pour un ménage fait hors de l&apos;app ou un ajustement.</span>
               </form>
             </CardContent>
           </Card>

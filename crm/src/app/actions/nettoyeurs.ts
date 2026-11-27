@@ -191,6 +191,16 @@ export async function createPayoutsAction(fd: FormData) {
   done("paiements", n ? `${n} paiement${n > 1 ? "s" : ""} créé${n > 1 ? "s" : ""} : téléchargez le fichier de virement, virez depuis Qonto, puis marquez-les payés.` : "Rien à payer : aucun ménage validé en attente.");
 }
 
+/** Paiement saisi à la main : ménage fait hors de l'app (ou ajustement). Apparaît dans la liste des paiements à régler. */
+export async function createManualPayoutAction(fd: FormData) {
+  await requireOwner();
+  const cleanerId = str(fd, "cleaner_id"), amount = numField(fd, "amount"), day = str(fd, "day") || parisToday();
+  if (!cleanerId || amount == null || !(amount > 0) || !/^\d{4}-\d{2}-\d{2}$/.test(day)) flash(to("paiements"), "error", "Choisissez le nettoyeur, un montant et une date.");
+  const { error } = await createClient().from("cleaning_payouts").insert({ cleaner_id: cleanerId!, period_start: day, period_end: day, amount: Math.round(amount! * 100) / 100, jobs: 1 });
+  if (error) flash(to("paiements"), "error", dbMessage(error));
+  done("paiements", "Paiement ajouté : il apparaît dans la liste des paiements à régler.");
+}
+
 export async function markPayoutPaidAction(id: string) {
   await requireOwner();
   const { error } = await createClient().from("cleaning_payouts").update({ status: "paye", paid_on: parisToday() }).eq("id", id).eq("status", "a_payer");
@@ -293,13 +303,21 @@ export async function createManualJobAction(fd: FormData) {
   const kind = str(fd, "job_kind") === "bureau" ? "bureau" : "logement", hours = numField(fd, "duration_hours");
   const { data: set } = await sb.from("marketplace_settings").select("window_start, window_end").maybeSingle();
   const pt = await geocode({ address, postal_code: postal, city });
-  const { error } = await sb.from("cleaning_jobs").insert({
-    client_id: clientId, title: str(fd, "title") || `${kind === "bureau" ? "Nettoyage de bureaux" : "Ménage"} — ${city || postal}`, job_kind: kind, duration_hours: hours != null && hours > 0 ? hours : null, job_date: date, window_start: String((set as any)?.window_start ?? "11:00").slice(0, 5), window_end: String((set as any)?.window_end ?? "14:00").slice(0, 5),
+  // Options : rémunération libre du nettoyeur, nettoyeur imposé, répétition chaque semaine.
+  const pay = numField(fd, "cleaner_amount"), cleanerId = str(fd, "cleaner_id") || null, until = str(fd, "repeat_until");
+  const dates = [date!];
+  if (until && /^\d{4}-\d{2}-\d{2}$/.test(until)) for (let d = addDays(date!, 7); d <= until && dates.length < 27; d = addDays(d, 7)) dates.push(d);
+  const rows = dates.map((d) => ({
+    client_id: clientId, title: str(fd, "title") || `${kind === "bureau" ? "Nettoyage de bureaux" : "Ménage"} — ${city || postal}`, job_kind: kind, duration_hours: hours != null && hours > 0 ? hours : null, job_date: d, window_start: String((set as any)?.window_start ?? "11:00").slice(0, 5), window_end: String((set as any)?.window_end ?? "14:00").slice(0, 5),
     city, postal_code: postal, address, access_notes: str(fd, "access_notes") || null, price_ht: price, lat: pt?.lat ?? null, lng: pt?.lng ?? null
-  });
+  }));
+  const { data: made, error } = await sb.from("cleaning_jobs").insert(rows).select("id");
   if (error) flash(to("direct"), "error", dbMessage(error));
+  const ids = ((made ?? []) as any[]).map((r) => r.id);
+  if (ids.length && pay != null && pay >= 0) await sb.from("cleaning_jobs").update({ cleaner_amount: pay }).in("id", ids);
+  if (ids.length && cleanerId) await sb.from("cleaning_jobs").update({ cleaner_id: cleanerId, status: "acceptee", accepted_at: new Date().toISOString() }).in("id", ids);
   await dispatchTick({ force: true }).catch(() => undefined);
-  done("direct", "Ménage publié : il est proposé en priorité aux nettoyeurs en ligne les mieux placés.");
+  done("direct", cleanerId ? `${ids.length} ménage${ids.length > 1 ? "s" : ""} attribué${ids.length > 1 ? "s" : ""} directement au nettoyeur choisi.` : `${ids.length} ménage${ids.length > 1 ? "s" : ""} publié${ids.length > 1 ? "s" : ""} : proposé${ids.length > 1 ? "s" : ""} en priorité aux nettoyeurs en ligne les mieux placés.`);
 }
 
 /** Relancer le contrôle par l'IA d'un ménage en attente (par exemple après une analyse indisponible). Le résultat, ou la raison de l'échec, s'affiche. */
