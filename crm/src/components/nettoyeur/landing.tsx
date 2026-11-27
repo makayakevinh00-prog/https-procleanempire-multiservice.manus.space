@@ -387,7 +387,7 @@ export function CleanerLanding() {
       <header className="sticky top-0 z-20 border-b border-[var(--a-line)] bg-[var(--a-bg)]/90 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-2.5 sm:px-6">
           <a
-            href="https://procleanempire.com"
+            href="https://www.procleanempire.com/"
             aria-label="Retour au site ProClean Empire"
             className={`flex items-center gap-2.5 rounded-xl ${FOCUS}`}
           >
@@ -407,7 +407,7 @@ export function CleanerLanding() {
           </a>
           <span className="flex items-center gap-1">
             <a
-              href="https://procleanempire.com"
+              href="https://www.procleanempire.com/"
               className={`hidden min-h-11 items-center rounded-xl px-3 text-[15px] font-semibold text-[var(--a-mute)] hover:bg-[var(--a-soft)] sm:flex ${FOCUS}`}
             >
               ← Retour au site
@@ -683,7 +683,7 @@ export function CleanerLanding() {
           <p className="mt-6 text-center text-[13px] text-[var(--a-mute)]">
             Une application ProClean Empire.{" "}
             <a
-              href="https://procleanempire.com"
+              href="https://www.procleanempire.com/"
               className="font-semibold text-[var(--a-pri)] underline-offset-2 hover:underline"
             >
               Retour au site
