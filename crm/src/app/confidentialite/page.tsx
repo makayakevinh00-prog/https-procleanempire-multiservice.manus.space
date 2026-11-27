@@ -32,6 +32,14 @@ export default function Privacy() {
           ],
         },
         {
+          h: "Le film du ménage et l'analyse par intelligence artificielle",
+          p: [
+            "Pour chaque ménage, le nettoyeur filme le logement à son arrivée et à la fin. L'application utilise pour cela la caméra du téléphone, uniquement quand le nettoyeur lance le film. Aucune photo n'est demandée.",
+            "Des images extraites de ces films sont analysées par un service d'intelligence artificielle pour contrôler le nettoyage et repérer un objet non retrouvé ou abîmé. Le résultat est un signalement à vérifier : il n'est jamais une accusation, et une personne de ProClean Empire le relit.",
+            "Les films ne montrent que le logement. Ils sont réservés à ProClean Empire, au propriétaire ou à la conciergerie concernés, et au nettoyeur qui les a tournés.",
+          ],
+        },
+        {
           h: "Qui y accède",
           p: [
             "La direction de ProClean Empire et, pour ce qui est nécessaire à une intervention, le nettoyeur concerné. Nos prestataires techniques (hébergement, envoi des e-mails) y accèdent uniquement pour faire fonctionner le service.",

@@ -5,6 +5,7 @@ import { agentClient, agentMessage, isToken, type CleanerOverview } from "@/lib/
 import { dict, initials } from "@/lib/field-ui";
 import { MODULE_LIST, type TrainingState } from "@/lib/formation";
 import { Gate } from "@/components/agent/gate";
+import { cleanerDeleteRequestAction } from "@/app/actions/nettoyeur";
 import { Permissions } from "@/components/agent/permissions";
 import { AvatarPicker } from "@/components/nettoyeur/avatar-picker";
 import { Row, RowList, sectionLabel } from "@/components/nettoyeur/profile-ui";
@@ -67,6 +68,15 @@ export default async function CleanerProfile({ params, searchParams }: { params:
         <Row href={`${base}/profil/aide`} icon={HelpCircle} title="Comment ça marche" sub="Horaires, attribution des ménages, contact" />
         <Row href="/confidentialite" icon={ShieldCheck} title="Politique de confidentialité" sub="Quelles données sont traitées, et pourquoi" />
       </RowList>
+
+      <details className="mt-3 rounded-2xl border border-[var(--a-line)] p-4">
+        <summary className="cursor-pointer text-[15px] font-extrabold text-[var(--a-bad)]">Supprimer mon compte</summary>
+        <form action={cleanerDeleteRequestAction.bind(null, token)} className="mt-3 space-y-3 text-[14px] text-[var(--a-mute)]">
+          <p>Votre compte et vos données personnelles seront supprimés sous 30 jours. Les factures et virements déjà faits sont conservés aussi longtemps que la loi l&apos;impose.</p>
+          <label className="flex items-start gap-2 font-bold text-[var(--a-ink)]"><input type="checkbox" name="confirm" value="1" className="mt-1 h-5 w-5" />Je demande la suppression de mon compte.</label>
+          <button className="fx-press h-12 w-full rounded-2xl bg-[var(--a-bad)] text-[15px] font-extrabold text-white">Envoyer la demande</button>
+        </form>
+      </details>
 
       <form method="post" action="/connexion/sortir" className="mt-4">
         <input type="hidden" name="t" value={token} />

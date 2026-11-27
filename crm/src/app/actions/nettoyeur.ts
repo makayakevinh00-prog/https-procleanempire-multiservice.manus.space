@@ -710,3 +710,30 @@ export async function adminPostMessageAction(jobId: string, fd: FormData) {
   }
   revalidatePath("/nettoyeurs/messages");
 }
+
+/** Demande de suppression du compte, lancée depuis l'application (exigée par les stores). Traitée sous 30 jours ; les factures et virements restent conservés comme la loi l'impose. */
+export async function cleanerDeleteRequestAction(token: string, fd: FormData) {
+  guard(token);
+  const path = base(token, "/profil");
+  if (String(fd.get("confirm") ?? "") !== "1") return back(path, "error", "Cochez la case pour confirmer la demande.");
+  const { data, error } = await agentClient().rpc("cleaner_overview", { p_token: token });
+  if (error) return back(path, "error", agentMessage(error.message));
+  const o = data as { name: string; email: string };
+  let saved = false;
+  if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    const sb = createAdmin();
+    const { data: c } = await sb.from("cleaners").select("id, note").eq("email", o.email).maybeSingle();
+    if (c) {
+      const stamp = `SUPPRESSION DEMANDÉE le ${new Date().toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" })}`;
+      if (!String(c.note ?? "").includes(stamp)) saved = !(await sb.from("cleaners").update({ note: [c.note, stamp].filter(Boolean).join("\n") }).eq("id", c.id)).error;
+      else saved = true;
+    }
+  }
+  let mailed = false;
+  if (mailConfigured()) {
+    mailed = await sendMail({ to: adminTo(), subject: `Suppression de compte demandée — ${o.name}`, text: `${o.name} (${o.email}) demande la suppression de son compte nettoyeur depuis l'application. À traiter sous 30 jours : supprimer le compte et les données personnelles, en gardant seulement ce que la loi impose (factures, virements).` }).then(() => true).catch(() => false);
+    if (o.email) await sendMail({ to: o.email, subject: "Votre demande de suppression de compte", text: `Bonjour,\n\nNous avons bien reçu votre demande de suppression de compte. Elle sera traitée sous 30 jours. Les factures et virements sont conservés aussi longtemps que la loi l'impose.\n\nL'équipe ProClean Empire` }).catch(() => undefined);
+  }
+  if (!saved && !mailed) return back(path, "error", "La demande n'a pas pu être enregistrée. Écrivez-nous à contact@procleanempire.com.");
+  return back(path, "ok", "Demande reçue. Votre compte sera supprimé sous 30 jours.");
+}

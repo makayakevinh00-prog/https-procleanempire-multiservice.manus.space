@@ -1,0 +1,15 @@
+{
+  "appId": "com.procleanempire.nettoyeur",
+  "appName": "ProClean Nettoyeur",
+  "webDir": "www",
+  "server": {
+    "url": "https://proclean-crm.vercel.app/nettoyeur",
+    "cleartext": false,
+    "allowNavigation": ["proclean-crm.vercel.app"]
+  },
+  "ios": { "contentInset": "always" },
+  "android": { "allowMixedContent": false },
+  "plugins": {
+    "SplashScreen": { "launchShowDuration": 800, "backgroundColor": "#ffffff" }
+  }
+}
