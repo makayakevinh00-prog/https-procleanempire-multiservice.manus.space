@@ -72,7 +72,7 @@ function Fact({ mark, title, text, delay = 0 }: { mark: string; title: string; t
 const gallery: GalleryPhoto[] = [
   { src: `${P}/salon-haussmannien.webp`, alt: "Salon d'un appartement parisien : canapé en cuir, table basse en verre et parquet entretenu", label: "Logements · salon" },
   { src: `${P}/boutique-presentoirs.webp`, alt: "Présentoirs de lunettes d'une boutique, étagères et vitres nettoyées", label: "Boutiques · vitrines" },
-  { src: `${P}/appart-chambre-fenetres.webp`, alt: "Chambre préparée pour l'arrivée des voyageurs : lit blanc, serviettes roulées, fenêtres sur les arbres", label: "Logements · chambre prête" },
+  { src: `${P}/chambre-serviettes.webp`, alt: "Chambre préparée pour l'arrivée des voyageurs : lit blanc, serviettes roulées, fenêtres sur les arbres", label: "Logements · chambre prête" },
   { src: "/media/photos/cockpit-avion-detailing.webp", alt: "Écran du tableau de bord d'un avion léger essuyé à la microfibre", label: "Aviation · cockpit", position: "object-[50%_30%]" },
   { src: "/media/photos/interieur-mercedes-apres.webp", alt: "Intérieur d'un véhicule nettoyé : sièges, tableau de bord et tapis", label: "Véhicules de société", position: "object-[50%_45%]" },
   { src: "/media/photos/canape-velours-apres.webp", alt: "Canapé en velours vert nettoyé dans un salon", label: "Canapés et textiles" }
@@ -203,8 +203,8 @@ export function ImmersiveLanding() {
               />
               <div className="absolute -bottom-10 -left-3 w-[42%] overflow-hidden rounded-3xl border-[6px] border-white shadow-[0_30px_60px_-30px_rgba(16,24,40,0.5)] lg:-left-10">
                 <ParallaxPhoto
-                  src={`${P}/boutique-presentoirs.webp`}
-                  alt="Boutique d'optique nettoyée : présentoirs lumineux, vitrines et parquet impeccables"
+                  src={`${P}/boutique-accueil.webp`}
+                  alt="Boutique d'optique nettoyée : accueil, fauteuils, vitrines et sol impeccables"
                   curtain
                   sizes="(min-width: 1024px) 20vw, 42vw"
                   className="aspect-[4/3] w-full"
@@ -249,8 +249,8 @@ export function ImmersiveLanding() {
           <div className="flex items-center px-6 pt-16 md:px-12 lg:sticky lg:top-16 lg:h-[calc(100svh-4rem)] lg:py-12 lg:pr-4">
             <ParallaxPhoto
               curtain
-              src={`${P}/appart-chambre-fenetres.webp`}
-              alt="Chambre préparée pour l'arrivée des voyageurs : lit blanc, serviettes roulées, fenêtres sur les arbres"
+              src={`${P}/appart-salon-large.webp`}
+              alt="Grand salon lumineux d'un logement Airbnb prêt pour l'arrivée des voyageurs"
               sizes="(min-width: 1024px) 46vw, 100vw"
               className="aspect-[3/2] w-full rounded-[2rem] shadow-[0_40px_70px_-30px_rgba(16,24,40,0.45)]"
             />
