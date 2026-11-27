@@ -18,6 +18,18 @@ export function monthBounds(month: string): { start: string; end: string } {
 
 export const isLastDayOfMonth = (date: string) => date === monthBounds(monthOf(date)).end;
 
+/** Jour d'émission des factures de contrat (décision du patron : le 30 du mois, et non plus le 27). */
+export const CONTRACT_BILLING_DAY = 30;
+
+/** Date de facturation d'un mois : le 30, ramené au dernier jour du mois quand il est plus court (février). */
+export function billingDateOf(month: string, day: number = CONTRACT_BILLING_DAY): string {
+  const { end } = monthBounds(month);
+  const last = Number(end.slice(8, 10));
+  return `${month}-${pad(Math.min(day, last))}`;
+}
+
+export const isBillingDay = (date: string, day: number = CONTRACT_BILLING_DAY) => date === billingDateOf(monthOf(date), day);
+
 export function addDays(date: string, days: number): string {
   const d = new Date(`${date}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() + days);

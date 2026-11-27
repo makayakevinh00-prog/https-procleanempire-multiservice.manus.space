@@ -64,7 +64,7 @@ export default async function SettingsPage() {
           <CardHeader><CardTitle>Facturation mensuelle automatique</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <label className="flex items-start gap-2 text-sm font-medium"><input type="checkbox" name="auto_invoicing_enabled" defaultChecked={s.auto_invoicing_enabled} className="mt-1" />
-              <span>Activer la facturation mensuelle automatique<span className="block text-xs font-normal text-muted-foreground">Le dernier jour du mois, une facture est préparée pour chaque client (forfaits + passages du planning). Elle n&apos;est émise et envoyée que pour les clients cochés « envoi automatique », hors contacts réservés et montants au-dessus du seuil : les autres restent en brouillon pour votre validation. Détail et aperçu dans « Facturation auto ».</span></span></label>
+              <span>Activer la facturation mensuelle automatique<span className="block text-xs font-normal text-muted-foreground">Le 30 du mois (le dernier jour en février), une facture est préparée pour chaque client (forfaits + passages du planning). Elle n&apos;est émise et envoyée que pour les clients cochés « envoi automatique », hors contacts réservés et montants au-dessus du seuil : les autres restent en brouillon pour votre validation. Détail et aperçu dans « Facturation auto ».</span></span></label>
             <div className={grid}>
               <Field label="Premier mois facturé automatiquement" hint="Format AAAA-MM"><Input name="auto_invoicing_start_month" defaultValue={s.auto_invoicing_start_month} placeholder="2026-11" /></Field>
             </div>

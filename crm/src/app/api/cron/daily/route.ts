@@ -8,7 +8,7 @@ export const maxDuration = 60;
 
 /**
  * Tâche quotidienne unique (le plan Vercel gratuit n'autorise qu'un passage par jour) :
- *  - fin de mois : factures du mois (validées seulement si toutes les conditions sont remplies) ;
+ *  - le 30 du mois (dernier jour en février) : factures du mois (validées seulement si toutes les conditions sont remplies) ;
  *  - envoi des factures émises, relances de factures et de devis, récapitulatif au patron ;
  *  - synchronisation Qonto si la clé service_role est configurée.
  * Paramètres de test (avec le secret) : ?dry=1 (simulation) · ?month=2026-11&force=1 · ?send=1

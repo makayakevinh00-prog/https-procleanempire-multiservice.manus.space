@@ -1,5 +1,5 @@
 import { planMonthlyInvoices, type PlannedInvoice } from "../domain/billing-plan";
-import { isLastDayOfMonth, monthLabel, monthOf, nextMonth, parisToday } from "../domain/dates";
+import { isBillingDay, monthLabel, monthOf, nextMonth, parisToday } from "../domain/dates";
 import { contractIssues } from "../domain/contract-check";
 import { contractVisits, type ScheduleContract } from "../domain/schedule";
 import { autoReminderDecision } from "../domain/reminders";
@@ -18,9 +18,9 @@ export interface Deps {
 }
 
 export interface RunOptions {
-  /** Mois à facturer (YYYY-MM). Par défaut : le mois en cours, uniquement le dernier jour du mois. */
+  /** Mois à facturer (YYYY-MM). Par défaut : le mois en cours, uniquement le jour de facturation (le 30). */
   month?: string;
-  /** Génère même si ce n'est pas le dernier jour du mois (tests manuels). */
+  /** Génère même si ce n'est pas le jour de facturation (tests manuels). */
   forceGenerate?: boolean;
   /** Envoie tout de suite, sans attendre le lendemain. */
   forceSend?: boolean;
@@ -51,7 +51,7 @@ const fr = (d?: string | null) => (d ? `${d.slice(8, 10)}/${d.slice(5, 7)}/${d.s
 export async function runDaily(deps: Deps, opts: RunOptions = {}): Promise<Report> {
   const today = parisToday(deps.now ?? new Date());
   const month = opts.month ?? monthOf(today);
-  const lastDay = isLastDayOfMonth(today);
+  const lastDay = isBillingDay(today); // jour de facturation des contrats : le 30 (février : dernier jour)
   const report: Report = {
     today, month, enabled: false, generated: [], sent: [], failed: [], followups: [], reminders: [],
     planning: { created: 0, incompleteContracts: [] }, skippedDrafts: [], expiredQuotes: 0,
@@ -100,7 +100,7 @@ export async function runDaily(deps: Deps, opts: RunOptions = {}): Promise<Repor
     catch (e) { report.failed.push({ what: "expiration des devis", reason: (e as Error).message }); }
   }
 
-  // 1. Génération (et validation des seules factures éligibles) le dernier jour du mois
+  // 1. Génération (et validation des seules factures éligibles) le jour de facturation (le 30)
   if (report.enabled && (lastDay || opts.forceGenerate)) {
     // Un brouillon déjà préparé pour ce mois n'est JAMAIS écrasé (il peut avoir été corrigé) : il est signalé au patron.
     const draftIds = new Set<string>(data.draft_clients ?? []);
