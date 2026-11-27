@@ -557,9 +557,10 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
               <Field label="2 pièces (€ HT)"><Input name="price_t2" inputMode="decimal" defaultValue={S.price_t2} /></Field>
               <Field label="3 pièces (€ HT)"><Input name="price_t3" inputMode="decimal" defaultValue={S.price_t3} /></Field>
               <Field label="Maison (€ HT)" className="sm:col-span-3"><Input name="price_maison" inputMode="decimal" defaultValue={S.price_maison} /></Field>
-              <Field label="Plancher horaire : Paris (€/h)" hint="Le nettoyeur touche le plus élevé entre sa part et ce taux × la durée prévue"><Input name="hourly_floor_paris" inputMode="decimal" defaultValue={S.hourly_floor_paris} /></Field>
-              <Field label="Plancher horaire : ailleurs (€/h)"><Input name="hourly_floor_other" inputMode="decimal" defaultValue={S.hourly_floor_other} /></Field>
-              <Field label="Plancher horaire : bureaux (€/h)"><Input name="hourly_floor_office" inputMode="decimal" defaultValue={S.hourly_floor_office} /></Field>
+              <Field label="Mode de paye" className="sm:col-span-3"><Select name="pay_mode" defaultValue={S.pay_mode ?? "plancher"}><option value="horaire">Taux horaire fixe : paye = taux × durée prévue (part en % si la durée est inconnue)</option><option value="plancher">Plancher : le plus élevé entre la part en % et le taux × la durée prévue</option></Select></Field>
+              <Field label="Taux horaire : Paris (€/h)" hint="Appliqué à la durée prévue du ménage, selon le mode de paye choisi"><Input name="hourly_floor_paris" inputMode="decimal" defaultValue={S.hourly_floor_paris} /></Field>
+              <Field label="Taux horaire : ailleurs (€/h)"><Input name="hourly_floor_other" inputMode="decimal" defaultValue={S.hourly_floor_other} /></Field>
+              <Field label="Taux horaire : bureaux (€/h)"><Input name="hourly_floor_office" inputMode="decimal" defaultValue={S.hourly_floor_office} /></Field>
               <div className="space-y-3 rounded-lg border p-4 sm:col-span-3">
                 <label className="flex items-start gap-2 text-sm"><input type="checkbox" name="rules_validate" defaultChecked={S.rules_validate} className="mt-1" /><span><b className="font-medium">Valider automatiquement par règles, sans IA</b> quand l&apos;analyse des photos est indisponible : le nettoyeur a pointé, coché toutes les tâches, envoyé assez de photos, est resté assez longtemps, et il a fait ses preuves. Sinon le ménage vous arrive avec la raison.</span></label>
                 <div className="grid gap-3 sm:grid-cols-4">
