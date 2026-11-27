@@ -48,8 +48,8 @@ export default function AboutPage() {
             </ul>
           </article>
           <Image
-            src="/media/photos/landing/equipe-vitrine.webp"
-            alt="Un intervenant ProClean Empire nettoie la vitrine d'un commerce"
+            src="/media/photos/landing/boutique-presentoirs.webp"
+            alt="Présentoirs de lunettes d'une boutique, étagères et vitres nettoyées"
             width={938}
             height={704}
             sizes="(min-width: 1024px) 50vw, 100vw"

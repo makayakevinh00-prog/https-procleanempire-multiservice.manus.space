@@ -70,13 +70,11 @@ function Fact({ mark, title, text, delay = 0 }: { mark: string; title: string; t
 }
 
 const gallery: GalleryPhoto[] = [
-  { src: "/media/photos/traitement-tapis.webp", alt: "Tapis de voiture en cours de nettoyage, pulvérisateur en main", label: "Véhicules · tapis" },
-  { src: `${P}/equipe-vitrine.webp`, alt: "Agent ProClean Empire en tenue nettoyant les étagères en verre d'une boutique", label: "En intervention · boutique" },
   { src: `${P}/boutique-accueil.webp`, alt: "Espace d'accueil d'une boutique d'optique : fauteuils en cuir, table basse, présentoirs lumineux et parquet clair", label: "Accueil d'une boutique" },
+  { src: `${P}/boutique-presentoirs.webp`, alt: "Présentoirs de lunettes d'une boutique, étagères et vitres nettoyées", label: "Boutiques · vitrines" },
+  { src: `${P}/appart-chambre-fenetres.webp`, alt: "Chambre préparée pour l'arrivée des voyageurs : lit blanc, serviettes roulées, fenêtres sur les arbres", label: "Logements · chambre prête" },
   { src: "/media/photos/cockpit-avion-detailing.webp", alt: "Écran du tableau de bord d'un avion léger essuyé à la microfibre", label: "Aviation · cockpit", position: "object-[50%_30%]" },
   { src: "/media/photos/interieur-mercedes-apres.webp", alt: "Intérieur d'un véhicule nettoyé : sièges, tableau de bord et tapis", label: "Véhicules de société", position: "object-[50%_45%]" },
-  { src: `${P}/noel-cadeaux.webp`, alt: "Paquets cadeaux disposés au pied d'un sapin de Noël dans une boutique", label: "Décor de Noël", position: "object-[50%_70%]" },
-  { src: "/media/photos/sieges-cuir-avion.webp", alt: "Sièges en cuir beige d'un avion après nettoyage", label: "Aviation · sièges cuir" },
   { src: "/media/photos/canape-velours-apres.webp", alt: "Canapé en velours vert nettoyé dans un salon", label: "Canapés et textiles" }
 ];
 
@@ -205,8 +203,8 @@ export function ImmersiveLanding() {
               />
               <div className="absolute -bottom-10 -left-3 w-[42%] overflow-hidden rounded-3xl border-[6px] border-white shadow-[0_30px_60px_-30px_rgba(16,24,40,0.5)] lg:-left-10">
                 <ParallaxPhoto
-                  src={`${P}/equipe-vitrine.webp`}
-                  alt="Agent ProClean Empire en tenue nettoyant les étagères en verre d'une boutique"
+                  src={`${P}/boutique-presentoirs.webp`}
+                  alt="Présentoirs de lunettes d'une boutique, étagères et vitres nettoyées"
                   curtain
                   sizes="(min-width: 1024px) 20vw, 42vw"
                   className="aspect-[4/3] w-full"
@@ -406,8 +404,8 @@ export function ImmersiveLanding() {
           <div className="max-lg:order-first lg:sticky lg:top-16 lg:h-[calc(100svh-4rem)]">
             <ParallaxPhoto
               curtain
-              src={`${P}/noel-sapin.webp`}
-              alt="Sapin de Noël décoré de boules dorées, bleues et bordeaux à l'entrée d'une boutique, avec des paquets au pied"
+              src={`${P}/boutique-salon-attente.webp`}
+              alt="Espace d'accueil d'une boutique : fauteuils en cuir et table basse sur parquet clair"
               sizes="(min-width: 1024px) 50vw, 100vw"
               className="aspect-[4/5] w-full lg:aspect-auto lg:h-full"
             />
