@@ -9,7 +9,7 @@ import { quoteServices, type QuoteField as Field } from "@/lib/quote-services";
 import { readLeadSource } from "@/lib/lead-source";
 
 const inputClass =
-  "mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 focus:border-[#1d6fe0] focus:outline-none focus:ring-1 focus:ring-[#1d6fe0]";
+  "mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-[#101828] focus:border-[#1d6fe0] focus:outline-none focus:ring-1 focus:ring-[#1d6fe0]";
 
 type Contact = { name: string; company: string; phone: string; email: string; comments: string };
 

@@ -116,7 +116,7 @@ export function AddressAutocomplete({
               setOpen(false);
             }
           }}
-          className="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-base text-slate-900 focus:border-[#1d6fe0] focus:outline-none focus:ring-1 focus:ring-[#1d6fe0]"
+          className="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-base text-[#101828] focus:border-[#1d6fe0] focus:outline-none focus:ring-1 focus:ring-[#1d6fe0]"
         />
       </label>
       {open && suggestions.length > 0 ? (

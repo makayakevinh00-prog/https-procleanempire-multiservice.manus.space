@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     locale: ogLocale[defaultLocale],
     type: "website",
-    images: [{ url: "/media/photos/hero-showcase.jpg", width: 1600, height: 1600, alt: "ProClean Empire" }]
+    images: [{ url: "/media/photos/hero-showcase.jpg", width: 2752, height: 1536, alt: "ProClean Empire" }]
   },
   // Google Search Console : code de validation (méthode « balise HTML ») à mettre dans Vercel,
   // variable NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION (aucun secret). Sans variable : rien n'est ajouté.

@@ -27,7 +27,7 @@ const P = "/media/photos/landing";
 function ChapterHead({ index, label, title, lead, dark }: { index: string; label: string; title: ReactNode; lead: string; dark?: boolean }) {
   return (
     <Reveal>
-      <p className={`${LABEL} flex items-center gap-4 ${dark ? "text-[#667085]" : "text-slate-600"}`}>
+      <p className={`${LABEL} flex items-center gap-4 ${dark ? "text-[#667085]" : "text-[#667085]"}`}>
         <span className="lp-serif whitespace-nowrap text-2xl normal-case tracking-normal">
           <em>N° {index}</em>
         </span>
@@ -35,7 +35,7 @@ function ChapterHead({ index, label, title, lead, dark }: { index: string; label
         {label}
       </p>
       <h2 className={`${H2} mt-8`}>{title}</h2>
-      <p className={`mt-8 max-w-xl text-lg leading-relaxed sm:text-xl ${dark ? "text-[#475467]" : "text-slate-700"}`}>{lead}</p>
+      <p className={`mt-8 max-w-xl text-lg leading-relaxed sm:text-xl ${dark ? "text-[#475467]" : "text-[#475467]"}`}>{lead}</p>
     </Reveal>
   );
 }
@@ -50,7 +50,7 @@ function Moment({ mark, title, text }: { mark: string; title: string; text: stri
       </span>
       <span>
         <span className="block text-xl font-semibold tracking-tight text-ink">{title}</span>
-        <span className="mt-1.5 block text-base leading-relaxed text-slate-700">{text}</span>
+        <span className="mt-1.5 block text-base leading-relaxed text-[#475467]">{text}</span>
       </span>
     </Reveal>
   );
@@ -221,7 +221,7 @@ export function ImmersiveLanding() {
       <section className={PAPER} aria-label="Notre manière de travailler">
         <div className="mx-auto max-w-[1680px] px-6 py-24 md:px-12 md:py-40">
           <div className="grid gap-10 lg:grid-cols-12">
-            <p className={`${LABEL} text-slate-600 lg:col-span-3 lg:pt-5`}>Notre manière de travailler</p>
+            <p className={`${LABEL} text-[#667085] lg:col-span-3 lg:pt-5`}>Notre manière de travailler</p>
             <Statement
               text="Un seul interlocuteur. Des horaires tenus. Un résultat contrôlé avant de partir."
               className="lp-serif text-[2.5rem] leading-[1.06] text-ink sm:text-6xl lg:col-span-9 xl:text-[5.25rem]"
@@ -236,7 +236,7 @@ export function ImmersiveLanding() {
             ].map((item) => (
               <div key={item.label} className="border-t border-ink/80 pt-5">
                 <dd className="lp-serif text-5xl text-ink sm:text-6xl xl:text-7xl">{item.value}</dd>
-                <dt className="mt-3 text-base text-slate-700">{item.label}</dt>
+                <dt className="mt-3 text-base text-[#475467]">{item.label}</dt>
               </div>
             ))}
           </dl>
@@ -354,11 +354,11 @@ export function ImmersiveLanding() {
         <div className="mx-auto grid max-w-[1680px] gap-14 px-6 py-24 md:px-12 md:py-36 lg:grid-cols-12 lg:gap-10">
           <Reveal className="lg:col-span-5">
             <div className="lg:sticky lg:top-32">
-              <p className={`${LABEL} text-slate-600`}>Nos engagements</p>
+              <p className={`${LABEL} text-[#667085]`}>Nos engagements</p>
               <h2 id="lp-engagements" className={`${H2} mt-6`}>
                 Une organisation, <em>pas une promesse.</em>
               </h2>
-              <p className="mt-8 max-w-md text-lg leading-relaxed text-slate-700">
+              <p className="mt-8 max-w-md text-lg leading-relaxed text-[#475467]">
                 Derrière chaque passage, il y a une méthode : des protocoles, des horaires tenus et un contrôle du résultat.
               </p>
             </div>
@@ -371,7 +371,7 @@ export function ImmersiveLanding() {
                 </span>
                 <div>
                   <h3 className="text-2xl font-semibold tracking-tight text-ink">{item.title}</h3>
-                  <p className="mt-2 text-lg leading-relaxed text-slate-700">{item.description}</p>
+                  <p className="mt-2 text-lg leading-relaxed text-[#475467]">{item.description}</p>
                 </div>
               </Reveal>
             ))}
@@ -417,7 +417,7 @@ export function ImmersiveLanding() {
       <section className="border-t border-slate-200" aria-labelledby="lp-methode">
         <div className="mx-auto max-w-[1680px] px-6 py-24 md:px-12 md:py-36">
           <Reveal className="grid gap-8 lg:grid-cols-12">
-            <p className={`${LABEL} text-slate-600 lg:col-span-3 lg:pt-5`}>Comment ça marche</p>
+            <p className={`${LABEL} text-[#667085] lg:col-span-3 lg:pt-5`}>Comment ça marche</p>
             <h2 id="lp-methode" className={`${H2} lg:col-span-9`}>
               Trois étapes, <em>et vous n&apos;y pensez plus.</em>
             </h2>
@@ -429,7 +429,7 @@ export function ImmersiveLanding() {
                   <em>{index + 1}</em>
                 </span>
                 <h3 className="mt-8 text-2xl font-semibold tracking-tight text-ink">{step.title}</h3>
-                <p className="mt-3 text-lg leading-relaxed text-slate-700">{step.text}</p>
+                <p className="mt-3 text-lg leading-relaxed text-[#475467]">{step.text}</p>
               </Reveal>
             ))}
           </ol>
@@ -444,7 +444,7 @@ export function ImmersiveLanding() {
             { id: "lp-autres", label: "Et aussi", items: others, more: null }
           ].map((group, groupIndex) => (
             <Reveal key={group.id} delay={groupIndex * 0.1}>
-              <h2 id={group.id} className={`${LABEL} text-slate-600`}>
+              <h2 id={group.id} className={`${LABEL} text-[#667085]`}>
                 {group.label}
               </h2>
               <ul className="lp-serif mt-8 text-4xl leading-tight text-ink sm:text-5xl">
@@ -491,7 +491,7 @@ export function ImmersiveLanding() {
                     <path d="M12 5v14M5 12h14" />
                   </svg>
                 </summary>
-                <p className="max-w-2xl pb-8 text-lg leading-relaxed text-slate-700">{item.a}</p>
+                <p className="max-w-2xl pb-8 text-lg leading-relaxed text-[#475467]">{item.a}</p>
               </details>
             ))}
           </div>

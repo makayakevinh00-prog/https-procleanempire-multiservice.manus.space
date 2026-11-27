@@ -52,7 +52,7 @@ export function ReviewsPremiumSection() {
   return (
     <section className="section pt-0">
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft md:p-10">
-        <h2 className="text-3xl font-bold text-[#14213d] md:text-4xl">
+        <h2 className="text-3xl font-bold text-[#1e3a6e] md:text-4xl">
           {premiumReviewsData.sectionTitle}
         </h2>
         <p className="mt-4 max-w-3xl text-lg leading-relaxed text-slate-700">
@@ -90,7 +90,7 @@ export function ReviewsPremiumSection() {
                     <p className="mt-4 text-lg leading-relaxed text-slate-700">
                       &ldquo;{slides[activeIndex].text}&rdquo;
                     </p>
-                    <p className="mt-5 text-sm font-semibold text-[#14213d]">
+                    <p className="mt-5 text-sm font-semibold text-[#1e3a6e]">
                       {slides[activeIndex].name}
                     </p>
                     <p className="text-xs text-slate-500">
@@ -104,7 +104,7 @@ export function ReviewsPremiumSection() {
                     <p className="text-xs font-semibold uppercase tracking-wide text-[#1d6fe0]">
                       Temoignage video
                     </p>
-                    <p className="mt-3 text-lg font-semibold text-[#14213d]">
+                    <p className="mt-3 text-lg font-semibold text-[#1e3a6e]">
                       {slides[activeIndex].title}
                     </p>
                     <p className="mt-2 text-sm text-slate-600">{slides[activeIndex].description}</p>
@@ -112,7 +112,7 @@ export function ReviewsPremiumSection() {
                       href={slides[activeIndex].youtubeUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="mt-4 inline-flex text-sm font-semibold text-[#14213d] underline"
+                      className="mt-4 inline-flex text-sm font-semibold text-[#1e3a6e] underline"
                     >
                       Voir la video
                     </a>
@@ -135,7 +135,7 @@ export function ReviewsPremiumSection() {
                     <span
                       aria-hidden
                       className={`block h-2 rounded-full transition-all ${
-                        index === activeIndex ? "w-6 bg-[#14213d]" : "w-2 bg-slate-400"
+                        index === activeIndex ? "w-6 bg-[#1e3a6e]" : "w-2 bg-slate-400"
                       }`}
                     />
                   </button>

@@ -7,15 +7,15 @@ export function ContactPhase1Section() {
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft md:p-10">
         <div className="grid gap-8 lg:grid-cols-[1fr,1.1fr] lg:items-start">
           <article>
-            <h2 className="text-3xl font-bold text-[#14213d] md:text-4xl">{phase1Contact.title}</h2>
+            <h2 className="text-3xl font-bold text-[#1e3a6e] md:text-4xl">{phase1Contact.title}</h2>
             <p className="mt-4 text-lg leading-relaxed text-slate-700">{phase1Contact.description}</p>
             <dl className="mt-7 space-y-3 text-sm text-slate-700">
               <div>
-                <dt className="font-semibold text-[#14213d]">Adresse</dt>
+                <dt className="font-semibold text-[#1e3a6e]">Adresse</dt>
                 <dd>{phase1Contact.address}</dd>
               </div>
               <div>
-                <dt className="font-semibold text-[#14213d]">Téléphone</dt>
+                <dt className="font-semibold text-[#1e3a6e]">Téléphone</dt>
                 <dd>
                   <a href={phase1Contact.phoneHref} className="underline">
                     {phase1Contact.phone}
@@ -23,15 +23,15 @@ export function ContactPhase1Section() {
                 </dd>
               </div>
               <div>
-                <dt className="font-semibold text-[#14213d]">Email</dt>
+                <dt className="font-semibold text-[#1e3a6e]">Email</dt>
                 <dd>{phase1Contact.email}</dd>
               </div>
               <div>
-                <dt className="font-semibold text-[#14213d]">Zone d&apos;intervention</dt>
+                <dt className="font-semibold text-[#1e3a6e]">Zone d&apos;intervention</dt>
                 <dd>{phase1Contact.zone}</dd>
               </div>
               <div>
-                <dt className="font-semibold text-[#14213d]">Horaires</dt>
+                <dt className="font-semibold text-[#1e3a6e]">Horaires</dt>
                 <dd>{phase1Contact.hours}</dd>
               </div>
             </dl>

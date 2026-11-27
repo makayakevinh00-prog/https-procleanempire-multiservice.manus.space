@@ -4,7 +4,7 @@ export default function NotFoundPage() {
   return (
     <section className="section text-center">
       <p className="text-sm font-semibold uppercase tracking-wide text-brand-700">Erreur 404</p>
-      <h1 className="mt-3 text-4xl font-bold text-slate-900">Page introuvable</h1>
+      <h1 className="mt-3 text-4xl font-bold text-[#101828]">Page introuvable</h1>
       <p className="mx-auto mt-4 max-w-2xl text-slate-600">
         La page demandée n&apos;existe pas ou a été déplacée. Vous pouvez revenir à
         l&apos;accueil ou demander directement une estimation.

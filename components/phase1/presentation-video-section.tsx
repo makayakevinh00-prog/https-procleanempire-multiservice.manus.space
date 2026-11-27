@@ -17,7 +17,7 @@ export function PresentationVideoSection({
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft md:p-10">
         <div className="grid gap-8 lg:grid-cols-[1.1fr,0.9fr] lg:items-center">
           <div>
-            <h2 className="text-3xl font-bold text-[#14213d] md:text-4xl">{presentationVideo.title}</h2>
+            <h2 className="text-3xl font-bold text-[#1e3a6e] md:text-4xl">{presentationVideo.title}</h2>
             <p className="mt-4 text-lg leading-relaxed text-slate-700">{presentationVideo.description}</p>
             <button type="button" className="btn-primary mt-8" onClick={onOpenVideo}>
               ▶ {presentationVideo.ctaLabel}
@@ -30,7 +30,7 @@ export function PresentationVideoSection({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.35, ease: "easeOut" }}
-            className="group relative mx-auto w-full max-w-[280px] overflow-hidden rounded-2xl border border-[#14213d]/15 bg-slate-900 text-left"
+            className="group relative mx-auto w-full max-w-[280px] overflow-hidden rounded-2xl border border-[#1e3a6e]/15 bg-[#1e3a6e] text-left"
             aria-label={presentationVideo.ctaLabel}
           >
             {/* thumbnail facade only; video is loaded in modal on demand */}
@@ -42,7 +42,7 @@ export function PresentationVideoSection({
             <span className="absolute left-4 top-4 rounded-full bg-[#1d6fe0] px-3 py-1 text-xs font-semibold text-white">
               VIDEO
             </span>
-            <span className="absolute bottom-4 left-4 inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-[#14213d] transition group-hover:bg-white">
+            <span className="absolute bottom-4 left-4 inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-[#1e3a6e] transition group-hover:bg-white">
               ▶ Lire
             </span>
           </motion.button>
@@ -67,14 +67,14 @@ export function PresentationVideoModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#101828]/70 p-4"
       role="dialog"
       aria-modal="true"
       aria-label="Video de presentation ProClean Empire"
     >
       <div className="w-full max-w-sm rounded-2xl bg-white p-4 shadow-soft md:p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-[#14213d]">{presentationVideo.title}</h3>
+          <h3 className="text-lg font-semibold text-[#1e3a6e]">{presentationVideo.title}</h3>
           <button type="button" onClick={onClose} className="btn-secondary px-4 py-2 text-sm">
             Fermer
           </button>

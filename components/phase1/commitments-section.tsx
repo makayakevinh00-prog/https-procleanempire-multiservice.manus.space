@@ -16,7 +16,7 @@ const icons = [
 export function CommitmentsSection() {
   return (
     <section className="section pt-0">
-      <h2 className="text-3xl font-bold text-[#14213d] md:text-4xl">Nos engagements</h2>
+      <h2 className="text-3xl font-bold text-[#1e3a6e] md:text-4xl">Nos engagements</h2>
       <p className="mt-4 max-w-3xl text-lg leading-relaxed text-slate-700">
         Chaque engagement est pense pour garantir un service fiable, mesurable et rassurant pour
         vos equipes comme pour vos clients.
@@ -31,10 +31,10 @@ export function CommitmentsSection() {
             transition={{ duration: 0.28, delay: index * 0.04 }}
             className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft"
           >
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#14213d]/10 text-lg text-[#14213d]">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#1e3a6e]/10 text-lg text-[#1e3a6e]">
               {icons[index % icons.length]}
             </span>
-            <h3 className="mt-4 text-lg font-semibold text-[#14213d]">{item.title}</h3>
+            <h3 className="mt-4 text-lg font-semibold text-[#1e3a6e]">{item.title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.description}</p>
           </motion.article>
         ))}

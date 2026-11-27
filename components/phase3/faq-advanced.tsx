@@ -59,7 +59,7 @@ export function FaqAdvanced() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Ex : délai d'intervention, contrat, prix..."
-              className="mt-2 w-full rounded-xl border border-[#c9d8f5] px-4 py-3 text-sm text-[#101828] focus:border-[#1e3a6e] focus:outline-none focus:ring-1 focus:ring-[#14213d]"
+              className="mt-2 w-full rounded-xl border border-[#c9d8f5] px-4 py-3 text-sm text-[#101828] focus:border-[#1e3a6e] focus:outline-none focus:ring-1 focus:ring-[#1e3a6e]"
             />
           </label>
           <div className="flex flex-wrap gap-2">

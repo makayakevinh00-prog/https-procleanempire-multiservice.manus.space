@@ -10,12 +10,12 @@ export function SeoText() {
     <section className="border-t border-slate-200 bg-white" aria-labelledby="entreprise-nettoyage">
       <div className="mx-auto grid max-w-[1680px] gap-12 px-6 py-24 md:px-12 md:py-36 lg:grid-cols-12 lg:gap-10">
         <Reveal className="lg:col-span-5">
-          <p className={`${LABEL} text-slate-600`}>Qui nous sommes</p>
+          <p className={`${LABEL} text-[#667085]`}>Qui nous sommes</p>
           <h2 id="entreprise-nettoyage" className={`${H2} mt-6`}>
             Votre entreprise de nettoyage <em>dans le Val-d&apos;Oise et à Paris</em>
           </h2>
         </Reveal>
-        <div className="space-y-6 text-lg leading-relaxed text-slate-700 lg:col-span-6 lg:col-start-7">
+        <div className="space-y-6 text-lg leading-relaxed text-[#475467] lg:col-span-6 lg:col-start-7">
           <p>
             ProClean Empire est une entreprise de nettoyage installée à Pontoise, au cœur du Val-d&apos;Oise. Nous entretenons les bureaux, les commerces, les halls d&apos;immeuble et les logements en location courte durée, avec un interlocuteur unique du devis jusqu&apos;au suivi des passages. Notre siège est à Pontoise : c&apos;est là que nous sommes le plus réactifs, et c&apos;est de là que nous rayonnons sur toute l&apos;Île-de-France.
           </p>
