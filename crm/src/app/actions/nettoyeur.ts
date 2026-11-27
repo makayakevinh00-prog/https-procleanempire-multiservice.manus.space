@@ -623,3 +623,90 @@ export async function logoutAction() {
   jar.delete({ name: "pc_login_email", path: LOGIN });
   redirect(`${LOGIN}?bye=1`);
 }
+
+/* ───────── Messagerie par ménage, signalement de problème, avis ───────── */
+const siteUrl = () => `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL ?? "proclean-crm.vercel.app"}`;
+const adminTo = () => process.env.MAIL_ADMIN ?? "contact@procleanempire.com";
+const clientEmail = async (clientId: string | null) => {
+  if (!clientId || !process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
+  const { data } = await createAdmin().from("clients").select("email").eq("id", clientId).maybeSingle();
+  return (data?.email as string | null) ?? null;
+};
+const back = (path: string, kind: "ok" | "error", msg: string): never => redirect(`${path}?${kind}=${encodeURIComponent(msg)}`);
+
+export async function cleanerPostMessageAction(token: string, jobId: string, fd: FormData) {
+  guard(token);
+  const path = base(token, `/menage/${jobId}`);
+  const body = String(fd.get("body") ?? "").trim();
+  if (!body) return back(path, "error", "Écrivez un message.");
+  const { data, error } = await agentClient().rpc("cleaner_post_message", { p_token: token, p_job: jobId, p_body: body });
+  if (error) return back(path, "error", agentMessage(error.message));
+  const r = data as { title: string; client_id: string | null; name: string };
+  if (mailConfigured()) {
+    const text = `${r.name} a écrit à propos de « ${r.title} » :\n\n${body}\n\n(Répondez depuis votre espace ProClean.)`;
+    await sendMail({ to: adminTo(), subject: `Message du nettoyeur — ${r.title}`, text }).catch(() => undefined);
+    const to = await clientEmail(r.client_id);
+    if (to) await sendMail({ to, subject: `Message du nettoyeur — ${r.title}`, text: `${text}\n\n${siteUrl()}` }).catch(() => undefined);
+  }
+  revalidatePath(path);
+  return back(path, "ok", "Message envoyé.");
+}
+
+export async function cleanerReportProblemAction(token: string, jobId: string, fd: FormData) {
+  guard(token);
+  const path = base(token, `/menage/${jobId}`);
+  const { data, error } = await agentClient().rpc("cleaner_report_problem", { p_token: token, p_job: jobId, p_kind: String(fd.get("kind") ?? "autre"), p_text: String(fd.get("text") ?? "") });
+  if (error) return back(path, "error", agentMessage(error.message));
+  const r = data as { title: string; client_id: string | null; name: string; label: string };
+  if (mailConfigured()) {
+    const text = `${r.name} signale un problème : ${r.label}\nMénage : ${r.title}\n\n${String(fd.get("text") ?? "").trim()}\n\nL'anomalie est ouverte dans le CRM (Missions › Problèmes).`;
+    await sendMail({ to: adminTo(), subject: `⚠️ Problème signalé — ${r.title}`, text }).catch(() => undefined);
+    const to = await clientEmail(r.client_id);
+    if (to) await sendMail({ to, subject: `Problème signalé — ${r.title}`, text }).catch(() => undefined);
+  }
+  revalidatePath(path);
+  return back(path, "ok", "Problème signalé. La direction est prévenue.");
+}
+
+export async function partnerPostMessageAction(token: string, jobId: string, fd: FormData) {
+  guard(token);
+  const path = `/partenaire/${token}/menage/${jobId}`;
+  const body = String(fd.get("body") ?? "").trim();
+  if (!body) return back(path, "error", "Écrivez un message.");
+  const { data, error } = await agentClient().rpc("partner_post_message", { p_secret: token, p_job: jobId, p_body: body });
+  if (error) return back(path, "error", agentMessage(error.message));
+  const r = data as { title: string; cleaner_email: string | null; cleaner_name: string | null; client: string };
+  if (mailConfigured()) {
+    const text = `${r.client} a écrit à propos de « ${r.title} » :\n\n${body}\n\nRépondez depuis votre application : ${siteUrl()}/nettoyeur\n\nProClean Empire`;
+    if (r.cleaner_email) await sendMail({ to: r.cleaner_email, subject: `Message de la conciergerie — ${r.title}`, text }).catch(() => undefined);
+    await sendMail({ to: adminTo(), subject: `Message de la conciergerie — ${r.title}`, text }).catch(() => undefined);
+  }
+  revalidatePath(path);
+  return back(path, "ok", "Message envoyé.");
+}
+
+export async function partnerRateAction(token: string, jobId: string, fd: FormData) {
+  guard(token);
+  const path = `/partenaire/${token}/menage/${jobId}`;
+  const { error } = await agentClient().rpc("partner_rate_job", { p_secret: token, p_job: jobId, p_rating: Number(fd.get("rating")), p_comment: String(fd.get("comment") ?? "") });
+  if (error) return back(path, "error", agentMessage(error.message));
+  revalidatePath(path);
+  return back(path, "ok", "Merci, votre avis est enregistré.");
+}
+
+/** Réponse de la direction dans le fil d'un ménage (CRM). */
+export async function adminPostMessageAction(jobId: string, fd: FormData) {
+  const body = String(fd.get("body") ?? "").trim();
+  if (!body) return;
+  const db = createClient();
+  const { error } = await db.from("cleaning_messages").insert({ job_id: jobId, role: "admin", author: "ProClean", body: body.slice(0, 1000) });
+  if (error) redirect(`/nettoyeurs/messages?error=${encodeURIComponent("Envoi impossible.")}`);
+  if (mailConfigured()) {
+    const { data: j } = await db.from("cleaning_jobs").select("title, cleaner_id").eq("id", jobId).maybeSingle();
+    if (j?.cleaner_id) {
+      const { data: c } = await db.from("cleaners").select("email").eq("id", j.cleaner_id).maybeSingle();
+      if (c?.email) await sendMail({ to: c.email as string, subject: `Message de ProClean — ${j.title}`, text: `ProClean Empire vous a écrit à propos de « ${j.title} » :\n\n${body}\n\nRépondre : ${siteUrl()}/nettoyeur\n\nProClean Empire` }).catch(() => undefined);
+    }
+  }
+  revalidatePath("/nettoyeurs/messages");
+}

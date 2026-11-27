@@ -77,10 +77,11 @@ export default async function PartnerPage({ params, searchParams }: { params: { 
         {(j.tasks > 0 || j.photos > 0) && j.status !== "ouverte" && <div className="text-[12px] text-[var(--a-mute)]">{j.tasks > 0 ? `Tâches ${j.tasks_done}/${j.tasks}` : ""}{j.tasks > 0 && j.photos > 0 ? " · " : ""}{j.photos > 0 ? `${j.photos} photo${j.photos > 1 ? "s" : ""}` : ""}{j.redo ? " · reprise demandée" : ""}</div>}
         {j.status === "validee" && j.summary && j.ai_status === "ok" && <div className="mt-0.5 text-[12px] text-[var(--a-mute)]">Contrôle : {j.summary}</div>}
       </div>
+      {j.cleaner && <Link href={`/partenaire/${token}/menage/${j.id}`} className="shrink-0 rounded-full bg-[var(--a-bg)] px-3 py-1.5 text-xs font-extrabold text-[var(--a-pri)]">💬 Avis</Link>}
       {pill(j)}
     </div>
   );
-  // Ce qu'il reste à faire pour que tout tourne tout seul.
+  // Ce qu''il reste à faire pour que tout tourne tout seul.
   const todo: { text: string; v: string }[] = [];
   if (!o.listings.length) todo.push({ text: "Ajoutez votre premier logement", v: "logements" });
   for (const l of o.listings) {

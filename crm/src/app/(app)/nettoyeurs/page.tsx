@@ -91,6 +91,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
   return (
     <>
       <PageHeader title="Nettoyeurs" subtitle="Des indépendants font les ménages de vos Airbnb : ils acceptent, vous vérifiez, ils sont payés par virement." />
+      <p className="-mt-2 mb-3 text-sm"><Link className="font-semibold text-primary underline" href="/nettoyeurs/messages">💬 Messages des ménages</Link></p>
       <Tabs items={tabs} />
       {live.length > 0 && (
         <section className="mb-6" aria-label="Ménages en direct">
