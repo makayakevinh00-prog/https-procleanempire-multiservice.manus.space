@@ -49,10 +49,12 @@ export function Seg({ items }: { items: { href: string; label: string; count?: n
 }
 
 /** Ligne de liste : repère à gauche, texte principal + précision, action à droite. */
-export function Row({ lead, title, sub, right, href, dot }: { lead?: React.ReactNode; title: React.ReactNode; sub?: React.ReactNode; right?: React.ReactNode; href?: string; dot?: "ok" | "warn" | "err" }) {
+const LEAD_TONES = { red: "bg-red-50 text-red-700", orange: "bg-orange-50 text-orange-700", blue: "bg-blue-50 text-blue-700", green: "bg-emerald-50 text-emerald-700" } as const;
+
+export function Row({ lead, title, sub, right, href, dot, tone }: { lead?: React.ReactNode; title: React.ReactNode; sub?: React.ReactNode; right?: React.ReactNode; href?: string; dot?: "ok" | "warn" | "err"; tone?: keyof typeof LEAD_TONES }) {
   const body = (
     <div className="grid grid-cols-[72px_minmax(0,1fr)_auto] items-center gap-4 border-b border-border/70 px-6 py-3.5 last:border-b-0 sm:grid-cols-[96px_minmax(0,1fr)_auto]">
-      <span className="num text-[15px] font-semibold text-foreground">{lead}</span>
+      <span className="num text-[15px] font-semibold text-foreground">{tone && lead !== "" && lead != null ? <span className={cn("inline-flex min-w-9 items-center justify-center rounded-full px-2.5 py-1 text-[14px] leading-none", LEAD_TONES[tone])}>{lead}</span> : lead}</span>
       <div className="min-w-0 text-foreground">
         {dot && <span className={cn("mr-2 inline-block h-[7px] w-[7px] rounded-full align-[1px]", dot === "ok" ? "bg-success" : dot === "warn" ? "bg-warning" : "bg-destructive")} aria-hidden />}
         {title}

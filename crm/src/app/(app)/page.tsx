@@ -150,10 +150,10 @@ export default async function Dashboard({ searchParams }: { searchParams?: { moi
         </div>
         <Card className="overflow-hidden">
           <div className="py-1.5">
-            {inboxTotal > 0 && <Row href="/boite" lead={inboxTotal} title="Mails clients à répondre" right={<ArrowRight className="h-4 w-4" />} />}
-            {mails.length > 0 && <Row href={`/clients/${mails[0].clientId}#mails`} lead={mails.length} title="E-mails préparés à envoyer" right={<ArrowRight className="h-4 w-4" />} />}
+            {inboxTotal > 0 && <Row href="/boite" lead={inboxTotal} tone="blue" title="Mails clients à répondre" right={<ArrowRight className="h-4 w-4" />} />}
+            {mails.length > 0 && <Row href={`/clients/${mails[0].clientId}#mails`} lead={mails.length} tone="blue" title="E-mails préparés à envoyer" right={<ArrowRight className="h-4 w-4" />} />}
             {!actions.length && !inboxTotal && !mails.length ? <Empty>Rien à faire : tout est à jour.</Empty> : ordered.slice(0, 5).map((a) => (
-              <Row key={a.key} href={a.href} lead={a.count !== undefined ? a.count : ""} dot={a.count === undefined ? (a.tone === "red" ? "err" : a.tone === "orange" ? "warn" : undefined) : undefined}
+              <Row key={a.key} href={a.href} lead={a.count !== undefined ? a.count : ""} tone={a.count !== undefined ? (a.tone === "red" ? "red" : a.tone === "orange" ? "orange" : "blue") : undefined} dot={a.count === undefined ? (a.tone === "red" ? "err" : a.tone === "orange" ? "warn" : undefined) : undefined}
                 title={a.label} right={<ArrowRight className="h-4 w-4" />} />
             ))}
           </div>

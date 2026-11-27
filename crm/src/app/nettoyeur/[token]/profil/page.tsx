@@ -55,7 +55,7 @@ export default async function CleanerProfile({ params, searchParams }: { params:
       <RowList>
         <Row href={`${base}/profil/adresse`} icon={Home} title="Adresse et secteur" sub={place ? `${place} · ${o.radius_km} km` : "À renseigner pour recevoir les ménages près de vous"} warn={!place} />
         <Row href={`${base}/profil/telephone`} icon={Phone} title="Téléphone" sub={o.phone || "À renseigner"} warn={!o.phone} />
-        <Row href={`${base}/profil/linge`} icon={Shirt} title="Lavage du linge" sub={ln?.lave_linge ? "Je peux laver du linge" : "Dites si vous avez une machine à laver"} />
+        <Row href={`${base}/profil/linge`} icon={Shirt} title="Lavage du linge" sub={ln?.lave_linge ? "Je lave le linge en laverie" : "Dites si vous pouvez laver le linge en laverie"} />
         <Row href={`${base}/profil/iban`} icon={Landmark} title="IBAN pour mes virements" sub={o.has_iban ? o.iban_hint ?? "Enregistré" : "À renseigner pour être payé"} warn={!o.has_iban} />
       </RowList>
 

@@ -147,7 +147,7 @@ export function Cockpit({
       className="mt-7 grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]"
     >
       {/* Objectif du mois et activités */}
-      <div className="rounded-2xl bg-card p-5 shadow-[0_1px_2px_rgba(17,18,20,0.04),0_8px_24px_rgba(17,18,20,0.04)] sm:p-7">
+      <div className="rounded-2xl border border-[#dbe6fc] bg-gradient-to-br from-[#f0f4fc] to-[#dbe6fc] p-5 shadow-[0_1px_2px_rgba(30,58,110,0.06),0_10px_28px_rgba(30,58,110,0.08)] sm:p-7">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-[17px] font-semibold tracking-tight text-foreground">
             Objectif de {goal.monthLabel}

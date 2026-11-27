@@ -28,11 +28,11 @@ function Links({ counts = {}, onNavigate, slim = false, perms = null }: { counts
         return (
           <Link key={key} href={tabs[0].href} onClick={onNavigate} title={label} aria-current={self ? "page" : undefined}
             className={cn("pce-nav-link relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] transition-colors", slim && "justify-center px-0",
-              self ? "bg-secondary font-medium text-foreground" : "text-secondary-foreground/80 hover:bg-secondary/70 hover:text-foreground")}>
+              self ? "bg-[#dbe6fc]/70 font-semibold text-primary" : "text-secondary-foreground/80 hover:bg-secondary/70 hover:text-foreground")}>
             {self && <span className="pce-nav-ind absolute inset-y-2 -left-4 w-[3px] rounded-r bg-primary" aria-hidden />}
-            <Icon className="h-[18px] w-[18px] shrink-0 opacity-80" strokeWidth={1.6} />
+            <Icon className={cn("h-[19px] w-[19px] shrink-0", self ? "text-primary" : "opacity-80")} strokeWidth={self ? 2 : 1.8} />
             {!slim && <span className="flex-1">{label}</span>}
-            {!slim && n > 0 && <span className="num rounded-full bg-secondary px-2 text-xs text-muted-foreground">{n}</span>}
+            {!slim && n > 0 && <span className={cn("num rounded-full px-2 text-xs font-medium", self ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground")}>{n}</span>}
             {slim && n > 0 && <span className="absolute right-2 top-1.5 h-1.5 w-1.5 rounded-full bg-primary" aria-label={`${n} à traiter`} />}
           </Link>
         );

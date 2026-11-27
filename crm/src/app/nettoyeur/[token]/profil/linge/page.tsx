@@ -23,8 +23,8 @@ export default async function CleanerLinen({ params, searchParams }: { params: {
       {searchParams.ok && <div role="status" className="mt-3 rounded-2xl bg-[var(--a-okbg)] p-3 text-sm font-semibold text-[var(--a-ok)]">{searchParams.ok}</div>}
       <form action={cleanerLinenPrefAction.bind(null, token)} className="mt-5">
         <div className="space-y-4 rounded-3xl bg-[var(--a-card)] p-4">
-          <label className="flex min-h-12 items-center gap-3 text-[16px] font-bold"><input type="checkbox" name="lave_linge" defaultChecked={o.lave_linge} className="h-6 w-6" />Je peux laver du linge chez moi</label>
-          <label className="block"><span className="mb-1 block text-[14px] font-bold">Précisions (facultatif)</span><input name="note" defaultValue={o.note ?? ""} maxLength={200} className={input} placeholder="Machine 8 kg, séchoir, repassage…" /></label>
+          <label className="flex min-h-12 items-center gap-3 text-[16px] font-bold"><input type="checkbox" name="lave_linge" defaultChecked={o.lave_linge} className="h-6 w-6" />Je peux laver du linge en laverie automatique</label>
+          <label className="block"><span className="mb-1 block text-[14px] font-bold">Précisions (facultatif)</span><input name="note" defaultValue={o.note ?? ""} maxLength={200} className={input} placeholder="Laverie proche de chez moi, séchage, repassage…" /></label>
           <button className="fx-press h-12 w-full rounded-2xl bg-[var(--a-pri)] text-base font-extrabold text-white">Enregistrer</button>
         </div>
       </form>

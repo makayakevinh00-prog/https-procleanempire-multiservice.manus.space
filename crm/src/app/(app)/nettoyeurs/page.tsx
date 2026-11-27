@@ -1,3 +1,4 @@
+import { Avatar } from "@/components/ui/avatar";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { Download, ExternalLink } from "lucide-react";
@@ -143,7 +144,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
                 <CardHeader><CardTitle>Nettoyeurs</CardTitle></CardHeader>
                 {!cleaners.filter((c) => c.status === "actif").length ? <Empty>Aucun nettoyeur actif.</Empty> : <ul className="divide-y text-sm">{cleaners.filter((c) => c.status === "actif").sort((a, b) => Number(!!b.online) - Number(!!a.online)).map((c) => {
                   const mine = live.find((j) => j.cleaner_id === c.id && ["acceptee", "a_reprendre"].includes(j.status));
-                  return (<li key={c.id} className="flex items-center gap-3 px-5 py-2.5"><span className={`h-2.5 w-2.5 shrink-0 rounded-full ${c.online ? "bg-emerald-500" : "bg-slate-300"}`} /><span className="min-w-0 flex-1"><b className="font-medium">{c.full_name}</b>{c.certified_at ? <Badge tone="green">Certifié · {c.training_score} %</Badge> : <Badge tone="orange">Formation à faire</Badge>} {c.lave_linge ? <Badge tone="blue">Lave le linge</Badge> : null} {c.identity_status === "verifie" ? <Badge tone="green">Identité vérifiée</Badge> : c.identity_status === "non_requis" ? null : <Badge tone="orange">{c.identity_status === "en_cours" ? "Identité en cours" : c.identity_status === "echec" ? "Identité refusée" : "Identité à vérifier"}</Badge>}<span className="block text-xs text-muted-foreground">SIRET {c.siret ?? "manquant"} · {c.online ? "En ligne" : "Hors ligne"} · vu {ago(c.last_seen_at)}{mine ? ` · va à : ${mine.title} (${mine.city ?? ""})` : ""}</span></span></li>);
+                  return (<li key={c.id} className="flex items-center gap-3 px-5 py-2.5"><span className={`h-2.5 w-2.5 shrink-0 rounded-full ${c.online ? "bg-emerald-500" : "bg-slate-300"}`} /><span className="min-w-0 flex-1"><b className="font-medium">{c.full_name}</b>{c.certified_at ? <Badge tone="green">Certifié · {c.training_score} %</Badge> : <Badge tone="orange">Formation à faire</Badge>} {c.lave_linge ? <Badge tone="blue">Linge en laverie</Badge> : null} {c.identity_status === "verifie" ? <Badge tone="green">Identité vérifiée</Badge> : c.identity_status === "non_requis" ? null : <Badge tone="orange">{c.identity_status === "en_cours" ? "Identité en cours" : c.identity_status === "echec" ? "Identité refusée" : "Identité à vérifier"}</Badge>}<span className="block text-xs text-muted-foreground">SIRET {c.siret ?? "manquant"} · {c.online ? "En ligne" : "Hors ligne"} · vu {ago(c.last_seen_at)}{mine ? ` · va à : ${mine.title} (${mine.city ?? ""})` : ""}</span></span></li>);
                 })}</ul>}
               </Card>
             </div>
@@ -325,13 +326,12 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
                     const todo = mine.filter((j) => ["acceptee", "a_reprendre"].includes(j.status) && j.job_date >= today).length, review = mine.filter((j) => j.status === "a_verifier").length;
                     const due = mine.filter((j) => j.status === "validee" && !j.payout_id).reduce((t, j) => t + Number(j.cleaner_amount ?? 0), 0), paid = paidBy.get(c.id) ?? 0;
                     const [idLabel, idTone] = ID[c.identity_status] ?? ID.a_verifier;
-                    const initials = String(c.full_name).split(/\s+/).map((w: string) => w[0]).slice(0, 2).join("").toUpperCase();
                     const issues = [!c.certified_at && "formation à terminer", !["verifie", "non_requis"].includes(c.identity_status) && "identité à vérifier", !c.iban && "IBAN manquant", !c.siret && "SIRET manquant"].filter(Boolean) as string[];
                     return (
                       <article key={c.id} className="pce-card flex flex-col gap-4 rounded-xl border bg-card p-5">
                         <header className="flex items-start gap-3.5">
                           <span className="relative shrink-0">
-                            {c.avatar ? <img src={`data:image/jpeg;base64,${c.avatar}`} alt="" className="h-14 w-14 rounded-full object-cover" /> : <span className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-lg font-semibold text-muted-foreground">{initials}</span>}
+                            {c.avatar ? <img src={`data:image/jpeg;base64,${c.avatar}`} alt="" className="h-14 w-14 rounded-full object-cover" /> : <Avatar name={String(c.full_name)} className="!h-14 !w-14 !text-lg !font-semibold" />}
                             {c.online && c.status === "actif" && <span className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-2 border-card bg-emerald-500" title="En ligne" />}
                           </span>
                           <div className="min-w-0 flex-1">
@@ -341,22 +341,27 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
                               {c.status === "suspendu" && <Badge tone="red">Suspendu</Badge>}
                               {c.certified_at ? <Badge tone="green">Certifié · {c.training_score} %</Badge> : <Badge tone="orange">Formation à faire</Badge>}
                               <Badge tone={idTone}>{idLabel}</Badge>
-                              {c.lave_linge ? <Badge tone="blue">Lave le linge</Badge> : null}
+                              {c.lave_linge ? <Badge tone="blue">Linge en laverie</Badge> : null}
                             </div>
                           </div>
                         </header>
-                        <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                        <dl className="grid grid-cols-3 gap-x-4 gap-y-3 text-sm">
+                          <div><dt className="text-xs text-muted-foreground">SIRET</dt><dd className="font-medium">{c.siret ? <a className="inline-flex items-center gap-0.5 text-primary hover:underline" href={`https://annuaire-entreprises.data.gouv.fr/etablissement/${c.siret}`} target="_blank" rel="noreferrer">{c.siret} <ExternalLink className="h-3 w-3" /></a> : <b className="text-amber-700">manquant</b>}</dd><dd className="text-xs text-muted-foreground">{({ etudiant: "Étudiant", auto_entrepreneur: "Auto-entrepreneur", entreprise: "Entreprise" } as Record<string, string>)[c.statut_pro] ?? "Indépendant"}</dd></div>
+                          <div><dt className="text-xs text-muted-foreground">Argent</dt><dd className="num font-medium">{eur(due)} <span className="text-xs font-normal text-muted-foreground">à payer</span></dd><dd className="num text-xs text-muted-foreground">{eur(paid)} déjà versés · IBAN {c.iban ? "✓" : <b className="text-amber-700">manquant</b>}</dd></div>
+                          <div><dt className="text-xs text-muted-foreground">Linge</dt><dd className="font-medium">{c.lave_linge ? "Laverie auto : oui" : "Pas de laverie"}</dd>{c.lave_linge_note ? <dd className="text-xs text-muted-foreground">{c.lave_linge_note}</dd> : null}</div>
+                        </dl>
+                        <details className="group rounded-lg border border-border/70 px-3 py-2 text-sm">
+                          <summary className="flex cursor-pointer list-none items-center justify-between text-[13px] font-medium text-muted-foreground hover:text-foreground">Secteur, contact, activité, formations<span className="text-primary group-open:hidden">Afficher</span></summary>
+                          <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3">
                           <div><dt className="text-xs text-muted-foreground">Secteur</dt><dd className="font-medium">{c.lat != null ? `${c.radius_km} km autour de ${c.city ?? c.postal_code}` : `Dép. ${c.departments.join(", ")}`}</dd><dd className="text-xs text-muted-foreground">{c.postal_code ?? ""}{c.lat == null ? " · adresse non localisée" : ""}</dd></div>
                           <div><dt className="text-xs text-muted-foreground">Contact</dt><dd className="font-medium">{c.phone ? <a className="hover:underline" href={`tel:${c.phone}`}>{c.phone}</a> : <b className="text-amber-700">pas de téléphone</b>}</dd><dd className="truncate text-xs text-muted-foreground"><a className="hover:underline" href={`mailto:${c.email}`}>{c.email}</a></dd></div>
-                          <div><dt className="text-xs text-muted-foreground">SIRET</dt><dd className="font-medium">{c.siret ? <a className="inline-flex items-center gap-0.5 text-primary hover:underline" href={`https://annuaire-entreprises.data.gouv.fr/etablissement/${c.siret}`} target="_blank" rel="noreferrer">{c.siret} <ExternalLink className="h-3 w-3" /></a> : <b className="text-amber-700">manquant</b>}</dd><dd className="text-xs text-muted-foreground">{({ etudiant: "Étudiant", auto_entrepreneur: "Auto-entrepreneur", entreprise: "Entreprise" } as Record<string, string>)[c.statut_pro] ?? "Indépendant"}</dd></div>
-                          <div><dt className="text-xs text-muted-foreground">Linge</dt><dd className="font-medium">{c.lave_linge ? "Peut laver" : "Ne lave pas"}</dd>{c.lave_linge_note ? <dd className="text-xs text-muted-foreground">{c.lave_linge_note}</dd> : null}</div>
                           <div><dt className="text-xs text-muted-foreground">Activité (30 jours)</dt><dd className="font-medium">{done} validé{done > 1 ? "s" : ""} · {todo} à faire</dd>{review > 0 && <dd className="text-xs text-amber-700">{review} à vérifier par vous</dd>}</div>
-                          <div><dt className="text-xs text-muted-foreground">Argent</dt><dd className="num font-medium">{eur(due)} <span className="text-xs font-normal text-muted-foreground">à payer</span></dd><dd className="num text-xs text-muted-foreground">{eur(paid)} déjà versés · IBAN {c.iban ? "✓" : <b className="text-amber-700">manquant</b>}</dd></div>
-                        </dl>
-                        <div className="flex flex-wrap gap-1.5 text-xs">{training(c.id).map((t) => <span key={t.label} className={`rounded-full px-2 py-0.5 font-medium ${t.passed ? "bg-emerald-50 text-emerald-700" : t.tries ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-500"}`}>{t.label} : {t.tries ? `${t.best} %${t.passed ? " ✓" : " ✗"} · ${t.tries} essai${t.tries > 1 ? "s" : ""}` : "pas commencé"}</span>)}{c.certified_at && <span className="py-0.5 text-muted-foreground">Certificat {c.certificate_no}</span>}</div>
+                          </dl>
+                        <div className="mt-3 flex flex-wrap gap-1.5 text-xs">{training(c.id).map((t) => <span key={t.label} className={`rounded-full px-2 py-0.5 font-medium ${t.passed ? "bg-emerald-50 text-emerald-700" : t.tries ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-500"}`}>{t.label} : {t.tries ? `${t.best} %${t.passed ? " ✓" : " ✗"} · ${t.tries} essai${t.tries > 1 ? "s" : ""}` : "pas commencé"}</span>)}{c.certified_at && <span className="py-0.5 text-muted-foreground">Certificat {c.certificate_no}</span>}</div>
+                        </details>
                         {issues.length > 0 && c.status === "actif" && <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">À régler avant de lui confier des ménages : {issues.join(", ")}.</p>}
                         <footer className="mt-auto flex flex-wrap gap-2 border-t pt-3">
-                          <form action={setCleanerLaundryAction.bind(null, c.id, !c.lave_linge)}><Button size="sm" variant="outline">{c.lave_linge ? "Ne lave plus le linge" : "Peut laver le linge"}</Button></form>
+                          <form action={setCleanerLaundryAction.bind(null, c.id, !c.lave_linge)}><Button size="sm" variant="outline">{c.lave_linge ? "Ne lave plus le linge" : "Peut laver en laverie"}</Button></form>
                           {c.status === "actif" ? (<>
                             <ConfirmAction action={renewCleanerLinkAction.bind(null, c.id)} label="Nouveau lien" size="sm" variant="outline" title="Créer un nouveau lien ?" description="L'ancien lien cesse de fonctionner. Le nouveau est envoyé par e-mail et affiché ici une fois." confirmLabel="Créer" />
                             <ConfirmAction action={setCleanerStatusAction.bind(null, c.id, "suspendu")} label="Suspendre" size="sm" variant="ghost" title={`Suspendre ${c.full_name} ?`} description="Son lien est coupé et ses ménages à venir non commencés sont remis en ligne." confirmLabel="Suspendre" />
@@ -476,7 +481,7 @@ export default async function CleanersPage({ searchParams }: { searchParams: { t
           </Card>
 
           <Card>
-            <CardHeader><CardTitle>Nettoyeurs qui peuvent laver le linge ({cleaners.filter((c) => c.status === "actif" && c.lave_linge).length})</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Nettoyeurs qui lavent le linge en laverie ({cleaners.filter((c) => c.status === "actif" && c.lave_linge).length})</CardTitle></CardHeader>
             {!cleaners.filter((c) => c.status === "actif" && c.lave_linge).length ? <Empty>Personne pour l&apos;instant : chaque nettoyeur l&apos;indique dans son profil, ou activez-le depuis l&apos;onglet Nettoyeurs.</Empty> : <ul className="divide-y text-sm">{cleaners.filter((c) => c.status === "actif" && c.lave_linge).map((c) => <li key={c.id} className="px-5 py-2.5"><b className="font-medium">{c.full_name}</b><span className="block text-xs text-muted-foreground">{c.city ?? ""}{c.phone ? ` · ${c.phone}` : ""}{c.lave_linge_note ? ` · ${c.lave_linge_note}` : ""}</span></li>)}</ul>}
           </Card>
           <Card id="livreurs" className="scroll-mt-24">
