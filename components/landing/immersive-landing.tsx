@@ -203,8 +203,9 @@ export function ImmersiveLanding() {
               />
               <div className="absolute -bottom-10 -left-3 w-[42%] overflow-hidden rounded-3xl border-[6px] border-white shadow-[0_30px_60px_-30px_rgba(16,24,40,0.5)] lg:-left-10">
                 <ParallaxPhoto
-                  src={`${P}/boutique-accueil.webp`}
-                  alt="Boutique d'optique nettoyée : accueil, fauteuils, vitrines et sol impeccables"
+                  src={`${P}/boutique-presentoirs.webp`}
+                  imageClassName="object-[50%_35%]"
+                  alt="Boutique d'optique nettoyée : présentoirs lumineux, vitrines et sol impeccables"
                   curtain
                   sizes="(min-width: 1024px) 20vw, 42vw"
                   className="aspect-[4/3] w-full"
@@ -320,8 +321,8 @@ export function ImmersiveLanding() {
             <div className="lg:sticky lg:top-28">
               <ParallaxPhoto
                 curtain
-                src={`${P}/boutique-presentoirs.webp`}
-                alt="Présentoirs de lunettes d'une boutique, étagères et vitres nettoyées"
+                src={`${P}/boutique-accueil.webp`}
+                alt="Accueil d'une boutique d'optique : fauteuils, vitrines et parquet nettoyés"
                 sizes="(min-width: 1024px) 32vw, 100vw"
                 className="aspect-[3/4] w-full"
               />
