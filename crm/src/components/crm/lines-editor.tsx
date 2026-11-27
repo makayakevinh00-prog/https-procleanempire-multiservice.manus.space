@@ -5,7 +5,7 @@ import { Plus, Trash2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/form";
 import { documentTotals, lineTotals } from "@/lib/domain/billing";
-import { formatEUR } from "@/lib/utils";
+import { formatEUR, parseDecimal } from "@/lib/utils";
 import type { Line } from "@/lib/domain/types";
 
 export interface ServiceOption {
@@ -14,7 +14,8 @@ export interface ServiceOption {
 
 interface Row { title: string; detail: string; showDetail: boolean; catalogDetail: string; quantity: string; unit_price_ht: string; vat_rate: string }
 
-const num = (s: string) => { const n = Number(String(s).replace(",", ".")); return Number.isFinite(n) ? n : 0; };
+const num = (s: string) => parseDecimal(s) ?? 0;
+const invalid = (s: string) => s.trim() !== "" && parseDecimal(s) === null;
 const splitDescription = (d: string): [string, string] => {
   const i = d.indexOf("\n");
   return i < 0 ? [d.trim(), ""] : [d.slice(0, i).trim(), d.slice(i + 1).trim()];
@@ -82,9 +83,9 @@ export function LinesEditor({ initial, defaultVat, services = [] }: { initial?: 
         <div key={i} className="rounded-md border bg-card p-2 sm:p-3">
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-[1fr_5rem_7rem_5rem_6.5rem_2.5rem] sm:items-center">
             <Input className="col-span-3 sm:col-span-1" placeholder="Désignation (court)" value={r.title} onChange={(e) => set(i, { title: e.target.value })} aria-label="Désignation" />
-            <Input inputMode="decimal" value={r.quantity} onChange={(e) => set(i, { quantity: e.target.value })} aria-label="Quantité" />
-            <Input inputMode="decimal" placeholder="Prix" value={r.unit_price_ht} onChange={(e) => set(i, { unit_price_ht: e.target.value })} aria-label="Prix unitaire HT" />
-            <Input inputMode="decimal" value={r.vat_rate} onChange={(e) => set(i, { vat_rate: e.target.value })} aria-label="TVA" />
+            <Input inputMode="decimal" value={r.quantity} onChange={(e) => set(i, { quantity: e.target.value })} aria-label="Quantité" aria-invalid={invalid(r.quantity)} className={invalid(r.quantity) ? "border-red-500" : undefined} />
+            <Input inputMode="decimal" placeholder="Prix" value={r.unit_price_ht} onChange={(e) => set(i, { unit_price_ht: e.target.value })} aria-label="Prix unitaire HT" aria-invalid={invalid(r.unit_price_ht)} className={invalid(r.unit_price_ht) ? "border-red-500" : undefined} />
+            <Input inputMode="decimal" value={r.vat_rate} onChange={(e) => set(i, { vat_rate: e.target.value })} aria-label="TVA" aria-invalid={invalid(r.vat_rate)} className={invalid(r.vat_rate) ? "border-red-500" : undefined} />
             <div className="col-span-2 text-right text-sm font-semibold sm:col-span-1">{formatEUR(lineTotals(lines[i]).ht)}</div>
             <Button type="button" variant="ghost" size="icon" onClick={() => setRows((x) => x.filter((_, j) => j !== i))} disabled={rows.length === 1} aria-label="Supprimer la ligne">
               <Trash2 className="h-4 w-4" />
@@ -105,6 +106,9 @@ export function LinesEditor({ initial, defaultVat, services = [] }: { initial?: 
         </div>
       ))}
 
+      {rows.some((r) => invalid(r.quantity) || invalid(r.unit_price_ht) || invalid(r.vat_rate)) && (
+        <p role="alert" className="text-sm font-medium text-red-700">Un montant n&apos;est pas lisible (encadré en rouge) : corrigez-le, il n&apos;est pas compté dans le total.</p>
+      )}
       <dl className="ml-auto w-full max-w-xs space-y-1 text-sm">
         <div className="flex justify-between"><dt className="text-muted-foreground">Total HT</dt><dd>{formatEUR(totals.ht)}</dd></div>
         <div className="flex justify-between"><dt className="text-muted-foreground">TVA</dt><dd>{formatEUR(totals.vat)}</dd></div>

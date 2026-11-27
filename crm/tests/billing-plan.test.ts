@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { planMonthlyInvoices, type PlanInput } from "@/lib/domain/billing-plan";
-import { addDays, isLastDayOfMonth, isoWeekday, monthBounds, monthLabel, parisToday } from "@/lib/domain/dates";
+import { addDays, billingDateOf, isBillingDay, isLastDayOfMonth, isoWeekday, monthBounds, monthLabel, parisToday } from "@/lib/domain/dates";
 
 const settings = { default_vat_rate: 20, large_amount_threshold_ht: 1500, auto_invoicing_enabled: true, auto_invoicing_start_month: "2026-11", count_planned_as_done: true };
 const client = (o: any = {}) => ({ id: "c1", name: "SEA", email: "a@b.fr", is_reserved: false, auto_send_invoices: true, status: "actif", ...o });
@@ -14,6 +14,15 @@ describe("dates", () => {
     expect(monthBounds("2028-02").end).toBe("2028-02-29");
     expect(isLastDayOfMonth("2026-11-30")).toBe(true);
     expect(isLastDayOfMonth("2026-11-29")).toBe(false);
+  });
+  it("jour de facturation des contrats : le 30, ou fin février", () => {
+    expect(billingDateOf("2026-12")).toBe("2026-12-30");
+    expect(billingDateOf("2026-11")).toBe("2026-11-30");
+    expect(billingDateOf("2027-02")).toBe("2027-02-28");
+    expect(billingDateOf("2028-02")).toBe("2028-02-29");
+    expect(isBillingDay("2026-11-27")).toBe(false);
+    expect(isBillingDay("2026-12-31")).toBe(false);
+    expect(isBillingDay("2026-12-30")).toBe(true);
   });
   it("jours ISO et libellés", () => {
     expect(isoWeekday("2026-11-02")).toBe(1); // lundi

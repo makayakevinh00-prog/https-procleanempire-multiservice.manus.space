@@ -13,7 +13,7 @@ Source : indications du dirigeant, 5 novembre 2026. À tenir à jour.
 | Concierg'Air | contrat résilié en octobre 2026 | **ne plus inclure dans les rapports, ne plus relancer** |
 
 ## Règles de facturation
-- Factures des contrats : le **27 de chaque mois**.
+- Factures des contrats : le **30 de chaque mois** (dernier jour en février). Décision du patron, remplace le 27. Réglé par `CONTRACT_BILLING_DAY` (`src/lib/domain/dates.ts`) ; envoi le lendemain après relecture.
 - Factures des conciergeries : **par passage**, générées automatiquement depuis le planning.
 - Validation manuelle des factures ; confirmation au-dessus de 1 500 € HT.
 - Axonaut est résilié depuis fin octobre 2026 : ce CRM est le seul outil.
@@ -27,5 +27,4 @@ Source : indications du dirigeant, 5 novembre 2026. À tenir à jour.
 - Éviter d'empiler les déploiements : la file Vercel se bloque (annuler les anciens).
 
 ## Points ouverts
-- Le CRM génère aujourd'hui les factures de contrat en **fin de mois** : à caler sur le 27.
 - Hélène Despic : fiche et contrat marqués « résilié » (fin 12/10/2026) dans le CRM, alors que la liste ci-dessus la compte sous contrat.

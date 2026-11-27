@@ -24,3 +24,17 @@ export function daysBetween(from: string | Date, to: Date = new Date()) {
   const a = typeof from === "string" ? new Date(from.length === 10 ? `${from}T12:00:00` : from) : from;
   return Math.floor((to.getTime() - a.getTime()) / 86_400_000);
 }
+
+/**
+ * Lit un nombre saisi à la main : « 1 200,50 », « 1200.5 », « 12,5 € ».
+ * Avant, « 1 200,50 » devenait NaN puis 0 : la ligne passait à 0 € et le total du devis était faux sans message.
+ * Renvoie null si la saisie n'est pas un nombre (à signaler, jamais à transformer en 0).
+ */
+export function parseDecimal(input: string | number | null | undefined): number | null {
+  if (typeof input === "number") return Number.isFinite(input) ? input : null;
+  const t = String(input ?? "").replace(/[\s\u00a0\u202f€]/g, "").replace(",", ".");
+  if (t === "") return null;
+  if (!/^-?\d*\.?\d+$/.test(t) && !/^-?\d+\.$/.test(t)) return null;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : null;
+}

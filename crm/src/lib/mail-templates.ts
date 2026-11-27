@@ -71,3 +71,25 @@ export function digestEmail(a: { company: string; day: string; lines: string[]; 
   const body = wrap(a.company, paragraphs.length ? paragraphs : ["Rien à signaler."], ["ProClean CRM — message automatique"]);
   return { subject, ...body };
 }
+
+/**
+ * Courrier de mise en demeure de payer. Préparé seulement : il ne part que sur clic du patron, après relecture.
+ * L'indemnité forfaitaire de 40 € (art. L441-10 du Code de commerce) ne vaut qu'entre professionnels : jamais pour un particulier.
+ */
+export function formalNoticeEmail(a: {
+  company: string; phone?: string | null; clientName: string; professional: boolean; invoiceNumber: string; totalTtc: string; remaining: string;
+  dueDate: string; daysLate: number; reminders: { count: number; lastDate: string | null }; deadline: string; iban?: string | null;
+}): Mail {
+  const subject = `Mise en demeure de payer — facture ${a.invoiceNumber} — ${a.company}`;
+  const paras = [
+    `Madame, Monsieur,`,
+    `Notre facture ${a.invoiceNumber} d'un montant de ${a.totalTtc} TTC, échue le ${a.dueDate}, reste impayée à hauteur de ${a.remaining} TTC, soit ${a.daysLate} jours de retard. ` +
+      `Malgré ${a.reminders.count} relance(s)${a.reminders.lastDate ? ` (la dernière le ${a.reminders.lastDate})` : ""}, nous n'avons reçu aucun règlement ni explication.`,
+    `Par la présente, nous vous mettons en demeure de régler la somme de ${a.remaining} TTC au plus tard le ${a.deadline}${a.iban ? `, par virement sur le compte ${a.iban}` : ""}, en rappelant le numéro de facture.`,
+    `À défaut de règlement à cette date, nous nous réservons le droit d'engager le recouvrement de la créance par toute voie utile, ` +
+      `et de vous réclamer les pénalités de retard prévues à nos conditions de règlement${a.professional ? ", ainsi que l'indemnité forfaitaire pour frais de recouvrement de 40 € (article L441-10 du Code de commerce)" : ""}.`,
+    `Si vous avez réglé cette facture entre-temps, merci de ne pas tenir compte de ce courrier et de nous en envoyer la preuve.`,
+    `Veuillez agréer, Madame, Monsieur, l'expression de nos salutations distinguées.`
+  ];
+  return { subject, ...wrap(a.company, paras, sign(a.company, a.phone)) };
+}

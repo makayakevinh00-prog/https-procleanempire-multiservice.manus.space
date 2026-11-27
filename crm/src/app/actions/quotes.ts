@@ -8,10 +8,10 @@ import { buildPdf } from "@/lib/pdf/load";
 import { sendMail } from "@/lib/mail";
 import { quoteEmail } from "@/lib/mail-templates";
 import { getSettings, num } from "@/lib/data";
-import { isLargeAmount } from "@/lib/domain/billing";
+import { documentTotals, isLargeAmount } from "@/lib/domain/billing";
 import { logEmail } from "@/lib/email-log";
 import { quoteFollowupEmail } from "@/lib/mail-templates";
-import { formatEUR, formatDate } from "@/lib/utils";
+import { formatEUR, formatDate, round2 } from "@/lib/utils";
 import { contractIssues } from "@/lib/domain/contract-check";
 
 export async function createQuoteAction(fd: FormData) {
@@ -48,9 +48,23 @@ export async function updateQuoteAction(id: string, fd: FormData) {
     subject: str(fd, "subject"), notes: str(fd, "notes"), valid_until: str(fd, "valid_until")
   }).eq("id", id);
   if (error) flash(back, "error", dbMessage(error));
-  await supabase.from("quote_lines").delete().eq("quote_id", id);
+  // Les nouvelles lignes sont insérées AVANT de retirer les anciennes : en cas d'échec, le devis garde ses lignes et son total
+  // (avant, les anciennes étaient supprimées d'abord et un échec laissait un devis vide à 0 €).
+  const { data: oldLines, error: oe } = await supabase.from("quote_lines").select("id").eq("quote_id", id);
+  if (oe) flash(back, "error", dbMessage(oe));
   const { error: le } = await supabase.from("quote_lines").insert(lines.map((l, position) => ({ ...l, position, quote_id: id })));
-  if (le) flash(back, "error", `Lignes non enregistrées : ${dbMessage(le)}`);
+  if (le) flash(back, "error", `Lignes non enregistrées, le devis est resté comme avant : ${dbMessage(le)}`);
+  const oldIds = (oldLines ?? []).map((l: { id: string }) => l.id);
+  if (oldIds.length) {
+    const { error: de } = await supabase.from("quote_lines").delete().in("id", oldIds);
+    if (de) flash(back, "error", `Anciennes lignes non retirées (total à vérifier) : ${dbMessage(de)}`);
+  }
+  // Contrôle : le total enregistré par la base doit être celui des lignes saisies.
+  const expected = documentTotals(lines);
+  const { data: saved } = await supabase.from("quotes").select("total_ht, total_ttc").eq("id", id).single();
+  if (saved && (round2(num(saved.total_ht)) !== expected.ht || round2(num(saved.total_ttc)) !== expected.ttc)) {
+    flash(`/devis/${id}`, "error", `Total incohérent : la base indique ${formatEUR(saved.total_ttc)} TTC, les lignes donnent ${formatEUR(expected.ttc)} TTC. Rouvrez le devis et réenregistrez-le.`);
+  }
   revalidatePath("/devis");
   flash(`/devis/${id}`, "ok", "Devis mis à jour.");
 }
