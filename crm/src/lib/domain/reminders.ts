@@ -62,3 +62,28 @@ export function overdueSequence(
   steps.push({ key: "manuel", day: s.reminder_manual_days, kind: "manuel", label: "Action manuelle : appel, courrier recommandé", state: daysLate >= s.reminder_manual_days ? "du" : "a_venir" });
   return steps.sort((a, b) => a.day - b.day);
 }
+
+export interface FormalNoticeCandidate {
+  status: string;
+  due_date: string | null;
+  reminder_count: number;
+  last_reminder_at: string | null;
+}
+
+/**
+ * La mise en demeure n'est proposée que si TOUTES les relances prévues ont été envoyées, que le dernier délai est écoulé
+ * et que la facture reste impayée. Réglages utilisés : reminder_max_count et reminder_interval_days.
+ * La décision d'envoyer reste toujours celle du patron (clic) : cette fonction ne fait qu'afficher ou masquer le bouton.
+ */
+export function formalNoticeEligibility(
+  inv: FormalNoticeCandidate,
+  s: Pick<Settings, "reminder_max_count" | "reminder_interval_days">,
+  now = new Date()
+): { eligible: boolean; reason?: string } {
+  if (!["envoye", "en_retard"].includes(inv.status)) return { eligible: false, reason: "facture non impayée" };
+  if (!inv.due_date || daysBetween(inv.due_date, now) < 1) return { eligible: false, reason: "pas encore en retard" };
+  if (inv.reminder_count < s.reminder_max_count) return { eligible: false, reason: `relances en cours (${inv.reminder_count}/${s.reminder_max_count})` };
+  if (!inv.last_reminder_at) return { eligible: false, reason: "aucune relance enregistrée" };
+  if (daysBetween(inv.last_reminder_at, now) < s.reminder_interval_days) return { eligible: false, reason: "dernier délai de relance pas encore écoulé" };
+  return { eligible: true };
+}

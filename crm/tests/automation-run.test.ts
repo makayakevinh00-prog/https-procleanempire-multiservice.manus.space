@@ -211,4 +211,28 @@ describe("automatisation quotidienne", () => {
     expect(f.names()).not.toContain("automation_create_invoice");
     expect(f.mails.find((m) => m.to === "patron@x.fr").text).toMatch(/déjà préparée en brouillon pour SEA/);
   });
+
+  describe("jour de facturation des contrats : le 30", () => {
+    it("un mois de 31 jours : génère le 30 décembre, envoie le 31 (lendemain de relecture)", async () => {
+      const g = fake();
+      g.deps.now = new Date("2026-12-30T18:00:00Z");
+      expect((await runDaily(g.deps)).generated).toHaveLength(1);
+      const s = fake({ pending: [pendingItem()] });
+      s.deps.now = new Date("2026-12-31T18:00:00Z");
+      const r = await runDaily(s.deps);
+      expect(s.names()).not.toContain("automation_create_invoice"); // le 31 ne régénère rien
+      expect(r.sent).toHaveLength(1);
+    });
+    it("le 27 ne déclenche plus rien", async () => {
+      const f = fake();
+      f.deps.now = new Date("2026-11-27T18:00:00Z");
+      expect((await runDaily(f.deps)).generated).toEqual([]);
+      expect(f.names()).not.toContain("automation_create_invoice");
+    });
+    it("février : le dernier jour du mois fait office de 30", async () => {
+      const f = fake();
+      f.deps.now = new Date("2027-02-28T18:00:00Z");
+      expect((await runDaily(f.deps)).generated).toHaveLength(1);
+    });
+  });
 });

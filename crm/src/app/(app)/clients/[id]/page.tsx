@@ -17,6 +17,7 @@ import { addInteractionAction, setPipelineAction } from "@/app/actions/clients";
 import { archiveClientAction, deleteClientAction, deleteInteractionAction } from "@/app/actions/manage";
 import { PIPELINE, PIPELINE_LABEL, PIPELINE_TONE, type Pipeline } from "@/lib/request-type";
 import { cn, formatDate, formatEUR, formatHours } from "@/lib/utils";
+import { Echanges } from "./echanges";
 
 const KIND: Record<string, string> = { appel: "📞 Appel", email: "✉️ E-mail", rdv: "📅 RDV", note: "📝 Note", relance: "🔔 Relance", devis: "📄 Devis", facture: "🧾 Facture", autre: "• Autre", demande: "🌐 Demande du site", statut: "🔀 Étape" };
 const n = (v: unknown) => (v === null || v === undefined ? 0 : Number(v));
@@ -40,12 +41,14 @@ export default async function ClientPage({ params, searchParams }: { params: { i
   const lateCount = inv.filter((i) => i.status === "en_retard").length;
   const activeContracts = (contracts.data ?? []).filter((k) => k.status === "actif").length;
 
-  const tab = ["contrats", "documents", "historique"].includes(searchParams.onglet ?? "") ? searchParams.onglet! : "resume";
+  const pending = await supabase.from("client_messages").select("id", { count: "exact", head: true }).eq("client_id", c.id).or("and(direction.eq.entrant,status.eq.recu),and(kind.eq.reponse_ia,status.eq.a_valider)");
+  const tab = ["contrats", "documents", "echanges", "historique"].includes(searchParams.onglet ?? "") ? searchParams.onglet! : "resume";
   const base = `/clients/${c.id}`;
   const tabs = [
     { href: base, label: "Résumé", active: tab === "resume" },
     { href: `${base}?onglet=contrats`, label: "Contrats", count: contracts.data?.length ?? 0, active: tab === "contrats" },
     { href: `${base}?onglet=documents`, label: "Devis & factures", count: (quotes.data?.length ?? 0) + inv.length, active: tab === "documents" },
+    { href: `${base}?onglet=echanges`, label: "Échanges", count: pending.error ? null : pending.count ?? 0, active: tab === "echanges" },
     { href: `${base}?onglet=historique`, label: "Historique", count: interactions.data?.length ?? 0, active: tab === "historique" }
   ];
   const address = [c.address, [c.postal_code, c.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
@@ -178,6 +181,8 @@ export default async function ClientPage({ params, searchParams }: { params: { i
           </Card>
         </div>
       )}
+
+      {tab === "echanges" && <Echanges client={{ id: c.id, name: c.name, email: c.email, is_reserved: c.is_reserved, kind: c.kind }} />}
 
       {tab === "historique" && (
         <Card>

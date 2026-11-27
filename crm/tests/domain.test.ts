@@ -97,3 +97,24 @@ describe("complétude des contrats", () => {
     expect(i.warnings).toEqual(expect.arrayContaining(["jours de passage (planning automatique impossible)", "durée par passage", "adresse du site", "intervenant"]));
   });
 });
+
+import { parseDecimal } from "@/lib/utils";
+
+describe("saisie des montants (totaux de devis)", () => {
+  it("lit les formats français courants sans jamais transformer une erreur en 0", () => {
+    expect(parseDecimal("1 200,50")).toBe(1200.5);
+    expect(parseDecimal("1 200,50 €")).toBe(1200.5);
+    expect(parseDecimal("12.5")).toBe(12.5);
+    expect(parseDecimal("0,5")).toBe(0.5);
+    expect(parseDecimal("")).toBeNull();
+    expect(parseDecimal("abc")).toBeNull();
+    expect(parseDecimal("12,5,3")).toBeNull();
+  });
+  it("le total d'un devis suit les lignes (1 200,50 × 2 + 3 × 33,33, TVA 20 %)", () => {
+    const t = documentTotals([
+      { description: "A", quantity: 2, unit_price_ht: parseDecimal("1 200,50")!, vat_rate: 20 },
+      { description: "B", quantity: 3, unit_price_ht: 33.33, vat_rate: 20 }
+    ]);
+    expect(t).toEqual({ ht: 2500.99, vat: 500.2, ttc: 3001.19 });
+  });
+});
